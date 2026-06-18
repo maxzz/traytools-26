@@ -1,0 +1,91 @@
+---
+description: Order Tailwind classes — position, self/group, spacing, size, text, color, variants, layout, end utilities
+globs: **/*.{tsx,jsx,vue,html}
+alwaysApply: false
+---
+
+# Tailwind Class Order
+
+When writing or editing `className`, `class`, or `cn()` arguments, order utility classes in this sequence:
+
+1. **Position anchor** — `relative`, `absolute`, `fixed`, `sticky`, `static`
+2. **Position offsets** — `inset-*`, `top-*`, `right-*`, `bottom-*`, `left-*` (immediately after anchor)
+3. **Self & group** — `self-*`, `group`, `group/*` (e.g. `group/accordion-trigger`)
+4. **Element** — `shrink-*`, `grow-*`, `select-*`, `whitespace-*`, custom element utilities (e.g. `compress-zero`)
+5. **Margin & padding** — `m-*`, `p-*`, and axis variants
+6. **Width & height** — `w-*`, `h-*`, `min-*`, `max-*`, `size-*`, `aspect-*`
+7. **Display** — `block`, `inline`, `hidden`, `visible`
+8. **Text size** — `text-xs`, `text-sm`, `text-base`, `text-lg`, etc. (size only — not color)
+9. **Font** — `font-*` (e.g. `font-medium`, `font-mono`, `font-condensed`) — after text size, before color
+10. **Text color** — `text-*` color tokens (e.g. `text-red-500`, `text-muted-foreground`, `text-background`)
+11. **Background & fill color** — `bg-*`, `fill-*`, `stroke-*`, gradients, `opacity-*`
+12. **Variant modifiers** — prefixed utilities placed after base color, e.g. `hover:`, `focus:`, `disabled:`, `aria-*:`, `data-*:`, `dark:`, `md:`, `hidden:` (state variants)
+13. **Transition** — `transition-*`, `duration-*`, `animate-*` (after color-defining classes)
+14. **Border** — `border`, `border-*`, `outline-*`, `ring-*`, `divide-*`
+15. **Rounding** — `rounded-*`
+16. **Shadow** — `shadow-*`
+17. **Truncate & overflow** — `truncate`, `overflow-*`, `text-ellipsis` — before children layout
+18. **Children (grid & flex)** — check `grid-*` first, then `flex`, `inline-flex`, `gap-*`, `items-*`, `justify-*`, `content-*`, `place-*`, `order-*`, `col-*`, `row-*`, `space-x-*`, `space-y-*`
+19. **End** — `cursor-*`, `pointer-events-*`, `z-*` (always last)
+
+Separate groups with a single space. Keep variant prefixes attached to each utility.
+
+## Group Reference
+
+| Group | Examples |
+|-------|----------|
+| Position anchor | `relative`, `absolute`, `fixed`, `sticky`, `static` |
+| Position offsets | `inset-*`, `top-*`, `right-*`, `bottom-*`, `left-*` |
+| Self & group | `self-*`, `group`, `group/name` |
+| Element | `shrink-*`, `grow-*`, `select-*`, `whitespace-*`, `compress-zero` |
+| Margin & padding | `m-*`, `mx-*`, `my-*`, `mt-*`, `mr-*`, `mb-*`, `ml-*`, `p-*`, `px-*`, `py-*`, `pt-*`, `pr-*`, `pb-*`, `pl-*` |
+| Width & height | `w-*`, `h-*`, `min-w-*`, `max-w-*`, `min-h-*`, `max-h-*`, `size-*`, `aspect-*` |
+| Display | `block`, `inline`, `hidden`, `visible` |
+| Text size | `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl` |
+| Font | `font-*`, `font-condensed` |
+| Text color | `text-red-500`, `text-muted-foreground`, `text-background`, `text-center`, `text-left` |
+| Background & fill color | `bg-*`, `fill-*`, `stroke-*`, `from-*`, `to-*`, `via-*`, `opacity-*` |
+| Variant modifiers | `hover:*`, `focus:*`, `disabled:*`, `aria-*:*`, `data-*:*`, `dark:*`, `md:*`, `hidden:*`, `group-*:*` |
+| Transition | `transition-*`, `duration-*`, `animate-*` |
+| Border | `border`, `border-*`, `outline-*`, `ring-*`, `divide-*` |
+| Rounding | `rounded-*` |
+| Shadow | `shadow-*` |
+| Truncate & overflow | `truncate`, `overflow-*`, `text-ellipsis` |
+| Children | `grid`, `grid-*`, `flex`, `inline-flex`, `gap-*`, `items-*`, `justify-*`, `content-*`, `place-*`, `order-*`, `col-*`, `row-*`, `space-x-*`, `space-y-*` |
+| End | `cursor-*`, `pointer-events-*`, `z-*` |
+
+## Examples
+
+```tsx
+// ❌ BAD — offsets before anchor; bg before text color
+<div className="top-0 left-0 absolute bg-muted text-sm text-muted-foreground" />
+
+// ✅ GOOD
+<div className="absolute top-0 left-0 text-sm text-muted-foreground bg-muted" />
+```
+
+```tsx
+// ❌ BAD — font before text size; hover color before base color
+<button className="font-medium text-sm hover:bg-primary flex px-4 h-9 bg-background border rounded-md" />
+
+// ✅ GOOD
+<button className="px-4 h-9 text-sm font-medium text-foreground bg-background hover:bg-primary border rounded-md flex" />
+```
+
+```tsx
+// ❌ BAD — group after padding; z-index too early
+<div className="px-3 py-2 group/accordion-trigger relative z-50 flex cursor-pointer" />
+
+// ✅ GOOD
+<div className="relative group/accordion-trigger px-3 py-2 text-sm font-medium text-muted-foreground bg-muted flex cursor-pointer z-50" />
+```
+
+```tsx
+// ❌ BAD — overflow after flex; truncate after children
+<div className="flex gap-2 overflow-auto truncate w-full" />
+
+// ✅ GOOD
+<div className="w-full overflow-auto truncate flex gap-2" />
+```
+
+When refactoring existing classes, reorder to match this sequence without changing behavior.

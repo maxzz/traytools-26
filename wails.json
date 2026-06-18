@@ -1,0 +1,12 @@
+{
+  "name": "tm-template-go-26",
+  "outputfilename": "tm-template-go-26",
+  "frontend:install": "pnpm install",
+  "frontend:build": "pnpm run build",
+  "frontend:dev:watcher": "pnpm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Max Zakharzhevskiy",
+    "email": "maxzz@msn.com"
+  }
+}
