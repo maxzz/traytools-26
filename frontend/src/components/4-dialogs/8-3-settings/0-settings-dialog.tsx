@@ -27,14 +27,11 @@ export function SettingsDialog() {
 
                 <div className="px-4 py-4 flex flex-col gap-4">
                     <ControlTheme />
-
-                    <Label className="flex items-center gap-2">
-                        Show footer
-                        <Switch
-                            checked={showFooter}
-                            onCheckedChange={setShowFooter}
-                        />
-                    </Label>
+                    <ControlSwitch
+                        label="Show footer"
+                        checked={showFooter}
+                        onCheckedChange={setShowFooter}
+                    />
                 </div>
 
                 <DialogFooter className="px-4 pb-4 pt-2 flex flex-row justify-end">
@@ -44,6 +41,21 @@ export function SettingsDialog() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+    );
+}
+
+type ControlSwitchProps = ComponentProps<typeof Label> & {
+    label: string;
+    checked: boolean;
+    onCheckedChange: (checked: boolean) => void;
+};
+
+function ControlSwitch({ label, checked, onCheckedChange, className, ...rest }: ControlSwitchProps) {
+    return (
+        <Label className={classNames("flex items-center gap-2", className)} {...rest}>
+            {label}
+            <Switch checked={checked} onCheckedChange={onCheckedChange} />
+        </Label>
     );
 }
 
