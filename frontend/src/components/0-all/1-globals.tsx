@@ -4,6 +4,16 @@ import { ConfirmationDialog } from "@/components/4-dialogs/8-1-confirmation/0-co
 import { LoginDialog } from "@/components/4-dialogs/8-2-login/0-login-dialog";
 import { isOpenSettingsDialogAtom, SettingsDialog } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
 
+export function AllDialogs() {
+    return (<>
+        <SettingsDialogShortcut />
+        
+        <ConfirmationDialog />
+        <LoginDialog />
+        <SettingsDialog />
+    </>);
+}
+
 function SettingsDialogShortcut() {
     const openSettingsDialog = useSetAtom(isOpenSettingsDialogAtom);
 
@@ -31,13 +41,4 @@ function SettingsDialogShortcut() {
     );
 
     return null;
-}
-
-export function AllDialogs() {
-    return (<>
-        <SettingsDialogShortcut />
-        <ConfirmationDialog />
-        <LoginDialog />
-        <SettingsDialog />
-    </>);
 }
