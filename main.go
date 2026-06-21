@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"runtime"
 	"tm-template-go-26/backend"
 
 	"github.com/wailsapp/wails/v2"
@@ -14,9 +15,21 @@ var assets embed.FS
 //go:embed build/appicon.png
 var icon []byte
 
+//go:embed build/windows/icon.ico
+var iconWindows []byte
+
+// trayIcon returns the icon bytes best suited for the current platform's tray.
+func trayIcon() []byte {
+	if runtime.GOOS == "windows" {
+		return iconWindows
+	}
+	return icon
+}
+
 func main() {
 	// Create an instance of the app structure
 	app := backend.NewApp()
+	app.SetTrayIcon(trayIcon())
 
 	// Load options on startup to get initial width/height
 	initialWidth := 1200
