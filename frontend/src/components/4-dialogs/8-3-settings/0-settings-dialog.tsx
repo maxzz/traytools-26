@@ -6,10 +6,6 @@ import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 
-export const isOpenSettingsDialogAtom = atom(false);
-export const settingsThemeAtom = atom<ThemeMode>("light");
-export const settingsShowFooterAtom = atom(true);
-
 export function SettingsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenSettingsDialogAtom);
     const [theme, setTheme] = useAtom(settingsThemeAtom);
@@ -18,6 +14,7 @@ export function SettingsDialog() {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="max-w-sm! gap-0! p-0!" aria-describedby={DESCRIPTION_ID} modal>
+
                 <DialogHeader className="gap-0 border-b px-4 py-3 text-left">
                     <DialogTitle className="text-sm">
                         Settings
@@ -29,7 +26,9 @@ export function SettingsDialog() {
 
                 <div className="px-4 py-4 flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="settings-theme">Theme</Label>
+                        <Label htmlFor="settings-theme">
+                            Theme
+                        </Label>
                         <Select value={theme} onValueChange={(value) => setTheme(value as ThemeMode)}>
                             <SelectTrigger id="settings-theme" className="w-full">
                                 <SelectValue placeholder="Select theme" />
@@ -43,7 +42,9 @@ export function SettingsDialog() {
                     </div>
 
                     <div className="flex items-center justify-between gap-4">
-                        <Label htmlFor="settings-show-footer">Show footer</Label>
+                        <Label htmlFor="settings-show-footer">
+                            Show footer
+                        </Label>
                         <Switch
                             id="settings-show-footer"
                             checked={showFooter}
@@ -61,5 +62,9 @@ export function SettingsDialog() {
         </Dialog>
     );
 }
+
+export const isOpenSettingsDialogAtom = atom(false);
+export const settingsThemeAtom = atom<ThemeMode>("light");
+export const settingsShowFooterAtom = atom(true);
 
 const DESCRIPTION_ID = "settings-dialog-description";

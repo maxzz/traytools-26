@@ -11,6 +11,7 @@ export function AppMenubar() {
             <MenubarMenu>
                 <MenubarTrigger>File</MenubarTrigger>
                 <MenubarContent>
+
                     <MenubarSub>
                         <MenubarSubTrigger>Preferences</MenubarSubTrigger>
                         <MenubarSubContent>
@@ -19,9 +20,11 @@ export function AppMenubar() {
                             </MenubarItem>
                         </MenubarSubContent>
                     </MenubarSub>
+
                     <MenubarItem onSelect={() => appBus.exit().catch(console.error)}>
                         Exit
                     </MenubarItem>
+                    
                 </MenubarContent>
             </MenubarMenu>
         </Menubar>
