@@ -10,8 +10,16 @@ export function Greet(arg1) {
   return window['go']['backend']['App']['Greet'](arg1);
 }
 
+export function RequestExit() {
+  return window['go']['backend']['App']['RequestExit']();
+}
+
 export function SetDevToolsState(arg1) {
   return window['go']['backend']['App']['SetDevToolsState'](arg1);
+}
+
+export function SetTrayIcon(arg1) {
+  return window['go']['backend']['App']['SetTrayIcon'](arg1);
 }
 
 export function ToggleDevTools() {
