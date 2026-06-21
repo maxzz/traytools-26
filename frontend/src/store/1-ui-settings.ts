@@ -11,6 +11,7 @@ export interface AppSettings {
     showFooter: boolean;         // Show footer in main layout
     panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
     expandedSections: string[];  // Expanded accordion sections by name
+    mainTab: string;             // Active main body tab
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -18,6 +19,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     showFooter: true,
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
+    mainTab: 'demos',
 };
 
 // Load settings from localStorage
@@ -34,6 +36,7 @@ function loadSettings(): AppSettings {
                 ...parsed,
                 panelSizes: getValidPanelSizes(parsed.panelSizes),
                 expandedSections: parsed.expandedSections ?? DEFAULT_SETTINGS.expandedSections,
+                mainTab: parsed.mainTab ?? DEFAULT_SETTINGS.mainTab,
             };
         }
     } catch (e) {
