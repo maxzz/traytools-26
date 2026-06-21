@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"tm-template-go-26/backend/bus"
 
@@ -16,6 +17,9 @@ type App struct {
 	bus           *bus.Bus
 	quitRequested bool
 	trayIcon      []byte
+
+	windowMu      sync.Mutex
+	windowVisible bool
 }
 
 // NewApp creates a new App application struct
@@ -46,11 +50,15 @@ func (a *App) registerHandlers() {
 		return nil, nil
 	})
 	a.bus.Register("app", "show", func(ctx context.Context, payload json.RawMessage) (any, error) {
-		runtime.WindowShow(a.ctx)
+		a.showWindow()
 		return nil, nil
 	})
 	a.bus.Register("app", "hide", func(ctx context.Context, payload json.RawMessage) (any, error) {
-		runtime.WindowHide(a.ctx)
+		a.hideWindow()
+		return nil, nil
+	})
+	a.bus.Register("app", "toggle", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		a.toggleWindow()
 		return nil, nil
 	})
 }
@@ -97,7 +105,7 @@ func (a *App) DomReady(ctx context.Context) {
 // it to the system tray.
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	if !a.quitRequested {
-		runtime.WindowHide(ctx)
+		a.hideWindow()
 		return true
 	}
 	a.saveWindowOptions(ctx)

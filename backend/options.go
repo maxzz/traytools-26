@@ -134,4 +134,8 @@ func (a *App) restoreWindowOptions(ctx context.Context) {
 		// Default: just show the window
 		runtime.WindowShow(ctx)
 	}
+
+	a.windowMu.Lock()
+	a.windowVisible = true
+	a.windowMu.Unlock()
 }

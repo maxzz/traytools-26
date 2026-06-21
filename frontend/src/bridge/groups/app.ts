@@ -8,4 +8,5 @@ export const appBus = {
     exit: () => dispatch(GROUP, "exit"),
     show: () => dispatch(GROUP, "show"),
     hide: () => dispatch(GROUP, "hide"),
+    toggle: () => dispatch(GROUP, "toggle"),
 };

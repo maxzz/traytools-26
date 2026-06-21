@@ -2,7 +2,6 @@ package backend
 
 import (
 	"github.com/energye/systray"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // startTray launches the system tray icon and menu. systray.Run blocks, so it
@@ -23,15 +22,16 @@ func (a *App) onTrayReady() {
 	mExit := systray.AddMenuItem("Exit", "Quit the application")
 
 	mShow.Click(func() {
-		runtime.WindowShow(a.ctx)
+		a.showWindow()
 	})
 	mExit.Click(func() {
 		a.RequestExit()
 	})
 
-	// Left-click restores the window; right-click opens the tray menu.
+	// Left-click toggles the window (hide if open, show if hidden);
+	// right-click opens the tray menu.
 	systray.SetOnClick(func(menu systray.IMenu) {
-		runtime.WindowShow(a.ctx)
+		a.toggleWindow()
 	})
 	systray.SetOnRClick(func(menu systray.IMenu) {
 		menu.ShowMenu()
