@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { atom, useAtom } from "jotai";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 
+const tabBField1Atom = atom("");
+const tabBField2Atom = atom("");
+
 export function PageTestTabB() {
-    const [field1, setField1] = useState("");
-    const [field2, setField2] = useState("");
+    const [field1, setField1] = useAtom(tabBField1Atom);
+    const [field2, setField2] = useAtom(tabBField2Atom);
 
     return (
         <div className="flex flex-col gap-4 max-w-sm">
