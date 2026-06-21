@@ -26,18 +26,15 @@ export function SettingsDialog() {
                 </DialogHeader>
 
                 <div className="px-4 py-4 flex flex-col gap-4">
-                    <SettingsThemeField />
+                    <ControlTheme />
 
-                    <div className="flex items-center justify-between gap-4">
-                        <Label htmlFor="settings-show-footer">
-                            Show footer
-                        </Label>
+                    <Label className="flex items-center gap-2">
+                        Show footer
                         <Switch
-                            id="settings-show-footer"
                             checked={showFooter}
                             onCheckedChange={setShowFooter}
                         />
-                    </div>
+                    </Label>
                 </div>
 
                 <DialogFooter className="px-4 pb-4 pt-2 flex flex-row justify-end">
@@ -50,7 +47,7 @@ export function SettingsDialog() {
     );
 }
 
-function SettingsThemeField({ className, ...rest }: ComponentProps<"div">) {
+function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
     const [theme, setTheme] = useAtom(settingsThemeAtom);
 
     return (
@@ -59,7 +56,7 @@ function SettingsThemeField({ className, ...rest }: ComponentProps<"div">) {
                 Theme
             </Label>
             <Select value={theme} onValueChange={(value) => setTheme(value as ThemeMode)}>
-                <SelectTrigger id="settings-theme" className="w-full">
+                <SelectTrigger className="w-full" id="settings-theme">
                     <SelectValue placeholder="Select theme" />
                 </SelectTrigger>
                 <SelectContent>
