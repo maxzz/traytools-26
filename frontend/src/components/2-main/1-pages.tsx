@@ -1,6 +1,6 @@
 import { type ComponentType } from "react";
-import { PageTestTabA } from "./tab-tests/01-test-tab-a";
-import { PageTestTabB } from "./tab-tests/02-test-tab-b";
+import { PageTestTabA } from "./tab-tests/01-page-a/0-page-a-all";
+import { PageTestTabB } from "./tab-tests/02-page-b/0-page-b-all";
 import { PageDemos } from "./xyz-demos";
 
 export const MAIN_PAGES = [

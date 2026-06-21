@@ -1,9 +1,7 @@
-import { atom, useAtom } from "jotai";
+import { useAtom } from "jotai";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
-
-const tabAField1Atom = atom("");
-const tabAField2Atom = atom("");
+import { tabAField1Atom, tabAField2Atom } from "./a-page-a-atoms";
 
 export function PageTestTabA() {
     const [field1, setField1] = useAtom(tabAField1Atom);
