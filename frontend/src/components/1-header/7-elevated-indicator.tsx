@@ -18,21 +18,23 @@ export function ElevatedIndicator() {
     }
 
     const label = isElevated ? "Elevated" : "Standard";
+    const ariaLabel = isElevated ? "Running elevated" : "Running with standard privileges";
+    const tooltipContent = isElevated ? "Running as administrator" : "Running with standard privileges";
 
     return (
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <span
-                        className="px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground rounded inline-flex items-center gap-1 uppercase tracking-wide"
-                        aria-label={isElevated ? "Running elevated" : "Running with standard privileges"}
+                        className="px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground rounded inline-flex items-center"
+                        aria-label={ariaLabel}
                     >
-                        <IconRadix_DotFilled className={isElevated ? "size-2 text-amber-500" : "size-2 text-muted-foreground/60"}/>
+                        <IconRadix_DotFilled className={isElevated ? "size-4 text-red-500" : "size-2 text-muted-foreground/60"}/>
                         {label}
                     </span>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                    {isElevated ? "Running as administrator" : "Running with standard privileges"}
+                    {tooltipContent}
                 </TooltipContent>
             </Tooltip>
         </TooltipProvider>
