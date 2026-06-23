@@ -25,8 +25,8 @@ export function LoginDialog() {
 
     return (
         <Dialog open={!!currentLoginData} onOpenChange={() => onDlgClose(false)}>
-            <DialogContent className="max-w-sm! gap-0! p-0!" aria-describedby={DESCRIPTION_ID} modal>
-                <DialogHeader className="gap-0 border-b px-4 py-3 text-left">
+            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID} modal>
+                <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         {currentLoginData.ui.title}
                     </DialogTitle>
@@ -105,7 +105,7 @@ function Body({ loginDialogData, onDlgClose }: { loginDialogData: LoginDialogDat
             </div>
 
             {error && (
-                <div className="text-xs text-destructive font-medium">
+                <div className="text-xs font-medium text-destructive">
                     {error}
                 </div>
             )}
