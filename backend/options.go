@@ -21,6 +21,7 @@ type IniOptions struct {
 	DevTools    bool       `json:"devTools"`
 	ShowMenu    bool       `json:"showMenu"`
 	RunElevated bool       `json:"runElevated"`
+	QuitOnClose bool       `json:"quitOnClose"`
 }
 
 func getIniFilePath() (string, error) {
@@ -105,11 +106,13 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 	devTools := a.platformIsDevToolsOpen()
 	var showMenu bool
 	var runElevated bool
+	var quitOnClose bool
 
 	existing, err := LoadIniFileOptions()
 	if err == nil && existing != nil {
 		showMenu = existing.ShowMenu
 		runElevated = existing.RunElevated
+		quitOnClose = existing.QuitOnClose
 	}
 
 	opts := &IniOptions{
@@ -117,9 +120,27 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 		DevTools:    devTools,
 		ShowMenu:    showMenu,
 		RunElevated: runElevated,
+		QuitOnClose: quitOnClose,
 	}
 
 	saveIniFileOptions(opts)
+}
+
+func GetQuitOnCloseOption() bool {
+	opts, err := LoadIniFileOptions()
+	if err != nil || opts == nil {
+		return false
+	}
+	return opts.QuitOnClose
+}
+
+func SetQuitOnCloseOption(value bool) error {
+	opts, err := LoadIniFileOptions()
+	if err != nil {
+		opts = &IniOptions{}
+	}
+	opts.QuitOnClose = value
+	return saveIniFileOptions(opts)
 }
 
 func (a *App) restoreWindowOptions(ctx context.Context) {
