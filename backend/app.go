@@ -78,6 +78,12 @@ func (a *App) registerHandlers() {
 		}
 		return nil, nil
 	})
+	a.bus.Register("settings", "requestElevationRestart", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return nil, RequestElevationRestart()
+	})
+	a.bus.Register("settings", "isElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return IsElevated(), nil
+	})
 }
 
 // Dispatch is the single bound entry point for the grouped command bus.

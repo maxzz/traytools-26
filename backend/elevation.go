@@ -1,26 +1,51 @@
 package backend
 
-import "log"
+import (
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+)
 
 // EnsureElevatedIfRequested relaunches the current executable with UAC elevation
 // when RunElevated is enabled in init.json and the process is not already elevated.
-// It returns true when the caller should exit because a new elevated instance was started.
-func EnsureElevatedIfRequested() bool {
+// It exits the current process when a new elevated instance was started.
+func EnsureElevatedIfRequested() {
+	if isDevExecutable() {
+		log.Println("elevation: skipping auto-elevation for wails dev binary; use wails build and run the release .exe to test startup elevation")
+		return
+	}
+
 	opts, err := LoadIniFileOptions()
 	if err != nil || opts == nil || !opts.RunElevated {
-		return false
+		return
 	}
 
 	if IsElevated() {
-		return false
+		return
 	}
 
 	if err := RelaunchElevated(); err != nil {
-		log.Printf("failed to relaunch elevated: %v", err)
-		return false
+		log.Printf("elevation: failed to relaunch elevated: %v", err)
+		return
 	}
 
-	return true
+	os.Exit(0)
+}
+
+// RequestElevationRestart relaunches the current executable elevated and exits
+// the current process. No-op when already elevated.
+func RequestElevationRestart() error {
+	if IsElevated() {
+		return nil
+	}
+
+	if err := RelaunchElevated(); err != nil {
+		return err
+	}
+
+	os.Exit(0)
+	return nil
 }
 
 func GetRunElevatedOption() bool {
@@ -38,4 +63,12 @@ func SetRunElevatedOption(value bool) error {
 	}
 	opts.RunElevated = value
 	return saveIniFileOptions(opts)
+}
+
+func isDevExecutable() bool {
+	exe, err := os.Executable()
+	if err != nil {
+		return false
+	}
+	return strings.Contains(strings.ToLower(filepath.Base(exe)), "-dev")
 }

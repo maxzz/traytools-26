@@ -89,7 +89,13 @@ export const settingsRunElevatedAtom = atom(
     (get) => get(settingsRunElevatedBaseAtom),
     (_get, set, next: boolean) => {
         set(settingsRunElevatedBaseAtom, next);
-        settingsBus.setRunElevated(next).catch(console.error);
+        settingsBus.setRunElevated(next)
+            .then(() => {
+                if (next) {
+                    return settingsBus.requestElevationRestart();
+                }
+            })
+            .catch(console.error);
     },
 );
 

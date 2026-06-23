@@ -5,6 +5,8 @@ package backend
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"unsafe"
 
@@ -28,6 +30,8 @@ func RelaunchElevated() error {
 		return err
 	}
 
+	exeDir := filepath.Dir(exe)
+
 	verb, err := windows.UTF16PtrFromString("runas")
 	if err != nil {
 		return err
@@ -38,12 +42,26 @@ func RelaunchElevated() error {
 		return err
 	}
 
+	dirPtr, err := windows.UTF16PtrFromString(exeDir)
+	if err != nil {
+		return err
+	}
+
+	var paramsArg uintptr
+	if len(os.Args) > 1 {
+		params, err := windows.UTF16PtrFromString(strings.Join(os.Args[1:], " "))
+		if err != nil {
+			return err
+		}
+		paramsArg = uintptr(unsafe.Pointer(params))
+	}
+
 	ret, _, err := shellExecuteW.Call(
 		0,
 		uintptr(unsafe.Pointer(verb)),
 		uintptr(unsafe.Pointer(exePtr)),
-		0,
-		0,
+		paramsArg,
+		uintptr(unsafe.Pointer(dirPtr)),
 		uintptr(windows.SW_SHOWDEFAULT),
 	)
 	if ret <= 32 {
@@ -57,6 +75,6 @@ func RelaunchElevated() error {
 }
 
 var (
-	shell32         = windows.NewLazySystemDLL("shell32.dll")
-	shellExecuteW   = shell32.NewProc("ShellExecuteW")
+	shell32       = windows.NewLazySystemDLL("shell32.dll")
+	shellExecuteW = shell32.NewProc("ShellExecuteW")
 )
