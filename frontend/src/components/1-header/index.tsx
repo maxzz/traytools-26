@@ -1,3 +1,4 @@
+import { ElevatedIndicator } from "./7-elevated-indicator";
 import { ButtonThemeToggle } from "./8-btn-theme-toggle";
 import { AppMenubar } from "./9-app-menubar";
 
@@ -11,6 +12,7 @@ export function Header() {
                 </div>
             </div>
             <div className="flex items-center gap-2">
+                <ElevatedIndicator />
                 <ButtonThemeToggle />
             </div>
         </header>
