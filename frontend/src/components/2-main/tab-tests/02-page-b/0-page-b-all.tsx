@@ -8,8 +8,8 @@ export function PageTestTabB() {
     const [field2, setField2] = useAtom(tabBField2Atom);
 
     return (
-        <div className="flex flex-col gap-4 max-w-sm">
-            <p className="text-muted-foreground text-xs">
+        <div className="max-w-sm flex flex-col gap-4">
+            <p className="text-xs text-muted-foreground">
                 Tab B — type in a field, switch tabs, then return to check value and focus.
             </p>
 

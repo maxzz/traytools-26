@@ -27,6 +27,8 @@ func trayIcon() []byte {
 }
 
 func main() {
+	backend.EnsureElevatedIfRequested()
+
 	// Create an instance of the app structure
 	app := backend.NewApp()
 	app.SetTrayIcon(trayIcon())

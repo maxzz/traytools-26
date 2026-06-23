@@ -19,8 +19,8 @@ export function ConfirmationDialog() {
 
     return (
         <Dialog open={!!currentConfirmData} onOpenChange={() => onDlgClose(false)}>
-            <DialogContent className="max-w-sm! gap-0! p-0!" aria-describedby={DESCRIPTION_ID} modal>
-                <DialogHeader className="gap-0 border-b px-4 py-3 text-left">
+            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID} modal>
+                <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         {currentConfirmData.ui.title}
                     </DialogTitle>
@@ -40,10 +40,10 @@ function Body({ confirmDialogOpen, onDlgClose }: { confirmDialogOpen: Confirmati
     const { ui: { icon, message, buttonOk, buttonCancel, isDafaultOk } } = confirmDialogOpen;
     return (
         <div className="px-4 py-3 flex flex-col gap-3">
-            <div id={DESCRIPTION_ID} className="flex items-start gap-2 text-xs leading-5 text-foreground/90">
+            <div id={DESCRIPTION_ID} className="text-xs text-foreground/90 flex items-start gap-2 leading-5">
                 {icon
                     ? (
-                        <div className="mt-0.5 shrink-0 text-amber-600">
+                        <div className="shrink-0 mt-0.5 text-amber-600">
                             {icon}
                         </div>
                     )

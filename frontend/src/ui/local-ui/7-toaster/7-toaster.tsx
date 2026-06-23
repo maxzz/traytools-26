@@ -9,11 +9,11 @@ type ToastTypes = Exclude<NonNullable<ToastT['type']>, 'normal' | 'action' | 'de
 function myToast(type: ToastTypes, message: React.ReactNode, options: Partial<ToastT> = {}): string | number {
     const id = toast.custom(
         () => (
-            <div className={`text-xs text-background bg-foreground border-foreground/10 dark:border-background border rounded-md shadow-md 1dark:shadow-foreground/20 1dark:shadow-red-500/60 overflow-hidden ${toastShadowClasses(type)}`}>
+            <div className={`text-xs text-background bg-foreground dark:border-background 1dark:shadow-foreground/20 1dark:shadow-red-500/60 border-foreground/10 border rounded-md shadow-md overflow-hidden ${toastShadowClasses(type)}`}>
 
                 <div className="min-h-12 grid grid-cols-[4rem_1fr_auto] place-items-center">
 
-                    <div className={`self-stretch w-full grid place-items-center text-background ${toastIconClasses(type)}`}>
+                    <div className={`self-stretch w-full text-background grid place-items-center ${toastIconClasses(type)}`}>
                         {type === 'success' && <SymbolInfo className="size-5" />}
                         {type === 'info' && <SymbolInfo className="size-5" />}
                         {type === 'warning' && <SymbolWarning className="size-5" />}
@@ -30,7 +30,7 @@ function myToast(type: ToastTypes, message: React.ReactNode, options: Partial<To
                             )}
                     </>
 
-                    <Button className="m-1 p-1 aspect-square active:scale-[.97]" variant="ghost" onClick={() => notice.dismiss(id)}>
+                    <Button className="aspect-square m-1 p-1 active:scale-[.97]" variant="ghost" onClick={() => notice.dismiss(id)}>
                         <SymbolCross className="size-3" onClick={() => notice.dismiss(id)} />
                     </Button>
                 </div>

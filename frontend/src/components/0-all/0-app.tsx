@@ -47,7 +47,7 @@ export function App() {
             </header>
 
             <main className="self-center justify-self-center p-4">
-                <div className="text-blue-900 font-bold">
+                <div className="font-bold text-blue-900">
                     Go wrapped frontend
                 </div>
             </main>

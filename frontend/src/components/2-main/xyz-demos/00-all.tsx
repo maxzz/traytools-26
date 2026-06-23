@@ -21,8 +21,8 @@ export function PageDemos() {
                 className="gap-4"
             >
                 {/* Section 1: Resizable Panels */}
-                <AccordionItem value="resizable-panels" className="border rounded-xl bg-card shadow-xs overflow-hidden">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline font-semibold text-sm border-b">
+                <AccordionItem value="resizable-panels" className="bg-card border rounded-xl shadow-xs overflow-hidden">
+                    <AccordionTrigger className="px-4 py-3 text-sm font-semibold hover:no-underline border-b">
                         Resizable Panels Demo
                     </AccordionTrigger>
                     <AccordionContent className="p-0">

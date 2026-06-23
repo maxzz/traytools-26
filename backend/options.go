@@ -17,9 +17,10 @@ type Rectangle struct {
 }
 
 type IniOptions struct {
-	Bounds   *Rectangle `json:"bounds,omitempty"`
-	DevTools bool       `json:"devTools"`
-	ShowMenu bool       `json:"showMenu"`
+	Bounds      *Rectangle `json:"bounds,omitempty"`
+	DevTools    bool       `json:"devTools"`
+	ShowMenu    bool       `json:"showMenu"`
+	RunElevated bool       `json:"runElevated"`
 }
 
 func getIniFilePath() (string, error) {
@@ -103,16 +104,19 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 	// 2. DevTools & ShowMenu state
 	devTools := a.platformIsDevToolsOpen()
 	var showMenu bool
+	var runElevated bool
 
 	existing, err := LoadIniFileOptions()
 	if err == nil && existing != nil {
 		showMenu = existing.ShowMenu
+		runElevated = existing.RunElevated
 	}
 
 	opts := &IniOptions{
-		Bounds:   bounds,
-		DevTools: devTools,
-		ShowMenu: showMenu,
+		Bounds:      bounds,
+		DevTools:    devTools,
+		ShowMenu:    showMenu,
+		RunElevated: runElevated,
 	}
 
 	saveIniFileOptions(opts)

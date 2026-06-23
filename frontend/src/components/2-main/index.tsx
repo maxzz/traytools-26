@@ -8,7 +8,7 @@ export function MainBody() {
     const activeTab = getValidMainTab(settings.mainTab);
 
     return (
-        <div className="px-2 py-3 flex flex-col gap-4 min-h-0">
+        <div className="px-2 py-3 min-h-0 flex flex-col gap-4">
             <Tabs
                 value={activeTab}
                 onValueChange={(value) => {

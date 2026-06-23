@@ -1,5 +1,6 @@
-import { type ComponentProps } from "react";
-import { atom, useAtom } from "jotai";
+import { type ComponentProps, useEffect } from "react";
+import { atom, useAtom, useSetAtom, type WritableAtom } from "jotai";
+import { settingsBus } from "@/bridge/groups/settings";
 import { classNames } from "@/utils";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { Button } from "@/ui/shadcn/button";
@@ -10,14 +11,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 export function SettingsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenSettingsDialogAtom);
-    const [runElevated, setRunElevated] = useAtom(settingsRunElevatedAtom);
-    const [showFooter, setShowFooter] = useAtom(settingsShowFooterAtom);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="max-w-sm! gap-0! p-0!" aria-describedby={DESCRIPTION_ID} modal>
+            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID} modal>
 
-                <DialogHeader className="gap-0 border-b px-4 py-3 text-left">
+                <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         Settings
                     </DialogTitle>
@@ -28,16 +27,8 @@ export function SettingsDialog() {
 
                 <div className="px-4 py-4 flex flex-col gap-4">
                     <ControlTheme />
-                    <ControlSwitch
-                        label="Show footer"
-                        checked={showFooter}
-                        onCheckedChange={setShowFooter}
-                    />
-                    <ControlSwitch
-                        label="Run this app elevated"
-                        checked={runElevated}
-                        onCheckedChange={setRunElevated}
-                    />
+                    <ControlSwitch label="Show footer" valueAtom={settingsShowFooterAtom} />
+                    <ControlSwitch label="Run this app elevated" valueAtom={settingsRunElevatedAtom} />
                 </div>
 
                 <DialogFooter className="px-4 pb-4 pt-2 flex flex-row justify-end">
@@ -52,15 +43,16 @@ export function SettingsDialog() {
 
 type ControlSwitchProps = ComponentProps<typeof Label> & {
     label: string;
-    checked: boolean;
-    onCheckedChange: (checked: boolean) => void;
+    valueAtom: WritableAtom<boolean, [boolean], void>;
 };
 
-function ControlSwitch({ label, checked, onCheckedChange, className, ...rest }: ControlSwitchProps) {
+function ControlSwitch({ label, valueAtom, className, ...rest }: ControlSwitchProps) {
+    const [checked, setChecked] = useAtom(valueAtom);
+
     return (
         <Label className={classNames("flex items-center gap-2", className)} {...rest}>
             {label}
-            <Switch checked={checked} onCheckedChange={onCheckedChange} />
+            <Switch checked={checked} onCheckedChange={setChecked} />
         </Label>
     );
 }
@@ -90,6 +82,34 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
 export const isOpenSettingsDialogAtom = atom(false);
 export const settingsThemeAtom = atom<ThemeMode>("light");
 export const settingsShowFooterAtom = atom(true);
-export const settingsRunElevatedAtom = atom(false);
+
+const settingsRunElevatedBaseAtom = atom(false);
+
+export const settingsRunElevatedAtom = atom(
+    (get) => get(settingsRunElevatedBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsRunElevatedBaseAtom, next);
+        settingsBus.setRunElevated(next)
+            .then(() => {
+                if (next) {
+                    return settingsBus.requestElevationRestart();
+                }
+            })
+            .catch(console.error);
+    },
+);
+
+export function SettingsRunElevatedSync() {
+    const setRunElevated = useSetAtom(settingsRunElevatedBaseAtom);
+
+    useEffect(
+        () => {
+            settingsBus.getRunElevated().then(setRunElevated).catch(console.error);
+        },
+        [setRunElevated],
+    );
+
+    return null;
+}
 
 const DESCRIPTION_ID = "settings-dialog-description";
