@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 export function SettingsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenSettingsDialogAtom);
+    const [runElevated, setRunElevated] = useAtom(settingsRunElevatedAtom);
     const [showFooter, setShowFooter] = useAtom(settingsShowFooterAtom);
 
     return (
@@ -31,6 +32,11 @@ export function SettingsDialog() {
                         label="Show footer"
                         checked={showFooter}
                         onCheckedChange={setShowFooter}
+                    />
+                    <ControlSwitch
+                        label="Run this app elevated"
+                        checked={runElevated}
+                        onCheckedChange={setRunElevated}
                     />
                 </div>
 
@@ -84,5 +90,6 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
 export const isOpenSettingsDialogAtom = atom(false);
 export const settingsThemeAtom = atom<ThemeMode>("light");
 export const settingsShowFooterAtom = atom(true);
+export const settingsRunElevatedAtom = atom(false);
 
 const DESCRIPTION_ID = "settings-dialog-description";
