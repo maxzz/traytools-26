@@ -11,7 +11,7 @@ export function Header() {
                     tm-template-shadcn-26
                 </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
                 <ElevatedIndicator />
                 <ButtonThemeToggle />
             </div>
