@@ -2,11 +2,12 @@ import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { ConfirmationDialog } from "@/components/4-dialogs/8-1-confirmation/0-confirmation-dialog";
 import { LoginDialog } from "@/components/4-dialogs/8-2-login/0-login-dialog";
-import { isOpenSettingsDialogAtom, SettingsDialog } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
+import { isOpenSettingsDialogAtom, SettingsDialog, SettingsRunElevatedSync } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
 
 export function AllDialogs() {
     return (<>
         <SettingsDialogShortcut />
+        <SettingsRunElevatedSync />
         
         <ConfirmationDialog />
         <LoginDialog />

@@ -61,6 +61,23 @@ func (a *App) registerHandlers() {
 		a.toggleWindow()
 		return nil, nil
 	})
+	a.bus.Register("settings", "getRunElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return GetRunElevatedOption(), nil
+	})
+	a.bus.Register("settings", "setRunElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			Value bool `json:"value"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		if err := SetRunElevatedOption(req.Value); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
 }
 
 // Dispatch is the single bound entry point for the grouped command bus.
@@ -136,7 +153,6 @@ func (a *App) saveDevToolsState(open bool) {
 	opts.DevTools = open
 	saveIniFileOptions(opts)
 }
-
 // shutdown is called at application termination
 func (a *App) shutdown(ctx context.Context) {}
 
