@@ -29,6 +29,7 @@ export function SettingsDialog() {
                     <ControlTheme />
                     <ControlSwitch label="Show footer" valueAtom={settingsShowFooterAtom} />
                     <ControlSwitch label="Run this app elevated" valueAtom={settingsRunElevatedAtom} />
+                    <ControlSwitch label="Quit when window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                 </div>
 
                 <DialogFooter className="px-4 pb-4 pt-2 flex flex-row justify-end">
@@ -107,6 +108,29 @@ export function SettingsRunElevatedSync() {
             settingsBus.getRunElevated().then(setRunElevated).catch(console.error);
         },
         [setRunElevated],
+    );
+
+    return null;
+}
+
+const settingsQuitOnCloseBaseAtom = atom(false);
+
+export const settingsQuitOnCloseAtom = atom(
+    (get) => get(settingsQuitOnCloseBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsQuitOnCloseBaseAtom, next);
+        settingsBus.setQuitOnClose(next).catch(console.error);
+    },
+);
+
+export function SettingsQuitOnCloseSync() {
+    const setQuitOnClose = useSetAtom(settingsQuitOnCloseBaseAtom);
+
+    useEffect(
+        () => {
+            settingsBus.getQuitOnClose().then(setQuitOnClose).catch(console.error);
+        },
+        [setQuitOnClose],
     );
 
     return null;

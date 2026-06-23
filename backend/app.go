@@ -84,6 +84,23 @@ func (a *App) registerHandlers() {
 	a.bus.Register("settings", "isElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return IsElevated(), nil
 	})
+	a.bus.Register("settings", "getQuitOnClose", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return GetQuitOnCloseOption(), nil
+	})
+	a.bus.Register("settings", "setQuitOnClose", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			Value bool `json:"value"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		if err := SetQuitOnCloseOption(req.Value); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
 }
 
 // Dispatch is the single bound entry point for the grouped command bus.
@@ -123,16 +140,16 @@ func (a *App) DomReady(ctx context.Context) {
 // either by clicking the window close button or calling runtime.Quit.
 // Returning true will cause the application to continue, false will continue shutdown as normal.
 //
-// This app behaves as a background utility: unless an explicit exit was
-// requested (via the frontend menu or the tray), closing the window only hides
-// it to the system tray.
+// This app behaves as a background utility by default: unless an explicit exit
+// was requested (via the frontend menu or the tray), or quitOnClose is enabled
+// in settings, closing the window only hides it to the system tray.
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
-	if !a.quitRequested {
-		a.hideWindow()
-		return true
+	if a.quitRequested || GetQuitOnCloseOption() {
+		a.saveWindowOptions(ctx)
+		return false
 	}
-	a.saveWindowOptions(ctx)
-	return false
+	a.hideWindow()
+	return true
 }
 
 // SetDevToolsState sets DevTools state explicitly and persists it to the ini file.
