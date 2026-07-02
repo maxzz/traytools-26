@@ -1,6 +1,5 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { type Layout } from "react-resizable-panels";
 
 // Discrete UI state for the Trace Manager tab. Kept in Jotai (per the task's
 // state-management split) while the live trace data and categories live in the
@@ -20,7 +19,3 @@ export const streamOnMountAtom = atomWithStorage("tm.streamOnMount", false);
 
 // Expanded category sections (accordion-like collapsibles).
 export const expandedSectionsAtom = atomWithStorage<string[]>("tm.expandedSections", []);
-
-// Resizable split layouts. Keys map to ResizablePanel ids.
-export const mainLayoutAtom = atomWithStorage<Layout>("tm.layout.main", { panels: 68, categories: 32 });
-export const leftLayoutAtom = atomWithStorage<Layout>("tm.layout.left", { list: 38, view: 62 });

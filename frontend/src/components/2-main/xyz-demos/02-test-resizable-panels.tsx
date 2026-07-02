@@ -2,6 +2,7 @@ import { type ComponentProps } from "react";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
+import { PANEL_GROUPS } from "@/store/2-panel-sizes";
 import { type Layout } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
 
@@ -9,15 +10,15 @@ export function TestResizablePanels({ className, ...rest }: ComponentProps<"div"
     const settings = useSnapshot(appSettings);
 
     const onHorizontalLayout = (layout: Layout) => {
-        appSettings.panelSizes = { ...appSettings.panelSizes, horizontal: layout, };
+        appSettings.panelSizes = { ...appSettings.panelSizes, [PANEL_GROUPS.demosHorizontal]: layout };
     };
 
     const onVerticalLayout = (layout: Layout) => {
-        appSettings.panelSizes = { ...appSettings.panelSizes, vertical: layout, };
+        appSettings.panelSizes = { ...appSettings.panelSizes, [PANEL_GROUPS.demosVertical]: layout };
     };
 
-    const horizontalLayout = settings.panelSizes.horizontal;
-    const verticalLayout = settings.panelSizes.vertical;
+    const horizontalLayout = settings.panelSizes[PANEL_GROUPS.demosHorizontal];
+    const verticalLayout = settings.panelSizes[PANEL_GROUPS.demosVertical];
 
     return (
         <div className={classNames("text-xs font-condensed flex flex-col", className)} {...rest}>
@@ -52,7 +53,8 @@ export function TestResizablePanels({ className, ...rest }: ComponentProps<"div"
 
 function ResizablePanelsHeader() {
     const settings = useSnapshot(appSettings);
-    const { horizontal, vertical } = settings.panelSizes;
+    const horizontal = settings.panelSizes[PANEL_GROUPS.demosHorizontal];
+    const vertical = settings.panelSizes[PANEL_GROUPS.demosVertical];
 
     const leftWidth = horizontal.left ?? 30;
     const rightWidth = horizontal.right ?? 70;
