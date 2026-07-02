@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"tm-template-go-26/backend/bus"
+	"tm-template-go-26/backend/tracemanager"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -15,6 +16,7 @@ import (
 type App struct {
 	ctx           context.Context
 	bus           *bus.Bus
+	trace         *tracemanager.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -25,9 +27,11 @@ type App struct {
 // NewApp creates a new App application struct
 func NewApp() *App {
 	a := &App{
-		bus: bus.New(),
+		bus:   bus.New(),
+		trace: tracemanager.New(),
 	}
 	a.registerHandlers()
+	a.trace.Register(a.bus)
 	return a
 }
 
@@ -40,6 +44,7 @@ func (a *App) SetTrayIcon(icon []byte) {
 // Startup is called at application startup
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
+	a.trace.Start(ctx)
 	a.startTray()
 }
 
@@ -176,8 +181,11 @@ func (a *App) saveDevToolsState(open bool) {
 	opts.DevTools = open
 	saveIniFileOptions(opts)
 }
+
 // shutdown is called at application termination
-func (a *App) shutdown(ctx context.Context) {}
+func (a *App) shutdown( /*ctx context.Context*/ ) {
+	a.trace.Shutdown()
+}
 
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
