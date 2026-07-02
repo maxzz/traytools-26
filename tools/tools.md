@@ -11,6 +11,22 @@ Edit the file and reopen the menu to see changes (no restart required).
 - Frontend UI: `frontend/src/components/1-header/a-tools-menu.tsx`
 - Working sample: `tools/tools.json` (this folder)
 
+## Contents
+
+- [Where the file is loaded from (search order)](#where-the-file-is-loaded-from-search-order)
+- [File format](#file-format)
+  - [Top-level shape](#top-level-shape)
+  - [Node types](#node-types)
+  - [Node fields](#node-fields)
+- [`cmdWhat` — how `cmdLine` is interpreted](#cmdwhat--how-cmdline-is-interpreted)
+  - [`rel` (default) — path relative to this folder](#rel-default--path-relative-to-this-folder)
+  - [`abs` — absolute path or URL](#abs--absolute-path-or-url)
+  - [`reg` — registry key](#reg--registry-key)
+- [Environment variables](#environment-variables)
+- [Arguments](#arguments)
+- [Platform notes](#platform-notes)
+- [Notes on behavior vs. the legacy traytools](#notes-on-behavior-vs-the-legacy-traytools)
+
 ---
 
 ## Where the file is loaded from (search order)
