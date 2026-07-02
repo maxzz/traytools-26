@@ -14,7 +14,7 @@ export function MainBody() {
                 onValueChange={(value) => {
                     appSettings.mainTab = value;
                 }}
-                className="flex flex-col gap-4"
+                className="flex-1 min-h-0 flex-col gap-4"
             >
                 <TabsList>
                     {MAIN_PAGES.map(({ id, label }) => (
@@ -25,7 +25,7 @@ export function MainBody() {
                 </TabsList>
 
                 {MAIN_PAGES.map(({ id, Page }) => (
-                    <TabsContent key={id} value={id} className="flex flex-col gap-4">
+                    <TabsContent key={id} value={id} className="min-h-0 flex flex-col gap-4">
                         <Page />
                     </TabsContent>
                 ))}

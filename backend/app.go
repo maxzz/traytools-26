@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"tm-template-go-26/backend/bus"
+	"tm-template-go-26/backend/tracemanager"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -20,12 +21,15 @@ type App struct {
 
 	windowMu      sync.Mutex
 	windowVisible bool
+
+	traceManager *tracemanager.Manager
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	a := &App{
-		bus: bus.New(),
+		bus:          bus.New(),
+		traceManager: tracemanager.New(),
 	}
 	a.registerHandlers()
 	return a
@@ -41,10 +45,13 @@ func (a *App) SetTrayIcon(icon []byte) {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	a.startTray()
+	a.traceManager.Start(ctx)
 }
 
 // registerHandlers wires the backend command groups exposed over the bus.
 func (a *App) registerHandlers() {
+	a.traceManager.Register(a.bus)
+
 	a.bus.Register("app", "exit", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		a.RequestExit()
 		return nil, nil
