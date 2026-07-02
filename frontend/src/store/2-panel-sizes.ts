@@ -8,6 +8,7 @@ export const PANEL_GROUPS = {
     demosVertical: 'demos.resizable.vertical',
     traceManagerMain: 'trace-manager.main',
     traceManagerLeft: 'trace-manager.left',
+    windowTreeMain: 'window-tree.main',
 } as const;
 
 const PANEL_GROUP_DEFAULTS: PanelSizes = {
@@ -15,6 +16,7 @@ const PANEL_GROUP_DEFAULTS: PanelSizes = {
     [PANEL_GROUPS.demosVertical]: { top: 50, bottom: 50 },
     [PANEL_GROUPS.traceManagerMain]: { panels: 68, categories: 32 },
     [PANEL_GROUPS.traceManagerLeft]: { list: 38, view: 62 },
+    [PANEL_GROUPS.windowTreeMain]: { tree: 58, props: 42 },
 };
 
 export function getValidPanelSizes(parsedSizes?: unknown): PanelSizes {

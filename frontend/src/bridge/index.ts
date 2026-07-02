@@ -5,4 +5,6 @@ export { traceManagerBus } from "./groups/tracemanager";
 export type { TraceCall, StringDescription, SectionDescription, RegeditTarget, TraceStatus } from "./groups/tracemanager";
 export { toolsBus } from "./groups/tools";
 export type { ToolMenuNode, ToolsMenuResponse } from "./groups/tools";
+export { windowTreeBus } from "./groups/windowtree";
+export type { WindowNode, WindowTree, WindowInfo, RectInfo, RelatedWindow } from "./groups/windowtree";
 export { onWailsEvent, TRACE_EVENTS } from "./wails-events";

@@ -9,6 +9,7 @@ import (
 	"tm-template-go-26/backend/bus"
 	"tm-template-go-26/backend/toolsmenu"
 	"tm-template-go-26/backend/tracemanager"
+	"tm-template-go-26/backend/windowtree"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -19,6 +20,7 @@ type App struct {
 	bus           *bus.Bus
 	trace         *tracemanager.Manager
 	tools         *toolsmenu.Manager
+	windows       *windowtree.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -29,13 +31,15 @@ type App struct {
 // NewApp creates a new App application struct
 func NewApp() *App {
 	a := &App{
-		bus:   bus.New(),
-		trace: tracemanager.New(),
-		tools: toolsmenu.New(),
+		bus:     bus.New(),
+		trace:   tracemanager.New(),
+		tools:   toolsmenu.New(),
+		windows: windowtree.New(),
 	}
 	a.registerHandlers()
 	a.trace.Register(a.bus)
 	a.tools.Register(a.bus)
+	a.windows.Register(a.bus)
 	return a
 }
 
