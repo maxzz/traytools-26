@@ -113,9 +113,11 @@ func isURL(s string) bool { return urlRe.MatchString(s) }
 func toBackslashes(s string) string { return strings.ReplaceAll(s, "/", `\`) }
 
 // splitFileArgs separates an executable/target from trailing arguments when the
-// user put both on cmdLine. It is quote-aware: a leading quoted segment is the
-// target and the remainder is the arguments; otherwise it splits on the first
-// space. Targets without a space (folders, URLs, plain exes) are returned whole.
+// user put both on cmdLine. It mirrors the legacy fnames::splitfilenameargs:
+// a leading quoted segment is the target and the remainder is the arguments;
+// otherwise it splits on the first space (an unterminated leading quote falls
+// back to the space split, keeping the quote). Targets without a space (folders,
+// URLs, plain exes) are returned whole.
 func splitFileArgs(s string) (target, args string) {
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -125,7 +127,7 @@ func splitFileArgs(s string) (target, args string) {
 		if end := strings.IndexByte(s[1:], '"'); end >= 0 {
 			return s[1 : 1+end], strings.TrimSpace(s[1+end+1:])
 		}
-		return strings.Trim(s, `"`), ""
+		// Unterminated quote: fall through to the space split below.
 	}
 	if i := strings.IndexByte(s, ' '); i >= 0 {
 		return s[:i], strings.TrimSpace(s[i+1:])
