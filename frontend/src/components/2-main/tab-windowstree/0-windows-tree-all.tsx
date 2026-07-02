@@ -31,7 +31,7 @@ export function PageWindowsTree() {
         }, [loaded]);
 
     return (
-        <div className="flex-1 min-h-0 border rounded-md overflow-hidden bg-card">
+        <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden">
             <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={onMainLayoutChanged}>
                 <ResizablePanel id="tree" minSize={30}>
                     <WindowTreeView />

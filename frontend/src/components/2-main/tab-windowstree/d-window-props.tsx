@@ -17,7 +17,7 @@ function rectText(r: RectInfo): string {
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
     return (
-        <div className="grid grid-cols-[7.5rem_1fr] gap-2 py-0.5 items-start">
+        <div className="py-0.5 grid grid-cols-[7.5rem_1fr] gap-2 items-start">
             <span className="text-muted-foreground">{label}</span>
             <span className="font-mono break-all">{children}</span>
         </div>
@@ -46,11 +46,11 @@ function GeneralTab({ info }: { info: WindowInfo }) {
 function StyleList({ title, hexValue, names }: { title: string; hexValue: number; names: string[] }) {
     return (
         <div className="mb-3">
-            <div className="text-xs font-semibold mb-1">{title}: <span className="font-mono font-normal">{hex8(hexValue)}</span></div>
+            <div className="mb-1 text-xs font-semibold">{title}: <span className="font-mono font-normal">{hex8(hexValue)}</span></div>
             {names.length === 0
-                ? <div className="text-xs text-muted-foreground pl-2">(none)</div>
+                ? <div className="pl-2 text-xs text-muted-foreground">(none)</div>
                 : (
-                    <ul className="text-xs font-mono pl-2 space-y-0.5">
+                    <ul className="pl-2 text-xs font-mono space-y-0.5">
                         {names.map((n) => <li key={n}>{n}</li>)}
                     </ul>
                 )}
@@ -106,7 +106,7 @@ export function WindowProps() {
                 : !info || !info.valid
                     ? <div className="p-3 text-xs text-muted-foreground">{snap.infoLoading ? "Loading..." : "Select a window in the tree to view its properties."}</div>
                     : (
-                        <Tabs value={tab} onValueChange={(v) => setTab(v as PropsTab)} className="flex flex-1 min-h-0 flex-col gap-2 p-2">
+                        <Tabs value={tab} onValueChange={(v) => setTab(v as PropsTab)} className="flex-1 p-2 min-h-0 flex flex-col gap-2">
                             <TabsList>
                                 <TabsTrigger value="general">General</TabsTrigger>
                                 <TabsTrigger value="styles">Styles</TabsTrigger>

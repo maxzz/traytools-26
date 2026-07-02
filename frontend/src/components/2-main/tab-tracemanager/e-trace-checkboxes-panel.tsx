@@ -78,7 +78,7 @@ export function TraceCheckboxesPanel() {
             </div>
 
             {snap.categoriesError && (
-                <div className="px-2 py-1.5 text-[11px] text-destructive border-b bg-destructive/5">{snap.categoriesError}</div>
+                <div className="px-2 py-1.5 text-[11px] text-destructive bg-destructive/5 border-b">{snap.categoriesError}</div>
             )}
 
             <ScrollArea className="flex-1 min-h-0">
@@ -90,7 +90,7 @@ export function TraceCheckboxesPanel() {
                                 const open = expanded.includes(section.sectionName);
                                 return (
                                     <Collapsible key={section.sectionName} open={open} onOpenChange={(v) => toggleSection(section.sectionName, v)}>
-                                        <CollapsibleTrigger className="w-full px-2 py-1 flex items-center gap-1 text-xs font-medium hover:bg-muted/50">
+                                        <CollapsibleTrigger className="px-2 py-1 w-full text-xs font-medium hover:bg-muted/50 flex items-center gap-1">
                                             <ChevronRightIcon className={cn("size-3.5 transition-transform", open && "rotate-90")} />
                                             <span className="truncate">{section.sectionName}</span>
                                             <span className="ml-auto text-muted-foreground">{section.items.length}</span>
@@ -98,14 +98,14 @@ export function TraceCheckboxesPanel() {
                                         <CollapsibleContent>
                                             <div className="pl-4 pr-2 py-0.5 flex flex-col gap-0.5">
                                                 {section.items.map((item) => (
-                                                    <label key={item.memId} className="flex items-start gap-2 py-0.5 text-xs cursor-pointer hover:bg-muted/30 rounded-sm px-1">
+                                                    <label key={item.memId} className="py-0.5 px-1 text-xs hover:bg-muted/30 rounded-sm flex items-start gap-2 cursor-pointer">
                                                         <Checkbox
                                                             className="mt-0.5"
                                                             checked={item.active}
                                                             onCheckedChange={(v) => toggleCategory(section.sectionName, item.memId, v === true)}
                                                         />
                                                         <span className="leading-snug">
-                                                            <span className="font-mono text-muted-foreground mr-1">[{item.bit.toString(16).padStart(2, "0")}]</span>
+                                                            <span className="mr-1 font-mono text-muted-foreground">[{item.bit.toString(16).padStart(2, "0")}]</span>
                                                             {item.description}
                                                         </span>
                                                     </label>

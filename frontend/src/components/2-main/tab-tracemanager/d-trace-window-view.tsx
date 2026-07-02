@@ -47,7 +47,7 @@ export function TraceWindowView() {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                     placeholder="Filter…"
-                    className="h-6 ml-auto w-40 text-xs"
+                    className="ml-auto h-6 w-40 text-xs"
                 />
                 <Button
                     size="xs"
@@ -81,9 +81,9 @@ export function TraceWindowView() {
                     ? <div className="p-3 text-xs text-muted-foreground">{needle ? "No lines match the filter." : "No trace lines yet."}</div>
                     : (
                         <ScrollArea2 ref={viewportRef} className="flex-1 min-h-0" horizontal>
-                            <div className="py-1 font-mono text-xs leading-relaxed">
+                            <div className="py-1 text-xs font-mono leading-relaxed">
                                 {calls.map((c) => (
-                                    <div key={c.seq} className={cn("px-2 whitespace-pre hover:bg-muted/40")} style={traceLineStyle(c.colorIndex, showColors)}>
+                                    <div key={c.seq} className={cn("px-2 hover:bg-muted/40 whitespace-pre")} style={traceLineStyle(c.colorIndex, showColors)}>
                                         <span className="text-muted-foreground">{c.function}(): </span>
                                         {c.text}
                                     </div>

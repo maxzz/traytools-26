@@ -60,7 +60,7 @@ export function PageTraceManager() {
         }, [setExpanded]);
 
     return (
-        <div className="flex-1 min-h-0 border rounded-md overflow-hidden bg-card">
+        <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden">
             <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={onMainLayoutChanged}>
                 <ResizablePanel id="panels" minSize={30}>
                     <ResizablePanelGroup orientation="vertical" defaultLayout={leftLayout as Layout} onLayoutChanged={onLeftLayoutChanged}>

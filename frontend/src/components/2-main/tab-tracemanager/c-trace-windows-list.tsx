@@ -63,7 +63,7 @@ export function TraceWindowsList() {
                                         key={pid}
                                         onClick={() => setSelected(pid)}
                                         className={cn(
-                                            "px-2 py-1 flex items-center gap-2 cursor-pointer text-xs",
+                                            "px-2 py-1 text-xs flex items-center gap-2 cursor-pointer",
                                             isSelected ? "bg-primary/10" : "hover:bg-muted/50",
                                             !win.visible && "opacity-50",
                                         )}

@@ -80,7 +80,7 @@ export function WindowTreeView() {
         <div className="h-full min-h-0 flex flex-col">
             <div className="px-2 py-1.5 border-b flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-semibold">Windows Tree</span>
-                <span className="text-[11px] text-muted-foreground tabular-nums">{snap.count} windows</span>
+                <span className="tabular-nums text-[11px] text-muted-foreground">{snap.count} windows</span>
 
                 <Button
                     size="xs"
@@ -89,7 +89,7 @@ export function WindowTreeView() {
                     onClick={() => void refreshWindowTree()}
                     disabled={snap.loading}
                 >
-                    <RefreshCw className={cn("size-3 mr-1", snap.loading && "animate-spin")} />
+                    <RefreshCw className={cn("mr-1 size-3", snap.loading && "animate-spin")} />
                     Refresh
                 </Button>
             </div>
@@ -99,13 +99,13 @@ export function WindowTreeView() {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                     placeholder="Filter by class or title..."
-                    className="h-7 text-xs flex-1 min-w-40"
+                    className="flex-1 h-7 min-w-40 text-xs"
                 />
-                <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+                <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                     <Checkbox checked={showHandles} onCheckedChange={(v) => setShowHandles(v === true)} />
                     Handles
                 </label>
-                <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+                <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                     <Checkbox checked={hideInvisible} onCheckedChange={(v) => setHideInvisible(v === true)} />
                     Hide invisible
                 </label>
