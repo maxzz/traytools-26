@@ -9,14 +9,7 @@ export function ButtonThemeToggle() {
     const isDark = isThemeDark(theme);
 
     return (
-        <Button
-            className="size-6 rounded"
-            variant="ghost"
-            size="icon"
-            onClick={() => toggleTheme(theme)}
-            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            type="button"
-        >
+        <Button className="size-6 rounded" variant="ghost" size="icon" onClick={() => toggleTheme(theme)} title={isDark ? "Switch to light mode" : "Switch to dark mode"} type="button">
             {isDark
                 ? <IconLight className="size-3 stroke-1!" />
                 : <IconDark className="size-3 stroke-1!" />
