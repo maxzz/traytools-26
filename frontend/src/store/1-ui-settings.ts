@@ -2,7 +2,7 @@ import { proxy, subscribe } from 'valtio';
 import { type ThemeMode, themeApplyMode } from '../utils/theme-apply';
 import { type PanelSizes, getValidPanelSizes } from './2-panel-sizes';
 
-const STORE_KEY = "tm-template-shadcn-26";
+const STORE_KEY = "traytools-26";
 const STORE_VER = "v1.0";
 const STORAGE_ID = `${STORE_KEY}__${STORE_VER}`;
 

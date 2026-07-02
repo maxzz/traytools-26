@@ -13,37 +13,39 @@ import { TraceCheckboxesPanel } from "./e-trace-checkboxes-panel";
 // single tab: a resizable [ trace panels | categories ] split, with the trace
 // panels column itself split into the per-process list (top) and the selected
 // window's trace view (bottom).
+
 export function PageTraceManager() {
     const [mainLayout, setMainLayout] = useAtom(mainLayoutAtom);
     const [leftLayout, setLeftLayout] = useAtom(leftLayoutAtom);
     const setExpanded = useSetAtom(expandedSectionsAtom);
 
     // Subscribe to backend trace events and load the initial state once.
-    useEffect(() => {
-        const offCall = onWailsEvent<TraceCall>(TRACE_EVENTS.traceCall, routeTraceCall);
-        const offStreaming = onWailsEvent<boolean>(TRACE_EVENTS.streaming, setStreaming);
+    useEffect(
+        () => {
+            const offCall = onWailsEvent<TraceCall>(TRACE_EVENTS.traceCall, routeTraceCall);
+            const offStreaming = onWailsEvent<boolean>(TRACE_EVENTS.streaming, setStreaming);
 
-        (async () => {
-            try {
-                const status = await traceManagerBus.getStatus();
-                setStreaming(status?.streaming ?? false);
-            } catch {
-                /* backend not ready */
-            }
-            try {
-                const sections = await traceManagerBus.getCategories();
-                setSections(sections ?? []);
-                setExpanded((sections ?? []).map((s) => s.sectionName));
-            } catch {
-                /* categories unavailable */
-            }
-        })();
+            (async () => {
+                try {
+                    const status = await traceManagerBus.getStatus();
+                    setStreaming(status?.streaming ?? false);
+                } catch {
+                    /* backend not ready */
+                }
+                try {
+                    const sections = await traceManagerBus.getCategories();
+                    setSections(sections ?? []);
+                    setExpanded((sections ?? []).map((s) => s.sectionName));
+                } catch {
+                    /* categories unavailable */
+                }
+            })();
 
-        return () => {
-            offCall();
-            offStreaming();
-        };
-    }, [setExpanded]);
+            return () => {
+                offCall();
+                offStreaming();
+            };
+        }, [setExpanded]);
 
     return (
         <div className="flex-1 min-h-0 border rounded-md overflow-hidden bg-card">
