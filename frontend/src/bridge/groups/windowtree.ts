@@ -68,9 +68,13 @@ export interface WindowInfo {
     processPath: string;
 }
 
-// Windows Tree command group. Mirrors the "windowtree" group on the backend
-// bus (manager.go). getTree returns the whole desktop window tree; getWindowInfo
-// returns the detailed properties for one window on demand.
+/**
+ * Windows Tree command group. Mirrors the "windowtree" group on the backend
+ * bus (manager.go). 
+ * 
+ * - getTree returns the whole desktop window tree; 
+ * - getWindowInfo returns the detailed properties for one window on demand.
+ */
 export const windowTreeBus = {
     getTree: () => dispatch<WindowTree>(GROUP, "getTree"),
     getWindowInfo: (handle: string) => dispatch<WindowInfo>(GROUP, "getWindowInfo", { handle }),

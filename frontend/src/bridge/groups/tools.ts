@@ -20,7 +20,12 @@ export interface ToolsMenuResponse {
     error?: string;
 }
 
-// Tools menu command group. Mirrors the "tools" group on the backend bus.
+/**
+ * Tools menu command group. Mirrors the "tools" group on the backend bus.
+ * 
+ * - getMenu returns the render-ready Tools menu tree; 
+ * - exec executes a tool by id.
+ */
 export const toolsBus = {
     getMenu: () => dispatch<ToolsMenuResponse>(GROUP, "getMenu"),
     exec: (id: number) => dispatch(GROUP, "exec", { id }),

@@ -34,8 +34,19 @@ export interface TraceStatus {
     streaming: boolean;
 }
 
-// Trace manager command group. Mirrors the "tracemanager" group on the backend
-// bus (manager.go).
+/**
+ * Trace manager command group. Mirrors the "tracemanager" group on the backend
+ * bus (manager.go). 
+ * 
+ * - getCategories returns the list of categories; 
+ * - saveCategories saves the list of categories; 
+ * - openRegedit opens the registry editor; 
+ * - exportTrace exports the trace; 
+ * - importTrace imports the trace; 
+ * - startStream starts the trace stream; 
+ * - stopStream stops the trace stream; 
+ * - getStatus returns the trace status.
+ */
 export const traceManagerBus = {
     getCategories: () => dispatch<SectionDescription[]>(GROUP, "getCategories"),
     saveCategories: (sections: SectionDescription[]) => dispatch<SectionDescription[]>(GROUP, "saveCategories", { sections }),
