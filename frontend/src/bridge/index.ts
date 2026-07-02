@@ -1,3 +1,6 @@
 export { dispatch } from "./dispatch";
 export { appBus } from "./groups/app";
 export { settingsBus } from "./groups/settings";
+export { traceManagerBus } from "./groups/tracemanager";
+export type { TraceCall, StringDescription, SectionDescription, RegeditTarget, TraceStatus } from "./groups/tracemanager";
+export { onWailsEvent, TRACE_EVENTS } from "./wails-events";
