@@ -1,0 +1,69 @@
+{
+    // Traytools "Tools" menu definition.
+    // See docs: frontend/src/assets/docs/*, tools-menu-config.md
+    //
+    // Notes:
+    //   - "//" line comments and "/* */" block comments are allowed.
+    //   - "menuName": "-"     inserts a separator.
+    //   - "menuItems": [...]  makes a (nested) sub-menu.
+    //   - "cmdWhat":          "rel" (default) | "abs" | "reg".
+    //   - "cmdPlat":          "curr" (default) | "32" | "64" | "both".
+    //   - Relative paths are resolved against the folder holding this file.
+
+    "menu": {
+        "menuName": "Tools",
+        "menuItems": [
+            {
+                "menuName": "Registry",
+                "menuItems": [
+                    {
+                        "menuName": "Regedit: DP Tracing",
+                        "cmdLine": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing",
+                        "cmdPlat": "both",
+                        "cmdWhat": "reg"
+                    },
+                    {
+                        "menuName": "Regedit: DP Tracing VirtualStore",
+                        "cmdLine": "HKCU\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\DigitalPersona\\Tracing",
+                        "cmdPlat": "both",
+                        "cmdWhat": "reg"
+                    },
+                    {
+                        "menuName": "Regedit: Run keys",
+                        "cmdLine": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+                        "cmdWhat": "reg"
+                    }
+                ]
+            },
+            { "menuName": "-" },
+
+            {
+                "menuName": "Folders",
+                "menuItems": [
+                    { "menuName": "Open tools folder",       "cmdLine": "./",                    "cmdWhat": "rel" },
+                    { "menuName": "Open %AppData%",          "cmdLine": "%AppData%",             "cmdWhat": "abs" },
+                    { "menuName": "Open %TEMP%",             "cmdLine": "%TEMP%",                "cmdWhat": "abs" }
+                ]
+            },
+            { "menuName": "-" },
+
+            {
+                "menuName": "Utilities",
+                "menuItems": [
+                    { "menuName": "Notepad",                 "cmdLine": "notepad.exe",           "cmdWhat": "abs" },
+                    { "menuName": "Calculator",              "cmdLine": "calc.exe",              "cmdWhat": "abs", "hotKey": "F4" },
+                    { "menuName": "-" },
+                    { "menuName": "UAC Settings",            "cmdLine": "\"%windir%/system32/UserAccountControlSettings.exe\"", "cmdWhat": "abs" }
+                ]
+            },
+
+            {
+                "menuName": "Web links",
+                "menuItems": [
+                    { "menuName": "Sysinternals",            "cmdLine": "https://learn.microsoft.com/sysinternals/", "cmdWhat": "abs" },
+                    { "menuName": "Process Explorer",        "cmdLine": "https://learn.microsoft.com/sysinternals/downloads/process-explorer", "cmdWhat": "abs" }
+                ]
+            }
+        ]
+    }
+}

@@ -3,4 +3,6 @@ export { appBus } from "./groups/app";
 export { settingsBus } from "./groups/settings";
 export { traceManagerBus } from "./groups/tracemanager";
 export type { TraceCall, StringDescription, SectionDescription, RegeditTarget, TraceStatus } from "./groups/tracemanager";
+export { toolsBus } from "./groups/tools";
+export type { ToolMenuNode, ToolsMenuResponse } from "./groups/tools";
 export { onWailsEvent, TRACE_EVENTS } from "./wails-events";

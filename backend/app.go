@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"tm-template-go-26/backend/bus"
+	"tm-template-go-26/backend/toolsmenu"
 	"tm-template-go-26/backend/tracemanager"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -17,6 +18,7 @@ type App struct {
 	ctx           context.Context
 	bus           *bus.Bus
 	trace         *tracemanager.Manager
+	tools         *toolsmenu.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -29,9 +31,11 @@ func NewApp() *App {
 	a := &App{
 		bus:   bus.New(),
 		trace: tracemanager.New(),
+		tools: toolsmenu.New(),
 	}
 	a.registerHandlers()
 	a.trace.Register(a.bus)
+	a.tools.Register(a.bus)
 	return a
 }
 

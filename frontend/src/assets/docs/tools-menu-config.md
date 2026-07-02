@@ -1,0 +1,156 @@
+# Tools menu configuration (`tools.json`)
+
+The **Tools** menu in the application menu bar is fully data-driven. On open, the
+backend loads a JSON file (`tools.json`) that describes a nested menu of
+commands — folders to open, registry keys to navigate to, executables/URLs to
+launch, and separators — and the frontend renders it. Editing the file and
+reopening the menu picks up the changes; no restart required.
+
+- Backend: `backend/toolsmenu/`
+- Frontend bridge: `frontend/src/bridge/groups/tools.ts`
+- Frontend UI: `frontend/src/components/1-header/a-tools-menu.tsx`
+- Sample: `tools/tools.json`
+
+---
+
+## File location (search order)
+
+The first existing file wins:
+
+1. `$TRAYTOOLS_TOOLS` — an environment variable pointing directly at a JSON file (handy for development).
+2. `<exeDir>/tools/tools.json`, then `<exeDir>/tools.json` — next to the installed executable.
+3. `./tools/tools.json`, then `./tools.json` — the current working directory (this is what `wails dev` uses from the project root).
+4. `<userConfigDir>/tm-template-go-26/tools/tools.json`, then `.../tools.json` — the per-user config directory (`%AppData%` on Windows).
+
+If no file is found the Tools menu shows a single disabled *"No tools.json found"* item.
+
+---
+
+## Format
+
+The file is JSON with two conveniences beyond strict JSON:
+
+- `//` line comments and `/* … */` block comments are allowed.
+- A trailing comma before `}` or `]` is tolerated.
+
+These are stripped before parsing (string values such as `https://…` are left untouched).
+
+### Top-level shape
+
+```json
+{
+    "menu": {
+        "menuName": "Tools",
+        "menuItems": [ /* nodes … */ ]
+    }
+}
+```
+
+`menu` is the root node. Its `menuName` is informational (the menu bar always
+shows **Tools**); its `menuItems` become the menu contents.
+
+### Node types
+
+Every entry in a `menuItems` array is one of three kinds, determined by its fields:
+
+| Kind          | Condition                              | Rendered as                    |
+| ------------- | -------------------------------------- | ------------------------------ |
+| **Separator** | `menuName` is `"-"` (and no items)     | a horizontal divider           |
+| **Sub-menu**  | has a non-empty `menuItems` array      | a nested fly-out menu          |
+| **Command**   | has a `cmdLine`                        | a clickable item that runs it  |
+
+Empty sub-menus (no valid children) are dropped automatically.
+
+### Node fields
+
+| Field       | Applies to | Required | Description                                                                 |
+| ----------- | ---------- | -------- | --------------------------------------------------------------------------- |
+| `menuName`  | all        | yes      | Display text. `"-"` means separator.                                        |
+| `menuItems` | sub-menu   | —        | Array of child nodes.                                                        |
+| `cmdLine`   | command    | yes      | The target: a path, a registry key, or a URL (see `cmdWhat`).               |
+| `cmdArgs`   | command    | no       | Explicit arguments. If omitted, arguments are split off the end of `cmdLine`.|
+| `cmdWhat`   | command    | no       | `rel` (default) \| `abs` \| `reg`. How to interpret `cmdLine`.               |
+| `cmdPlat`   | command    | no       | `curr` (default) \| `32` \| `64` \| `both`. Platform hint.                   |
+| `hotKey`    | command    | no       | Shortcut text shown at the right of the item (e.g. `"F5"`). Display only.    |
+
+---
+
+## `cmdWhat` — interpreting `cmdLine`
+
+### `rel` (default) — relative path
+
+Resolved against the folder that contains `tools.json`. Opens files, folders,
+shortcuts, or programs via the shell.
+
+```json
+{ "menuName": "Open tools folder", "cmdLine": "./",              "cmdWhat": "rel" }
+{ "menuName": "My tool",           "cmdLine": "bin/mytool.exe",  "cmdWhat": "rel" }
+```
+
+A trailing `/` (or `\`) marks a **folder** — it opens in Explorer.
+
+### `abs` — absolute path or URL
+
+Used verbatim (after environment-variable expansion). This covers system
+programs, absolute paths, and web links. Forward slashes are normalized to
+backslashes for file paths, but URLs are left intact.
+
+```json
+{ "menuName": "Notepad",       "cmdLine": "notepad.exe",                         "cmdWhat": "abs" }
+{ "menuName": "UAC Settings",  "cmdLine": "\"%windir%/system32/UserAccountControlSettings.exe\"", "cmdWhat": "abs" }
+{ "menuName": "Sysinternals",  "cmdLine": "https://learn.microsoft.com/sysinternals/", "cmdWhat": "abs" }
+```
+
+### `reg` — registry key
+
+Opens the **Registry Editor** navigated to the given key. The key may use either
+the short hive prefix (`HKLM`, `HKCU`, `HKCR`, `HKCC`, `HKU`) or the full form
+(`HKEY_LOCAL_MACHINE`, …).
+
+```json
+{ "menuName": "Regedit: DP Tracing", "cmdLine": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing", "cmdWhat": "reg" }
+```
+
+Navigation is performed by writing regedit's `LastKey` value
+(`HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit`) and then
+launching `regedit.exe`, which restores that key on start.
+
+---
+
+## Environment variables
+
+`%NAME%` references in `cmdLine`/`cmdArgs` are expanded, e.g. `%AppData%`,
+`%windir%`, `%TEMP%`. Unknown variables are left as-is so the problem is visible.
+
+---
+
+## Arguments
+
+Provide arguments either inline on `cmdLine` or via a separate `cmdArgs`:
+
+```json
+{ "menuName": "Procmon", "cmdLine": "tools/procmon.exe -accepteula" }
+{ "menuName": "Procmon", "cmdLine": "tools/procmon.exe", "cmdArgs": "-accepteula" }
+```
+
+When `cmdArgs` is omitted, the target is split from the arguments at the first
+space. If the target itself contains spaces, wrap it in double quotes:
+
+```json
+{ "menuName": "App", "cmdLine": "\"C:/Program Files/App/app.exe\" --flag" }
+```
+
+---
+
+## Platform notes
+
+- Launching programs/folders and opening the Registry Editor are **Windows-only**. On other platforms the menu still loads and renders from `tools.json`, but selecting a command returns an error.
+- `cmdPlat` is accepted and carried through; on modern Windows the unified Registry Editor shows both 32- and 64-bit views, so `reg` items behave the same regardless of the value.
+
+---
+
+## Complete example
+
+See [`tools/tools.json`](../../../../tools/tools.json) for a working example that
+demonstrates registry navigation, folder opening, launching system programs,
+web links, hotkeys, separators, and nested sub-menus.
