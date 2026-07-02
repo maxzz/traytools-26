@@ -181,8 +181,9 @@ func (a *App) saveDevToolsState(open bool) {
 	opts.DevTools = open
 	saveIniFileOptions(opts)
 }
+
 // shutdown is called at application termination
-func (a *App) shutdown(ctx context.Context) {
+func (a *App) shutdown( /*ctx context.Context*/ ) {
 	a.trace.Shutdown()
 }
 
