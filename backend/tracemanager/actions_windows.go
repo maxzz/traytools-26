@@ -7,11 +7,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"golang.org/x/sys/windows/registry"
+	"tm-template-go-26/backend/winregedit"
 )
 
-// platformOpenRegedit reproduces regeditutils::regeditjump: point regedit's
-// "LastKey" at the requested key and launch it there.
+// platformOpenRegedit reproduces regeditutils::regeditjump: open the Registry
+// Editor and navigate it to the requested key. winregedit handles both the
+// fresh-launch (LastKey) and already-running (keystroke navigation) cases.
 func platformOpenRegedit(target string) error {
 	var key string
 	switch target {
@@ -23,14 +24,7 @@ func platformOpenRegedit(target string) error {
 		return fmt.Errorf("unknown regedit target %q", target)
 	}
 
-	reg, _, err := registry.CreateKey(registry.CURRENT_USER,
-		`Software\Microsoft\Windows\CurrentVersion\Applets\Regedit`, registry.SET_VALUE)
-	if err == nil {
-		reg.SetStringValue("LastKey", "Computer\\"+key)
-		reg.Close()
-	}
-
-	return exec.Command("regedit.exe").Start()
+	return winregedit.Jump(key)
 }
 
 // platformRunTrace reproduces OnAppTraceExp / OnAppTraceImp: call dpocache.dll's

@@ -127,9 +127,17 @@ prefixes (`HKLM`, `HKCU`, `HKCR`, `HKCC`, `HKU`) or the full form
 { "menuName": "Regedit: DP Tracing", "cmdLine": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing", "cmdWhat": "reg" }
 ```
 
-Navigation is performed by writing regedit's `LastKey`
-(`HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit`) and launching
-`regedit.exe`, which restores that key on start.
+Navigation (a Go port of the legacy `regeditutils::regeditjump`, in
+`backend/winregedit`) works in every state:
+
+- **Regedit not running:** its `LastKey`
+  (`HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit`) is set, then
+  `regedit.exe` is launched and restores that key on start.
+- **Regedit already open:** relaunching would only re-activate the existing
+  window (it ignores `LastKey`), so its tree view is driven directly with
+  key messages — collapse to the root, then expand/type down the path. If the
+  final segment names a value rather than a key, that value is selected in the
+  right-hand pane.
 
 ---
 

@@ -111,9 +111,12 @@ the short hive prefix (`HKLM`, `HKCU`, `HKCR`, `HKCC`, `HKU`) or the full form
 { "menuName": "Regedit: DP Tracing", "cmdLine": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing", "cmdWhat": "reg" }
 ```
 
-Navigation is performed by writing regedit's `LastKey` value
-(`HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit`) and then
-launching `regedit.exe`, which restores that key on start.
+Navigation (a Go port of the legacy `regeditutils::regeditjump`, in
+`backend/winregedit`) handles both states: if regedit is not running its
+`LastKey` (`HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit`) is
+set and `regedit.exe` is launched, restoring that key on start; if regedit is
+already open (which ignores `LastKey`), its tree view is driven with key messages
+to expand down to the target key instead.
 
 ---
 

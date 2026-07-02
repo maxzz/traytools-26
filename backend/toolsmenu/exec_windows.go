@@ -8,8 +8,9 @@ import (
 	"syscall"
 	"unsafe"
 
+	"tm-template-go-26/backend/winregedit"
+
 	"golang.org/x/sys/windows"
-	"golang.org/x/sys/windows/registry"
 )
 
 var (
@@ -60,71 +61,11 @@ func platformExecTool(target, args string) error {
 	return nil
 }
 
-// regRoots maps the short and long registry hive prefixes to their canonical
-// long form used by regedit's "LastKey".
-var regRoots = []struct {
-	short string
-	long  string
-}{
-	{"HKLM", "HKEY_LOCAL_MACHINE"},
-	{"HKCU", "HKEY_CURRENT_USER"},
-	{"HKCR", "HKEY_CLASSES_ROOT"},
-	{"HKCC", "HKEY_CURRENT_CONFIG"},
-	{"HKU", "HKEY_USERS"},
-}
-
-// canonRegKey converts a config key path (e.g. "HKLM\SOFTWARE\...") into the
-// full "HKEY_LOCAL_MACHINE\SOFTWARE\..." form, normalising slashes.
-func canonRegKey(key string) (string, error) {
-	key = strings.TrimSpace(key)
-	key = strings.ReplaceAll(key, "/", `\`)
-	key = strings.TrimPrefix(key, `\`)
-	if key == "" {
-		return "", fmt.Errorf("tools: empty registry key")
-	}
-
-	upper := strings.ToUpper(key)
-
-	// Already fully qualified.
-	for _, r := range regRoots {
-		if upper == r.long || strings.HasPrefix(upper, r.long+`\`) {
-			return key, nil
-		}
-	}
-
-	// Short prefix: replace the first path segment.
-	slash := strings.IndexByte(key, '\\')
-	head := key
-	rest := ""
-	if slash >= 0 {
-		head = key[:slash]
-		rest = key[slash:]
-	}
-	for _, r := range regRoots {
-		if strings.EqualFold(head, r.short) {
-			return r.long + rest, nil
-		}
-	}
-
-	return "", fmt.Errorf("tools: unknown registry root in %q", key)
-}
-
-// platformOpenRegistry opens the Registry Editor pre-navigated to the given key.
-// It writes regedit's "LastKey" then launches regedit, which restores it on
-// start. This is the reliable modern equivalent of the legacy keystroke-driven
-// navigation.
+// platformOpenRegistry opens the Registry Editor navigated to the given key.
+// The heavy lifting (hive resolution, LastKey fast path, and keystroke tree
+// navigation for an already-running regedit) lives in the shared winregedit
+// package. cmdPlat is accepted for schema compatibility but has no effect: the
+// modern Registry Editor is a single unified 32/64-bit view.
 func platformOpenRegistry(key, _plat string) error {
-	full, err := canonRegKey(key)
-	if err != nil {
-		return err
-	}
-
-	last, _, err := registry.CreateKey(registry.CURRENT_USER,
-		`Software\Microsoft\Windows\CurrentVersion\Applets\Regedit`, registry.SET_VALUE)
-	if err == nil {
-		last.SetStringValue("LastKey", `Computer\`+full)
-		last.Close()
-	}
-
-	return platformExecTool("regedit.exe", "")
+	return winregedit.Jump(key)
 }
