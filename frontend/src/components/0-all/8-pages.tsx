@@ -24,7 +24,6 @@ export const VIEW_MENU_ITEMS = MAIN_PAGES.slice(0, 4);
 export const DEFAULT_MAIN_TAB: MainTabId = "welcome";
 
 export function getValidMainTab(tab: string | undefined): MainTabId {
-    const normalizedTab = tab === "demos" ? "welcome" : tab;
-    const match = MAIN_PAGES.find((page) => page.id === normalizedTab);
+    const match = MAIN_PAGES.find((page) => page.id === tab);
     return match?.id ?? DEFAULT_MAIN_TAB;
 }

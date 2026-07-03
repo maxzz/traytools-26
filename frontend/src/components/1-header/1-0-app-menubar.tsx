@@ -26,7 +26,10 @@ export function AppMenubar() {
 
                 <MenubarContent>
                     <MenubarSub>
-                        <MenubarSubTrigger>Preferences</MenubarSubTrigger>
+                        <MenubarSubTrigger>
+                            Preferences
+                        </MenubarSubTrigger>
+                        
                         <MenubarSubContent>
                             <MenubarItem onSelect={() => openSettingsDialog(true)}>
                                 Settings...
@@ -49,26 +52,20 @@ export function AppMenubar() {
                 </MenubarTrigger>
 
                 <MenubarContent>
-                    <MenubarRadioGroup
-                        value={activeView}
-                        onValueChange={(value) => {
-                            appSettings.mainTab = value;
-                            if (value === "windows-tree") {
-                                refreshWindowTree();
-                            }
-                        }}
-                    >
-                        {VIEW_MENU_ITEMS.map(({ id, label }) => (
-                            <MenubarRadioItem key={id} value={id}>
-                                {label}
-                            </MenubarRadioItem>
-                        ))}
+                    <MenubarRadioGroup value={activeView} onValueChange={(value) => { appSettings.mainTab = value; if (value === "windows-tree") { refreshWindowTree(); } }}>
+                        {VIEW_MENU_ITEMS.map(
+                            ({ id, label }) => (
+                                <MenubarRadioItem key={id} value={id}>
+                                    {label}
+                                </MenubarRadioItem>
+                            )
+                        )}
                     </MenubarRadioGroup>
                 </MenubarContent>
             </MenubarMenu>
 
             <ToolsMenu value="tools" active={menuValue === "tools"} />
-            
+
         </Menubar>
     );
 }
