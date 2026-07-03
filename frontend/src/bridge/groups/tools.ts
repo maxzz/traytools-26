@@ -20,13 +20,31 @@ export interface ToolsMenuResponse {
     error?: string;
 }
 
+// Response of the "getRaw" command. Mirrors backend/toolsmenu.RawResponse.
+// Carries the unparsed tools.json text for the editor page.
+export interface ToolsRawResponse {
+    found: boolean;
+    path: string;
+    content?: string;
+    error?: string;
+}
+
+// Response of the "save" command. Mirrors backend/toolsmenu.SaveResponse.
+export interface ToolsSaveResponse {
+    path: string;
+}
+
 /**
  * Tools menu command group. Mirrors the "tools" group on the backend bus.
  * 
  * - getMenu returns the render-ready Tools menu tree; 
- * - exec executes a tool by id.
+ * - exec executes a tool by id;
+ * - getRaw returns the unparsed tools.json text for editing;
+ * - save writes tools.json to disk (creating it if missing).
  */
 export const toolsBus = {
     getMenu: () => dispatch<ToolsMenuResponse>(GROUP, "getMenu"),
     exec: (id: number) => dispatch(GROUP, "exec", { id }),
+    getRaw: () => dispatch<ToolsRawResponse>(GROUP, "getRaw"),
+    save: (content: string) => dispatch<ToolsSaveResponse>(GROUP, "save", { content }),
 };

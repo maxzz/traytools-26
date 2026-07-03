@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toolsBus, type ToolMenuNode, type ToolsMenuResponse } from "@/bridge";
+import { appSettings } from "@/store/1-ui-settings";
 import { MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 
 /**
@@ -63,6 +64,12 @@ export function ToolsMenu({ value, active }: { value: string; active: boolean; }
                         <ToolNode key={nodeKey(node, index)} node={node} />
                     )
                 )}
+
+                <MenubarSeparator />
+
+                <MenubarItem onSelect={() => { appSettings.mainTab = "tools-editor"; }}>
+                    Edit Tools Menu...
+                </MenubarItem>
             </MenubarContent>
         </MenubarMenu>
     );

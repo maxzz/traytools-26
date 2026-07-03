@@ -41,6 +41,33 @@ func (m *Manager) Register(b *bus.Bus) {
 		}
 		return nil, m.exec(req.ID)
 	})
+	b.Register(Group, "getRaw", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return m.getRaw(), nil
+	})
+	b.Register(Group, "save", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			Content string `json:"content"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		path, err := saveRawConfig(req.Content)
+		if err != nil {
+			return nil, err
+		}
+		return SaveResponse{Path: path}, nil
+	})
+}
+
+// getRaw returns the unparsed tools.json text for the editor.
+func (m *Manager) getRaw() RawResponse {
+	content, path, found, err := readRawConfig()
+	if err != nil {
+		return RawResponse{Found: found, Path: path, Error: err.Error()}
+	}
+	return RawResponse{Found: found, Path: path, Content: content}
 }
 
 // getMenu loads tools.json, rebuilds the render tree, and refreshes the id map.

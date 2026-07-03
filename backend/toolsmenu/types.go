@@ -61,6 +61,20 @@ type MenuResponse struct {
 	Error string    `json:"error,omitempty"`
 }
 
+// RawResponse is returned by the "getRaw" command. It carries the unparsed
+// tools.json text so the frontend editor can load and modify it.
+type RawResponse struct {
+	Found   bool   `json:"found"`
+	Path    string `json:"path"`
+	Content string `json:"content,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+// SaveResponse is returned by the "save" command with the path written to.
+type SaveResponse struct {
+	Path string `json:"path"`
+}
+
 // resolvedCommand is the executable form of a command leaf, produced while the
 // tree is built and looked up later by the "exec" command.
 type resolvedCommand struct {

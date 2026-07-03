@@ -69,6 +69,60 @@ func findConfigPath() (string, bool) {
 	return "", false
 }
 
+// writeConfigPath returns the path tools.json should be written to when the
+// user creates/saves it from the editor. If a config file already exists it is
+// overwritten in place; otherwise a default per-user location is used so the
+// write always succeeds:
+//
+//	<userConfigDir>/<app>/tools/tools.json
+//
+// The returned path's parent directory is created if needed.
+func writeConfigPath() (string, error) {
+	if path, found := findConfigPath(); found {
+		return path, nil
+	}
+
+	cfg, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+	dir := filepath.Join(cfg, appConfigDirName, "tools")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "tools.json"), nil
+}
+
+// readRawConfig returns the raw (unparsed) tools.json text from the current
+// search location together with its path. found is false when no file exists.
+func readRawConfig() (content string, path string, found bool, err error) {
+	path, found = findConfigPath()
+	if !found {
+		return "", "", false, nil
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", path, true, err
+	}
+	return string(data), path, true, nil
+}
+
+// saveRawConfig writes content to the write path (creating parent dirs) and
+// returns the path it was written to.
+func saveRawConfig(content string) (string, error) {
+	path, err := writeConfigPath()
+	if err != nil {
+		return "", err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
 // loadConfig reads and parses tools.json, returning the parsed config and the
 // base directory that relative ("rel") commands are resolved against (the
 // directory that holds tools.json).
