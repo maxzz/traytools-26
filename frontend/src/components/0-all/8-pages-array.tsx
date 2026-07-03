@@ -8,9 +8,9 @@ import { Page_WindowsTree } from "../2-main/1-tab-windows-tree/0-all-windows-tre
 import { Page_ToolsMenuEditor } from "../2-main/3-tab-tools-menu-editor/0-all-tools-menu-editor";
 
 export const MAIN_PAGES = [
-    { id: "welcome", label: "Welcome Screen", Page: PageWelcome },
-    { id: "trace-bits", label: "Trace Manager", Page: Page_TraceBits },
-    { id: "windows-tree", label: "Windows Tree", Page: Page_WindowsTree },
+    { id: "welcome", label: "Welcome", Page: PageWelcome },
+    { id: "trace-bits", label: "Trace Bits", Page: Page_TraceBits },
+    { id: "windows-tree", label: "Windows", Page: Page_WindowsTree },
     { id: "tools-menu-editor", label: "Tools Menu Editor", Page: Page_ToolsMenuEditor },
     { id: "demos", label: "Demos", Page: Page_XYZdemos },
     // { id: "test-a", label: "Test A", Page: PageTestTabA },
