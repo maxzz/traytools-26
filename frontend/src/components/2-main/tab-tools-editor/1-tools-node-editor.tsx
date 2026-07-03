@@ -62,9 +62,11 @@ export function ToolsNodeList({ items, depth = 0 }: { items: ToolMenuItem[]; dep
 
     return (
         <div className={cn("flex flex-col gap-1.5", depth > 0 && "border-l border-border/60 pl-3 ml-1")}>
-            {snap.map((_, index) => (
-                <ToolsNodeEditor key={index} items={items} index={index} depth={depth} />
-            ))}
+            {snap.map(
+                (_, index) => (
+                    <ToolsNodeEditor key={index} items={items} index={index} depth={depth} />
+                )
+            )}
 
             <div className="flex items-center gap-1.5 pt-0.5">
                 <Button variant="outline" size="xs" onClick={() => addNode(items, "item")}>
@@ -120,13 +122,10 @@ function ToolsNodeEditor({ items, index, depth }: { items: ToolMenuItem[]; index
                     <Button variant="ghost" size="icon-xs" onClick={() => setOpen((v) => !v)} title={open ? "Collapse" : "Expand"}>
                         {open ? <ChevronDown /> : <ChevronRight />}
                     </Button>
+
                     <FolderPlus className="size-3.5 text-muted-foreground" />
-                    <Input
-                        className="h-7 flex-1"
-                        value={snap.menuName}
-                        placeholder="Submenu name"
-                        onChange={(e) => { node.menuName = e.target.value; markDirty(); }}
-                    />
+
+                    <Input className="h-7 flex-1" value={snap.menuName} placeholder="Submenu name" onChange={(e) => { node.menuName = e.target.value; markDirty(); }} />
                     {rowControls}
                 </div>
 
@@ -145,22 +144,15 @@ function ToolsNodeEditor({ items, index, depth }: { items: ToolMenuItem[]; index
             <div className="flex items-start gap-1.5">
                 <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                     <Field label="Name">
-                        <Input
-                            className="h-7"
-                            value={snap.menuName}
-                            placeholder="Menu label"
-                            onChange={(e) => { node.menuName = e.target.value; markDirty(); }}
-                        />
+                        <Input className="h-7" value={snap.menuName} placeholder="Menu label" onChange={(e) => { node.menuName = e.target.value; markDirty(); }} />
                     </Field>
 
                     <Field label="Type">
-                        <Select
-                            value={snap.cmdWhat ?? "rel"}
-                            onValueChange={(v) => { node.cmdWhat = v as CmdWhat; markDirty(); }}
-                        >
+                        <Select value={snap.cmdWhat ?? "rel"} onValueChange={(v) => { node.cmdWhat = v as CmdWhat; markDirty(); }}>
                             <SelectTrigger className="h-7 w-28">
                                 <SelectValue />
                             </SelectTrigger>
+
                             <SelectContent>
                                 <SelectItem value="rel">Relative</SelectItem>
                                 <SelectItem value="abs">Absolute</SelectItem>

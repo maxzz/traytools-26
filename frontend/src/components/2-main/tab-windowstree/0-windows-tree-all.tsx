@@ -5,8 +5,8 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadc
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS } from "@/store/2-panel-sizes";
 import { windowTreeStore, refreshWindowTree } from "@/store/4-windows-tree";
-import { WindowTreeView } from "./b-windows-tree-view";
-import { WindowProps } from "./d-window-props";
+import { WindowTreeView } from "./1-0-windows-tree";
+import { WindowProps } from "./2-window-props";
 
 // Windows Tree tab. A port of the legacy "User32 spy" window: a resizable
 // [ window tree | properties ] split. The tree enumerates every top-level
@@ -31,7 +31,7 @@ export function PageWindowsTree() {
         }, [loaded]);
 
     return (
-        <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden">
+        <div className="flex-1 min-h-0 min-w-0 bg-card border rounded-md overflow-hidden">
             <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={onMainLayoutChanged}>
                 <ResizablePanel id="tree" minSize={30}>
                     <WindowTreeView />

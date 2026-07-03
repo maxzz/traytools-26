@@ -7,7 +7,7 @@ import { Input } from "@/ui/shadcn/input";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { traceStore, clearWindow } from "@/store/3-trace-manager";
 import { selectedProcessAtom, traceFilterAtom, autoScrollAtom, showColorsAtom } from "./a-trace-manager-atoms";
-import { traceLineStyle } from "./b-trace-color";
+import { traceLineStyle } from "./8-trace-color";
 
 // Bottom pane: the trace lines for the selected process, with color
 // highlighting, a filter and auto-scroll. Port of the legacy CTraceWindow list.

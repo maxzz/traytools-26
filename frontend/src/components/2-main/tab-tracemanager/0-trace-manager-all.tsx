@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
+import { appSettings } from "@/store/1-ui-settings";
 import { type Layout } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
 import { traceManagerBus, onWailsEvent, TRACE_EVENTS, type TraceCall } from "@/bridge";
 import { routeTraceCall, setStreaming, setSections } from "@/store/3-trace-manager";
-import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS } from "@/store/2-panel-sizes";
 import { expandedSectionsAtom } from "./a-trace-manager-atoms";
-import { TraceWindowsList } from "./c-trace-windows-list";
-import { TraceWindowView } from "./d-trace-window-view";
-import { TraceCheckboxesPanel } from "./e-trace-checkboxes-panel";
+import { TraceWindowsList } from "./1-trace-windows-list";
+import { TraceWindowView } from "./2-trace-window-view";
+import { TraceCheckboxesPanel } from "./3-trace-checkboxes-panel";
 
 // Trace Manager tab. Reproduces the legacy CTraceManagerDlg layout inside a
 // single tab: a resizable [ trace panels | categories ] split, with the trace
@@ -57,7 +57,8 @@ export function PageTraceManager() {
                 offCall();
                 offStreaming();
             };
-        }, [setExpanded]);
+        },
+        [setExpanded]);
 
     return (
         <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden">

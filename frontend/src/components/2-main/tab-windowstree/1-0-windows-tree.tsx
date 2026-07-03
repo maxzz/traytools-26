@@ -11,7 +11,7 @@ import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
 import { windowTreeStore, refreshWindowTree, loadWindowInfo } from "@/store/4-windows-tree";
 import { selectedHandleAtom, treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./a-windows-tree-atoms";
-import { WindowTreeNode } from "./c-tree-node";
+import { WindowTreeNode } from "./1-1-tree-node";
 
 const WS_VISIBLE = 0x10000000;
 
