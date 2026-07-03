@@ -26,7 +26,7 @@ export type ScrollAreaProps = ComponentProps<typeof Prim.Root> & {
  * const fixedWidthClasses = "[&[data-fixed-width]_[data-radix-scroll-area-content]]:block!";
  */
 const fullHeightClasses = "[&_[data-radix-scroll-area-viewport]>div]:h-full";
-const fixedWidthClasses = "[&_[data-radix-scroll-area-viewport]>div]:block!"; // to block: display: table
+const fixedWidthClasses = "[&_[data-radix-scroll-area-viewport]>div]:block! [&_[data-radix-scroll-area-viewport]>div]:w-full! [&_[data-radix-scroll-area-viewport]>div]:max-w-full!";
 const parentContentWidthClasses = "**:data-radix-scroll-area-content:min-w-0!";
 
 export function ScrollArea({ className, children, horizontal, fixedWidth, fullHeight, parentContentWidth, viewportClassName, viewportProps, ref, ...rest }: ScrollAreaProps) {
@@ -41,7 +41,7 @@ export function ScrollArea({ className, children, horizontal, fixedWidth, fullHe
             )}
             {...rest}
         >
-            <Prim.Viewport className={cn("h-full w-full rounded-[inherit]", viewportClassName)} {...viewportProps}>
+            <Prim.Viewport className={cn("h-full w-full rounded-[inherit]", fixedWidth && "overflow-x-hidden", viewportClassName)} {...viewportProps}>
                 {children}
             </Prim.Viewport>
 
@@ -68,7 +68,7 @@ export function ScrollArea2({ className, children, horizontal, fixedWidth, fullH
             )}
             {...rest}
         >
-            <Prim.Viewport ref={ref} className="h-full w-full rounded-[inherit]">
+            <Prim.Viewport ref={ref} className={cn("h-full w-full rounded-[inherit]", fixedWidth && "overflow-x-hidden")}>
                 {children}
             </Prim.Viewport>
 

@@ -49,7 +49,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath, showHandles }:
                 <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot)} />
                 <TreeLabel
                     className={cn(
-                        "text-xs font-mono",
+                        "text-xs font-mono min-w-0",
                         !isRoot && !node.visible && "text-muted-foreground/60",
                     )}
                 >

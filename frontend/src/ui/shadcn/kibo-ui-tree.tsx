@@ -289,7 +289,7 @@ export type TreeViewProps = HTMLAttributes<HTMLDivElement>;
 
 export function TreeView({ className, children, ...props }: TreeViewProps) {
     return (
-        <div className={cn("p-2", className)} {...props}>
+        <div className={cn("p-2 min-w-0 max-w-full overflow-hidden", className)} {...props}>
             {children}
         </div>
     );
@@ -328,7 +328,7 @@ export function TreeNode({ nodeId: providedNodeId, level = 0, isLast = false, pa
                 parentPath: currentPath,
             }}
         >
-            <div className={cn("select-none", className)} {...props}>
+            <div className={cn("select-none max-w-full overflow-hidden", className)} {...props}>
                 {children}
             </div>
         </TreeNodeContext.Provider>
@@ -369,7 +369,7 @@ function TreeNodeTriggerContent({
     return (
         <motion.div
             className={cn(
-                "relative group mx-1 px-3 py-2 transition-all duration-200 rounded-md flex items-center cursor-pointer",
+                "relative group mx-1 px-3 py-2 transition-all duration-200 rounded-md flex items-center w-full max-w-full min-w-0 overflow-hidden cursor-pointer",
                 "hover:bg-accent/50",
                 isSelected && "bg-accent/80",
                 className
@@ -558,6 +558,6 @@ export type TreeLabelProps = HTMLAttributes<HTMLSpanElement>;
 
 export function TreeLabel({ className, ...props }: TreeLabelProps) {
     return (
-        <span className={cn("text-sm truncate flex-1 font", className)} {...props} />
+        <span className={cn("text-sm truncate flex-1 min-w-0 font", className)} {...props} />
     );
 }

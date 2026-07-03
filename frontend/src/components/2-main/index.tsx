@@ -8,13 +8,13 @@ export function MainBody() {
     const activeTab = getValidMainTab(settings.mainTab);
 
     return (
-        <div className="px-2 py-3 h-full min-h-0 flex flex-col gap-4">
+        <div className="px-2 py-3 h-full min-h-0 min-w-0 flex flex-col gap-4 overflow-x-hidden">
             <Tabs
                 value={activeTab}
                 onValueChange={(value) => {
                     appSettings.mainTab = value;
                 }}
-                className="flex-1 min-h-0 flex flex-col gap-4"
+                className="flex-1 min-h-0 min-w-0 flex flex-col gap-4 overflow-hidden"
             >
                 <TabsList>
                     {MAIN_PAGES.map(({ id, label }) => (
@@ -25,7 +25,7 @@ export function MainBody() {
                 </TabsList>
 
                 {MAIN_PAGES.map(({ id, Page }) => (
-                    <TabsContent key={id} value={id} className="min-h-0 flex flex-col gap-4">
+                    <TabsContent key={id} value={id} className="min-h-0 min-w-0 flex flex-col gap-4 overflow-hidden">
                         <Page />
                     </TabsContent>
                 ))}

@@ -96,7 +96,7 @@ export function WindowProps() {
     const info = snap.info as WindowInfo | null;
 
     return (
-        <div className="h-full min-h-0 flex flex-col">
+        <div className="h-full min-h-0 min-w-0 flex flex-col overflow-hidden">
             <div className="px-2 py-1.5 border-b">
                 <span className="text-xs font-semibold">Properties</span>
             </div>
@@ -114,7 +114,7 @@ export function WindowProps() {
                                 <TabsTrigger value="process">Process</TabsTrigger>
                             </TabsList>
 
-                            <ScrollArea className="flex-1 min-h-0">
+                            <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
                                 <TabsContent value="general"><GeneralTab info={info} /></TabsContent>
                                 <TabsContent value="styles"><StylesTab info={info} /></TabsContent>
                                 <TabsContent value="class"><ClassTab info={info} /></TabsContent>
