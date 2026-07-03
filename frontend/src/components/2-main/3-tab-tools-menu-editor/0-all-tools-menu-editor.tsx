@@ -24,8 +24,13 @@ export function Page_ToolsMenuEditor() {
 
     return (
         <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden flex flex-col">
+            <ScrollArea className="flex-1 min-h-0">
+                <div className="p-3">
+                    <ToolsNodeList items={rootItems} />
+                </div>
+            </ScrollArea>
 
-            <div className="px-3 py-2 border-b flex flex-wrap items-center gap-2">
+            <div className="px-3 py-2 bg-muted border-t flex flex-wrap items-center gap-2">
                 <div className="mr-auto flex flex-col">
                     <span className="text-sm font-medium">Tools Menu Editor</span>
                     <span className="text-[0.7rem] text-muted-foreground">
@@ -54,12 +59,6 @@ export function Page_ToolsMenuEditor() {
                     {snap.dirty && <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">Unsaved changes</span>}
                 </div>
             )}
-
-            <ScrollArea className="flex-1 min-h-0">
-                <div className="p-3">
-                    <ToolsNodeList items={rootItems} />
-                </div>
-            </ScrollArea>
         </div>
     );
 }
