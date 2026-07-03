@@ -111,7 +111,7 @@ export function WindowTreeView() {
                 </label>
             </div>
 
-            <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
+            <ScrollArea className="flex-1 min-h-0 h-60 w-60" fixedWidth parentContentWidth>
                 {snap.error
                     ? <div className="p-3 text-xs text-destructive">Failed to load window tree: {snap.error}</div>
                     : !tree
