@@ -11,10 +11,14 @@ export function App() {
     return (<>
         <Toaster />
         <AllDialogs />
-        
+
         <main className="h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto]">
             <Header />
-            <MainBody />
+
+            <div className="px-2 py-3 h-full min-h-0 bg-red-500 flex flex-col">
+                <MainBody />
+            </div>
+            
             <Section3_Footer />
         </main>
     </>);
@@ -25,9 +29,8 @@ function MainBody() {
     const activeTab = getValidMainTab(settings.mainTab);
 
     return (
-        <div className="px-2 py-3 h-full min-h-0 bg-red-500 flex flex-col 1gap-1">
-            <Tabs className="flex-1 min-h-0 flex flex-col gap-4" value={activeTab} onValueChange={(value) => { appSettings.mainTab = value; }}>
-                <TabsList>
+        <Tabs className="flex-1 min-h-0 flex flex-col gap-4" value={activeTab} onValueChange={(value) => { appSettings.mainTab = value; }}>
+            {/* <TabsList>
                     {MAIN_PAGES.map(
                         ({ id, label }) => (
                             <TabsTrigger key={id} value={id}>
@@ -35,16 +38,15 @@ function MainBody() {
                             </TabsTrigger>
                         )
                     )}
-                </TabsList>
+                </TabsList> */}
 
-                {MAIN_PAGES.map(
-                    ({ id, Page }) => (
-                        <TabsContent key={id} value={id} className="min-h-0 flex flex-col gap-4">
-                            <Page />
-                        </TabsContent>
-                    )
-                )}
-            </Tabs>
-        </div>
+            {MAIN_PAGES.map(
+                ({ id, Page }) => (
+                    <TabsContent key={id} value={id} className="min-h-0 flex flex-col gap-4">
+                        <Page />
+                    </TabsContent>
+                )
+            )}
+        </Tabs>
     );
 }
