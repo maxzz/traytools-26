@@ -2,7 +2,6 @@ import { type ReactNode } from "react";
 import { useAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { type RectInfo, type WindowInfo } from "@/bridge";
-import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
 import { windowTreeStore } from "@/store/4-windows-tree";
 import { propsTabAtom, type PropsTab } from "./a-windows-tree-atoms";
@@ -96,7 +95,7 @@ export function WindowProps() {
     const info = snap.info as WindowInfo | null;
 
     return (
-        <div className="h-full min-h-0 flex flex-col">
+        <div className="h-full min-h-0 min-w-0 max-w-full overflow-hidden flex flex-col">
             <div className="px-2 py-1.5 border-b">
                 <span className="text-xs font-semibold">Properties</span>
             </div>
@@ -106,20 +105,20 @@ export function WindowProps() {
                 : !info || !info.valid
                     ? <div className="p-3 text-xs text-muted-foreground">{snap.infoLoading ? "Loading..." : "Select a window in the tree to view its properties."}</div>
                     : (
-                        <Tabs value={tab} onValueChange={(v) => setTab(v as PropsTab)} className="flex-1 p-2 min-h-0 flex flex-col gap-2">
-                            <TabsList>
+                        <Tabs value={tab} onValueChange={(v) => setTab(v as PropsTab)} className="flex-1 p-2 min-h-0 min-w-0 overflow-hidden flex flex-col gap-2">
+                            <TabsList className="max-w-full shrink-0 overflow-x-auto">
                                 <TabsTrigger value="general">General</TabsTrigger>
                                 <TabsTrigger value="styles">Styles</TabsTrigger>
                                 <TabsTrigger value="class">Class</TabsTrigger>
                                 <TabsTrigger value="process">Process</TabsTrigger>
                             </TabsList>
 
-                            <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
+                            <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden">
                                 <TabsContent value="general"><GeneralTab info={info} /></TabsContent>
                                 <TabsContent value="styles"><StylesTab info={info} /></TabsContent>
                                 <TabsContent value="class"><ClassTab info={info} /></TabsContent>
                                 <TabsContent value="process"><ProcessTab info={info} /></TabsContent>
-                            </ScrollArea>
+                            </div>
                         </Tabs>
                     )
             }

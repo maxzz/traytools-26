@@ -7,7 +7,6 @@ import { cn } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
-import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
 import { windowTreeStore, refreshWindowTree, loadWindowInfo } from "@/store/4-windows-tree";
 import { selectedHandleAtom, treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./a-windows-tree-atoms";
@@ -77,7 +76,7 @@ export function WindowTreeView() {
     const providerKey = `${snap.count}|${needle}|${hideInvisible}`;
 
     return (
-        <div className="h-full min-h-0 flex flex-col">
+        <div className="h-full min-h-0 min-w-0 max-w-full overflow-hidden flex flex-col">
             <div className="px-2 py-1.5 border-b flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-semibold">Windows Tree</span>
                 <span className="tabular-nums text-[11px] text-muted-foreground">{snap.count} windows</span>
@@ -99,7 +98,7 @@ export function WindowTreeView() {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                     placeholder="Filter by class or title..."
-                    className="flex-1 h-7 min-w-40 text-xs"
+                    className="flex-1 h-7 min-w-0 text-xs"
                 />
                 <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                     <Checkbox checked={showHandles} onCheckedChange={(v) => setShowHandles(v === true)} />
@@ -111,7 +110,7 @@ export function WindowTreeView() {
                 </label>
             </div>
 
-            <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
+            <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden">
                 {snap.error
                     ? <div className="p-3 text-xs text-destructive">Failed to load window tree: {snap.error}</div>
                     : !tree
@@ -125,14 +124,14 @@ export function WindowTreeView() {
                                 showLines
                                 indent={16}
                                 animateExpand={false}
-                                className="w-full"
+                                className="w-full min-w-0 max-w-full"
                             >
-                                <TreeView className="p-1">
+                                <TreeView className="p-1 min-w-0 max-w-full overflow-hidden">
                                     <WindowTreeNode node={tree} level={0} isLast parentPath={[]} showHandles={showHandles} />
                                 </TreeView>
                             </TreeProvider>
                         )}
-            </ScrollArea>
+            </div>
         </div>
     );
 }

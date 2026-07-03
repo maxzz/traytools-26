@@ -18,10 +18,10 @@ export function WindowTreeNode({ node, level, isLast, parentPath, showHandles }:
 
     return (
         <TreeNode nodeId={node.handle} level={level} isLast={isLast} parentPath={parentPath}>
-            <TreeNodeTrigger hasChildren={hasChildren}>
+            <TreeNodeTrigger hasChildren={hasChildren} className="w-full max-w-full min-w-0 overflow-hidden">
                 <TreeExpander hasChildren={hasChildren} />
                 <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot)} />
-                <TreeLabel className={cn("text-xs font-mono", !isRoot && !node.visible && "text-muted-foreground/60")}>
+                <TreeLabel className={cn("text-xs font-mono min-w-0", !isRoot && !node.visible && "text-muted-foreground/60")}>
                     {nodeLabel(node, isRoot, showHandles)}
                 </TreeLabel>
             </TreeNodeTrigger>

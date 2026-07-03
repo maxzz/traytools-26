@@ -31,16 +31,20 @@ export function Page_WindowsTree() {
         }, [loaded]);
 
     return (
-        <div className="flex-1 min-h-0 min-w-0 bg-card border rounded-md overflow-hidden">
-            <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={onMainLayoutChanged}>
+        <div className="flex-1 min-h-0 min-w-0 max-w-full bg-card border rounded-md overflow-hidden">
+            <ResizablePanelGroup className="min-w-0 w-full overflow-hidden" orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={onMainLayoutChanged}>
                 <ResizablePanel id="tree" minSize={30}>
-                    <WindowTreeView />
+                    <div className="h-full min-w-0 overflow-hidden">
+                        <WindowTreeView />
+                    </div>
                 </ResizablePanel>
 
                 <ResizableHandle withHandle />
 
                 <ResizablePanel id="props" minSize={25}>
-                    <WindowProps />
+                    <div className="h-full min-w-0 overflow-hidden">
+                        <WindowProps />
+                    </div>
                 </ResizablePanel>
             </ResizablePanelGroup>
         </div>

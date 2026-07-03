@@ -8,8 +8,8 @@ export function ResizablePanelGroup({ className, ...rest }: ResizablePrimitive.G
     );
 }
 
-export function ResizablePanel({ ...rest }: ResizablePrimitive.PanelProps) {
-    return <ResizablePrimitive.Panel data-slot="resizable-panel" {...rest} />;
+export function ResizablePanel({ className, ...rest }: ResizablePrimitive.PanelProps) {
+    return <ResizablePrimitive.Panel data-slot="resizable-panel" className={cn("min-w-0 overflow-hidden!", className)} {...rest} />;
 }
 
 export function ResizableHandle({ withHandle, className, ...rest }: ResizablePrimitive.SeparatorProps & { withHandle?: boolean; }) {
