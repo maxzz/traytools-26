@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Toaster } from '@/ui/shadcn/sonner';
 import { Header } from '../1-header';
 import { Section3_Footer } from '../3-footer';
@@ -5,7 +6,8 @@ import { AllDialogs } from './9-globals';
 import { useSnapshot } from 'valtio';
 import { appSettings } from '@/store/1-ui-settings';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/ui/shadcn/tabs';
-import { getValidMainTab, MAIN_PAGES } from './8-pages-array';
+import { WindowSetTitle } from '../../../wailsjs/runtime/runtime';
+import { formatMainWindowTitle, getValidMainTab, MAIN_PAGES } from './8-pages-array';
 
 export function App() {
     return (<>
@@ -27,6 +29,16 @@ export function App() {
 function MainBody() {
     const settings = useSnapshot(appSettings);
     const activeTab = getValidMainTab(settings.mainTab);
+
+    useEffect(() => {
+        const title = formatMainWindowTitle(activeTab);
+        document.title = title;
+        try {
+            WindowSetTitle(title);
+        } catch {
+            // Wails runtime unavailable (e.g. Vite-only browser dev).
+        }
+    }, [activeTab]);
 
     return (
         <Tabs className="flex-1 min-h-0 flex flex-col gap-4" value={activeTab} onValueChange={(value) => { appSettings.mainTab = value; }}>

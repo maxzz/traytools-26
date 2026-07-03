@@ -27,3 +27,10 @@ export function getValidMainTab(tab: string | undefined): MainTabId {
     const match = MAIN_PAGES.find((page) => page.id === tab);
     return match?.id ?? DEFAULT_MAIN_TAB;
 }
+
+export const APP_NAME = "traytools";
+
+export function formatMainWindowTitle(mainTab: string | undefined): string {
+    const page = MAIN_PAGES.find((entry) => entry.id === getValidMainTab(mainTab));
+    return `${APP_NAME}-${page?.label ?? "Welcome"}`;
+}
