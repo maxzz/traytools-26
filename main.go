@@ -53,7 +53,7 @@ func main() {
 	}
 
 	err = wails.Run(&options.App{
-		Title:            "wails template",
+		Title:            "traytools",
 		Width:            initialWidth,
 		Height:           initialHeight,
 		Assets:           assets,
