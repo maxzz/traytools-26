@@ -1,11 +1,11 @@
 import { type ComponentType } from "react";
-import { PageDemos } from "../xyz-demos";
-import { PageTestTabA } from "../tab-tests/01-page-a/0-page-a-all";
-import { PageTestTabB } from "../tab-tests/02-page-b/0-page-b-all";
-import { PageWelcome } from "../tab-welcome/0-welcome-all";
-import { PageTraceManager } from "../tab-tracemanager/0-trace-manager-all";
-import { PageWindowsTree } from "../tab-windowstree/0-windows-tree-all";
-import { PageToolsEditor } from "../tab-tools-editor/0-tools-editor-all";
+import { PageDemos } from "../2-main/xyz-demos";
+import { PageTestTabA } from "../2-main/tab-tests/01-page-a/0-page-a-all";
+import { PageTestTabB } from "../2-main/tab-tests/02-page-b/0-page-b-all";
+import { PageWelcome } from "../2-main/tab-welcome/0-welcome-all";
+import { PageTraceManager } from "../2-main/tab-tracemanager/0-trace-manager-all";
+import { PageWindowsTree } from "../2-main/tab-windowstree/0-windows-tree-all";
+import { PageToolsEditor } from "../2-main/tab-tools-editor/0-tools-editor-all";
 
 export const MAIN_PAGES = [
     { id: "welcome", label: "Welcome Screen", Page: PageWelcome },

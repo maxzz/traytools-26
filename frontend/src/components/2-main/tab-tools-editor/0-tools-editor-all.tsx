@@ -14,9 +14,11 @@ import { ToolsNodeList } from "./1-tools-node-editor";
 export function PageToolsEditor() {
     const snap = useSnapshot(toolsEditor);
 
-    useEffect(() => {
-        loadToolsConfig();
-    }, []);
+    useEffect(
+        () => {
+            loadToolsConfig();
+        },
+        []);
 
     const rootItems = toolsEditor.config.menu.menuItems ??= [];
 

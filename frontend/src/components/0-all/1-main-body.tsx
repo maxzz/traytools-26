@@ -1,7 +1,7 @@
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
-import { getValidMainTab, MAIN_PAGES } from "./1-pages";
+import { getValidMainTab, MAIN_PAGES } from "./8-pages";
 
 export function MainBody() {
     const settings = useSnapshot(appSettings);

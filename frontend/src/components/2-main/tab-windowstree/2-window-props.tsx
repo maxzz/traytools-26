@@ -15,7 +15,7 @@ function rectText(r: RectInfo): string {
     return `(${r.left},${r.top})-(${r.right},${r.bottom}), ${r.width}x${r.height}`;
 }
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+function Row({ label, children }: { label: string; children: ReactNode; }) {
     return (
         <div className="py-0.5 grid grid-cols-[7.5rem_1fr] gap-2 items-start">
             <span className="text-muted-foreground">{label}</span>
@@ -24,7 +24,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
     );
 }
 
-function GeneralTab({ info }: { info: WindowInfo }) {
+function GeneralTab({ info }: { info: WindowInfo; }) {
     return (
         <div className="text-xs">
             <Row label="Handle">{info.handle}</Row>
@@ -43,7 +43,7 @@ function GeneralTab({ info }: { info: WindowInfo }) {
     );
 }
 
-function StyleList({ title, hexValue, names }: { title: string; hexValue: number; names: string[] }) {
+function StyleList({ title, hexValue, names }: { title: string; hexValue: number; names: string[]; }) {
     return (
         <div className="mb-3">
             <div className="mb-1 text-xs font-semibold">{title}: <span className="font-mono font-normal">{hex8(hexValue)}</span></div>
@@ -58,7 +58,7 @@ function StyleList({ title, hexValue, names }: { title: string; hexValue: number
     );
 }
 
-function StylesTab({ info }: { info: WindowInfo }) {
+function StylesTab({ info }: { info: WindowInfo; }) {
     return (
         <div>
             <StyleList title="Window styles" hexValue={info.style} names={info.styleNames ?? []} />
@@ -67,7 +67,7 @@ function StylesTab({ info }: { info: WindowInfo }) {
     );
 }
 
-function ClassTab({ info }: { info: WindowInfo }) {
+function ClassTab({ info }: { info: WindowInfo; }) {
     return (
         <div className="text-xs">
             <Row label="Class Name">{info.className}</Row>
@@ -79,7 +79,7 @@ function ClassTab({ info }: { info: WindowInfo }) {
     );
 }
 
-function ProcessTab({ info }: { info: WindowInfo }) {
+function ProcessTab({ info }: { info: WindowInfo; }) {
     return (
         <div className="text-xs">
             <Row label="Process ID">{hex8(info.processId)}  ({info.processId})</Row>
@@ -114,14 +114,15 @@ export function WindowProps() {
                                 <TabsTrigger value="process">Process</TabsTrigger>
                             </TabsList>
 
-                            <ScrollArea className="flex-1 min-h-0">
+                            <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
                                 <TabsContent value="general"><GeneralTab info={info} /></TabsContent>
                                 <TabsContent value="styles"><StylesTab info={info} /></TabsContent>
                                 <TabsContent value="class"><ClassTab info={info} /></TabsContent>
                                 <TabsContent value="process"><ProcessTab info={info} /></TabsContent>
                             </ScrollArea>
                         </Tabs>
-                    )}
+                    )
+            }
         </div>
     );
 }
