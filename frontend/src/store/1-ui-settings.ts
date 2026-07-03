@@ -19,7 +19,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     showFooter: true,
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
-    mainTab: 'demos',
+    mainTab: 'welcome',
 };
 
 // Load settings from localStorage

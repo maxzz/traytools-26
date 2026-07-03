@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { useSetAtom } from "jotai";
+import { useSnapshot } from "valtio";
 import { appBus } from "@/bridge";
+import { getValidMainTab, VIEW_MENU_ITEMS } from "@/components/2-main/1-pages";
 import { appSettings } from "@/store/1-ui-settings";
 import { refreshWindowTree } from "@/store/4-windows-tree";
 import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 import { ToolsMenu } from "./1-1-menu-tools";
 
 export function AppMenubar() {
     const openSettingsDialog = useSetAtom(isOpenSettingsDialogAtom);
     const [menuValue, setMenuValue] = useState("");
+    const settings = useSnapshot(appSettings);
+    const activeTab = getValidMainTab(settings.mainTab);
+    const activeView = VIEW_MENU_ITEMS.some((item) => item.id === activeTab) ? activeTab : "";
 
     return (
         <Menubar value={menuValue} onValueChange={setMenuValue}>
@@ -44,9 +49,21 @@ export function AppMenubar() {
                 </MenubarTrigger>
 
                 <MenubarContent>
-                    <MenubarItem onSelect={() => { appSettings.mainTab = "windows-tree"; refreshWindowTree(); }}>
-                        Show Windows Tree...
-                    </MenubarItem>
+                    <MenubarRadioGroup
+                        value={activeView}
+                        onValueChange={(value) => {
+                            appSettings.mainTab = value;
+                            if (value === "windows-tree") {
+                                refreshWindowTree();
+                            }
+                        }}
+                    >
+                        {VIEW_MENU_ITEMS.map(({ id, label }) => (
+                            <MenubarRadioItem key={id} value={id}>
+                                {label}
+                            </MenubarRadioItem>
+                        ))}
+                    </MenubarRadioGroup>
                 </MenubarContent>
             </MenubarMenu>
 
