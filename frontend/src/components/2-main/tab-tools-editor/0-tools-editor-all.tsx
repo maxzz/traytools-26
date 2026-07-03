@@ -23,9 +23,9 @@ export function PageToolsEditor() {
     const rootItems = toolsEditor.config.menu.menuItems ??= [];
 
     return (
-        <div className="flex-1 min-h-0 flex flex-col bg-card border rounded-md overflow-hidden">
+        <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden flex flex-col">
 
-            <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2">
+            <div className="px-3 py-2 border-b flex flex-wrap items-center gap-2">
                 <div className="mr-auto flex flex-col">
                     <span className="text-sm font-medium">Tools Menu Editor</span>
                     <span className="text-[0.7rem] text-muted-foreground">
@@ -47,15 +47,15 @@ export function PageToolsEditor() {
             </div>
 
             {(snap.status || snap.error || snap.dirty) && (
-                <div className="flex items-center gap-2 border-b px-3 py-1 text-[0.72rem]">
+                <div className="px-3 py-1 text-[0.72rem] border-b flex items-center gap-2">
                     {snap.error
-                        ? <span className="flex items-center gap-1 text-destructive"><AlertTriangle className="size-3.5" /> {snap.error}</span>
+                        ? <span className="text-destructive flex items-center gap-1"><AlertTriangle className="size-3.5" /> {snap.error}</span>
                         : <span className="text-muted-foreground">{snap.status}</span>}
-                    {snap.dirty && <span className="ml-auto rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">Unsaved changes</span>}
+                    {snap.dirty && <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">Unsaved changes</span>}
                 </div>
             )}
 
-            <ScrollArea className="min-h-0 flex-1">
+            <ScrollArea className="flex-1 min-h-0">
                 <div className="p-3">
                     <ToolsNodeList items={rootItems} />
                 </div>

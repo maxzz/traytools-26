@@ -68,7 +68,7 @@ export function ToolsNodeList({ items, depth = 0 }: { items: ToolMenuItem[]; dep
                 )
             )}
 
-            <div className="flex items-center gap-1.5 pt-0.5">
+            <div className="pt-0.5 flex items-center gap-1.5">
                 <Button variant="outline" size="xs" onClick={() => addNode(items, "item")}>
                     <Plus /> Command
                 </Button>
@@ -105,7 +105,7 @@ function ToolsNodeEditor({ items, index, depth }: { items: ToolMenuItem[]; index
 
     if (kind === "separator") {
         return (
-            <div className="flex items-center gap-2 rounded-md border border-dashed border-border/70 bg-muted/30 px-2 py-1">
+            <div className="px-2 py-1 bg-muted/30 border border-dashed border-border/70 rounded-md flex items-center gap-2">
                 <span className="flex-1 border-t border-border/70" />
                 <span className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">Separator</span>
                 <span className="flex-1 border-t border-border/70" />
@@ -117,7 +117,7 @@ function ToolsNodeEditor({ items, index, depth }: { items: ToolMenuItem[]; index
     if (kind === "submenu") {
         const children = node.menuItems!;
         return (
-            <div className="rounded-md border bg-card px-2 py-1.5">
+            <div className="px-2 py-1.5 bg-card border rounded-md">
                 <div className="flex items-center gap-1.5">
                     <Button variant="ghost" size="icon-xs" onClick={() => setOpen((v) => !v)} title={open ? "Collapse" : "Expand"}>
                         {open ? <ChevronDown /> : <ChevronRight />}
@@ -125,7 +125,7 @@ function ToolsNodeEditor({ items, index, depth }: { items: ToolMenuItem[]; index
 
                     <FolderPlus className="size-3.5 text-muted-foreground" />
 
-                    <Input className="h-7 flex-1" value={snap.menuName} placeholder="Submenu name" onChange={(e) => { node.menuName = e.target.value; markDirty(); }} />
+                    <Input className="flex-1 h-7" value={snap.menuName} placeholder="Submenu name" onChange={(e) => { node.menuName = e.target.value; markDirty(); }} />
                     {rowControls}
                 </div>
 
@@ -140,9 +140,9 @@ function ToolsNodeEditor({ items, index, depth }: { items: ToolMenuItem[]; index
 
     // Command leaf.
     return (
-        <div className="rounded-md border bg-card px-2 py-2">
+        <div className="px-2 py-2 bg-card border rounded-md">
             <div className="flex items-start gap-1.5">
-                <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="flex-1 sm:grid-cols-[minmax(0,1fr)_auto] grid grid-cols-1 gap-2">
                     <Field label="Name">
                         <Input className="h-7" value={snap.menuName} placeholder="Menu label" onChange={(e) => { node.menuName = e.target.value; markDirty(); }} />
                     </Field>

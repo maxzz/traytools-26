@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appBus } from "@/bridge";
-import { getValidMainTab, VIEW_MENU_ITEMS } from "@/components/0-all/8-pages";
+import { getValidMainTab, VIEW_MENU_ITEMS } from "@/components/0-all/8-pages-array";
 import { appSettings } from "@/store/1-ui-settings";
 import { refreshWindowTree } from "@/store/4-windows-tree";
 import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
@@ -29,7 +29,7 @@ export function AppMenubar() {
                         <MenubarSubTrigger>
                             Preferences
                         </MenubarSubTrigger>
-                        
+
                         <MenubarSubContent>
                             <MenubarItem onSelect={() => openSettingsDialog(true)}>
                                 Settings...
