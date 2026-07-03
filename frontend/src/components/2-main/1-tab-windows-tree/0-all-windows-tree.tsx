@@ -35,14 +35,12 @@ export function Page_WindowsTree() {
             <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={onMainLayoutChanged}>
                 <ResizablePanel id="tree" minSize={30}>
                     <WindowTreeView />
-                    {/* <div>Window Tree</div> */}
                 </ResizablePanel>
 
                 <ResizableHandle withHandle />
 
                 <ResizablePanel id="props" minSize={25}>
-                    {/* <WindowProps /> */}
-                    <div>Window Properties</div>
+                    <WindowProps />
                 </ResizablePanel>
             </ResizablePanelGroup>
         </div>
