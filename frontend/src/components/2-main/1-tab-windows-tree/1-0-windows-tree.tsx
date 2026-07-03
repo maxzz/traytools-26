@@ -111,28 +111,30 @@ export function WindowTreeView() {
                 </label>
             </div>
 
-            <ScrollArea className="flex-1 min-h-0 h-60 w-60" fixedWidth parentContentWidth>
-                {snap.error
-                    ? <div className="p-3 text-xs text-destructive">Failed to load window tree: {snap.error}</div>
-                    : !tree
-                        ? <div className="p-3 text-xs text-muted-foreground">{snap.loading ? "Loading..." : "No windows. Press Refresh."}</div>
-                        : (
-                            <TreeProvider
-                                key={providerKey}
-                                defaultExpandedIds={expandIds}
-                                selectedIds={selected ? [selected] : []}
-                                onSelectionChange={onSelectionChange}
-                                showLines
-                                indent={16}
-                                animateExpand={false}
-                                className="w-full"
-                            >
-                                <TreeView className="p-1">
-                                    <WindowTreeNode node={tree} level={0} isLast parentPath={[]} showHandles={showHandles} />
-                                </TreeView>
-                            </TreeProvider>
-                        )}
-            </ScrollArea>
+            <div className="relative size-full min-h-0">
+                <ScrollArea className="absolute inset-0" fixedWidth parentContentWidth>
+                    {snap.error
+                        ? <div className="p-3 text-xs text-destructive">Failed to load window tree: {snap.error}</div>
+                        : !tree
+                            ? <div className="p-3 text-xs text-muted-foreground">{snap.loading ? "Loading..." : "No windows. Press Refresh."}</div>
+                            : (
+                                <TreeProvider
+                                    key={providerKey}
+                                    defaultExpandedIds={expandIds}
+                                    selectedIds={selected ? [selected] : []}
+                                    onSelectionChange={onSelectionChange}
+                                    showLines
+                                    indent={16}
+                                    animateExpand={false}
+                                    className="w-full"
+                                >
+                                    <TreeView className="p-1">
+                                        <WindowTreeNode node={tree} level={0} isLast parentPath={[]} showHandles={showHandles} />
+                                    </TreeView>
+                                </TreeProvider>
+                            )}
+                </ScrollArea>
+            </div>
         </div>
     );
 }
