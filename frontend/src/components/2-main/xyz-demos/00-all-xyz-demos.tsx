@@ -5,7 +5,7 @@ import { TestConfirmationDialog } from "./01-test-confirmation-dialog";
 import { TestResizablePanels } from "./02-test-resizable-panels";
 import { TestLoginDialog } from "./03-test-login-dialog";
 
-export function PageDemos() {
+export function Page_XYZdemos() {
     const settings = useSnapshot(appSettings);
 
     const handleValueChange = (value: string[]) => {

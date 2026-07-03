@@ -1,1 +1,1 @@
-export * from "./00-all";
+export * from "./00-all-xyz-demos";

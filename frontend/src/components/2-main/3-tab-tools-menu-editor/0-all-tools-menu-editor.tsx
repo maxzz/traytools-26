@@ -11,7 +11,7 @@ import { ToolsNodeList } from "./1-tools-node-editor";
 // (same location the menu reads), or from the localStorage copy when the file
 // is missing. Defaults mirror the shipped tools/tools.json.
 
-export function PageToolsEditor() {
+export function Page_ToolsMenuEditor() {
     const snap = useSnapshot(toolsEditor);
 
     useEffect(

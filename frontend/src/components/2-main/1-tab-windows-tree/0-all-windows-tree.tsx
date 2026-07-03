@@ -13,7 +13,7 @@ import { WindowProps } from "./2-window-props";
 // window and its children; selecting a node fetches and shows that window's
 // details (General / Styles / Class / Process).
 
-export function PageWindowsTree() {
+export function Page_WindowsTree() {
     const { panelSizes } = useSnapshot(appSettings);
     const mainLayout = panelSizes[PANEL_GROUPS.windowTreeMain];
     const loaded = useSnapshot(windowTreeStore).root !== null;

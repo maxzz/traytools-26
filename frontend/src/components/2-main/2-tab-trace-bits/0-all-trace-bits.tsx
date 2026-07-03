@@ -17,7 +17,7 @@ import { TraceCheckboxesPanel } from "./3-trace-checkboxes-panel";
 // panels column itself split into the per-process list (top) and the selected
 // window's trace view (bottom).
 
-export function PageTraceManager() {
+export function Page_TraceBits() {
     const { panelSizes } = useSnapshot(appSettings);
     const mainLayout = panelSizes[PANEL_GROUPS.traceManagerMain];
     const leftLayout = panelSizes[PANEL_GROUPS.traceManagerLeft];
