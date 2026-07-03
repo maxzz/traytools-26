@@ -30,7 +30,7 @@ function MainBody() {
 
     return (
         <Tabs className="flex-1 min-h-0 flex flex-col gap-4" value={activeTab} onValueChange={(value) => { appSettings.mainTab = value; }}>
-            {/* <TabsList>
+            <TabsList>
                     {MAIN_PAGES.map(
                         ({ id, label }) => (
                             <TabsTrigger key={id} value={id}>
@@ -38,7 +38,7 @@ function MainBody() {
                             </TabsTrigger>
                         )
                     )}
-                </TabsList> */}
+                </TabsList>
 
             {MAIN_PAGES.map(
                 ({ id, Page }) => (
