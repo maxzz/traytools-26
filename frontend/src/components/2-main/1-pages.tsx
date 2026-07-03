@@ -19,7 +19,7 @@ export const MAIN_PAGES = [
 
 export type MainTabId = (typeof MAIN_PAGES)[number]["id"];
 
-export const VIEW_MENU_ITEMS = MAIN_PAGES.slice(0, 3);
+export const VIEW_MENU_ITEMS = MAIN_PAGES.slice(0, 4);
 
 export const DEFAULT_MAIN_TAB: MainTabId = "welcome";
 
