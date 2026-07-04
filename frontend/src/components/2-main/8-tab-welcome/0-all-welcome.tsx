@@ -1,4 +1,4 @@
-import appIcon from "@/assets/icons/1x/appicon.png";
+import appIcon from "@/assets/icons/1x/asset-9.png";
 import { envBuildVersion, envModifiedDate } from "@/utils";
 
 export function PageWelcome() {
