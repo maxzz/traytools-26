@@ -132,3 +132,5 @@ export function Page_TraceBits() {
         </div>
     );
 }
+
+//TODO: make <TraceCheckboxesPanel /> as popup?

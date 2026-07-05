@@ -9,11 +9,9 @@ import { traceManagerBus } from "@/bridge";
 import { traceStore, clearAllWindows, setStreaming, setWindowVisible } from "@/store/3-trace-manager";
 import { selectedProcessAtom, showCategoriesAtom } from "./a-trace-manager-atoms";
 
-// Top pane: the per-process window list with show/hide checkboxes and the
-// stream controls. Port of the legacy manager_listview_t (LVS_EX_CHECKBOXES).
-export function TraceWindowsList() {
+function TraceWindowsListHeader() {
     const snap = useSnapshot(traceStore);
-    const [selected, setSelected] = useAtom(selectedProcessAtom);
+    const [, setSelected] = useAtom(selectedProcessAtom);
     const [showCategories, setShowCategories] = useAtom(showCategoriesAtom);
 
     const start = async () => {
@@ -30,32 +28,45 @@ export function TraceWindowsList() {
     };
 
     return (
-        <div className="h-full min-h-0 flex flex-col">
-            <div className="px-2 py-1.5 border-b flex items-center gap-2">
-                <span className="text-xs font-semibold">Trace windows</span>
+        <div className="px-2 py-1.5 border-b flex items-center gap-2">
+            <span className="text-xs font-semibold">Trace windows</span>
 
-                <span className={cn("size-2 rounded-full", snap.streaming ? "bg-green-500 animate-pulse" : "bg-muted-foreground/40")}
-                    title={snap.streaming ? "Streaming" : "Stopped"} />
+            <span
+                className={cn("size-2 rounded-full", snap.streaming ? "bg-green-500 animate-pulse" : "bg-muted-foreground/40")}
+                title={snap.streaming ? "Streaming" : "Stopped"}
+            />
 
-                <div className="ml-auto flex items-center gap-1">
-                    <Button
-                        size="xs"
-                        variant={showCategories ? "secondary" : "ghost"}
-                        onClick={() => setShowCategories(!showCategories)}
-                        title="Show Trace Categories"
-                        aria-pressed={showCategories}
-                    >
-                        <IconChevronLeft
-                            className={cn("size-3.5 transition-transform duration-300", showCategories && "rotate-180")}
-                        />
-                        <span className="sr-only">Show Trace Categories</span>
-                    </Button>
-                    {snap.streaming
-                        ? <Button size="xs" variant="outline" onClick={stop}>Stop</Button>
-                        : <Button size="xs" variant="outline" onClick={start}>Start</Button>}
-                    <Button size="xs" variant="ghost" onClick={clear} disabled={snap.order.length === 0}>Clear</Button>
-                </div>
+            <div className="ml-auto flex items-center gap-1">
+                <Button
+                    size="xs"
+                    variant={showCategories ? "secondary" : "ghost"}
+                    onClick={() => setShowCategories(!showCategories)}
+                    title="Show Trace Categories"
+                    aria-pressed={showCategories}
+                >
+                    <IconChevronLeft
+                        className={cn("size-3.5 transition-transform duration-300", showCategories && "rotate-180")}
+                    />
+                    <span className="sr-only">Show Trace Categories</span>
+                </Button>
+                {snap.streaming
+                    ? <Button size="xs" variant="outline" onClick={stop}>Stop</Button>
+                    : <Button size="xs" variant="outline" onClick={start}>Start</Button>}
+                <Button size="xs" variant="ghost" onClick={clear} disabled={snap.order.length === 0}>Clear</Button>
             </div>
+        </div>
+    );
+}
+
+// Top pane: the per-process window list with show/hide checkboxes and the
+// stream controls. Port of the legacy manager_listview_t (LVS_EX_CHECKBOXES).
+export function TraceWindowsList() {
+    const snap = useSnapshot(traceStore);
+    const [selected, setSelected] = useAtom(selectedProcessAtom);
+
+    return (
+        <div className="h-full min-h-0 flex flex-col">
+            <TraceWindowsListHeader />
 
             <ScrollArea className="flex-1 min-h-0">
                 {snap.order.length === 0
