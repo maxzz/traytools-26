@@ -27,7 +27,7 @@ export function MainTabButtons() {
                             variant={selected ? "outline" : "ghost"}
                             size="xs"
                             className={cn(
-                                "h-[calc(100%-1px)] font-medium",
+                                "h-[calc(100%-1px)] font-medium active:translate-y-0! transition-none cursor-pointer",
                                 selected
                                     ? "bg-background text-foreground shadow-sm"
                                     : "border-transparent bg-transparent text-foreground/60 shadow-none hover:bg-transparent hover:text-foreground"
