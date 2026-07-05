@@ -32,15 +32,15 @@ func platformSaveCategories(sections []SectionDescription) error {
 	return nil
 }
 
-func platformOpenRegedit(target string) error {
+func platformOpenRegedit(_ string) error {
 	return errors.New("registry editor is only available on Windows")
 }
 
-func platformRunTrace(mode string) error {
+func platformRunTrace(_ string) error {
 	return errors.New("trace export/import is only available on Windows")
 }
 
-func platformStartCapture(emit func(TraceCall)) (func(), error) {
+func platformStartCapture(_ func(TraceCall)) (func(), error) {
 	// No shared-memory IPC on non-Windows.
 	return nil, errors.New("live trace capture is only available on Windows")
 }

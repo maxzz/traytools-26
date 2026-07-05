@@ -52,6 +52,9 @@ func platformStartCapture(emit func(TraceCall)) (func(), error) {
 		windows.CloseHandle(mapping)
 		return nil, err
 	}
+	// Workaround for unsafeptr vet false positive on syscall addresses; see golang/go#58625.
+	ptr := *(*unsafe.Pointer)(unsafe.Pointer(&addr))
+	buf := unsafe.Slice((*byte)(ptr), ipcBufferSize)
 
 	mutexName, _ := windows.UTF16PtrFromString(ipcMutexName)
 	mutex, _ := windows.CreateMutex(nil, false, mutexName)
@@ -76,7 +79,7 @@ func platformStartCapture(emit func(TraceCall)) (func(), error) {
 		return nil, err
 	}
 
-	go readLoop(addr, emit, stopEvent, dataReady, bufferReady)
+	go readLoop(buf, emit, stopEvent, dataReady, bufferReady)
 
 	stop := func() {
 		windows.SetEvent(stopEvent)
@@ -87,8 +90,7 @@ func platformStartCapture(emit func(TraceCall)) (func(), error) {
 	return stop, nil
 }
 
-func readLoop(addr uintptr, emit func(TraceCall), stopEvent, dataReady, bufferReady windows.Handle) {
-	buf := unsafe.Slice((*byte)(unsafe.Pointer(addr)), ipcBufferSize)
+func readLoop(buf []byte, emit func(TraceCall), stopEvent, dataReady, bufferReady windows.Handle) {
 	handles := []windows.Handle{stopEvent, dataReady}
 
 	for {

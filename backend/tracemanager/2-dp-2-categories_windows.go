@@ -114,7 +114,8 @@ func loadViaDLL() []SectionDescription {
 		if r == 0 {
 			continue
 		}
-		combined.WriteString(windows.BytePtrToString((*byte)(unsafe.Pointer(r))))
+		ptr := *(*unsafe.Pointer)(unsafe.Pointer(&r))
+		combined.WriteString(windows.BytePtrToString((*byte)(ptr)))
 	}
 
 	return parseTraceInfo(combined.String())
