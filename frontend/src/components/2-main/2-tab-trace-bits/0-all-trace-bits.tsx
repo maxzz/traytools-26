@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
+import { animate, motion } from "motion/react";
 import { appSettings } from "@/store/1-ui-settings";
 import { type Layout, type LayoutChangedMeta, usePanelRef } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
-import { cn } from "@/utils";
 import { traceManagerBus, onWailsEvent, TRACE_EVENTS, type TraceCall } from "@/bridge";
 import { routeTraceCall, setStreaming, setSections } from "@/store/3-trace-manager";
 import { PANEL_GROUPS } from "@/store/2-panel-sizes";
@@ -13,7 +13,8 @@ import { TraceWindowsList } from "./1-trace-windows-list";
 import { TraceWindowView } from "./2-trace-window-view";
 import { TraceCheckboxesPanel } from "./3-trace-checkboxes-panel";
 
-const PANEL_ANIMATION_MS = 300;
+const PANEL_SPRING = { type: "spring" as const, bounce: 0.12, duration: 0.48 };
+const CONTENT_SPRING = { type: "spring" as const, bounce: 0.08, duration: 0.42 };
 
 // Trace Manager tab. Reproduces the legacy CTraceManagerDlg layout inside a
 // single tab: a resizable [ trace panels | categories ] split, with the trace
@@ -27,39 +28,56 @@ export function Page_TraceBits() {
     const setExpanded = useSetAtom(expandedSectionsAtom);
     const [showCategories] = useAtom(showCategoriesAtom);
     const categoriesPanelRef = usePanelRef();
-    const [isResizing, setIsResizing] = useState(false);
+    const skipPanelAnimation = useRef(true);
+    const categoriesPercent = mainLayout.categories ?? 32;
+    const categoriesPercentRef = useRef(categoriesPercent);
+    const [showHandle, setShowHandle] = useState(showCategories);
 
-    const panelTransition = !isResizing && "transition-[flex-grow] duration-300 ease-in-out";
+    categoriesPercentRef.current = categoriesPercent;
 
     const onMainLayoutChanged = (layout: Layout, meta: LayoutChangedMeta) => {
         appSettings.panelSizes = { ...appSettings.panelSizes, [PANEL_GROUPS.traceManagerMain]: layout };
         if (meta.isUserInteraction) {
-            setIsResizing(false);
+            setShowHandle(showCategories);
         }
-    };
-
-    const onMainLayoutChanging = () => {
-        setIsResizing(true);
     };
 
     const onLeftLayoutChanged = (layout: Layout) => {
         appSettings.panelSizes = { ...appSettings.panelSizes, [PANEL_GROUPS.traceManagerLeft]: layout };
     };
 
-    // Keep the categories panel in sync with the toolbar toggle.
-    useLayoutEffect(() => {
+    // Spring-animate the categories column width via Motion + the panel imperative API.
+    useEffect(() => {
         const panel = categoriesPanelRef.current;
         if (!panel) {
             return;
         }
 
-        if (showCategories) {
-            if (panel.isCollapsed()) {
-                panel.expand();
-            }
-        } else if (!panel.isCollapsed()) {
-            panel.collapse();
+        const targetPercent = showCategories ? categoriesPercentRef.current : 0;
+
+        if (skipPanelAnimation.current) {
+            skipPanelAnimation.current = false;
+            panel.resize(`${targetPercent}%`);
+            setShowHandle(showCategories);
+            return;
         }
+
+        if (showCategories) {
+            setShowHandle(true);
+        }
+
+        const fromPercent = panel.getSize().asPercentage;
+        const controls = animate(fromPercent, targetPercent, {
+            ...PANEL_SPRING,
+            onUpdate: (latest) => panel.resize(`${latest}%`),
+            onComplete: () => {
+                if (!showCategories) {
+                    setShowHandle(false);
+                }
+            },
+        });
+
+        return () => controls.stop();
     }, [showCategories, categoriesPanelRef]);
 
     // Subscribe to backend trace events and load the initial state once.
@@ -96,10 +114,9 @@ export function Page_TraceBits() {
             <ResizablePanelGroup
                 orientation="horizontal"
                 defaultLayout={mainLayout as Layout}
-                onLayoutChange={onMainLayoutChanging}
                 onLayoutChanged={onMainLayoutChanged}
             >
-                <ResizablePanel id="panels" minSize={30} className={cn(panelTransition)}>
+                <ResizablePanel id="panels" minSize={30}>
                     <ResizablePanelGroup orientation="vertical" defaultLayout={leftLayout as Layout} onLayoutChanged={onLeftLayoutChanged}>
                         <ResizablePanel id="list" minSize={15}>
                             <TraceWindowsList />
@@ -113,20 +130,28 @@ export function Page_TraceBits() {
                     </ResizablePanelGroup>
                 </ResizablePanel>
 
-                {showCategories && <ResizableHandle withHandle />}
+                {showHandle && <ResizableHandle withHandle />}
 
                 <ResizablePanel
                     id="categories"
-                    minSize={20}
-                    collapsible
-                    collapsedSize={0}
+                    minSize={0}
+                    maxSize={50}
                     panelRef={categoriesPanelRef}
-                    className={cn(panelTransition, !showCategories && "min-w-0 overflow-hidden")}
-                    style={{ transitionDuration: `${PANEL_ANIMATION_MS}ms` }}
+                    className="min-w-0 overflow-hidden"
                 >
-                    <div className={cn("h-full transition-opacity duration-300", !showCategories && "opacity-0 pointer-events-none")}>
+                    <motion.div
+                        className="h-full min-h-0 overflow-hidden"
+                        initial={false}
+                        animate={{
+                            opacity: showCategories ? 1 : 0,
+                            x: showCategories ? 0 : 28,
+                            scale: showCategories ? 1 : 0.97,
+                        }}
+                        transition={CONTENT_SPRING}
+                        style={{ pointerEvents: showCategories ? "auto" : "none" }}
+                    >
                         <TraceCheckboxesPanel />
-                    </div>
+                    </motion.div>
                 </ResizablePanel>
             </ResizablePanelGroup>
         </div>

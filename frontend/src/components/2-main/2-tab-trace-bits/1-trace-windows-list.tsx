@@ -1,5 +1,6 @@
 import { useAtom } from "jotai";
 import { useSnapshot } from "valtio";
+import { motion } from "motion/react";
 import { cn } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Checkbox } from "@/ui/shadcn/checkbox";
@@ -45,9 +46,13 @@ export function TraceWindowsList() {
                         title="Show Trace Categories"
                         aria-pressed={showCategories}
                     >
-                        <IconChevronLeft
-                            className={cn("size-3.5 transition-transform duration-300", showCategories && "rotate-180")}
-                        />
+                        <motion.span
+                            animate={{ rotate: showCategories ? 180 : 0 }}
+                            transition={{ type: "spring", bounce: 0.15, duration: 0.45 }}
+                            className="inline-flex"
+                        >
+                            <IconChevronLeft className="size-3.5" />
+                        </motion.span>
                         <span className="sr-only">Show Trace Categories</span>
                     </Button>
                     {snap.streaming
