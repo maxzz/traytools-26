@@ -4,15 +4,17 @@ import { cn } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
+import { IconChevronLeft } from "@/ui/icons/normal";
 import { traceManagerBus } from "@/bridge";
 import { traceStore, clearAllWindows, setStreaming, setWindowVisible } from "@/store/3-trace-manager";
-import { selectedProcessAtom } from "./a-trace-manager-atoms";
+import { selectedProcessAtom, showCategoriesAtom } from "./a-trace-manager-atoms";
 
 // Top pane: the per-process window list with show/hide checkboxes and the
 // stream controls. Port of the legacy manager_listview_t (LVS_EX_CHECKBOXES).
 export function TraceWindowsList() {
     const snap = useSnapshot(traceStore);
     const [selected, setSelected] = useAtom(selectedProcessAtom);
+    const [showCategories, setShowCategories] = useAtom(showCategoriesAtom);
 
     const start = async () => {
         const status = await traceManagerBus.startStream(true);
@@ -36,6 +38,18 @@ export function TraceWindowsList() {
                     title={snap.streaming ? "Streaming" : "Stopped"} />
 
                 <div className="ml-auto flex items-center gap-1">
+                    <Button
+                        size="xs"
+                        variant={showCategories ? "secondary" : "ghost"}
+                        onClick={() => setShowCategories(!showCategories)}
+                        title="Show Trace Categories"
+                        aria-pressed={showCategories}
+                    >
+                        <IconChevronLeft
+                            className={cn("size-3.5 transition-transform duration-300", showCategories && "rotate-180")}
+                        />
+                        <span className="sr-only">Show Trace Categories</span>
+                    </Button>
                     {snap.streaming
                         ? <Button size="xs" variant="outline" onClick={stop}>Stop</Button>
                         : <Button size="xs" variant="outline" onClick={start}>Start</Button>}

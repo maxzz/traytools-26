@@ -19,3 +19,6 @@ export const streamOnMountAtom = atomWithStorage("tm.streamOnMount", false);
 
 // Expanded category sections (accordion-like collapsibles).
 export const expandedSectionsAtom = atomWithStorage<string[]>("tm.expandedSections", []);
+
+// Right-hand trace categories panel visibility.
+export const showCategoriesAtom = atomWithStorage("tm.showCategories", true);
