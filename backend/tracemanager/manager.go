@@ -50,6 +50,7 @@ func (m *Manager) Register(b *bus.Bus) {
 	b.Register(Group, "getCategories", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return platformLoadCategories()
 	})
+
 	b.Register(Group, "saveCategories", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		var req struct {
 			Sections []SectionDescription `json:"sections"`
@@ -65,6 +66,7 @@ func (m *Manager) Register(b *bus.Bus) {
 		// Return the re-read state so the UI reflects what was actually stored.
 		return platformLoadCategories()
 	})
+
 	b.Register(Group, "openRegedit", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		var req struct {
 			Target string `json:"target"`
@@ -76,12 +78,15 @@ func (m *Manager) Register(b *bus.Bus) {
 		}
 		return nil, platformOpenRegedit(req.Target)
 	})
+
 	b.Register(Group, "exportTrace", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return nil, platformRunTrace("exp")
 	})
+
 	b.Register(Group, "importTrace", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return nil, platformRunTrace("imp")
 	})
+
 	b.Register(Group, "startStream", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		req := struct {
 			Demo bool `json:"demo"`
@@ -94,10 +99,12 @@ func (m *Manager) Register(b *bus.Bus) {
 		m.startStream(req.Demo)
 		return m.status(), nil
 	})
+
 	b.Register(Group, "stopStream", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		m.stopStream()
 		return m.status(), nil
 	})
+
 	b.Register(Group, "getStatus", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return m.status(), nil
 	})

@@ -146,7 +146,7 @@ func decodeTraceCall(buf []byte) (TraceCall, bool) {
 func utf16BytesToString(b []byte) string {
 	n := len(b) / 2
 	u := make([]uint16, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		u[i] = binary.LittleEndian.Uint16(b[i*2:])
 	}
 	return windows.UTF16ToString(u)

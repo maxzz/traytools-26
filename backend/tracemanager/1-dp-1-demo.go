@@ -55,12 +55,12 @@ func (m *Manager) runDemo(stop <-chan struct{}) {
 			s := samples[rand.Intn(len(samples))]
 
 			text := s.text
-			switch {
-			case s.text == "cache hit, key=0x%04X":
+			switch s.text {
+			case "cache hit, key=0x%04X":
 				text = fmt.Sprintf(s.text, rand.Intn(0xffff))
-			case s.text == "window pos changed to (%d,%d)":
+			case "window pos changed to (%d,%d)":
 				text = fmt.Sprintf(s.text, rand.Intn(1920), rand.Intn(1080))
-			case s.text == "leaving, rv=%d":
+			case "leaving, rv=%d":
 				text = fmt.Sprintf(s.text, rand.Intn(2))
 			}
 
