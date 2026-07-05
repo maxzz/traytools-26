@@ -5,7 +5,6 @@ import { Section3_Footer } from '../3-footer';
 import { AllDialogs } from './9-globals';
 import { useSnapshot } from 'valtio';
 import { appSettings } from '@/store/1-ui-settings';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/ui/shadcn/tabs';
 import { WindowSetTitle } from '../../../wailsjs/runtime/runtime';
 import { formatMainWindowTitle, getValidMainTab, MAIN_PAGES } from './8-pages-array';
 
@@ -40,25 +39,11 @@ function MainBody() {
         }
     }, [activeTab]);
 
-    return (
-        <Tabs className="flex-1 min-h-0 flex flex-col gap-4" value={activeTab} onValueChange={(value) => { appSettings.mainTab = value; }}>
-            <TabsList>
-                {MAIN_PAGES.map(
-                    ({ id, label }) => (
-                        <TabsTrigger key={id} value={id}>
-                            {label}
-                        </TabsTrigger>
-                    )
-                )}
-            </TabsList>
+    const Page = MAIN_PAGES.find((page) => page.id === activeTab)?.Page ?? MAIN_PAGES[0].Page;
 
-            {MAIN_PAGES.map(
-                ({ id, Page }) => (
-                    <TabsContent key={id} value={id} className="min-h-0 flex flex-col gap-4">
-                        <Page />
-                    </TabsContent>
-                )
-            )}
-        </Tabs>
+    return (
+        <div className="flex-1 min-h-0 flex flex-col gap-4">
+            <Page />
+        </div>
     );
 }
