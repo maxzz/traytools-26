@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toolsBus, type ToolMenuNode, type ToolsMenuResponse } from "@/bridge";
 import { appSettings } from "@/store/1-ui-settings";
 import { MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
+import { notice } from "@/ui/local-ui/7-toaster";
 
 /**
  * The "Tools" menu is defined at runtime by tools.json (see the backend toolsmenu package).
@@ -86,7 +87,7 @@ function ToolNode({ node }: { node: ToolMenuNode; }) {
                 <MenubarSubTrigger>
                     {node.name}
                 </MenubarSubTrigger>
-                
+
                 <MenubarSubContent>
                     {node.children?.map(
                         (child, index) => (
@@ -101,11 +102,15 @@ function ToolNode({ node }: { node: ToolMenuNode; }) {
     // Command leaf.
     return (
         <MenubarItem
-            onSelect={() => {
-                if (node.id != null) {
-                    toolsBus.exec(node.id).catch((e) => console.error(`Failed to run "${node.name}"`, e));
+            onSelect={
+                () => {
+                    if (node.id != null) {
+                        toolsBus.exec(node.id).catch((e) => {
+                            notice.error(`Command "${node.name}":\n ${String(e)}`);
+                        });
+                    }
                 }
-            }}
+            }
         >
             {node.name}
             {node.hotKey && <MenubarShortcut>{node.hotKey}</MenubarShortcut>}
