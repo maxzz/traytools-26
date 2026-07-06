@@ -22,6 +22,10 @@ export function SetTrayIcon(arg1) {
   return window['go']['backend']['App']['SetTrayIcon'](arg1);
 }
 
+export function SingleInstanceLock() {
+  return window['go']['backend']['App']['SingleInstanceLock']();
+}
+
 export function ToggleDevTools() {
   return window['go']['backend']['App']['ToggleDevTools']();
 }

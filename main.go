@@ -27,6 +27,7 @@ func trayIcon() []byte {
 }
 
 func main() {
+	backend.EnsureSingleInstanceOrExit()
 	backend.EnsureElevatedIfRequested()
 
 	// Create an instance of the app structure
@@ -53,15 +54,16 @@ func main() {
 	}
 
 	err = wails.Run(&options.App{
-		Title:            "traytools",
-		Width:            initialWidth,
-		Height:           initialHeight,
-		Assets:           assets,
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
-		OnStartup:        app.Startup,
-		OnDomReady:       app.DomReady,
-		OnBeforeClose:    app.BeforeClose,
-		StartHidden:      true,
+		Title:              "traytools",
+		Width:              initialWidth,
+		Height:             initialHeight,
+		Assets:             assets,
+		BackgroundColour:   &options.RGBA{R: 27, G: 38, B: 54, A: 1},
+		OnStartup:          app.Startup,
+		OnDomReady:         app.DomReady,
+		OnBeforeClose:      app.BeforeClose,
+		StartHidden:        true,
+		SingleInstanceLock: app.SingleInstanceLock(),
 		Debug: options.Debug{
 			OpenInspectorOnStartup: openInspector,
 		},
