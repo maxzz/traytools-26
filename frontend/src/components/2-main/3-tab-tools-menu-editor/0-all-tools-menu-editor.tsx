@@ -58,7 +58,6 @@ export function Page_ToolsMenuEditor() {
 
             <div className="px-3 py-2 bg-muted border-t flex flex-wrap items-center gap-2">
                 <div className="mr-auto flex flex-col">
-                    <span className="text-sm font-medium">Tools Menu Editor</span>
                     <span className="text-[0.7rem] text-muted-foreground">
                         {snap.path
                             ? <>File: <span className="font-mono">{snap.path}</span></>
@@ -73,7 +72,7 @@ export function Page_ToolsMenuEditor() {
                     <RotateCcw /> Reset
                 </Button>
                 <Button size="sm" onClick={() => saveToolsConfig()} title="Create/overwrite tools.json">
-                    <Save /> Save tools.json
+                    <Save /> Save
                 </Button>
             </div>
         </div>
