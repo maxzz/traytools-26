@@ -1,6 +1,7 @@
 import { type ComponentProps, useEffect } from "react";
 import { atom, useAtom, useSetAtom, type WritableAtom } from "jotai";
 import { settingsBus } from "@/bridge/groups/settings";
+import { appSettings } from "@/store/1-ui-settings";
 import { classNames } from "@/utils";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { Button } from "@/ui/shadcn/button";
@@ -82,7 +83,15 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
 
 export const isOpenSettingsDialogAtom = atom(false);
 export const settingsThemeAtom = atom<ThemeMode>("light");
-export const settingsShowFooterAtom = atom(true);
+const settingsShowFooterBaseAtom = atom(appSettings.showFooter);
+
+export const settingsShowFooterAtom = atom(
+    (get) => get(settingsShowFooterBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsShowFooterBaseAtom, next);
+        appSettings.showFooter = next;
+    },
+);
 
 const settingsRunElevatedBaseAtom = atom(false);
 

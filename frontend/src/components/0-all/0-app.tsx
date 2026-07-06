@@ -9,18 +9,20 @@ import { WindowSetTitle } from '../../../wailsjs/runtime/runtime';
 import { formatMainWindowTitle, getValidMainTab, MAIN_PAGES } from './8-pages-array';
 
 export function App() {
+    const { showFooter } = useSnapshot(appSettings);
+
     return (<>
         <Toaster />
         <AllDialogs />
 
-        <main className="h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto]">
+        <main className={`h-screen text-xs bg-background grid ${showFooter ? "grid-rows-[auto_1fr_auto]" : "grid-rows-[auto_1fr]"}`}>
             <Header />
 
             <div className="px-2 py-3 h-full min-h-0 bg-sky-900/10 flex flex-col">
                 <MainBody />
             </div>
 
-            <Section3_Footer />
+            {showFooter && <Section3_Footer />}
         </main>
     </>);
 }
