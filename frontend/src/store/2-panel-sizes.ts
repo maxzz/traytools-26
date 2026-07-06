@@ -9,6 +9,7 @@ export const PANEL_GROUPS = {
     traceManagerMain: 'trace-manager.main',
     traceManagerLeft: 'trace-manager.left',
     windowTreeMain: 'window-tree.main',
+    toolsEditorMain: 'tools-editor.main',
 } as const;
 
 const PANEL_GROUP_DEFAULTS: PanelSizes = {
@@ -17,6 +18,7 @@ const PANEL_GROUP_DEFAULTS: PanelSizes = {
     [PANEL_GROUPS.traceManagerMain]: { panels: 68, categories: 32 },
     [PANEL_GROUPS.traceManagerLeft]: { list: 38, view: 62 },
     [PANEL_GROUPS.windowTreeMain]: { tree: 58, props: 42 },
+    [PANEL_GROUPS.toolsEditorMain]: { tree: 42, props: 58 },
 };
 
 export function getValidPanelSizes(parsedSizes?: unknown): PanelSizes {

@@ -1,0 +1,237 @@
+import { createContext, useContext, useMemo, useState, type DragEvent } from "react";
+import { useSnapshot } from "valtio";
+import { ChevronDown, ChevronRight, Folder, FolderOpen, GripVertical, Minus, Plus, SquarePlus, Terminal, Trash2 } from "lucide-react";
+import { cn } from "@/utils/classnames";
+import { addNode, moveNode, nodeKind, removeNode, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
+import { Button } from "@/ui/shadcn/button";
+import { ScrollArea } from "@/ui/shadcn/scroll-area";
+
+// Deep-readonly view of a node as returned by valtio's useSnapshot.
+type SnapNode = {
+    readonly menuName: string;
+    readonly cmdLine?: string;
+    readonly uid?: string;
+    readonly menuItems?: readonly SnapNode[];
+};
+
+const INDENT = 16;
+
+// ---------------------------------------------------------------------------
+// Drag-and-drop shared state (kept local to the tree).
+
+type DndState = {
+    dragUid: string | null;
+    dropUid: string | null;
+    dropPos: DropPosition | null;
+    onDragStart: (e: DragEvent, uid: string) => void;
+    onDragOver: (e: DragEvent, uid: string, isSubmenu: boolean) => void;
+    onDrop: (e: DragEvent, uid: string) => void;
+    onDragEnd: () => void;
+    onDragLeaveRow: (uid: string) => void;
+};
+
+const DndContext = createContext<DndState | null>(null);
+
+function useDnd(): DndState {
+    const ctx = useContext(DndContext);
+    if (!ctx) {
+        throw new Error("Tree rows must be rendered inside ToolsTree");
+    }
+    return ctx;
+}
+
+// ---------------------------------------------------------------------------
+
+export function ToolsTree() {
+    const snap = useSnapshot(toolsEditor);
+    const rootItems = (snap.config.menu.menuItems ?? []) as readonly SnapNode[];
+
+    const [dragUid, setDragUid] = useState<string | null>(null);
+    const [dropUid, setDropUid] = useState<string | null>(null);
+    const [dropPos, setDropPos] = useState<DropPosition | null>(null);
+
+    const dnd = useMemo<DndState>(
+        () => ({
+            dragUid,
+            dropUid,
+            dropPos,
+            onDragStart: (e, uid) => {
+                setDragUid(uid);
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", uid);
+            },
+            onDragOver: (e, uid, isSubmenu) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                const rect = e.currentTarget.getBoundingClientRect();
+                const offset = (e.clientY - rect.top) / rect.height;
+                let pos: DropPosition;
+                if (isSubmenu) {
+                    pos = offset < 0.28 ? "before" : offset > 0.72 ? "after" : "inside";
+                } else {
+                    pos = offset < 0.5 ? "before" : "after";
+                }
+                setDropUid(uid);
+                setDropPos(pos);
+            },
+            onDrop: (e, uid) => {
+                e.preventDefault();
+                const src = e.dataTransfer.getData("text/plain") || dragUid;
+                if (src && dropPos) {
+                    moveNode(src, uid, dropPos);
+                }
+                setDragUid(null);
+                setDropUid(null);
+                setDropPos(null);
+            },
+            onDragEnd: () => {
+                setDragUid(null);
+                setDropUid(null);
+                setDropPos(null);
+            },
+            onDragLeaveRow: (uid) => {
+                setDropUid((cur) => (cur === uid ? null : cur));
+            },
+        }),
+        [dragUid, dropUid, dropPos]);
+
+    return (
+        <div className="min-h-0 h-full flex flex-col">
+            <div className="px-2 py-1.5 border-b flex items-center gap-1.5">
+                <span className="mr-auto text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wide">
+                    Menu items
+                </span>
+                <Button variant="outline" size="xs" title="Add command" onClick={() => addNode("item")}>
+                    <Plus /> Command
+                </Button>
+                <Button variant="outline" size="xs" title="Add submenu" onClick={() => addNode("submenu")}>
+                    <SquarePlus /> Submenu
+                </Button>
+                <Button variant="outline" size="icon-xs" title="Add separator" onClick={() => addNode("separator")}>
+                    <Minus />
+                </Button>
+                <Button
+                    variant="destructive"
+                    size="icon-xs"
+                    title="Remove selected"
+                    disabled={!snap.selectedUid}
+                    onClick={() => snap.selectedUid && removeNode(snap.selectedUid)}
+                >
+                    <Trash2 />
+                </Button>
+            </div>
+
+            <ScrollArea className="flex-1 min-h-0">
+                <DndContext.Provider value={dnd}>
+                    <div
+                        className="p-1"
+                        onDragOver={(e) => {
+                            // Allow dropping at the very end (append to root).
+                            if (e.target === e.currentTarget) {
+                                e.preventDefault();
+                            }
+                        }}
+                    >
+                        {rootItems.length === 0 && (
+                            <div className="px-3 py-6 text-center text-muted-foreground">
+                                No items yet. Use the buttons above to add one.
+                            </div>
+                        )}
+
+                        {rootItems.map((node) => (
+                            <TreeRow key={node.uid} node={node} depth={0} />
+                        ))}
+                    </div>
+                </DndContext.Provider>
+            </ScrollArea>
+        </div>
+    );
+}
+
+function TreeRow({ node, depth }: { node: SnapNode; depth: number; }) {
+    const snap = useSnapshot(toolsEditor);
+    const dnd = useDnd();
+    const [collapsed, setCollapsed] = useState(false);
+
+    const uid = node.uid ?? "";
+    const kind = nodeKind(node as ToolMenuItem);
+    const isSubmenu = kind === "submenu";
+    const isSeparator = kind === "separator";
+    const selected = snap.selectedUid === uid;
+
+    const isDragging = dnd.dragUid === uid;
+    const isDropTarget = dnd.dropUid === uid;
+    const showBefore = isDropTarget && dnd.dropPos === "before";
+    const showAfter = isDropTarget && dnd.dropPos === "after";
+    const showInside = isDropTarget && dnd.dropPos === "inside";
+
+    const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : Terminal;
+
+    return (
+        <div>
+            <div
+                className="relative"
+                draggable
+                onDragStart={(e) => dnd.onDragStart(e, uid)}
+                onDragOver={(e) => dnd.onDragOver(e, uid, isSubmenu)}
+                onDrop={(e) => dnd.onDrop(e, uid)}
+                onDragEnd={dnd.onDragEnd}
+                onDragLeave={() => dnd.onDragLeaveRow(uid)}
+            >
+                {/* Drop indicators */}
+                {showBefore && <DropLine style={{ left: depth * INDENT + 6, top: -1 }} />}
+                {showAfter && <DropLine style={{ left: depth * INDENT + 6, bottom: -1 }} />}
+
+                <div
+                    className={cn(
+                        "group h-7 pr-1 rounded-md flex items-center gap-1 cursor-pointer select-none",
+                        "hover:bg-accent/60",
+                        selected && "bg-accent text-accent-foreground",
+                        showInside && "ring-1 ring-sky-500 bg-sky-500/10",
+                        isDragging && "opacity-40",
+                    )}
+                    style={{ paddingLeft: depth * INDENT + 4 }}
+                    onClick={() => { toolsEditor.selectedUid = uid; }}
+                >
+                    <GripVertical className="size-3.5 text-muted-foreground/40 group-hover:text-muted-foreground shrink-0" />
+
+                    {isSubmenu ? (
+                        <button
+                            className="size-4 flex items-center justify-center text-muted-foreground shrink-0"
+                            onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }}
+                            title={collapsed ? "Expand" : "Collapse"}
+                        >
+                            {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                        </button>
+                    ) : (
+                        <span className="size-4 shrink-0" />
+                    )}
+
+                    <Icon className={cn("size-3.5 shrink-0", isSubmenu ? "text-amber-500" : "text-muted-foreground")} />
+
+                    {isSeparator ? (
+                        <span className="flex-1 mr-2 border-t border-dashed border-border" />
+                    ) : (
+                        <span className="flex-1 truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                    )}
+                </div>
+            </div>
+
+            {isSubmenu && !collapsed && node.menuItems && node.menuItems.length > 0 && (
+                <div>
+                    {node.menuItems.map((child) => (
+                        <TreeRow key={child.uid} node={child} depth={depth + 1} />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function DropLine({ style }: { style: React.CSSProperties; }) {
+    return (
+        <div className="absolute right-1 h-0.5 bg-sky-500 rounded-full pointer-events-none z-10" style={style}>
+            <div className="absolute -left-1 top-[-3px] size-2 rounded-full bg-sky-500" />
+        </div>
+    );
+}
