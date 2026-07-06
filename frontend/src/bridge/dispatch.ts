@@ -1,4 +1,4 @@
-import { Dispatch as BackendDispatch } from "../../wailsjs/go/backend/App";
+import { backendDispatch } from "@/wails/tray-backend";
 
 /**
  * Thin client over the backend command bus. 
@@ -9,7 +9,7 @@ import { Dispatch as BackendDispatch } from "../../wailsjs/go/backend/App";
 export async function dispatch<TResult = unknown>(group: string, command: string, payload?: unknown): Promise<TResult> {
     const payloadJSON = payload === undefined ? "" : JSON.stringify(payload);
 
-    const resultJSON = await BackendDispatch(group, command, payloadJSON);
+    const resultJSON = await backendDispatch(group, command, payloadJSON);
 
     if (resultJSON === "" || resultJSON === "null") {
         return undefined as TResult;
