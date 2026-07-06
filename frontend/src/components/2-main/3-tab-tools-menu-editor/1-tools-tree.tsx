@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
-import { ChevronDown, ChevronRight, Folder, FolderOpen, GripVertical, Minus, Plus, SquarePlus, Terminal, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus, Plus, SquarePlus, Terminal, Trash2 } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { addNode, moveNode, nodeKind, removeNode, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
 import { Button } from "@/ui/shadcn/button";
@@ -138,8 +138,14 @@ export function ToolsTree() {
                             </div>
                         )}
 
-                        {rootItems.map((node) => (
-                            <TreeRow key={node.uid} node={node} depth={0} />
+                        {rootItems.map((node, index) => (
+                            <TreeRow
+                                key={node.uid}
+                                node={node}
+                                depth={0}
+                                isLast={index === rootItems.length - 1}
+                                ancestors={[]}
+                            />
                         ))}
                     </div>
                 </DndContext.Provider>
@@ -148,7 +154,9 @@ export function ToolsTree() {
     );
 }
 
-function TreeRow({ node, depth }: { node: SnapNode; depth: number; }) {
+// `ancestors[a]` is true when the ancestor at level `a` has a following sibling,
+// i.e. a vertical guide line should continue through this row at that column.
+function TreeRow({ node, depth, isLast, ancestors }: { node: SnapNode; depth: number; isLast: boolean; ancestors: boolean[]; }) {
     const snap = useSnapshot(toolsEditor);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
@@ -166,6 +174,7 @@ function TreeRow({ node, depth }: { node: SnapNode; depth: number; }) {
     const showInside = isDropTarget && dnd.dropPos === "inside";
 
     const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : Terminal;
+    const childAncestors = [...ancestors, !isLast];
 
     return (
         <div>
@@ -179,51 +188,84 @@ function TreeRow({ node, depth }: { node: SnapNode; depth: number; }) {
                 onDragLeave={() => dnd.onDragLeaveRow(uid)}
             >
                 {/* Drop indicators */}
-                {showBefore && <DropLine style={{ left: depth * INDENT + 6, top: -1 }} />}
-                {showAfter && <DropLine style={{ left: depth * INDENT + 6, bottom: -1 }} />}
+                {showBefore && <DropLine style={{ left: guideX(depth), top: -1 }} />}
+                {showAfter && <DropLine style={{ left: guideX(depth), bottom: -1 }} />}
 
                 <div
                     className={cn(
-                        "group h-7 pr-1 rounded-md flex items-center gap-1 cursor-pointer select-none",
+                        "group relative h-7 pr-1 rounded-md flex items-center gap-1 cursor-pointer select-none",
                         "hover:bg-accent/60",
                         selected && "bg-accent text-accent-foreground",
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
                     )}
-                    style={{ paddingLeft: depth * INDENT + 4 }}
+                    style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
                     onClick={() => { toolsEditor.selectedUid = uid; }}
                 >
-                    <GripVertical className="size-3.5 text-muted-foreground/40 group-hover:text-muted-foreground shrink-0" />
+                    <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} />
 
                     {isSubmenu ? (
                         <button
-                            className="size-4 flex items-center justify-center text-muted-foreground shrink-0"
+                            className="relative size-4 flex items-center justify-center text-muted-foreground shrink-0"
                             onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }}
                             title={collapsed ? "Expand" : "Collapse"}
                         >
                             {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
                         </button>
                     ) : (
-                        <span className="size-4 shrink-0" />
+                        <span className="relative size-4 shrink-0" />
                     )}
 
-                    <Icon className={cn("size-3.5 shrink-0", isSubmenu ? "text-amber-500" : "text-muted-foreground")} />
+                    <Icon className={cn("relative size-3.5 shrink-0", isSubmenu ? "text-amber-500" : "text-muted-foreground")} />
 
                     {isSeparator ? (
-                        <span className="flex-1 mr-2 border-t border-dashed border-border" />
+                        <span className="relative flex-1 mr-2 border-t border-dashed border-border" />
                     ) : (
-                        <span className="flex-1 truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                        <span className="relative flex-1 truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
                     )}
                 </div>
             </div>
 
             {isSubmenu && !collapsed && node.menuItems && node.menuItems.length > 0 && (
                 <div>
-                    {node.menuItems.map((child) => (
-                        <TreeRow key={child.uid} node={child} depth={depth + 1} />
+                    {node.menuItems.map((child, index) => (
+                        <TreeRow
+                            key={child.uid}
+                            node={child}
+                            depth={depth + 1}
+                            isLast={index === node.menuItems!.length - 1}
+                            ancestors={childAncestors}
+                        />
                     ))}
                 </div>
             )}
+        </div>
+    );
+}
+
+// X position (px) of the vertical guide column for a given depth.
+function guideX(depth: number): number {
+    return depth * INDENT + 11;
+}
+
+// Connector lines: continuation verticals for ancestors, plus the ├ / └ branch
+// (vertical + horizontal tick) that links this row to its parent and siblings.
+function TreeGuides({ depth, isLast, ancestors }: { depth: number; isLast: boolean; ancestors: boolean[]; }) {
+    const x = guideX(depth);
+    return (
+        <div className="absolute inset-y-0 left-0 pointer-events-none">
+            {ancestors.map((cont, a) => cont
+                ? <span key={a} className="absolute top-0 bottom-0 border-l border-border" style={{ left: guideX(a) }} />
+                : null)}
+
+            {/* Vertical from the top down to this row's midpoint (always present). */}
+            <span className="absolute top-0 border-l border-border" style={{ left: x, height: "50%" }} />
+
+            {/* Continue below the midpoint only when a sibling follows. */}
+            {!isLast && <span className="absolute bottom-0 border-l border-border" style={{ left: x, top: "50%" }} />}
+
+            {/* Horizontal tick reaching toward the row content. */}
+            <span className="absolute top-1/2 border-t border-border" style={{ left: x, width: INDENT - 5 }} />
         </div>
     );
 }
