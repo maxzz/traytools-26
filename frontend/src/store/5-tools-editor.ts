@@ -21,6 +21,11 @@ export interface ToolMenuItem {
     cmdPlat?: CmdPlat;
     cmdWhat?: CmdWhat;
     hotKey?: string;
+    // Run the command with elevated (administrator) privileges. Optional: when
+    // absent the effective value defaults to true for registry actions and false
+    // for everything else (see `effectiveRunElevated`). It is only written to
+    // tools.json when it differs from that default.
+    runElevated?: boolean;
     menuItems?: ToolMenuItem[];
 
     // Runtime-only stable identity used by the editor for selection and
@@ -38,6 +43,17 @@ export function nodeKind(node: Pick<ToolMenuItem, "menuName" | "menuItems" | "cm
         return "separator";
     }
     return "item";
+}
+
+// The default "Run Elevated" value for a node when the attribute is absent:
+// registry actions run elevated by default, all other actions do not.
+export function defaultRunElevated(node: Pick<ToolMenuItem, "cmdWhat">): boolean {
+    return node.cmdWhat === "reg";
+}
+
+// The effective "Run Elevated" value shown in the editor / used at runtime.
+export function effectiveRunElevated(node: Pick<ToolMenuItem, "cmdWhat" | "runElevated">): boolean {
+    return node.runElevated ?? defaultRunElevated(node);
 }
 
 export interface ToolsConfig {
@@ -274,10 +290,21 @@ export function parseToolsJsonc(text: string): ToolsConfig {
     return parsed as ToolsConfig;
 }
 
-// Serialize the current config to the on-disk JSON text (4-space indent). The
-// runtime-only `uid` field is dropped so the file matches the backend format.
+// Serialize the current config to the on-disk JSON text (4-space indent).
+//   - the runtime-only `uid` field is always dropped;
+//   - `runElevated` is written only when it differs from the type-based default
+//     (so e.g. an elevated registry action, which is the default, is not stored).
+// A classic (non-arrow) function is used so `this` is the node being serialized.
 export function serializeToolsConfig(config: ToolsConfig): string {
-    return JSON.stringify(config, (key, value) => (key === "uid" ? undefined : value), 4) + "\n";
+    return JSON.stringify(config, function (this: ToolMenuItem, key, value) {
+        if (key === "uid") {
+            return undefined;
+        }
+        if (key === "runElevated") {
+            return value === defaultRunElevated(this) ? undefined : value;
+        }
+        return value;
+    }, 4) + "\n";
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +356,21 @@ export function findByUid(root: ToolMenuItem, uid: string): NodeLocation | null 
     return null;
 }
 
+// True when `uid` is the (fixed, non-movable, non-deletable) root menu node.
+export function isRootUid(uid: string | null | undefined): boolean {
+    return !!uid && uid === toolsEditor.config.menu.uid;
+}
+
+// Look up a node by uid including the root menu itself (which findByUid, being
+// descendant-only, never returns). Accepts any root so it also works on
+// valtio snapshots.
+export function getNode(root: ToolMenuItem, uid: string): ToolMenuItem | null {
+    if (uid === root.uid) {
+        return root;
+    }
+    return findByUid(root, uid)?.node ?? null;
+}
+
 function newItem(): ToolMenuItem {
     return { uid: newUid(), menuName: "New Command", cmdLine: "", cmdWhat: "abs" };
 }
@@ -368,6 +410,9 @@ export function addNode(kind: NodeKind): void {
 }
 
 export function removeNode(uid: string): void {
+    if (isRootUid(uid)) {
+        return; // the root "Tools" node cannot be deleted
+    }
     const loc = findByUid(toolsEditor.config.menu, uid);
     if (!loc) {
         return;
@@ -398,9 +443,27 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         return false;
     }
     const root = toolsEditor.config.menu;
+
+    // The root cannot be moved.
+    if (dragUid === root.uid) {
+        return false;
+    }
+
     const drag = findByUid(root, dragUid);
+    if (!drag) {
+        return false;
+    }
+
+    // Dropping onto the root can only mean "append inside the root menu".
+    if (targetUid === root.uid) {
+        drag.siblings.splice(drag.index, 1);
+        (root.menuItems ??= []).push(drag.node);
+        markDirty();
+        return true;
+    }
+
     const target = findByUid(root, targetUid);
-    if (!drag || !target) {
+    if (!target) {
         return false;
     }
     // Cannot move a node into itself or its own subtree.

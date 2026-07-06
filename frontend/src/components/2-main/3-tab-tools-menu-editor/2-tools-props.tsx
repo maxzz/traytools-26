@@ -1,18 +1,19 @@
 import { useSnapshot } from "valtio";
-import { Folder, Minus, MousePointerClick, Terminal } from "lucide-react";
+import { Folder, Minus, MousePointerClick, ShieldCheck, Terminal } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { findByUid, markDirty, nodeKind, toolsEditor, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/store/5-tools-editor";
+import { effectiveRunElevated, getNode, isRootUid, markDirty, nodeKind, toolsEditor, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/store/5-tools-editor";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
+import { Switch } from "@/ui/shadcn/switch";
 
 // Apply a mutation to the selected node on the live valtio proxy, then flag the
 // tree dirty. Reads happen off the snapshot so the panel stays reactive.
 function patch(uid: string, fn: (node: ToolMenuItem) => void) {
-    const loc = findByUid(toolsEditor.config.menu, uid);
-    if (loc) {
-        fn(loc.node);
+    const node = getNode(toolsEditor.config.menu, uid);
+    if (node) {
+        fn(node);
         markDirty();
     }
 }
@@ -21,8 +22,8 @@ export function ToolsProps() {
     const snap = useSnapshot(toolsEditor);
     const uid = snap.selectedUid;
 
-    const loc = uid ? findByUid(snap.config.menu as unknown as ToolMenuItem, uid) : null;
-    const node = loc?.node;
+    const node = uid ? getNode(snap.config.menu as unknown as ToolMenuItem, uid) : null;
+    const isRoot = isRootUid(uid);
 
     if (!uid || !node) {
         return (
@@ -53,13 +54,21 @@ export function ToolsProps() {
                     )}
 
                     {kind === "submenu" && (
-                        <Field label="Name">
-                            <Input
-                                value={node.menuName}
-                                placeholder="Submenu name"
-                                onChange={(e) => patch(uid, (n) => { n.menuName = e.target.value; })}
-                            />
-                        </Field>
+                        <>
+                            <Field label="Name">
+                                <Input
+                                    value={node.menuName}
+                                    placeholder="Submenu name"
+                                    onChange={(e) => patch(uid, (n) => { n.menuName = e.target.value; })}
+                                />
+                            </Field>
+
+                            {isRoot && (
+                                <p className="text-muted-foreground">
+                                    This is the root of the Tools menu. New items are added inside it. It cannot be moved or deleted.
+                                </p>
+                            )}
+                        </>
                     )}
 
                     {kind === "item" && (
@@ -140,6 +149,18 @@ export function ToolsProps() {
                                     />
                                 </Field>
                             </div>
+
+                            <label className="mt-1 px-2.5 py-2 bg-muted/40 border rounded-md flex items-center gap-2 cursor-pointer">
+                                <ShieldCheck className="size-4 text-muted-foreground" />
+                                <div className="mr-auto flex flex-col">
+                                    <span className="font-medium">Run elevated</span>
+                                    <span className="text-[0.7rem] text-muted-foreground">Launch this command with administrator privileges.</span>
+                                </div>
+                                <Switch
+                                    checked={effectiveRunElevated(node)}
+                                    onCheckedChange={(checked) => patch(uid, (n) => { n.runElevated = checked; })}
+                                />
+                            </label>
                         </>
                     )}
                 </div>

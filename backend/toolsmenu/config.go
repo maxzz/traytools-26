@@ -189,6 +189,16 @@ func splitFileArgs(s string) (target, args string) {
 	return s, ""
 }
 
+// effectiveElevated reports whether a command should run elevated. An explicit
+// runElevated wins; otherwise registry actions default to true and everything
+// else to false (mirrors the frontend editor).
+func effectiveElevated(n MenuNode, what string) bool {
+	if n.RunElevated != nil {
+		return *n.RunElevated
+	}
+	return what == whatReg
+}
+
 // resolveCommand turns a command node into its executable form. Path/registry
 // interpretation happens here; the platform layer only performs the launch.
 func resolveCommand(baseDir string, n MenuNode) resolvedCommand {
@@ -197,11 +207,14 @@ func resolveCommand(baseDir string, n MenuNode) resolvedCommand {
 		what = whatRel // default
 	}
 
+	elevated := effectiveElevated(n, what)
+
 	if what == whatReg {
 		return resolvedCommand{
-			what: whatReg,
-			path: strings.TrimSpace(n.CmdLine),
-			plat: n.CmdPlat,
+			what:     whatReg,
+			path:     strings.TrimSpace(n.CmdLine),
+			plat:     n.CmdPlat,
+			elevated: elevated,
 		}
 	}
 
@@ -220,7 +233,7 @@ func resolveCommand(baseDir string, n MenuNode) resolvedCommand {
 		if !isURL(target) {
 			target = toBackslashes(target)
 		}
-		return resolvedCommand{what: whatAbs, path: target, args: args, plat: n.CmdPlat}
+		return resolvedCommand{what: whatAbs, path: target, args: args, plat: n.CmdPlat, elevated: elevated}
 	}
 
 	// Relative to the tools folder.
@@ -231,5 +244,5 @@ func resolveCommand(baseDir string, n MenuNode) resolvedCommand {
 	if strings.HasSuffix(target, `\`) && !strings.HasSuffix(full, string(os.PathSeparator)) {
 		full += string(os.PathSeparator)
 	}
-	return resolvedCommand{what: whatRel, path: full, args: args, plat: n.CmdPlat}
+	return resolvedCommand{what: whatRel, path: full, args: args, plat: n.CmdPlat, elevated: elevated}
 }

@@ -14,13 +14,18 @@ package toolsmenu
 // The JSON tags match the legacy traytools tools.json format exactly so old
 // configuration files keep working unchanged.
 type MenuNode struct {
-	MenuName  string     `json:"menuName"`
-	CmdLine   string     `json:"cmdLine,omitempty"`
-	CmdArgs   string     `json:"cmdArgs,omitempty"`
-	CmdPlat   string     `json:"cmdPlat,omitempty"` // curr | 32 | 64 | both
-	CmdWhat   string     `json:"cmdWhat,omitempty"` // rel | abs | reg
-	HotKey    string     `json:"hotKey,omitempty"`
-	MenuItems []MenuNode `json:"menuItems,omitempty"`
+	MenuName string `json:"menuName"`
+	CmdLine  string `json:"cmdLine,omitempty"`
+	CmdArgs  string `json:"cmdArgs,omitempty"`
+	CmdPlat  string `json:"cmdPlat,omitempty"` // curr | 32 | 64 | both
+	CmdWhat  string `json:"cmdWhat,omitempty"` // rel | abs | reg
+	HotKey   string `json:"hotKey,omitempty"`
+	// RunElevated launches the command with administrator privileges. It is a
+	// pointer so an absent value can be distinguished from an explicit false:
+	// when nil the effective value defaults to true for registry actions and
+	// false otherwise (see effectiveElevated).
+	RunElevated *bool      `json:"runElevated,omitempty"`
+	MenuItems   []MenuNode `json:"menuItems,omitempty"`
 }
 
 // MenuConfig is the root object of tools.json.
@@ -78,8 +83,9 @@ type SaveResponse struct {
 // resolvedCommand is the executable form of a command leaf, produced while the
 // tree is built and looked up later by the "exec" command.
 type resolvedCommand struct {
-	what string // rel | abs | reg
-	path string // absolute path, URL, or registry key path
-	args string
-	plat string // curr | 32 | 64 | both
+	what     string // rel | abs | reg
+	path     string // absolute path, URL, or registry key path
+	args     string
+	plat     string // curr | 32 | 64 | both
+	elevated bool   // launch with administrator privileges
 }

@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useState, type DragEvent } from "re
 import { useSnapshot } from "valtio";
 import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus, Plus, SquarePlus, Terminal, Trash2 } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { addNode, moveNode, nodeKind, removeNode, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
+import { addNode, isRootUid, moveNode, nodeKind, removeNode, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
 import { Button } from "@/ui/shadcn/button";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 
@@ -24,7 +24,7 @@ type DndState = {
     dropUid: string | null;
     dropPos: DropPosition | null;
     onDragStart: (e: DragEvent, uid: string) => void;
-    onDragOver: (e: DragEvent, uid: string, isSubmenu: boolean) => void;
+    onDragOver: (e: DragEvent, uid: string, isSubmenu: boolean, isRoot: boolean) => void;
     onDrop: (e: DragEvent, uid: string) => void;
     onDragEnd: () => void;
     onDragLeaveRow: (uid: string) => void;
@@ -44,7 +44,8 @@ function useDnd(): DndState {
 
 export function ToolsTree() {
     const snap = useSnapshot(toolsEditor);
-    const rootItems = (snap.config.menu.menuItems ?? []) as readonly SnapNode[];
+    const root = snap.config.menu as SnapNode;
+    const canDelete = !!snap.selectedUid && !isRootUid(snap.selectedUid);
 
     const [dragUid, setDragUid] = useState<string | null>(null);
     const [dropUid, setDropUid] = useState<string | null>(null);
@@ -60,13 +61,16 @@ export function ToolsTree() {
                 e.dataTransfer.effectAllowed = "move";
                 e.dataTransfer.setData("text/plain", uid);
             },
-            onDragOver: (e, uid, isSubmenu) => {
+            onDragOver: (e, uid, isSubmenu, isRoot) => {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = "move";
                 const rect = e.currentTarget.getBoundingClientRect();
                 const offset = (e.clientY - rect.top) / rect.height;
                 let pos: DropPosition;
-                if (isSubmenu) {
+                if (isRoot) {
+                    // The root has no siblings; dropping on it always nests inside.
+                    pos = "inside";
+                } else if (isSubmenu) {
                     pos = offset < 0.28 ? "before" : offset > 0.72 ? "after" : "inside";
                 } else {
                     pos = offset < 0.5 ? "before" : "after";
@@ -114,8 +118,8 @@ export function ToolsTree() {
                     variant="destructive"
                     size="icon-xs"
                     title="Remove selected"
-                    disabled={!snap.selectedUid}
-                    onClick={() => snap.selectedUid && removeNode(snap.selectedUid)}
+                    disabled={!canDelete}
+                    onClick={() => canDelete && snap.selectedUid && removeNode(snap.selectedUid)}
                 >
                     <Trash2 />
                 </Button>
@@ -123,30 +127,8 @@ export function ToolsTree() {
 
             <ScrollArea className="flex-1 min-h-0">
                 <DndContext.Provider value={dnd}>
-                    <div
-                        className="p-1"
-                        onDragOver={(e) => {
-                            // Allow dropping at the very end (append to root).
-                            if (e.target === e.currentTarget) {
-                                e.preventDefault();
-                            }
-                        }}
-                    >
-                        {rootItems.length === 0 && (
-                            <div className="px-3 py-6 text-center text-muted-foreground">
-                                No items yet. Use the buttons above to add one.
-                            </div>
-                        )}
-
-                        {rootItems.map((node, index) => (
-                            <TreeRow
-                                key={node.uid}
-                                node={node}
-                                depth={0}
-                                isLast={index === rootItems.length - 1}
-                                ancestors={[]}
-                            />
-                        ))}
+                    <div className="p-1">
+                        <TreeRow node={root} depth={0} isLast isRoot ancestors={[]} />
                     </div>
                 </DndContext.Provider>
             </ScrollArea>
@@ -156,33 +138,36 @@ export function ToolsTree() {
 
 // `ancestors[a]` is true when the ancestor at level `a` has a following sibling,
 // i.e. a vertical guide line should continue through this row at that column.
-function TreeRow({ node, depth, isLast, ancestors }: { node: SnapNode; depth: number; isLast: boolean; ancestors: boolean[]; }) {
+// `isRoot` marks the fixed top-level "Tools" node: it draws no guide lines and
+// cannot be dragged (only dropped into).
+function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: SnapNode; depth: number; isLast: boolean; ancestors: boolean[]; isRoot?: boolean; }) {
     const snap = useSnapshot(toolsEditor);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
 
     const uid = node.uid ?? "";
     const kind = nodeKind(node as ToolMenuItem);
-    const isSubmenu = kind === "submenu";
-    const isSeparator = kind === "separator";
+    const isSubmenu = kind === "submenu" || isRoot;
+    const isSeparator = kind === "separator" && !isRoot;
     const selected = snap.selectedUid === uid;
 
     const isDragging = dnd.dragUid === uid;
     const isDropTarget = dnd.dropUid === uid;
-    const showBefore = isDropTarget && dnd.dropPos === "before";
-    const showAfter = isDropTarget && dnd.dropPos === "after";
+    const showBefore = !isRoot && isDropTarget && dnd.dropPos === "before";
+    const showAfter = !isRoot && isDropTarget && dnd.dropPos === "after";
     const showInside = isDropTarget && dnd.dropPos === "inside";
 
     const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : Terminal;
     const childAncestors = [...ancestors, !isLast];
+    const children = node.menuItems ?? [];
 
     return (
         <div>
             <div
                 className="relative"
-                draggable
+                draggable={!isRoot}
                 onDragStart={(e) => dnd.onDragStart(e, uid)}
-                onDragOver={(e) => dnd.onDragOver(e, uid, isSubmenu)}
+                onDragOver={(e) => dnd.onDragOver(e, uid, isSubmenu, isRoot)}
                 onDrop={(e) => dnd.onDrop(e, uid)}
                 onDragEnd={dnd.onDragEnd}
                 onDragLeave={() => dnd.onDragLeaveRow(uid)}
@@ -198,11 +183,12 @@ function TreeRow({ node, depth, isLast, ancestors }: { node: SnapNode; depth: nu
                         selected && "bg-accent text-accent-foreground",
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
+                        isRoot && "font-medium",
                     )}
                     style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
                     onClick={() => { toolsEditor.selectedUid = uid; }}
                 >
-                    <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} />
+                    {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} />}
 
                     {isSubmenu ? (
                         <button
@@ -226,18 +212,24 @@ function TreeRow({ node, depth, isLast, ancestors }: { node: SnapNode; depth: nu
                 </div>
             </div>
 
-            {isSubmenu && !collapsed && node.menuItems && node.menuItems.length > 0 && (
-                <div>
-                    {node.menuItems.map((child, index) => (
-                        <TreeRow
-                            key={child.uid}
-                            node={child}
-                            depth={depth + 1}
-                            isLast={index === node.menuItems!.length - 1}
-                            ancestors={childAncestors}
-                        />
-                    ))}
-                </div>
+            {isSubmenu && !collapsed && (
+                children.length > 0 ? (
+                    <div>
+                        {children.map((child, index) => (
+                            <TreeRow
+                                key={child.uid}
+                                node={child}
+                                depth={depth + 1}
+                                isLast={index === children.length - 1}
+                                ancestors={childAncestors}
+                            />
+                        ))}
+                    </div>
+                ) : isRoot ? (
+                    <div className="px-3 py-4 text-muted-foreground" style={{ paddingLeft: (depth + 2) * INDENT + 6 }}>
+                        Empty. Use the buttons above to add items.
+                    </div>
+                ) : null
             )}
         </div>
     );
