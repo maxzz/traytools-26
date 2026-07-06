@@ -1,4 +1,5 @@
 import { type ComponentProps, useEffect } from "react";
+import { useSnapshot } from "valtio";
 import { atom, useAtom, useSetAtom, type WritableAtom } from "jotai";
 import { settingsBus } from "@/bridge/groups/settings";
 import { appSettings } from "@/store/1-ui-settings";
@@ -60,14 +61,14 @@ function ControlSwitch({ label, valueAtom, className, ...rest }: ControlSwitchPr
 }
 
 function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
-    const [theme, setTheme] = useAtom(settingsThemeAtom);
+    const { theme } = useSnapshot(appSettings);
 
     return (
         <div className={classNames("flex flex-col gap-1.5", className)} {...rest}>
             <Label htmlFor="settings-theme">
                 Theme
             </Label>
-            <Select value={theme} onValueChange={(value) => setTheme(value as ThemeMode)}>
+            <Select value={theme} onValueChange={(value) => { appSettings.theme = value as ThemeMode; }}>
                 <SelectTrigger className="w-full" id="settings-theme">
                     <SelectValue placeholder="Select theme" />
                 </SelectTrigger>
@@ -82,7 +83,6 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
 }
 
 export const isOpenSettingsDialogAtom = atom(false);
-export const settingsThemeAtom = atom<ThemeMode>("light");
 const settingsShowFooterBaseAtom = atom(appSettings.showFooter);
 
 export const settingsShowFooterAtom = atom(
