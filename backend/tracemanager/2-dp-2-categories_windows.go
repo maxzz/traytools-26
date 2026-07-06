@@ -27,8 +27,25 @@ const (
 	tracingValuePfx = "ots_"
 )
 
-// componentDLLs mirrors debugus_impl::build_dllnames.
-var componentDLLs = []string{
+func platformLoadCategories() ([]SectionDescription, error) {
+	if sections := loadDpPmDllDescriptions(); len(sections) > 0 {
+		return sections, nil
+	}
+	return loadDpPmDllDescriptionsFromRegistry(), nil
+}
+
+func platformSaveCategories(sections []SectionDescription) error {
+	if saveDpPmDllDescriptions(sections) {
+		return nil
+	}
+	return saveDpPmDllDescriptionsToRegistry(sections)
+}
+
+// ---------------------------------------------------------------------------
+// DLL round-trip
+
+// allDpPmDllNames mirrors debugus_impl::build_dllnames.
+var allDpPmDllNames = []string{
 	"dpofeedb.dll",
 	"dpfbview.dll",
 	"dpfillin.dll",
@@ -37,23 +54,6 @@ var componentDLLs = []string{
 	"dpotspluginie8.dll",
 }
 
-func platformLoadCategories() ([]SectionDescription, error) {
-	if sections := loadViaDLL(); len(sections) > 0 {
-		return sections, nil
-	}
-	return loadViaRegistry(), nil
-}
-
-func platformSaveCategories(sections []SectionDescription) error {
-	if saveViaDLL(sections) {
-		return nil
-	}
-	return saveViaRegistry(sections)
-}
-
-// ---------------------------------------------------------------------------
-// DLL round-trip
-
 type componentDLL struct {
 	handle     windows.Handle
 	getInfo    uintptr
@@ -61,14 +61,14 @@ type componentDLL struct {
 	getVersion uintptr
 }
 
-func loadComponentDLLs() []componentDLL {
-	binDir := dpBinDir()
+func loadDpPmDlls() []componentDLL {
+	binDir := getDpBinDir()
 	if binDir == "" {
 		return nil
 	}
 
 	var dlls []componentDLL
-	for _, name := range componentDLLs {
+	for _, name := range allDpPmDllNames {
 		path := filepath.Join(binDir, name)
 		h, err := windows.LoadLibrary(path)
 		if err != nil {
@@ -95,18 +95,18 @@ func loadComponentDLLs() []componentDLL {
 	return dlls
 }
 
-func freeComponentDLLs(dlls []componentDLL) {
+func freeDpPmDlls(dlls []componentDLL) {
 	for _, d := range dlls {
 		windows.FreeLibrary(d.handle)
 	}
 }
 
-func loadViaDLL() []SectionDescription {
-	dlls := loadComponentDLLs()
+func loadDpPmDllDescriptions() []SectionDescription {
+	dlls := loadDpPmDlls()
 	if len(dlls) == 0 {
 		return nil
 	}
-	defer freeComponentDLLs(dlls)
+	defer freeDpPmDlls(dlls)
 
 	var combined strings.Builder
 	for _, d := range dlls {
@@ -121,12 +121,12 @@ func loadViaDLL() []SectionDescription {
 	return parseTraceInfo(combined.String())
 }
 
-func saveViaDLL(sections []SectionDescription) bool {
-	dlls := loadComponentDLLs()
+func saveDpPmDllDescriptions(sections []SectionDescription) bool {
+	dlls := loadDpPmDlls()
 	if len(dlls) == 0 {
 		return false
 	}
-	defer freeComponentDLLs(dlls)
+	defer freeDpPmDlls(dlls)
 
 	payload := buildTraceInfo(sections)
 	bytes, err := windows.BytePtrFromString(payload)
@@ -145,7 +145,7 @@ func saveViaDLL(sections []SectionDescription) bool {
 // ---------------------------------------------------------------------------
 // Registry fallback (built-in descriptions + ots_<name> bitmasks)
 
-func loadViaRegistry() []SectionDescription {
+func loadDpPmDllDescriptionsFromRegistry() []SectionDescription {
 	masks := map[string]uint32{}
 
 	key, err := registry.OpenKey(registry.LOCAL_MACHINE, tracingKeyPath, registry.QUERY_VALUE|registry.WOW64_32KEY)
@@ -161,7 +161,7 @@ func loadViaRegistry() []SectionDescription {
 	return builtinSectionsCopy(masks)
 }
 
-func saveViaRegistry(sections []SectionDescription) error {
+func saveDpPmDllDescriptionsToRegistry(sections []SectionDescription) error {
 	key, _, err := registry.CreateKey(registry.LOCAL_MACHINE, tracingKeyPath, registry.SET_VALUE|registry.WOW64_32KEY)
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func saveViaRegistry(sections []SectionDescription) error {
 // ---------------------------------------------------------------------------
 // DigitalPersona bin directory lookup (subset of dp_binlocation.h)
 
-func dpBinDir() string {
+func getDpBinDir() string {
 	candidates := []struct {
 		path string
 	}{

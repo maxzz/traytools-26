@@ -34,7 +34,7 @@ func platformRunTrace(mode string) error {
 		return fmt.Errorf("unknown trace mode %q", mode)
 	}
 
-	binDir := dpBinDir()
+	binDir := getDpBinDir()
 	if binDir == "" {
 		return fmt.Errorf("could not locate the DigitalPersona bin directory")
 	}
