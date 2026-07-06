@@ -7,6 +7,7 @@ import { Label } from "@/ui/shadcn/label";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
+import { Textarea } from "@/ui/shadcn/textarea";
 
 // Apply a mutation to the selected node on the live valtio proxy. Dirty state is
 // recomputed automatically by the store subscriber. Reads use the snapshot so the
@@ -48,9 +49,12 @@ export function ToolsProps() {
             <ScrollArea className="flex-1 min-h-0">
                 <div className="p-3 flex flex-col gap-3">
                     {kind === "separator" && (
-                        <p className="text-muted-foreground">
-                            A separator draws a horizontal divider line in the menu. It has no editable properties.
-                        </p>
+                        <>
+                            <p className="text-muted-foreground">
+                                A separator draws a horizontal divider line in the menu.
+                            </p>
+                            <CommentField uid={uid} value={node.comment ?? ""} />
+                        </>
                     )}
 
                     {kind === "submenu" && (
@@ -62,6 +66,8 @@ export function ToolsProps() {
                                     onChange={(e) => patch(uid, (n) => { n.menuName = e.target.value; })}
                                 />
                             </Field>
+
+                            <CommentField uid={uid} value={node.comment ?? ""} />
 
                             {isRoot && (
                                 <p className="text-muted-foreground">
@@ -161,6 +167,8 @@ export function ToolsProps() {
                                     onCheckedChange={(checked) => patch(uid, (n) => { n.runElevated = checked; })}
                                 />
                             </label>
+
+                            <CommentField uid={uid} value={node.comment ?? ""} />
                         </>
                     )}
                 </div>
@@ -191,5 +199,20 @@ function Field({ label, children }: { label: string; children: React.ReactNode; 
             <Label className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{label}</Label>
             {children}
         </div>
+    );
+}
+
+function CommentField({ uid, value }: { uid: string; value: string; }) {
+    return (
+        <Field label="Comment">
+            <Textarea
+                value={value}
+                placeholder="Optional note (saved in tools.json when non-empty)"
+                onChange={(e) => patch(uid, (n) => {
+                    const v = e.target.value;
+                    if (v.trim()) { n.comment = v; } else { delete n.comment; }
+                })}
+            />
+        </Field>
     );
 }

@@ -26,6 +26,8 @@ export interface ToolMenuItem {
     // for everything else (see `effectiveRunElevated`). It is only written to
     // tools.json when it differs from that default.
     runElevated?: boolean;
+    // Optional note stored in tools.json; omitted when empty.
+    comment?: string;
     menuItems?: ToolMenuItem[];
 
     // Runtime-only stable identity used by the editor for selection and
@@ -108,7 +110,7 @@ export const DEFAULT_TOOLS_CONFIG: ToolsConfig = {
 // ---------------------------------------------------------------------------
 // Persistence
 
-const STORAGE_ID = "traytools-26__tools__v1.0";
+const STORAGE_ID = "traytools-26__tools__v1.1";
 
 export type ToolsSource = "default" | "file" | "storage";
 
@@ -116,7 +118,8 @@ export interface ToolsEditorStore {
     config: ToolsConfig;         // the current editable tree
     source: ToolsSource;         // where `config` came from on the last load
     path: string;                // file path reported by the backend (load/save target)
-    baseline: string;            // serialized config at last load/save (disk-equivalent)
+    baseline: string;            // full file text at last load/save (includes JSONC comments)
+    rootComments: string;        // // and /* */ lines inside the root { } before "menu"
     fileExists: boolean;         // whether tools.json currently exists on disk
     dirty: boolean;              // true when the editor differs from the loaded/saved file
     status: string;              // last user-facing status message
@@ -148,11 +151,23 @@ function ensureUids(node: ToolMenuItem) {
     node.menuItems?.forEach(ensureUids);
 }
 
-function readCache(): ToolsConfig | null {
+function readCache(): { config: ToolsConfig; rootComments: string; } | null {
     try {
         const stored = localStorage.getItem(STORAGE_ID);
         if (stored) {
-            return JSON.parse(stored) as ToolsConfig;
+            const parsed = JSON.parse(stored) as ToolsConfig | { config: ToolsConfig; rootComments?: string; };
+            // Legacy v1.0 cache: plain ToolsConfig JSON.
+            if (parsed && typeof parsed === "object" && "menu" in parsed) {
+                return { config: parsed as ToolsConfig, rootComments: "" };
+            }
+            if (parsed && typeof parsed === "object" && "config" in parsed && parsed.config?.menu) {
+                return { config: parsed.config, rootComments: parsed.rootComments ?? "" };
+            }
+        }
+        // Fall back to the previous cache key once.
+        const legacy = localStorage.getItem("traytools-26__tools__v1.0");
+        if (legacy) {
+            return { config: JSON.parse(legacy) as ToolsConfig, rootComments: "" };
         }
     } catch (e) {
         console.error("Failed to read cached tools config", e);
@@ -162,7 +177,10 @@ function readCache(): ToolsConfig | null {
 
 function writeCache(config: ToolsConfig) {
     try {
-        localStorage.setItem(STORAGE_ID, JSON.stringify(config));
+        localStorage.setItem(STORAGE_ID, JSON.stringify({
+            config,
+            rootComments: toolsEditor.rootComments,
+        }));
     } catch (e) {
         console.error("Failed to cache tools config", e);
     }
@@ -273,21 +291,79 @@ export function parseToolsJsonc(text: string): ToolsConfig {
     return parsed as ToolsConfig;
 }
 
-// Serialize the current config to the on-disk JSON text (4-space indent).
-//   - the runtime-only `uid` field is always dropped;
-//   - `runElevated` is written only when it differs from the type-based default
-//     (so e.g. an elevated registry action, which is the default, is not stored).
-// A classic (non-arrow) function is used so `this` is the node being serialized.
+// Pull // and /* */ comment lines that appear inside the root object before the
+// "menu" property. These are re-inserted when the file is saved so a loaded
+// tools.json keeps its header comments.
+export function extractRootComments(raw: string): string {
+    const menuMatch = raw.match(/"menu"\s*:\s*\{/);
+    if (!menuMatch || menuMatch.index === undefined) {
+        return "";
+    }
+    const menuIdx = menuMatch.index;
+    const braceIdx = raw.indexOf("{");
+    if (braceIdx < 0 || braceIdx >= menuIdx) {
+        return "";
+    }
+
+    const lines = raw.slice(braceIdx + 1, menuIdx).split("\n");
+    const kept: string[] = [];
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed === "") {
+            if (kept.length > 0) {
+                kept.push(line);
+            }
+            continue;
+        }
+        if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*") || trimmed === "*/" || trimmed.endsWith("*/")) {
+            kept.push(line);
+        }
+    }
+    while (kept.length > 0 && kept[kept.length - 1].trim() === "") {
+        kept.pop();
+    }
+    return kept.join("\n");
+}
+
+function normalizeFileText(text: string): string {
+    return text.replace(/\r\n/g, "\n").replace(/\n+$/, "\n");
+}
+
+function jsonReplacer(this: ToolMenuItem, key: string, value: unknown) {
+    if (key === "uid") {
+        return undefined;
+    }
+    if (key === "runElevated") {
+        return value === defaultRunElevated(this) ? undefined : value;
+    }
+    if (key === "comment") {
+        return typeof value === "string" && value.trim() === "" ? undefined : value;
+    }
+    return value;
+}
+
+// Serialize the config object to JSON (4-space indent). Does not include the
+// root-object JSONC header comments — use buildToolsFileText for the full file.
 export function serializeToolsConfig(config: ToolsConfig): string {
-    return JSON.stringify(config, function (this: ToolMenuItem, key, value) {
-        if (key === "uid") {
-            return undefined;
-        }
-        if (key === "runElevated") {
-            return value === defaultRunElevated(this) ? undefined : value;
-        }
-        return value;
-    }, 4) + "\n";
+    return JSON.stringify(config, jsonReplacer, 4);
+}
+
+// Build the full tools.json text, optionally preserving root-object JSONC
+// comments loaded from the on-disk file.
+export function buildToolsFileText(config: ToolsConfig, rootComments = ""): string {
+    const body = serializeToolsConfig(config);
+    if (!rootComments.trim()) {
+        return normalizeFileText(body);
+    }
+
+    const newline = body.indexOf("\n");
+    if (newline < 0) {
+        return normalizeFileText(body);
+    }
+
+    const rest = body.slice(newline + 1);
+    const header = rootComments.endsWith("\n") ? rootComments : `${rootComments}\n`;
+    return normalizeFileText(`{\n${header}${rest}`);
 }
 
 // Compare the live editor tree against the last loaded/saved baseline. When no
@@ -296,7 +372,7 @@ function computeDirty(): boolean {
     if (!toolsEditor.fileExists) {
         return true;
     }
-    return serializeToolsConfig(toolsEditor.config) !== toolsEditor.baseline;
+    return buildToolsFileText(toolsEditor.config, toolsEditor.rootComments) !== toolsEditor.baseline;
 }
 
 function syncDirty() {
@@ -306,14 +382,17 @@ function syncDirty() {
     }
 }
 
-const initialConfig = readCache() ?? cloneConfig(DEFAULT_TOOLS_CONFIG);
+const cached = readCache();
+const initialConfig = cached?.config ?? cloneConfig(DEFAULT_TOOLS_CONFIG);
 ensureUids(initialConfig.menu);
+const initialRootComments = cached?.rootComments ?? "";
 
 export const toolsEditor = proxy<ToolsEditorStore>({
     config: initialConfig,
-    source: readCache() ? "storage" : "default",
+    source: cached ? "storage" : "default",
     path: "",
-    baseline: serializeToolsConfig(initialConfig),
+    baseline: buildToolsFileText(initialConfig, initialRootComments),
+    rootComments: initialRootComments,
     fileExists: false,
     dirty: true, // no on-disk file yet — unsaved until first save
     status: "",
@@ -333,13 +412,20 @@ subscribe(toolsEditor, () => {
 // Mutations
 
 // Record a freshly loaded (or saved) config as the baseline for dirty tracking.
-export function setToolsConfig(config: ToolsConfig, source: ToolsSource, path = "", fileExists = source === "file") {
+export function setToolsConfig(
+    config: ToolsConfig,
+    source: ToolsSource,
+    path = "",
+    fileExists = source === "file",
+    opts?: { rootComments?: string; },
+) {
     ensureUids(config.menu);
-    toolsEditor.baseline = serializeToolsConfig(config);
+    toolsEditor.rootComments = opts?.rootComments ?? "";
     toolsEditor.config = config;
     toolsEditor.source = source;
     toolsEditor.path = path;
     toolsEditor.fileExists = fileExists;
+    toolsEditor.baseline = buildToolsFileText(config, toolsEditor.rootComments);
     toolsEditor.dirty = !fileExists;
     toolsEditor.error = "";
 
@@ -513,6 +599,7 @@ export function resetToDefaults() {
     const config = cloneConfig(DEFAULT_TOOLS_CONFIG);
     ensureUids(config.menu);
     toolsEditor.config = config;
+    toolsEditor.rootComments = "";
     toolsEditor.source = "default";
     syncDirty();
     toolsEditor.status = "Reset to default tools";
@@ -531,7 +618,8 @@ export async function loadToolsConfig(): Promise<void> {
         if (raw?.found && raw.content) {
             try {
                 const config = parseToolsJsonc(raw.content);
-                setToolsConfig(config, "file", raw.path, true);
+                const rootComments = extractRootComments(raw.content);
+                setToolsConfig(config, "file", raw.path, true, { rootComments });
                 writeCache(config);
                 toolsEditor.status = `Loaded from ${raw.path}`;
                 return;
@@ -544,7 +632,7 @@ export async function loadToolsConfig(): Promise<void> {
         // No file on disk (or it was unparseable) — use the cached copy.
         const cached = readCache();
         if (cached) {
-            setToolsConfig(cached, "storage", raw?.path ?? "", false);
+            setToolsConfig(cached.config, "storage", raw?.path ?? "", false, { rootComments: cached.rootComments });
             if (!toolsEditor.error) {
                 toolsEditor.status = "File not found — using saved copy";
             }
@@ -562,11 +650,11 @@ export async function loadToolsConfig(): Promise<void> {
 
 export async function saveToolsConfig(): Promise<void> {
     try {
-        const text = serializeToolsConfig(toolsEditor.config);
+        const text = buildToolsFileText(toolsEditor.config, toolsEditor.rootComments);
         const res = await toolsBus.save(text);
         toolsEditor.path = res?.path ?? toolsEditor.path;
         toolsEditor.source = "file";
-        toolsEditor.baseline = serializeToolsConfig(toolsEditor.config);
+        toolsEditor.baseline = text;
         toolsEditor.fileExists = true;
         toolsEditor.dirty = false;
         toolsEditor.error = "";

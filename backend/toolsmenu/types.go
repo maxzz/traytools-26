@@ -25,6 +25,7 @@ type MenuNode struct {
 	// when nil the effective value defaults to true for registry actions and
 	// false otherwise (see effectiveElevated).
 	RunElevated *bool      `json:"runElevated,omitempty"`
+	Comment     string     `json:"comment,omitempty"` // optional note; ignored at runtime
 	MenuItems   []MenuNode `json:"menuItems,omitempty"`
 }
 
