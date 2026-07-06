@@ -1,20 +1,20 @@
 import { useSnapshot } from "valtio";
 import { Folder, Minus, MousePointerClick, ShieldCheck, Terminal } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { effectiveRunElevated, getNode, isRootUid, markDirty, nodeKind, toolsEditor, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/store/5-tools-editor";
+import { effectiveRunElevated, getNode, isRootUid, nodeKind, toolsEditor, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/store/5-tools-editor";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 
-// Apply a mutation to the selected node on the live valtio proxy, then flag the
-// tree dirty. Reads happen off the snapshot so the panel stays reactive.
+// Apply a mutation to the selected node on the live valtio proxy. Dirty state is
+// recomputed automatically by the store subscriber. Reads use the snapshot so the
+// panel stays reactive.
 function patch(uid: string, fn: (node: ToolMenuItem) => void) {
     const node = getNode(toolsEditor.config.menu, uid);
     if (node) {
         fn(node);
-        markDirty();
     }
 }
 

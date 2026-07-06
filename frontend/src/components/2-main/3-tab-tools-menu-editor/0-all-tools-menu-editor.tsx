@@ -45,12 +45,14 @@ export function Page_ToolsMenuEditor() {
                 </ResizablePanel>
             </ResizablePanelGroup>
 
-            {(snap.status || snap.error || snap.dirty) && (
+            {(snap.status || snap.error || snap.dirty || snap.fileExists) && (
                 <div className="px-3 py-1 text-[0.72rem] border-t flex items-center gap-2">
                     {snap.error
                         ? <span className="text-destructive flex items-center gap-1"><AlertTriangle className="size-3.5" /> {snap.error}</span>
                         : <span className="text-muted-foreground">{snap.status}</span>}
-                    {snap.dirty && <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">Unsaved changes</span>}
+                    {snap.dirty
+                        ? <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">Unsaved changes</span>
+                        : snap.fileExists && <span className="ml-auto px-1.5 py-0.5 text-muted-foreground bg-muted rounded">No unsaved changes</span>}
                 </div>
             )}
 

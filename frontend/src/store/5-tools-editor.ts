@@ -116,7 +116,9 @@ export interface ToolsEditorStore {
     config: ToolsConfig;         // the current editable tree
     source: ToolsSource;         // where `config` came from on the last load
     path: string;                // file path reported by the backend (load/save target)
-    dirty: boolean;              // has the tree changed since last load/save
+    baseline: string;            // serialized config at last load/save (disk-equivalent)
+    fileExists: boolean;         // whether tools.json currently exists on disk
+    dirty: boolean;              // true when the editor differs from the loaded/saved file
     status: string;              // last user-facing status message
     error: string;               // last error, if any
     selectedUid: string | null;  // uid of the node shown in the properties panel
@@ -165,25 +167,6 @@ function writeCache(config: ToolsConfig) {
         console.error("Failed to cache tools config", e);
     }
 }
-
-const initialConfig = readCache() ?? cloneConfig(DEFAULT_TOOLS_CONFIG);
-ensureUids(initialConfig.menu);
-
-export const toolsEditor = proxy<ToolsEditorStore>({
-    config: initialConfig,
-    source: readCache() ? "storage" : "default",
-    path: "",
-    dirty: false,
-    status: "",
-    error: "",
-    selectedUid: null,
-});
-
-// Persist edits to localStorage so a loaded config survives a restart even when
-// the file later goes missing.
-subscribe(toolsEditor, () => {
-    writeCache(toolsEditor.config);
-});
 
 // ---------------------------------------------------------------------------
 // JSONC parsing (mirrors the backend jsonc stripper) so raw tools.json files
@@ -307,25 +290,63 @@ export function serializeToolsConfig(config: ToolsConfig): string {
     }, 4) + "\n";
 }
 
+// Compare the live editor tree against the last loaded/saved baseline. When no
+// tools.json exists on disk yet, the editor is always considered modified.
+function computeDirty(): boolean {
+    if (!toolsEditor.fileExists) {
+        return true;
+    }
+    return serializeToolsConfig(toolsEditor.config) !== toolsEditor.baseline;
+}
+
+function syncDirty() {
+    const dirty = computeDirty();
+    if (toolsEditor.dirty !== dirty) {
+        toolsEditor.dirty = dirty;
+    }
+}
+
+const initialConfig = readCache() ?? cloneConfig(DEFAULT_TOOLS_CONFIG);
+ensureUids(initialConfig.menu);
+
+export const toolsEditor = proxy<ToolsEditorStore>({
+    config: initialConfig,
+    source: readCache() ? "storage" : "default",
+    path: "",
+    baseline: serializeToolsConfig(initialConfig),
+    fileExists: false,
+    dirty: true, // no on-disk file yet — unsaved until first save
+    status: "",
+    error: "",
+    selectedUid: null,
+});
+
+// Persist edits to localStorage so a loaded config survives a restart even when
+// the file later goes missing. Recompute dirty on every config change so edits
+// that are undone back to the loaded state clear the unsaved indicator.
+subscribe(toolsEditor, () => {
+    writeCache(toolsEditor.config);
+    syncDirty();
+});
+
 // ---------------------------------------------------------------------------
 // Mutations
 
-export function setToolsConfig(config: ToolsConfig, source: ToolsSource, path = "") {
+// Record a freshly loaded (or saved) config as the baseline for dirty tracking.
+export function setToolsConfig(config: ToolsConfig, source: ToolsSource, path = "", fileExists = source === "file") {
     ensureUids(config.menu);
+    toolsEditor.baseline = serializeToolsConfig(config);
     toolsEditor.config = config;
     toolsEditor.source = source;
     toolsEditor.path = path;
-    toolsEditor.dirty = false;
+    toolsEditor.fileExists = fileExists;
+    toolsEditor.dirty = !fileExists;
     toolsEditor.error = "";
 
     // Keep the current selection if it still exists, otherwise clear it.
     if (toolsEditor.selectedUid && !findByUid(config.menu, toolsEditor.selectedUid)) {
         toolsEditor.selectedUid = null;
     }
-}
-
-export function markDirty() {
-    toolsEditor.dirty = true;
 }
 
 // ---------------------------------------------------------------------------
@@ -406,7 +427,6 @@ export function addNode(kind: NodeKind): void {
     }
 
     toolsEditor.selectedUid = node.uid!;
-    markDirty();
 }
 
 export function removeNode(uid: string): void {
@@ -423,7 +443,6 @@ export function removeNode(uid: string): void {
         const next = loc.siblings[loc.index] ?? loc.siblings[loc.index - 1] ?? loc.parent;
         toolsEditor.selectedUid = next && next !== toolsEditor.config.menu ? next.uid ?? null : null;
     }
-    markDirty();
 }
 
 // True when `maybeAncestor` is `node` or contains it somewhere below.
@@ -458,7 +477,6 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
     if (targetUid === root.uid) {
         drag.siblings.splice(drag.index, 1);
         (root.menuItems ??= []).push(drag.node);
-        markDirty();
         return true;
     }
 
@@ -488,13 +506,15 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         after.siblings.splice(insertAt, 0, drag.node);
     }
 
-    markDirty();
     return true;
 }
 
 export function resetToDefaults() {
-    setToolsConfig(cloneConfig(DEFAULT_TOOLS_CONFIG), "default");
-    toolsEditor.dirty = true;
+    const config = cloneConfig(DEFAULT_TOOLS_CONFIG);
+    ensureUids(config.menu);
+    toolsEditor.config = config;
+    toolsEditor.source = "default";
+    syncDirty();
     toolsEditor.status = "Reset to default tools";
 }
 
@@ -511,7 +531,7 @@ export async function loadToolsConfig(): Promise<void> {
         if (raw?.found && raw.content) {
             try {
                 const config = parseToolsJsonc(raw.content);
-                setToolsConfig(config, "file", raw.path);
+                setToolsConfig(config, "file", raw.path, true);
                 writeCache(config);
                 toolsEditor.status = `Loaded from ${raw.path}`;
                 return;
@@ -524,14 +544,14 @@ export async function loadToolsConfig(): Promise<void> {
         // No file on disk (or it was unparseable) — use the cached copy.
         const cached = readCache();
         if (cached) {
-            setToolsConfig(cached, "storage", raw?.path ?? "");
+            setToolsConfig(cached, "storage", raw?.path ?? "", false);
             if (!toolsEditor.error) {
                 toolsEditor.status = "File not found — using saved copy";
             }
             return;
         }
 
-        setToolsConfig(cloneConfig(DEFAULT_TOOLS_CONFIG), "default", raw?.path ?? "");
+        setToolsConfig(cloneConfig(DEFAULT_TOOLS_CONFIG), "default", raw?.path ?? "", false);
         if (!toolsEditor.error) {
             toolsEditor.status = "No tools.json — showing defaults";
         }
@@ -546,6 +566,8 @@ export async function saveToolsConfig(): Promise<void> {
         const res = await toolsBus.save(text);
         toolsEditor.path = res?.path ?? toolsEditor.path;
         toolsEditor.source = "file";
+        toolsEditor.baseline = serializeToolsConfig(toolsEditor.config);
+        toolsEditor.fileExists = true;
         toolsEditor.dirty = false;
         toolsEditor.error = "";
         toolsEditor.status = `Saved to ${toolsEditor.path}`;
