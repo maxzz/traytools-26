@@ -110,9 +110,9 @@ func (m *Manager) exec(id int) error {
 
 	switch cmd.what {
 	case whatReg:
-		return platformOpenRegistry(cmd.path, cmd.plat)
+		return platformOpenRegistry(cmd.path, cmd.plat, cmd.elevated)
 	default:
-		return platformExecTool(cmd.path, cmd.args)
+		return platformExecTool(cmd.path, cmd.args, cmd.elevated)
 	}
 }
 

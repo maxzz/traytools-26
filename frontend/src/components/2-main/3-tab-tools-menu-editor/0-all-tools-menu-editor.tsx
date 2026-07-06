@@ -1,18 +1,29 @@
 import { useEffect } from "react";
 import { useSnapshot } from "valtio";
+import { type Layout } from "react-resizable-panels";
 import { AlertTriangle, RotateCcw, RefreshCw, Save } from "lucide-react";
 import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditor } from "@/store/5-tools-editor";
+import { appSettings } from "@/store/1-ui-settings";
+import { PANEL_GROUPS } from "@/store/2-panel-sizes";
 import { Button } from "@/ui/shadcn/button";
-import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { ToolsNodeList } from "./1-tools-node-editor";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
+import { ToolsTree } from "./1-tools-tree";
+import { ToolsProps } from "./2-tools-props";
 
 // Tools Menu editor. Lets the user edit the "Tools" menu tree and write it to
-// tools.json with a single button. The tree is loaded from the on-disk file
-// (same location the menu reads), or from the localStorage copy when the file
-// is missing. Defaults mirror the shipped tools/tools.json.
+// tools.json with a single button. The tree (left) is loaded from the on-disk
+// file (same location the menu reads), or from the localStorage copy when the
+// file is missing. Selecting a node shows its properties on the right. Nodes can
+// be reordered / re-nested by drag-and-drop, and added / removed via the toolbar.
 
 export function Page_ToolsMenuEditor() {
     const snap = useSnapshot(toolsEditor);
+    const { panelSizes } = useSnapshot(appSettings);
+    const mainLayout = panelSizes[PANEL_GROUPS.toolsEditorMain];
+
+    const onMainLayoutChanged = (layout: Layout) => {
+        appSettings.panelSizes = { ...appSettings.panelSizes, [PANEL_GROUPS.toolsEditorMain]: layout };
+    };
 
     useEffect(
         () => {
@@ -20,15 +31,30 @@ export function Page_ToolsMenuEditor() {
         },
         []);
 
-    const rootItems = toolsEditor.config.menu.menuItems ??= [];
-
     return (
         <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden flex flex-col">
-            <ScrollArea className="flex-1 min-h-0">
-                <div className="p-3">
-                    <ToolsNodeList items={rootItems} />
+            <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={onMainLayoutChanged}>
+                <ResizablePanel id="tree" minSize={22}>
+                    <ToolsTree />
+                </ResizablePanel>
+
+                <ResizableHandle withHandle />
+
+                <ResizablePanel id="props" minSize={30}>
+                    <ToolsProps />
+                </ResizablePanel>
+            </ResizablePanelGroup>
+
+            {(snap.status || snap.error || snap.dirty || snap.fileExists) && (
+                <div className="px-3 py-1 text-[0.72rem] border-t flex items-center gap-2">
+                    {snap.error
+                        ? <span className="text-destructive flex items-center gap-1"><AlertTriangle className="size-3.5" /> {snap.error}</span>
+                        : <span className="text-muted-foreground">{snap.status}</span>}
+                    {snap.dirty
+                        ? <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">Unsaved changes</span>
+                        : snap.fileExists && <span className="ml-auto px-1.5 py-0.5 text-muted-foreground bg-muted rounded">No unsaved changes</span>}
                 </div>
-            </ScrollArea>
+            )}
 
             <div className="px-3 py-2 bg-muted border-t flex flex-wrap items-center gap-2">
                 <div className="mr-auto flex flex-col">
@@ -50,15 +76,6 @@ export function Page_ToolsMenuEditor() {
                     <Save /> Save tools.json
                 </Button>
             </div>
-
-            {(snap.status || snap.error || snap.dirty) && (
-                <div className="px-3 py-1 text-[0.72rem] border-b flex items-center gap-2">
-                    {snap.error
-                        ? <span className="text-destructive flex items-center gap-1"><AlertTriangle className="size-3.5" /> {snap.error}</span>
-                        : <span className="text-muted-foreground">{snap.status}</span>}
-                    {snap.dirty && <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">Unsaved changes</span>}
-                </div>
-            )}
         </div>
     );
 }

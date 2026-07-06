@@ -1,0 +1,294 @@
+import { createContext, useContext, useMemo, useState, type DragEvent } from "react";
+import { useSnapshot } from "valtio";
+import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus, Plus, SquarePlus, Terminal, Trash2 } from "lucide-react";
+import { cn } from "@/utils/classnames";
+import { addNode, isRootUid, moveNode, nodeKind, removeNode, toolsEditor, type DropPosition, type NodeKind, type ToolMenuItem } from "@/store/5-tools-editor";
+import { Button } from "@/ui/shadcn/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { ScrollArea } from "@/ui/shadcn/scroll-area";
+
+// Deep-readonly view of a node as returned by valtio's useSnapshot.
+type SnapNode = {
+    readonly menuName: string;
+    readonly cmdLine?: string;
+    readonly uid?: string;
+    readonly menuItems?: readonly SnapNode[];
+};
+
+const INDENT = 16;
+
+// ---------------------------------------------------------------------------
+// Drag-and-drop shared state (kept local to the tree).
+
+type DndState = {
+    dragUid: string | null;
+    dropUid: string | null;
+    dropPos: DropPosition | null;
+    onDragStart: (e: DragEvent, uid: string) => void;
+    onDragOver: (e: DragEvent, uid: string, isSubmenu: boolean, isRoot: boolean) => void;
+    onDrop: (e: DragEvent, uid: string) => void;
+    onDragEnd: () => void;
+    onDragLeaveRow: (uid: string) => void;
+};
+
+const DndContext = createContext<DndState | null>(null);
+
+function useDnd(): DndState {
+    const ctx = useContext(DndContext);
+    if (!ctx) {
+        throw new Error("Tree rows must be rendered inside ToolsTree");
+    }
+    return ctx;
+}
+
+// ---------------------------------------------------------------------------
+
+export function ToolsTree() {
+    const snap = useSnapshot(toolsEditor);
+    const root = snap.config.menu as SnapNode;
+
+    const [dragUid, setDragUid] = useState<string | null>(null);
+    const [dropUid, setDropUid] = useState<string | null>(null);
+    const [dropPos, setDropPos] = useState<DropPosition | null>(null);
+
+    const dnd = useMemo<DndState>(
+        () => ({
+            dragUid,
+            dropUid,
+            dropPos,
+            onDragStart: (e, uid) => {
+                setDragUid(uid);
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", uid);
+            },
+            onDragOver: (e, uid, isSubmenu, isRoot) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                const rect = e.currentTarget.getBoundingClientRect();
+                const offset = (e.clientY - rect.top) / rect.height;
+                let pos: DropPosition;
+                if (isRoot) {
+                    // The root has no siblings; dropping on it always nests inside.
+                    pos = "inside";
+                } else if (isSubmenu) {
+                    pos = offset < 0.28 ? "before" : offset > 0.72 ? "after" : "inside";
+                } else {
+                    pos = offset < 0.5 ? "before" : "after";
+                }
+                setDropUid(uid);
+                setDropPos(pos);
+            },
+            onDrop: (e, uid) => {
+                e.preventDefault();
+                const src = e.dataTransfer.getData("text/plain") || dragUid;
+                if (src && dropPos) {
+                    moveNode(src, uid, dropPos);
+                }
+                setDragUid(null);
+                setDropUid(null);
+                setDropPos(null);
+            },
+            onDragEnd: () => {
+                setDragUid(null);
+                setDropUid(null);
+                setDropPos(null);
+            },
+            onDragLeaveRow: (uid) => {
+                setDropUid((cur) => (cur === uid ? null : cur));
+            },
+        }),
+        [dragUid, dropUid, dropPos]);
+
+    return (
+        <div className="min-h-0 h-full flex flex-col">
+            <TreeToolbar />
+
+            <ScrollArea className="flex-1 min-h-0">
+                <DndContext.Provider value={dnd}>
+                    <div className="p-1">
+                        <TreeRow node={root} depth={0} isLast isRoot ancestors={[]} />
+                    </div>
+                </DndContext.Provider>
+            </ScrollArea>
+        </div>
+    );
+}
+
+const ADD_ITEMS: { kind: NodeKind; label: string; icon: typeof Plus; }[] = [
+    { kind: "item", label: "Add command", icon: Plus },
+    { kind: "submenu", label: "Add submenu", icon: SquarePlus },
+    { kind: "separator", label: "Add separator", icon: Minus },
+];
+
+function TreeToolbar() {
+    const { selectedUid } = useSnapshot(toolsEditor);
+    const canDelete = !!selectedUid && !isRootUid(selectedUid);
+
+    return (
+        <div className="px-2 py-1.5 border-b flex items-center gap-1.5">
+            <span className="mr-auto text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wide">
+                Menu items
+            </span>
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon-xs" title="Add menu item">
+                        <Plus />
+                    </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end">
+                    {ADD_ITEMS.map(({ kind, label, icon: Icon }) => (
+                        <DropdownMenuItem key={kind} onSelect={() => addNode(kind)}>
+                            <Icon /> {label}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+                variant="destructive"
+                size="icon-xs"
+                title="Remove selected"
+                disabled={!canDelete}
+                onClick={() => canDelete && selectedUid && removeNode(selectedUid)}
+            >
+                <Trash2 />
+            </Button>
+        </div>
+    );
+}
+
+// `ancestors[a]` is true when the ancestor at level `a` has a following sibling,
+// i.e. a vertical guide line should continue through this row at that column.
+// `isRoot` marks the fixed top-level "Tools" node: it draws no guide lines and
+// cannot be dragged (only dropped into).
+function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: SnapNode; depth: number; isLast: boolean; ancestors: boolean[]; isRoot?: boolean; }) {
+    const snap = useSnapshot(toolsEditor);
+    const dnd = useDnd();
+    const [collapsed, setCollapsed] = useState(false);
+
+    const uid = node.uid ?? "";
+    const kind = nodeKind(node as ToolMenuItem);
+    const isSubmenu = kind === "submenu" || isRoot;
+    const isSeparator = kind === "separator" && !isRoot;
+    const selected = snap.selectedUid === uid;
+
+    const isDragging = dnd.dragUid === uid;
+    const isDropTarget = dnd.dropUid === uid;
+    const showBefore = !isRoot && isDropTarget && dnd.dropPos === "before";
+    const showAfter = !isRoot && isDropTarget && dnd.dropPos === "after";
+    const showInside = isDropTarget && dnd.dropPos === "inside";
+
+    const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : Terminal;
+    const childAncestors = [...ancestors, !isLast];
+    const children = node.menuItems ?? [];
+
+    return (
+        <div>
+            <div
+                className="relative"
+                draggable={!isRoot}
+                onDragStart={(e) => dnd.onDragStart(e, uid)}
+                onDragOver={(e) => dnd.onDragOver(e, uid, isSubmenu, isRoot)}
+                onDrop={(e) => dnd.onDrop(e, uid)}
+                onDragEnd={dnd.onDragEnd}
+                onDragLeave={() => dnd.onDragLeaveRow(uid)}
+            >
+                {/* Drop indicators */}
+                {showBefore && <DropLine style={{ left: guideX(depth), top: -1 }} />}
+                {showAfter && <DropLine style={{ left: guideX(depth), bottom: -1 }} />}
+
+                <div
+                    className={cn(
+                        "group relative h-7 pr-1 rounded-md flex items-center gap-1 cursor-pointer select-none",
+                        "hover:bg-accent/60",
+                        selected && "bg-accent text-accent-foreground",
+                        showInside && "ring-1 ring-sky-500 bg-sky-500/10",
+                        isDragging && "opacity-40",
+                        isRoot && "font-medium",
+                    )}
+                    style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
+                    onClick={() => { toolsEditor.selectedUid = uid; }}
+                >
+                    {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} />}
+
+                    {isSubmenu ? (
+                        <button
+                            className="relative size-4 flex items-center justify-center text-muted-foreground shrink-0"
+                            onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }}
+                            title={collapsed ? "Expand" : "Collapse"}
+                        >
+                            {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                        </button>
+                    ) : (
+                        <span className="relative size-4 shrink-0" />
+                    )}
+
+                    <Icon className={cn("relative size-3.5 shrink-0", isSubmenu ? "text-amber-500" : "text-muted-foreground")} />
+
+                    {isSeparator ? (
+                        <span className="relative flex-1 mr-2 border-t border-dashed border-border" />
+                    ) : (
+                        <span className="relative flex-1 truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                    )}
+                </div>
+            </div>
+
+            {isSubmenu && !collapsed && (
+                children.length > 0 ? (
+                    <div>
+                        {children.map((child, index) => (
+                            <TreeRow
+                                key={child.uid}
+                                node={child}
+                                depth={depth + 1}
+                                isLast={index === children.length - 1}
+                                ancestors={childAncestors}
+                            />
+                        ))}
+                    </div>
+                ) : isRoot ? (
+                    <div className="px-3 py-4 text-muted-foreground" style={{ paddingLeft: (depth + 2) * INDENT + 6 }}>
+                        Empty. Use the + menu above to add items.
+                    </div>
+                ) : null
+            )}
+        </div>
+    );
+}
+
+// X position (px) of the vertical guide column for a given depth.
+function guideX(depth: number): number {
+    return depth * INDENT + 11;
+}
+
+// Connector lines: continuation verticals for ancestors, plus the ├ / └ branch
+// (vertical + horizontal tick) that links this row to its parent and siblings.
+function TreeGuides({ depth, isLast, ancestors }: { depth: number; isLast: boolean; ancestors: boolean[]; }) {
+    const x = guideX(depth);
+    return (
+        <div className="absolute inset-y-0 left-0 pointer-events-none">
+            {ancestors.map((cont, a) => cont
+                ? <span key={a} className="absolute top-0 bottom-0 border-l border-border" style={{ left: guideX(a) }} />
+                : null)}
+
+            {/* Vertical from the top down to this row's midpoint (always present). */}
+            <span className="absolute top-0 border-l border-border" style={{ left: x, height: "50%" }} />
+
+            {/* Continue below the midpoint only when a sibling follows. */}
+            {!isLast && <span className="absolute bottom-0 border-l border-border" style={{ left: x, top: "50%" }} />}
+
+            {/* Horizontal tick reaching toward the row content. */}
+            <span className="absolute top-1/2 border-t border-border" style={{ left: x, width: INDENT - 5 }} />
+        </div>
+    );
+}
+
+function DropLine({ style }: { style: React.CSSProperties; }) {
+    return (
+        <div className="absolute right-1 h-0.5 bg-sky-500 rounded-full pointer-events-none z-10" style={style}>
+            <div className="absolute -left-1 top-[-3px] size-2 rounded-full bg-sky-500" />
+        </div>
+    );
+}
