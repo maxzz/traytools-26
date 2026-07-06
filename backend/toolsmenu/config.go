@@ -13,7 +13,7 @@ import (
 const EnvOverride = "TRAYTOOLS_TOOLS"
 
 // appConfigDirName is the per-user config sub-directory (matches options.go).
-const appConfigDirName = "tm-template-go-26"
+const appConfigDirName = "traytools-26-go"
 
 // findConfigPath returns the first existing tools.json from the search order:
 //

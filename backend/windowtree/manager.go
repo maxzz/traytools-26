@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"tm-template-go-26/backend/bus"
+	"traytools-26-go/backend/bus"
 )
 
 // Manager exposes the "Show Windows Tree" feature over the command bus. It is a

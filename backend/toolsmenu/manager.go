@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"tm-template-go-26/backend/bus"
+	"traytools-26-go/backend/bus"
 )
 
 // Group is the bus group name shared with the frontend bridge.

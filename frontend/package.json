@@ -1,16 +1,8 @@
 {
-    "name": "tm-template-go-26",
+    "name": "traytools-26-go",
     "version": "0.26.1",
     "description": "Wails template which includes: WebView2, Vite, React, TS, TailwindCSS out of the box",
     "author": "Max Zakharzhevskiy",
-    "homepage": "https://maxzz.github.io/tm-template-go-26",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/maxzz/tm-template-go-26.git"
-    },
-    "bugs": {
-        "url": "https://github.com/maxzz/tm-template-go-26/issues"
-    },
     "keywords": [
         "WebView2",
         "wails",

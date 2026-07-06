@@ -29,7 +29,7 @@ func getIniFilePath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	appDir := filepath.Join(configDir, "tm-template-go-26")
+	appDir := filepath.Join(configDir, "traytools-26-go")
 	// Make sure the directory exists
 	if err := os.MkdirAll(appDir, 0755); err != nil {
 		return "", err

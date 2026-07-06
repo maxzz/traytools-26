@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tm-template-go-26/backend/bus"
+	"traytools-26-go/backend/bus"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )

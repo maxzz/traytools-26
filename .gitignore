@@ -1,12 +1,12 @@
 # Wails / Go binaries and build outputs
 /build/bin/
 /build/darwin/*.app
-/tm-template-go-26
-/tm-template-go-26.exe
-/tm-template-go-26-*.exe
-/tm-template-go-26-darwin-*
-/tm-template-go-26-linux-*
-/tm-template-go-26-windows-*
+/traytools-26-go
+/traytools-26-go.exe
+/traytools-26-go-*.exe
+/traytools-26-go-darwin-*
+/traytools-26-go-linux-*
+/traytools-26-go-windows-*
 
 # Go build & test artifacts
 *.test

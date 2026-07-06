@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"tm-template-go-26/backend/winregedit"
+	"traytools-26-go/backend/winregedit"
 
 	"golang.org/x/sys/windows"
 )

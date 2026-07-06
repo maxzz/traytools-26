@@ -36,7 +36,7 @@ The first existing file wins:
 1. `%TRAYTOOLS_TOOLS%` — an environment variable pointing directly at a JSON file (handy for development).
 2. `<exeDir>\tools\tools.json`, then `<exeDir>\tools.json` — next to the installed executable.
 3. `.\tools\tools.json`, then `.\tools.json` — the current working directory (this is what `wails dev` uses from the project root).
-4. `%AppData%\tm-template-go-26\tools\tools.json`, then `…\tools.json` — the per-user config directory.
+4. `%AppData%\traytools-26-go\tools\tools.json`, then `…\tools.json` — the per-user config directory.
 
 If no file is found, the **Tools** menu shows a single disabled *"No tools.json found"* item.
 

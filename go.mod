@@ -1,4 +1,4 @@
-module tm-template-go-26
+module traytools-26-go
 
 go 1.22.0
 

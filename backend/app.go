@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"sync"
 
-	"tm-template-go-26/backend/bus"
-	"tm-template-go-26/backend/toolsmenu"
-	"tm-template-go-26/backend/tracemanager"
-	"tm-template-go-26/backend/windowtree"
+	"traytools-26-go/backend/bus"
+	"traytools-26-go/backend/toolsmenu"
+	"traytools-26-go/backend/tracemanager"
+	"traytools-26-go/backend/windowtree"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )

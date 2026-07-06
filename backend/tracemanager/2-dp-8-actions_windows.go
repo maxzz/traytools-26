@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"tm-template-go-26/backend/winregedit"
+	"traytools-26-go/backend/winregedit"
 )
 
 // platformOpenRegedit reproduces regeditutils::regeditjump: open the Registry

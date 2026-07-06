@@ -1,5 +1,5 @@
 {
-  "name": "tm-template-go-26",
+  "name": "traytools-26-go",
   "outputfilename": "traytools-26",
   "frontend:install": "pnpm install",
   "frontend:build": "pnpm run build",

@@ -1,16 +1,8 @@
 {
-  "name": "tm-template-go-26-root",
+  "name": "traytools-26-go-root",
   "version": "1.0.0",
   "description": "Go tool to collect diagnostic traces",
   "private": true,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/maxzz/tm-template-go-26.git"
-  },
-  "bugs": {
-    "url": "https://github.com/maxzz/tm-template-go-26/issues"
-  },
-  "homepage": "https://github.com/maxzz/tm-template-go-26#readme",
   "author": {
     "name": "Max Zakharzhevskiy",
     "email": "maxzz@msn.com"
