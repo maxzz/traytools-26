@@ -2,8 +2,9 @@ import { createContext, useContext, useMemo, useState, type DragEvent } from "re
 import { useSnapshot } from "valtio";
 import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus, Plus, SquarePlus, Terminal, Trash2 } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { addNode, isRootUid, moveNode, nodeKind, removeNode, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
+import { addNode, isRootUid, moveNode, nodeKind, removeNode, toolsEditor, type DropPosition, type NodeKind, type ToolMenuItem } from "@/store/5-tools-editor";
 import { Button } from "@/ui/shadcn/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
@@ -45,7 +46,6 @@ function useDnd(): DndState {
 export function ToolsTree() {
     const snap = useSnapshot(toolsEditor);
     const root = snap.config.menu as SnapNode;
-    const canDelete = !!snap.selectedUid && !isRootUid(snap.selectedUid);
 
     const [dragUid, setDragUid] = useState<string | null>(null);
     const [dropUid, setDropUid] = useState<string | null>(null);
@@ -101,29 +101,7 @@ export function ToolsTree() {
 
     return (
         <div className="min-h-0 h-full flex flex-col">
-            <div className="px-2 py-1.5 border-b flex items-center gap-1.5">
-                <span className="mr-auto text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wide">
-                    Menu items
-                </span>
-                <Button variant="outline" size="xs" title="Add command" onClick={() => addNode("item")}>
-                    <Plus /> Command
-                </Button>
-                <Button variant="outline" size="xs" title="Add submenu" onClick={() => addNode("submenu")}>
-                    <SquarePlus /> Submenu
-                </Button>
-                <Button variant="outline" size="icon-xs" title="Add separator" onClick={() => addNode("separator")}>
-                    <Minus />
-                </Button>
-                <Button
-                    variant="destructive"
-                    size="icon-xs"
-                    title="Remove selected"
-                    disabled={!canDelete}
-                    onClick={() => canDelete && snap.selectedUid && removeNode(snap.selectedUid)}
-                >
-                    <Trash2 />
-                </Button>
-            </div>
+            <TreeToolbar />
 
             <ScrollArea className="flex-1 min-h-0">
                 <DndContext.Provider value={dnd}>
@@ -132,6 +110,51 @@ export function ToolsTree() {
                     </div>
                 </DndContext.Provider>
             </ScrollArea>
+        </div>
+    );
+}
+
+const ADD_ITEMS: { kind: NodeKind; label: string; icon: typeof Plus; }[] = [
+    { kind: "item", label: "Add command", icon: Plus },
+    { kind: "submenu", label: "Add submenu", icon: SquarePlus },
+    { kind: "separator", label: "Add separator", icon: Minus },
+];
+
+function TreeToolbar() {
+    const { selectedUid } = useSnapshot(toolsEditor);
+    const canDelete = !!selectedUid && !isRootUid(selectedUid);
+
+    return (
+        <div className="px-2 py-1.5 border-b flex items-center gap-1.5">
+            <span className="mr-auto text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wide">
+                Menu items
+            </span>
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon-xs" title="Add menu item">
+                        <Plus />
+                    </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end">
+                    {ADD_ITEMS.map(({ kind, label, icon: Icon }) => (
+                        <DropdownMenuItem key={kind} onSelect={() => addNode(kind)}>
+                            <Icon /> {label}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+                variant="destructive"
+                size="icon-xs"
+                title="Remove selected"
+                disabled={!canDelete}
+                onClick={() => canDelete && selectedUid && removeNode(selectedUid)}
+            >
+                <Trash2 />
+            </Button>
         </div>
     );
 }
@@ -227,7 +250,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                     </div>
                 ) : isRoot ? (
                     <div className="px-3 py-4 text-muted-foreground" style={{ paddingLeft: (depth + 2) * INDENT + 6 }}>
-                        Empty. Use the buttons above to add items.
+                        Empty. Use the + menu above to add items.
                     </div>
                 ) : null
             )}
