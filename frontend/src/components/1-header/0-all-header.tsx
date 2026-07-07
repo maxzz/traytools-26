@@ -1,5 +1,5 @@
 import { AppMenubar } from "./1-0-app-menubar";
-import { MainTabButtons } from "./1-2-main-tab-buttons";
+import { MainTabs } from "./1-2-main-tabs";
 import { ElevatedIndicator } from "./5-elevated-indicator";
 import { ButtonExit } from "./6-btn-exit";
 import { ButtonSettings } from "./7-btn-settings";
@@ -10,7 +10,7 @@ export function Header() {
         <header className="px-3 py-1 bg-background border-b border-border flex items-center justify-between">
             <div className="min-w-0 flex items-center gap-3">
                 <AppMenubar />
-                <MainTabButtons />
+                <MainTabs />
             </div>
 
             <div className="flex items-center gap-1">

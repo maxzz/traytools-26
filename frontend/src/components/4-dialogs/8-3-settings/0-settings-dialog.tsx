@@ -16,7 +16,7 @@ export function SettingsDialog() {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID} modal>
+            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID}>
 
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
@@ -34,8 +34,8 @@ export function SettingsDialog() {
                     <ControlSwitch label="Quit when window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                 </div>
 
-                <DialogFooter className="m-0 px-4 pb-3 pt-2 flex flex-row justify-end">
-                    <Button type="button" variant="default" className="min-w-16" onClick={() => setIsOpen(false)}>
+                <DialogFooter className="m-0 px-4 pb-3 pt-2 flex justify-center!">
+                    <Button type="button" variant="outline" className="min-w-16" onClick={() => setIsOpen(false)}>
                         Close
                     </Button>
                 </DialogFooter>
