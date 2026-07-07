@@ -1,8 +1,13 @@
-import { type ComponentProps, useEffect } from "react";
+import { type ComponentProps } from "react";
 import { useSnapshot } from "valtio";
-import { atom, useAtom, useSetAtom, type WritableAtom } from "jotai";
-import { settingsBus } from "@/bridge/groups/settings";
+import { useAtom, type WritableAtom } from "jotai";
 import { appSettings } from "@/store/1-ui-settings";
+import {
+    isOpenSettingsDialogAtom,
+    settingsQuitOnCloseAtom,
+    settingsRunElevatedAtom,
+    settingsShowFooterAtom,
+} from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { classNames } from "@/utils";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { Button } from "@/ui/shadcn/button";
@@ -80,69 +85,6 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
             </Select>
         </div>
     );
-}
-
-export const isOpenSettingsDialogAtom = atom(false);
-const settingsShowFooterBaseAtom = atom(appSettings.showFooter);
-
-export const settingsShowFooterAtom = atom(
-    (get) => get(settingsShowFooterBaseAtom),
-    (_get, set, next: boolean) => {
-        set(settingsShowFooterBaseAtom, next);
-        appSettings.showFooter = next;
-    },
-);
-
-const settingsRunElevatedBaseAtom = atom(false);
-
-export const settingsRunElevatedAtom = atom(
-    (get) => get(settingsRunElevatedBaseAtom),
-    (_get, set, next: boolean) => {
-        set(settingsRunElevatedBaseAtom, next);
-        settingsBus.setRunElevated(next)
-            .then(() => {
-                if (next) {
-                    return settingsBus.requestElevationRestart();
-                }
-            })
-            .catch(console.error);
-    },
-);
-
-export function SettingsRunElevatedSync() {
-    const setRunElevated = useSetAtom(settingsRunElevatedBaseAtom);
-
-    useEffect(
-        () => {
-            settingsBus.getRunElevated().then(setRunElevated).catch(console.error);
-        },
-        [setRunElevated],
-    );
-
-    return null;
-}
-
-const settingsQuitOnCloseBaseAtom = atom(false);
-
-export const settingsQuitOnCloseAtom = atom(
-    (get) => get(settingsQuitOnCloseBaseAtom),
-    (_get, set, next: boolean) => {
-        set(settingsQuitOnCloseBaseAtom, next);
-        settingsBus.setQuitOnClose(next).catch(console.error);
-    },
-);
-
-export function SettingsQuitOnCloseSync() {
-    const setQuitOnClose = useSetAtom(settingsQuitOnCloseBaseAtom);
-
-    useEffect(
-        () => {
-            settingsBus.getQuitOnClose().then(setQuitOnClose).catch(console.error);
-        },
-        [setQuitOnClose],
-    );
-
-    return null;
 }
 
 const DESCRIPTION_ID = "settings-dialog-description";

@@ -5,7 +5,7 @@ import { appBus } from "@/bridge";
 import { getValidMainTab, VIEW_MENU_ITEMS } from "@/components/0-all/8-pages-array";
 import { appSettings } from "@/store/1-ui-settings";
 import { refreshWindowTree } from "@/store/4-windows-tree";
-import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
+import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 import { ToolsMenu } from "./1-1-menu-tools";
 

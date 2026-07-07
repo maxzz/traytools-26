@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
+import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { Button } from "@/ui/shadcn/button";
 import { IconSliders } from "@/ui/icons/normal";
 

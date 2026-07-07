@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { appBus } from "@/bridge";
-import { settingsQuitOnCloseAtom } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
+import { settingsQuitOnCloseAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { Button } from "@/ui/shadcn/button";
 
 export function ButtonExit() {
