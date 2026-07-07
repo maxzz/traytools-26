@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { atom, useSetAtom } from "jotai";
 import { settingsBus } from "@/bridge/groups/settings";
 import { appSettings } from "@/store/1-ui-settings";
+import { notice } from "@/ui/local-ui/7-toaster";
 
 export const isOpenSettingsDialogAtom = atom(false);
 const settingsShowFooterBaseAtom = atom(appSettings.showFooter);
@@ -45,7 +46,9 @@ export function SettingsRunElevatedSync() {
 
     useEffect(
         () => {
-            settingsBus.getRunElevated().then(setRunElevated).catch(console.error);
+            settingsBus.getRunElevated().then(setRunElevated).catch((e) => {
+                notice.error(`Failed to load "Run elevated" setting:\n ${String(e)}`);
+            });
         },
         [setRunElevated],
     );
@@ -68,7 +71,9 @@ export function SettingsQuitOnCloseSync() {
 
     useEffect(
         () => {
-            settingsBus.getQuitOnClose().then(setQuitOnClose).catch(console.error);
+            settingsBus.getQuitOnClose().then(setQuitOnClose).catch((e) => {
+                notice.error(`Failed to load "Quit on close" setting:\n ${String(e)}`);
+            });
         },
         [setQuitOnClose],
     );

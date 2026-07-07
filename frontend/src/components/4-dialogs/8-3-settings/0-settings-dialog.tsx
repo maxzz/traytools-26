@@ -28,10 +28,10 @@ export function SettingsDialog() {
                 </DialogHeader>
 
                 <div className="px-4 py-4 font-normal flex flex-col gap-2">
-                    <ControlSwitch label="Quit when window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
-                    <ControlSwitch label="Run this app elevated" valueAtom={settingsRunElevatedAtom} />
-                    <ControlSwitch label="Show footer" valueAtom={settingsShowFooterAtom} />
-                    <ControlSwitch label="Stay on top" valueAtom={settingsStayOnTopAtom} />
+                    <ControlSwitch label="Run this application elevated" valueAtom={settingsRunElevatedAtom} />
+                    <ControlSwitch label="Make the window stay on top of all others" valueAtom={settingsStayOnTopAtom} />
+                    <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
+                    <ControlSwitch label="Quit the application when the window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                     <ControlTheme />
                 </div>
 
