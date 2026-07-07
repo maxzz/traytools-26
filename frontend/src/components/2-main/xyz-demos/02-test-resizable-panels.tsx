@@ -2,20 +2,12 @@ import { type ComponentProps } from "react";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
-import { PANEL_GROUPS } from "@/store/2-panel-sizes";
+import { PANEL_GROUPS, setPanelLayout } from "@/store/2-panel-sizes";
 import { type Layout } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
 
 export function TestResizablePanels({ className, ...rest }: ComponentProps<"div">) {
     const settings = useSnapshot(appSettings);
-
-    const onHorizontalLayout = (layout: Layout) => {
-        appSettings.panelSizes = { ...appSettings.panelSizes, [PANEL_GROUPS.demosHorizontal]: layout };
-    };
-
-    const onVerticalLayout = (layout: Layout) => {
-        appSettings.panelSizes = { ...appSettings.panelSizes, [PANEL_GROUPS.demosVertical]: layout };
-    };
 
     const horizontalLayout = settings.panelSizes[PANEL_GROUPS.demosHorizontal];
     const verticalLayout = settings.panelSizes[PANEL_GROUPS.demosVertical];
@@ -25,7 +17,7 @@ export function TestResizablePanels({ className, ...rest }: ComponentProps<"div"
             <ResizablePanelsHeader />
 
             <div className="flex-1 min-h-0">
-                <ResizablePanelGroup orientation="horizontal" defaultLayout={horizontalLayout as Layout} onLayoutChanged={onHorizontalLayout}>
+                <ResizablePanelGroup orientation="horizontal" defaultLayout={horizontalLayout as Layout} onLayoutChanged={(layout) => setPanelLayout(PANEL_GROUPS.demosHorizontal, layout)}>
                     <ResizablePanel id="left" minSize={15}>
                         <DemoPanelLeft />
                     </ResizablePanel>
@@ -33,7 +25,7 @@ export function TestResizablePanels({ className, ...rest }: ComponentProps<"div"
                     <ResizableHandle withHandle />
 
                     <ResizablePanel id="right" minSize={20}>
-                        <ResizablePanelGroup orientation="vertical" defaultLayout={verticalLayout as Layout} onLayoutChanged={onVerticalLayout}>
+                        <ResizablePanelGroup orientation="vertical" defaultLayout={verticalLayout as Layout} onLayoutChanged={(layout) => setPanelLayout(PANEL_GROUPS.demosVertical, layout)}>
                             <ResizablePanel id="top" minSize={15}>
                                 <DemoPanelRightTop />
                             </ResizablePanel>

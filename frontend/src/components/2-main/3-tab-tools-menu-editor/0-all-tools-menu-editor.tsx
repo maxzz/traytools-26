@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio";
 import { type Layout } from "react-resizable-panels";
 import { loadToolsConfig } from "@/store/5-tools-editor";
 import { appSettings } from "@/store/1-ui-settings";
-import { PANEL_GROUPS } from "@/store/2-panel-sizes";
+import { PANEL_GROUPS, setPanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
 import { ToolsTree } from "./1-tools-tree";
 import { ToolsProps } from "./2-tools-props";
@@ -19,10 +19,6 @@ export function Page_ToolsMenuEditor() {
     const { panelSizes } = useSnapshot(appSettings);
     const mainLayout = panelSizes[PANEL_GROUPS.toolsEditorMain];
 
-    const onMainLayoutChanged = (layout: Layout) => {
-        appSettings.panelSizes = { ...appSettings.panelSizes, [PANEL_GROUPS.toolsEditorMain]: layout };
-    };
-
     useEffect(
         () => {
             loadToolsConfig();
@@ -31,7 +27,7 @@ export function Page_ToolsMenuEditor() {
 
     return (
         <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden flex flex-col">
-            <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={onMainLayoutChanged}>
+            <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => setPanelLayout(PANEL_GROUPS.toolsEditorMain, layout)}>
                 <ResizablePanel id="tree" minSize={22}>
                     <ToolsTree />
                 </ResizablePanel>

@@ -1,4 +1,5 @@
 import { type Layout } from 'react-resizable-panels';
+import { appSettings } from './1-ui-settings';
 
 /** ResizablePanelGroup layouts keyed by group name. */
 export type PanelSizes = Record<string, Layout>;
@@ -11,6 +12,8 @@ export const PANEL_GROUPS = {
     windowTreeMain: 'window-tree.main',
     toolsEditorMain: 'tools-editor.main',
 } as const;
+
+export type PanelGroupKey = (typeof PANEL_GROUPS)[keyof typeof PANEL_GROUPS];
 
 const PANEL_GROUP_DEFAULTS: PanelSizes = {
     [PANEL_GROUPS.demosHorizontal]: { left: 30, right: 70 },
@@ -46,4 +49,8 @@ export function getValidPanelSizes(parsedSizes?: unknown): PanelSizes {
     }
 
     return rv;
+}
+
+export function setPanelLayout(name: PanelGroupKey, layout: Layout): void {
+    appSettings.panelSizes = { ...appSettings.panelSizes, [name]: layout };
 }
