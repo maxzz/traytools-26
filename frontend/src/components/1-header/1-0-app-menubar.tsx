@@ -17,7 +17,7 @@ export function AppMenubar() {
     const activeView = VIEW_MENU_ITEMS.some((item) => item.id === activeTab) ? activeTab : "";
 
     return (
-        <Menubar value={menuValue} onValueChange={setMenuValue}>
+        <Menubar className="border-none" value={menuValue} onValueChange={setMenuValue}>
 
             <MenubarMenu value="file">
                 <MenubarTrigger>

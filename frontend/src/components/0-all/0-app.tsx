@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Toaster } from '@/ui/shadcn/sonner';
 import { Header } from '../1-header';
 import { Section3_Footer } from '../3-footer';
@@ -6,6 +6,7 @@ import { AllDialogs } from './9-globals';
 import { useSnapshot } from 'valtio';
 import { appSettings } from '@/store/1-ui-settings';
 import { WindowSetTitle } from '../../../wailsjs/runtime/runtime';
+import { settingsBus } from '@/bridge/groups/settings';
 import { formatMainWindowTitle, getValidMainTab, MAIN_PAGES } from './8-pages-array';
 
 export function App() {
@@ -30,16 +31,30 @@ export function App() {
 function MainBody() {
     const settings = useSnapshot(appSettings);
     const activeTab = getValidMainTab(settings.mainTab);
+    const [isElevated, setIsElevated] = useState<boolean | null>(null);
 
-    useEffect(() => {
-        const title = formatMainWindowTitle(activeTab);
-        document.title = title;
-        try {
-            WindowSetTitle(title);
-        } catch {
-            // Wails runtime unavailable (e.g. Vite-only browser dev).
-        }
-    }, [activeTab]);
+    useEffect(
+        () => {
+            settingsBus.isElevated().then(setIsElevated).catch(console.error);
+        },
+        [],
+    );
+
+    useEffect(
+        () => {
+            if (isElevated === null) {
+                return;
+            }
+
+            const title = formatMainWindowTitle(activeTab, isElevated);
+            document.title = title;
+            try {
+                WindowSetTitle(title);
+            } catch {
+                // Wails runtime unavailable (e.g. Vite-only browser dev).
+            }
+        },
+        [activeTab, isElevated]);
 
     const Page = MAIN_PAGES.find((page) => page.id === activeTab)?.Page ?? MAIN_PAGES[0].Page;
 
