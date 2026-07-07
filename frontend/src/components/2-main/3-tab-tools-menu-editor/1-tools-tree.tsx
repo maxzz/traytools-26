@@ -126,7 +126,7 @@ function TreeToolbar() {
 
     return (
         <div className="px-2 py-1.5 border-b flex items-center gap-1.5">
-            <span className="mr-auto text-[0.7rem] font-medium text-muted-foreground uppercase tracking-wide">
+            <span className="mr-auto font-medium text-[0.7rem] text-muted-foreground uppercase tracking-wide">
                 Menu items
             </span>
 
@@ -201,7 +201,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
                 <div
                     className={cn(
-                        "group relative h-7 pr-1 rounded-md flex items-center gap-1 cursor-pointer select-none",
+                        "group relative pr-1 h-7 rounded-md select-none flex items-center gap-1 cursor-pointer",
                         "hover:bg-accent/60",
                         selected && "bg-accent text-accent-foreground",
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
@@ -215,22 +215,22 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
                     {isSubmenu ? (
                         <button
-                            className="relative size-4 flex items-center justify-center text-muted-foreground shrink-0"
+                            className="shrink-0 relative size-4 text-muted-foreground flex items-center justify-center"
                             onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }}
                             title={collapsed ? "Expand" : "Collapse"}
                         >
                             {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
                         </button>
                     ) : (
-                        <span className="relative size-4 shrink-0" />
+                        <span className="shrink-0 relative size-4" />
                     )}
 
-                    <Icon className={cn("relative size-3.5 shrink-0", isSubmenu ? "text-amber-500" : "text-muted-foreground")} />
+                    <Icon className={cn("shrink-0 relative size-3.5", isSubmenu ? "text-amber-500" : "text-muted-foreground")} />
 
                     {isSeparator ? (
-                        <span className="relative flex-1 mr-2 border-t border-dashed border-border" />
+                        <span className="flex-1 relative mr-2 border-t border-dashed border-border" />
                     ) : (
-                        <span className="relative flex-1 truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                        <span className="flex-1 relative truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
                     )}
                 </div>
             </div>
@@ -288,7 +288,7 @@ function TreeGuides({ depth, isLast, ancestors }: { depth: number; isLast: boole
 function DropLine({ style }: { style: React.CSSProperties; }) {
     return (
         <div className="absolute right-1 h-0.5 bg-sky-500 rounded-full pointer-events-none z-10" style={style}>
-            <div className="absolute -left-1 top-[-3px] size-2 rounded-full bg-sky-500" />
+            <div className="absolute top-[-3px] size-2 bg-sky-500 rounded-full -left-1" />
         </div>
     );
 }

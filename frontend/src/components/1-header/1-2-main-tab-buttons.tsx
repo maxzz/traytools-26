@@ -16,7 +16,7 @@ export function MainTabButtons() {
             <div
                 role="tablist"
                 aria-label="Main pages"
-                className="bg-muted text-muted-foreground rounded-lg p-[3px] h-8 w-fit inline-flex items-center justify-center"
+                className="p-[3px] h-8 w-fit text-muted-foreground bg-muted rounded-lg inline-flex items-center justify-center"
             >
                 {MAIN_PAGES.map(
                     ({ id, label }) => {
@@ -41,7 +41,7 @@ export function MainTabButtons() {
                                 {selected && (
                                     <motion.div
                                         layoutId={TAB_OUTLINE_LAYOUT_ID}
-                                        className="absolute inset-0 rounded-sm border border-border bg-background shadow-sm"
+                                        className="absolute inset-0 bg-background border border-border rounded-sm shadow-sm"
                                         transition={{ type: "spring", bounce: 0.15, duration: 0.45 }}
                                     />
                                 )}

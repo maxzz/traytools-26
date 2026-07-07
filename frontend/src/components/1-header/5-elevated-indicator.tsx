@@ -26,7 +26,7 @@ export function ElevatedIndicator() {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <span className="px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground rounded select-none cursor-default inline-flex items-center" aria-label={ariaLabel}>
+                    <span className="px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground rounded select-none inline-flex items-center cursor-default" aria-label={ariaLabel}>
                         <IconRadix_DotFilled className={classNames("size-3 scale-200", isElevated ? "text-red-500" : "text-muted-foreground/60")}/>
                         {label}
                     </span>

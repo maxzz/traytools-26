@@ -8,7 +8,7 @@ import { ButtonThemeToggle } from "./8-btn-theme-toggle";
 export function Header() {
     return (
         <header className="px-3 py-1 bg-background border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="min-w-0 flex items-center gap-3">
                 <AppMenubar />
                 <MainTabButtons />
             </div>
