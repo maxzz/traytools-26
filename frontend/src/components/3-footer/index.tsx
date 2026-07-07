@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/s
 
 export function Section3_Footer({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
     return (
-        <div className={classNames("h-12 text-xs text-foreground bg-background border-t border-border flex items-center justify-center", className)} {...rest}>
+        <div className={classNames("py-0.5 text-xs text-foreground bg-background border-t border-border flex items-center justify-center", className)} {...rest}>
 
             <a className={urlClasses} href="https://github.com/maxzz" target="_blank" rel="noopener">
                 Created by Max Zakharzhevskiy
@@ -26,7 +26,7 @@ export function Section3_Footer({ className, ...rest }: HTMLAttributes<HTMLDivEl
                 </Tooltip>
             </TooltipProvider>
 
-            <a className={urlClasses} href="https://github.com/maxzz/tm-template-shadcn-26" target="_blank" rel="noopener">
+            <a className={urlClasses} href="https://github.com/maxzz/traytools-26" target="_blank" rel="noopener">
                 Open source code on GitHub
             </a>
         </div>
