@@ -52,6 +52,7 @@ func (a *App) SetTrayIcon(icon []byte) {
 // Startup is called at application startup
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
+	setupSingleInstanceIPC(a.showWindow)
 	a.trace.Start(ctx)
 	a.startTray()
 }
