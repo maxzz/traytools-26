@@ -2,12 +2,6 @@ import { type ComponentProps } from "react";
 import { useSnapshot } from "valtio";
 import { useAtom, type WritableAtom } from "jotai";
 import { appSettings } from "@/store/1-ui-settings";
-import {
-    isOpenSettingsDialogAtom,
-    settingsQuitOnCloseAtom,
-    settingsRunElevatedAtom,
-    settingsShowFooterAtom,
-} from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { classNames } from "@/utils";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { Button } from "@/ui/shadcn/button";
@@ -15,13 +9,14 @@ import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
+import { isOpenSettingsDialogAtom, settingsQuitOnCloseAtom, settingsRunElevatedAtom, settingsShowFooterAtom, } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 
 export function SettingsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenSettingsDialogAtom);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID}>
+            <DialogContent className="p-0! max-w-xs! gap-0!" aria-describedby={DESCRIPTION_ID}>
 
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
@@ -32,11 +27,11 @@ export function SettingsDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="px-4 py-4 flex flex-col gap-4">
-                    <ControlTheme />
-                    <ControlSwitch label="Show footer" valueAtom={settingsShowFooterAtom} />
-                    <ControlSwitch label="Run this app elevated" valueAtom={settingsRunElevatedAtom} />
+                <div className="px-4 py-4 font-normal flex flex-col gap-2">
                     <ControlSwitch label="Quit when window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
+                    <ControlSwitch label="Run this app elevated" valueAtom={settingsRunElevatedAtom} />
+                    <ControlSwitch label="Show footer" valueAtom={settingsShowFooterAtom} />
+                    <ControlTheme />
                 </div>
 
                 <DialogFooter className="m-0 px-4 pb-3 pt-2 flex justify-center!">
@@ -58,9 +53,9 @@ function ControlSwitch({ label, valueAtom, className, ...rest }: ControlSwitchPr
     const [checked, setChecked] = useAtom(valueAtom);
 
     return (
-        <Label className={classNames("flex items-center gap-2", className)} {...rest}>
+        <Label className={classNames("-ml-2 flex items-center gap-0", className)} {...rest}>
+            <Switch className="scale-65" checked={checked} onCheckedChange={setChecked} />
             {label}
-            <Switch checked={checked} onCheckedChange={setChecked} />
         </Label>
     );
 }
@@ -69,14 +64,16 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
     const { theme } = useSnapshot(appSettings);
 
     return (
-        <div className={classNames("flex flex-col gap-1.5", className)} {...rest}>
+        <div className={classNames("flex items-center gap-2", className)} {...rest}>
             <Label htmlFor="settings-theme">
                 Theme
             </Label>
+
             <Select value={theme} onValueChange={(value) => { appSettings.theme = value as ThemeMode; }}>
-                <SelectTrigger className="w-full" id="settings-theme">
+                <SelectTrigger className="h-7!" id="settings-theme">
                     <SelectValue placeholder="Select theme" />
                 </SelectTrigger>
+
                 <SelectContent>
                     <SelectItem value="light">Light</SelectItem>
                     <SelectItem value="dark">Dark</SelectItem>

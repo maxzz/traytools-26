@@ -16,7 +16,7 @@ export interface AppSettings {
 
 const DEFAULT_SETTINGS: AppSettings = {
     theme: 'light',
-    showFooter: true,
+    showFooter: false,
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
     mainTab: 'welcome',
