@@ -42,7 +42,7 @@ data-placeholder:text-muted-foreground \
 \
 data-[size=default]:h-8 \
 data-[size=sm]:h-7 \
-data-[size=sm]:rounded-[min(var(--radius-md),10px)] \
+data-[size=sm]:rounded-[min(var(--radius-sm),10px)] \
 \
 *:data-[slot=select-value]:line-clamp-1 \
 *:data-[slot=select-value]:flex \
@@ -53,7 +53,7 @@ data-[size=sm]:rounded-[min(var(--radius-md),10px)] \
 [&_svg]:shrink-0 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
-rounded-lg \
+rounded-sm \
 outline-none select-none \
 border \
 border-input \
@@ -76,7 +76,7 @@ type SelectContentProps = ComponentProps<typeof SelectPrimitive.Content> & {
 };
 
 const contentClasses = "\
-relative min-w-36 max-h-(--radix-select-content-available-height) origin-(--radix-select-content-transform-origin) \
+relative px-1 py-1.5 min-w-36 max-h-(--radix-select-content-available-height) origin-(--radix-select-content-transform-origin) \
 \
 text-popover-foreground \
 bg-popover \
@@ -99,7 +99,7 @@ data-closed:zoom-out-95 \
 \
 ring-1 \
 ring-foreground/10 \
-rounded-lg shadow-md \
+rounded-sm shadow-md \
 \
 overflow-x-hidden \
 overflow-y-auto \
