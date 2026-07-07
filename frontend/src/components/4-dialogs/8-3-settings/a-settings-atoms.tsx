@@ -14,6 +14,16 @@ export const settingsShowFooterAtom = atom(
     },
 );
 
+const settingsStayOnTopBaseAtom = atom(appSettings.stayOnTop);
+
+export const settingsStayOnTopAtom = atom(
+    (get) => get(settingsStayOnTopBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsStayOnTopBaseAtom, next);
+        appSettings.stayOnTop = next;
+    },
+);
+
 const settingsRunElevatedBaseAtom = atom(false);
 
 export const settingsRunElevatedAtom = atom(

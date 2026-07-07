@@ -9,7 +9,7 @@ import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
-import { isOpenSettingsDialogAtom, settingsQuitOnCloseAtom, settingsRunElevatedAtom, settingsShowFooterAtom, } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
+import { isOpenSettingsDialogAtom, settingsQuitOnCloseAtom, settingsRunElevatedAtom, settingsShowFooterAtom, settingsStayOnTopAtom, } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 
 export function SettingsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenSettingsDialogAtom);
@@ -31,6 +31,7 @@ export function SettingsDialog() {
                     <ControlSwitch label="Quit when window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                     <ControlSwitch label="Run this app elevated" valueAtom={settingsRunElevatedAtom} />
                     <ControlSwitch label="Show footer" valueAtom={settingsShowFooterAtom} />
+                    <ControlSwitch label="Stay on top" valueAtom={settingsStayOnTopAtom} />
                     <ControlTheme />
                 </div>
 

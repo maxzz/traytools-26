@@ -1,4 +1,5 @@
 import { proxy, subscribe } from 'valtio';
+import { WindowSetAlwaysOnTop } from '../../wailsjs/runtime/runtime';
 import { type ThemeMode, themeApplyMode } from '../utils/theme-apply';
 import { type PanelSizes, getValidPanelSizes } from './2-panel-sizes';
 
@@ -9,6 +10,7 @@ const STORAGE_ID = `${STORE_KEY}__${STORE_VER}`;
 export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showFooter: boolean;         // Show footer in main layout
+    stayOnTop: boolean;          // Keep main window above other windows
     panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
     expandedSections: string[];  // Expanded accordion sections by name
     mainTab: string;             // Active main body tab
@@ -17,6 +19,7 @@ export interface AppSettings {
 const DEFAULT_SETTINGS: AppSettings = {
     theme: 'light',
     showFooter: false,
+    stayOnTop: false,
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
     mainTab: 'welcome',
@@ -45,13 +48,23 @@ function loadSettings(): AppSettings {
     return { ...DEFAULT_SETTINGS };
 }
 
+function applyStayOnTop(stayOnTop: boolean) {
+    try {
+        WindowSetAlwaysOnTop(stayOnTop);
+    } catch {
+        // Wails runtime unavailable (e.g. Vite-only browser dev).
+    }
+}
+
 export const appSettings = proxy<AppSettings>(loadSettings());
 
 themeApplyMode(appSettings.theme);
+applyStayOnTop(appSettings.stayOnTop);
 
 subscribe(appSettings, () => {
     try {
         themeApplyMode(appSettings.theme);
+        applyStayOnTop(appSettings.stayOnTop);
         localStorage.setItem(STORAGE_ID, JSON.stringify(appSettings));
     } catch (e) {
         console.error("Failed to save settings", e);
