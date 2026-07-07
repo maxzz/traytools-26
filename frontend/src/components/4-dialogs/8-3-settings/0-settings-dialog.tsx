@@ -34,7 +34,7 @@ export function SettingsDialog() {
                     <ControlSwitch label="Quit when window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                 </div>
 
-                <DialogFooter className="px-4 pb-4 pt-2 flex flex-row justify-end">
+                <DialogFooter className="m-0 px-4 pb-3 pt-2 flex flex-row justify-end">
                     <Button type="button" variant="default" className="min-w-16" onClick={() => setIsOpen(false)}>
                         Close
                     </Button>
