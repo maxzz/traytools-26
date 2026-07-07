@@ -1,25 +1,24 @@
+import { type ComponentProps } from "react";
 import { useSnapshot } from "valtio";
 import { LayoutGroup, motion } from "motion/react";
-import { getValidMainTab, MAIN_PAGES } from "@/components/0-all/8-pages-array";
+import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
 import { Button } from "@/ui/shadcn/button";
-import { cn } from "@/utils/classnames";
+import { getValidMainTab, MAIN_PAGES } from "@/components/0-all/8-pages-array";
 
-const TAB_OUTLINE_LAYOUT_ID = "main-tab-outline";
-
-export function MainTabs() {
+export function MainTabs({ className, ...rest }: ComponentProps<"div">) {
     const settings = useSnapshot(appSettings);
     const activeTab = getValidMainTab(settings.mainTab);
 
     return (
         <LayoutGroup id="main-tab-buttons">
-            <div className="p-0.75 w-fit h-8 text-muted-foreground bg-muted rounded-lg inline-flex items-center justify-center" role="tablist" aria-label="Main pages">
+            <div className={classNames("p-0.75 w-fit h-8 text-muted-foreground bg-muted rounded-lg hidden md:flex items-center", className)} role="tablist" aria-label="Main pages" {...rest}>
                 {MAIN_PAGES.map(
                     ({ id, label }) => {
                         const selected = id === activeTab;
                         return (
                             <Button
-                                className={cn("relative h-[calc(100%-1px)] font-medium active:translate-y-0! transition-none cursor-pointer",
+                                className={classNames("relative h-[calc(100%-1px)] font-medium active:translate-y-0! transition-none cursor-pointer",
                                     selected ? "text-foreground" : "border-transparent bg-transparent text-foreground/60 shadow-none hover:bg-transparent hover:text-foreground"
                                 )}
                                 variant="ghost" size="xs" type="button" role="tab" aria-selected={selected} key={id} onClick={() => { appSettings.mainTab = id; }}
@@ -40,3 +39,5 @@ export function MainTabs() {
         </LayoutGroup>
     );
 }
+
+const TAB_OUTLINE_LAYOUT_ID = "main-tab-outline";
