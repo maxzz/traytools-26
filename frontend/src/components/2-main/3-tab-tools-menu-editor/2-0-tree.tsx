@@ -185,7 +185,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                         )
                     }
 
-                    <Icon className={cn("shrink-0 relative size-3.5", isSubmenu ? "text-amber-500" : "text-muted-foreground")} />
+                    <Icon className={cn("shrink-0 relative size-3.5", isSubmenu ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" : "text-foreground/70 fill-foreground/10!")} />
 
                     {isSeparator
                         ? (
