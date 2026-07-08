@@ -7,7 +7,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadc
 import { cn } from "@/utils";
 import { traceManagerBus, onWailsEvent, TRACE_EVENTS, type TraceCall } from "@/bridge";
 import { routeTraceCall, setStreaming, setSections } from "@/store/3-trace-manager";
-import { PANEL_GROUPS, setPanelLayout } from "@/store/2-panel-sizes";
+import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { expandedSectionsAtom, showCategoriesAtom } from "./a-trace-manager-atoms";
 import { TraceWindowsList } from "./1-trace-windows-list";
 import { TraceWindowView } from "./2-trace-window-view";
@@ -32,7 +32,7 @@ export function Page_TraceBits() {
     const panelTransition = !isResizing && "transition-[flex-grow] duration-300 ease-in-out";
 
     const onMainLayoutChanged = (layout: Layout, meta: LayoutChangedMeta) => {
-        setPanelLayout(PANEL_GROUPS.traceManagerMain, layout);
+        savePanelLayout(PANEL_GROUPS.traceManagerMain, layout);
         if (meta.isUserInteraction) {
             setIsResizing(false);
         }
@@ -43,7 +43,7 @@ export function Page_TraceBits() {
     };
 
     const onLeftLayoutChanged = (layout: Layout) => {
-        setPanelLayout(PANEL_GROUPS.traceManagerLeft, layout);
+        savePanelLayout(PANEL_GROUPS.traceManagerLeft, layout);
     };
 
     // Keep the categories panel in sync with the toolbar toggle.

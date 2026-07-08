@@ -51,6 +51,6 @@ export function getValidPanelSizes(parsedSizes?: unknown): PanelSizes {
     return rv;
 }
 
-export function setPanelLayout(name: PanelGroupKey, layout: Layout): void {
+export function savePanelLayout(name: PanelGroupKey, layout: Layout): void {
     appSettings.panelSizes = { ...appSettings.panelSizes, [name]: layout };
 }

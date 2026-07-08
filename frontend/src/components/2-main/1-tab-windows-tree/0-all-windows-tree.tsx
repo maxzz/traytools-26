@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio";
 import { type Layout } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
 import { appSettings } from "@/store/1-ui-settings";
-import { PANEL_GROUPS, setPanelLayout } from "@/store/2-panel-sizes";
+import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { windowTreeStore, refreshWindowTree } from "@/store/4-windows-tree";
 import { WindowTreeView } from "./1-0-windows-tree";
 import { WindowProps } from "./2-window-props";
@@ -28,7 +28,7 @@ export function Page_WindowsTree() {
 
     return (
         <div className="flex-1 min-h-0 min-w-0 bg-card border rounded-md overflow-hidden">
-            <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => setPanelLayout(PANEL_GROUPS.windowTreeMain, layout)}>
+            <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => savePanelLayout(PANEL_GROUPS.windowTreeMain, layout)}>
                 <ResizablePanel id="tree" minSize={30}>
                     <WindowTreeView />
                 </ResizablePanel>
