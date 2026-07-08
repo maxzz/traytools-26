@@ -99,8 +99,6 @@ export function ToolsTree() {
 
     return (
         <div className="min-h-0 h-full flex flex-col">
-            <TreeToolbar />
-
             <ScrollArea className="flex-1 min-h-0">
                 <DndContext.Provider value={dnd}>
                     <div className="p-1">
@@ -184,7 +182,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
                     {isSeparator
                         ? (
-                            <span className="flex-1 relative -ml-1.5 mr-2 border-t border-foreground/40" />
+                            <span className="flex-1 relative max-w-40 -ml-1.5 mr-2 border-t border-foreground/40" />
                         ) : (
                             <span className="flex-1 relative truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
                         )

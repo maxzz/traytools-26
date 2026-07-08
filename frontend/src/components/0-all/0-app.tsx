@@ -19,7 +19,7 @@ export function App() {
         <main className={`h-screen text-xs bg-background grid ${showFooter ? "grid-rows-[auto_1fr_auto]" : "grid-rows-[auto_1fr]"}`}>
             <Header />
 
-            <div className="px-2 py-3 h-full min-h-0 bg-sky-900/10 flex flex-col">
+            <div className="h-full min-h-0 bg-sky-900/10 flex flex-col">
                 <MainBody />
             </div>
 
@@ -59,8 +59,6 @@ function MainBody() {
     const Page = MAIN_PAGES.find((page) => page.id === activeTab)?.Page ?? MAIN_PAGES[0].Page;
 
     return (
-        <div className="flex-1 min-h-0 flex flex-col gap-4">
-            <Page />
-        </div>
+        <Page />
     );
 }

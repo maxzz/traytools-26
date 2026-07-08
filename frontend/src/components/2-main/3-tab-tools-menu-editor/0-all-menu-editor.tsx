@@ -8,6 +8,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadc
 import { ToolsTree } from "./2-0-tree";
 import { ToolsProps } from "./3-0-current-props";
 import { ToolsEditorFooter } from "./1-2-footer";
+import { TreeToolbar } from "./1-1-tree-toolbar";
 
 // Tools Menu editor. Lets the user edit the "Tools" menu tree and write it to
 // tools.json with a single button. The tree (left) is loaded from the on-disk
@@ -26,8 +27,9 @@ export function Page_ToolsMenuEditor() {
         []);
 
     return (
-        <div className="flex-1 min-h-0 bg-card border rounded-md overflow-hidden flex flex-col">
-            <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => setPanelLayout(PANEL_GROUPS.toolsEditorMain, layout)}>
+        <div className="flex-1 size-full min-h-0 overflow-hidden grid grid-rows-[1fr_auto] 1gap-1">
+
+            <ResizablePanelGroup className="bg-card" orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => setPanelLayout(PANEL_GROUPS.toolsEditorMain, layout)}>
                 <ResizablePanel id="tree" minSize={22}>
                     <ToolsTree />
                 </ResizablePanel>
@@ -39,7 +41,12 @@ export function Page_ToolsMenuEditor() {
                 </ResizablePanel>
             </ResizablePanelGroup>
 
-            <ToolsEditorFooter />
+
+            <div className="pb-4 bg-red-500 border rounded-md">
+                <TreeToolbar />
+                <ToolsEditorFooter />
+            </div>
+
         </div>
     );
 }
