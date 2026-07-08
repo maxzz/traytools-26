@@ -150,12 +150,12 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                 onDragLeave={() => dnd.onDragLeaveRow(uid)}
             >
                 {/* Drop indicators */}
-                {showBefore && <DropLine style={{ left: guideX(depth), top: -1 }} />}
-                {showAfter && <DropLine style={{ left: guideX(depth), bottom: -1 }} />}
+                {showBefore && <DragAndDropTargetLine style={{ left: guideX(depth), top: -1 }} />}
+                {showAfter && <DragAndDropTargetLine style={{ left: guideX(depth), bottom: -1 }} />}
 
                 <div
                     className={cn(
-                        "group relative pr-1 h-7 rounded-md select-none cursor-pointer hover:bg-accent/60 flex items-center gap-1",
+                        "group relative pr-1 h-7 hover:bg-accent/60 rounded-md select-none flex items-center gap-1 cursor-pointer",
                         selected && "bg-accent text-accent-foreground",
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
@@ -248,7 +248,7 @@ function TreeGuides({ depth, isLast, ancestors }: { depth: number; isLast: boole
     );
 }
 
-function DropLine({ style }: { style: React.CSSProperties; }) {
+function DragAndDropTargetLine({ style }: { style: React.CSSProperties; }) {
     return (
         <div className="absolute right-1 h-0.5 bg-sky-500 rounded-full pointer-events-none z-10" style={style}>
             <div className="absolute top-[-3px] size-2 bg-sky-500 rounded-full -left-1" />

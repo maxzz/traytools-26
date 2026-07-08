@@ -12,7 +12,7 @@ export function MainTabs({ className, ...rest }: ComponentProps<"div">) {
 
     return (
         <LayoutGroup id="main-tab-buttons">
-            <div className={classNames("p-0.75 w-fit h-8 text-muted-foreground bg-muted rounded-lg hidden md:flex items-center", className)} role="tablist" aria-label="Main pages" {...rest}>
+            <div className={classNames("hidden p-0.75 w-fit h-8 text-muted-foreground bg-muted md:flex rounded-lg items-center", className)} role="tablist" aria-label="Main pages" {...rest}>
                 {MAIN_PAGES.map(
                     ({ id, label }) => {
                         const selected = id === activeTab;
