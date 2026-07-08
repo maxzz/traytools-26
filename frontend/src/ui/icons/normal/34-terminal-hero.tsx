@@ -1,4 +1,4 @@
-import { type HTMLAttributes } from "react"; //https://icones.js.org/collection/all?s=terminal&icon=material-symbols-light:terminal //Icon from Material Symbols Light by Google - https://github.com/google/material-design-icons/blob/master/LICENSE
+import { type HTMLAttributes } from "react"; //https://heroicons.com terminal solid
 import { classNames } from "@/utils";
 
 export function IconTerminalHero({ className, title, ...rest }: HTMLAttributes<SVGSVGElement>) {
