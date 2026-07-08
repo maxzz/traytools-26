@@ -161,14 +161,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                         isRoot && "font-medium",
                     )}
                     style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
-                    onClick={(e) => { 
-                        if (isSubmenu) {
-                            e.stopPropagation();
-                            setCollapsed((v) => !v);
-                        }
-                            toolsEditor.selectedUid = uid; 
-                        
-                    }}
+                    onClick={(e) => { if (isSubmenu) { e.stopPropagation(); setCollapsed((v) => !v); } toolsEditor.selectedUid = uid; }}
                 >
                     {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} />}
 
@@ -181,15 +174,17 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                                 }
                             </button>
                         ) : (
-                            <span className="shrink-0 relative size-1" />
+                            <span className="shrink-0 relative size-px" />
                         )
                     }
 
-                    <Icon className={cn("shrink-0 relative size-3.5", isSubmenu ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" : "text-foreground/70 fill-foreground/10!")} />
+                    {!isSeparator && (
+                        <Icon className={cn("shrink-0 relative size-3.5", isSubmenu ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" : "text-foreground/70 fill-foreground/10!")} />
+                    )}
 
                     {isSeparator
                         ? (
-                            <span className="flex-1 relative mr-2 border-t border-dashed border-border" />
+                            <span className="flex-1 relative -ml-1.5 mr-2 border-t border-foreground/40" />
                         ) : (
                             <span className="flex-1 relative truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
                         )
