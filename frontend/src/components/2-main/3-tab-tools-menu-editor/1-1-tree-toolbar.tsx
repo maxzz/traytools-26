@@ -16,7 +16,7 @@ export function TreeToolbar() {
 
     return (
         <div className="px-2 py-1.5 border-b flex items-center gap-1.5">
-            <span className="mr-auto font-medium text-[0.7rem] text-muted-foreground uppercase tracking-wide">
+            <span className="mr-auto font-medium text-[0.7rem] text-muted-foreground">
                 Menu items
             </span>
 

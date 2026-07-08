@@ -5,9 +5,9 @@ import { loadToolsConfig } from "@/store/5-tools-editor";
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS, setPanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
-import { ToolsTree } from "./1-tools-tree";
-import { ToolsProps } from "./2-tools-props";
-import { ToolsEditorFooter } from "./3-tools-footer";
+import { ToolsTree } from "./2-0-tree";
+import { ToolsProps } from "./3-0-current-props";
+import { ToolsEditorFooter } from "./1-2-footer";
 
 // Tools Menu editor. Lets the user edit the "Tools" menu tree and write it to
 // tools.json with a single button. The tree (left) is loaded from the on-disk

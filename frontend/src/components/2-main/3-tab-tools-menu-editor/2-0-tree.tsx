@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus, Terminal } from "
 import { cn } from "@/utils/classnames";
 import { moveNode, nodeKind, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { TreeToolbar } from "./1-tools-tree-toolbar";
+import { TreeToolbar } from "./1-1-tree-toolbar";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {
@@ -155,8 +155,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
                 <div
                     className={cn(
-                        "group relative pr-1 h-7 rounded-md select-none flex items-center gap-1 cursor-pointer",
-                        "hover:bg-accent/60",
+                        "group relative pr-1 h-7 rounded-md select-none cursor-pointer hover:bg-accent/60 flex items-center gap-1",
                         selected && "bg-accent text-accent-foreground",
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
@@ -167,46 +166,54 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                 >
                     {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} />}
 
-                    {isSubmenu ? (
-                        <button
-                            className="shrink-0 relative size-4 text-muted-foreground flex items-center justify-center"
-                            onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }}
-                            title={collapsed ? "Expand" : "Collapse"}
-                        >
-                            {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
-                        </button>
-                    ) : (
-                        <span className="shrink-0 relative size-4" />
-                    )}
+                    {isSubmenu
+                        ? (
+                            <button
+                                className="shrink-0 relative size-4 text-muted-foreground flex items-center justify-center"
+                                onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }}
+                                title={collapsed ? "Expand" : "Collapse"}
+                            >
+                                {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                            </button>
+                        ) : (
+                            <span className="shrink-0 relative size-4" />
+                        )
+                    }
 
                     <Icon className={cn("shrink-0 relative size-3.5", isSubmenu ? "text-amber-500" : "text-muted-foreground")} />
 
-                    {isSeparator ? (
-                        <span className="flex-1 relative mr-2 border-t border-dashed border-border" />
-                    ) : (
-                        <span className="flex-1 relative truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
-                    )}
+                    {isSeparator
+                        ? (
+                            <span className="flex-1 relative mr-2 border-t border-dashed border-border" />
+                        ) : (
+                            <span className="flex-1 relative truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                        )
+                    }
                 </div>
             </div>
 
             {isSubmenu && !collapsed && (
-                children.length > 0 ? (
-                    <div>
-                        {children.map((child, index) => (
-                            <TreeRow
-                                key={child.uid}
-                                node={child}
-                                depth={depth + 1}
-                                isLast={index === children.length - 1}
-                                ancestors={childAncestors}
-                            />
-                        ))}
-                    </div>
-                ) : isRoot ? (
-                    <div className="px-3 py-4 text-muted-foreground" style={{ paddingLeft: (depth + 2) * INDENT + 6 }}>
-                        Empty. Use the + menu above to add items.
-                    </div>
-                ) : null
+                children.length > 0
+                    ? (
+                        <div>
+                            {children.map((child, index) => (
+                                <TreeRow
+                                    key={child.uid}
+                                    node={child}
+                                    depth={depth + 1}
+                                    isLast={index === children.length - 1}
+                                    ancestors={childAncestors}
+                                />
+                            ))}
+                        </div>
+                    )
+                    : isRoot
+                        ? (
+                            <div className="px-3 py-4 text-muted-foreground" style={{ paddingLeft: (depth + 2) * INDENT + 6 }}>
+                                Empty. Use the + menu above to add items.
+                            </div>
+                        )
+                        : null
             )}
         </div>
     );
@@ -223,9 +230,11 @@ function TreeGuides({ depth, isLast, ancestors }: { depth: number; isLast: boole
     const x = guideX(depth);
     return (
         <div className="absolute inset-y-0 left-0 pointer-events-none">
-            {ancestors.map((cont, a) => cont
-                ? <span key={a} className="absolute top-0 bottom-0 border-l border-border" style={{ left: guideX(a) }} />
-                : null)}
+            {ancestors.map(
+                (cont, a) => cont
+                    ? <span key={a} className="absolute top-0 bottom-0 border-l border-border" style={{ left: guideX(a) }} />
+                    : null)
+            }
 
             {/* Vertical from the top down to this row's midpoint (always present). */}
             <span className="absolute top-0 border-l border-border" style={{ left: x, height: "50%" }} />
