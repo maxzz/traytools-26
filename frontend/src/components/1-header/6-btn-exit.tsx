@@ -12,7 +12,7 @@ export function ButtonExit() {
 
     return (
         <Button
-            className="px-2 h-6 text-xs"
+            className="ml-4 px-2 h-6 text-xs"
             variant="outline"
             size="sm"
             onClick={() => appBus.exit().catch(console.error)}
