@@ -5,7 +5,6 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-rea
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { moveNode, nodeKind, toolsEditor, type DropPosition, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
-import { TreeToolbar } from "./1-1-tree-toolbar";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {
@@ -208,7 +207,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                     : isRoot
                         ? (
                             <div className="px-3 py-4 text-muted-foreground" style={{ paddingLeft: (depth + 2) * INDENT + 6 }}>
-                                Empty. Use the + menu above to add items.
+                                Empty. Use the menu above to add items.
                             </div>
                         )
                         : null
