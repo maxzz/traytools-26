@@ -1,6 +1,6 @@
 import { useSnapshot } from "valtio";
 import { AlertTriangle, RotateCcw, RefreshCw, Save } from "lucide-react";
-import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditor } from "@/store/5-tools-editor";
+import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditor } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
 import { Button } from "@/ui/shadcn/button";
 
 export function ToolsEditorFooter() {

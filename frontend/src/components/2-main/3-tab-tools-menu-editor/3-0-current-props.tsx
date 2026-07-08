@@ -1,7 +1,7 @@
 import { useSnapshot } from "valtio";
 import { Folder, Minus, MousePointerClick, ShieldCheck, Terminal } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { effectiveRunElevated, getNode, isRootUid, nodeKind, toolsEditor, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/store/5-tools-editor";
+import { effectiveRunElevated, getNode, isRootUid, nodeKind, toolsEditor, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";

@@ -4,7 +4,7 @@ import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-react";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { moveNode, nodeKind, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
+import { moveNode, nodeKind, toolsEditor, type DropPosition, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
 import { TreeToolbar } from "./1-1-tree-toolbar";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
