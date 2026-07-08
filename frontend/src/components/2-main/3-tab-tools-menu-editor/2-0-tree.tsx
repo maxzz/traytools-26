@@ -1,10 +1,11 @@
 import { createContext, useContext, useMemo, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
-import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus, Terminal } from "lucide-react";
+import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { moveNode, nodeKind, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeToolbar } from "./1-1-tree-toolbar";
+import { IconTerminal, IconTerminalHero } from "@/ui/icons/normal";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {
@@ -134,7 +135,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     const showAfter = !isRoot && isDropTarget && dnd.dropPos === "after";
     const showInside = isDropTarget && dnd.dropPos === "inside";
 
-    const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : Terminal;
+    const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : IconTerminalHero;
     const childAncestors = [...ancestors, !isLast];
     const children = node.menuItems ?? [];
 
@@ -173,10 +174,13 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                                 onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }}
                                 title={collapsed ? "Expand" : "Collapse"}
                             >
-                                {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                                {collapsed
+                                    ? <ChevronRight className="size-3.5" />
+                                    : <ChevronDown className="size-3.5" />
+                                }
                             </button>
                         ) : (
-                            <span className="shrink-0 relative size-4" />
+                            <span className="shrink-0 relative size-1" />
                         )
                     }
 

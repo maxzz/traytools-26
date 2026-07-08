@@ -21,6 +21,8 @@ export * from "./27-stop-circle";
 export * from "./28-test-tube";
 export * from "./33-run";
 export * from "./33-run-2";
+export * from "./34-terminal";
+export * from "./34-terminal-hero";
 
 export * from "./editor-manual-fields";
 export * from "./editor-swap-popup";
