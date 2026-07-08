@@ -1,24 +1,40 @@
 import { useSnapshot } from "valtio";
 import { AlertTriangle, RotateCcw, RefreshCw, Save } from "lucide-react";
-import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditor } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
+import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
 import { Button } from "@/ui/shadcn/button";
 
 export function ToolsEditorState() {
-    const snap = useSnapshot(toolsEditor);
+    const snapStore = useSnapshot(toolsEditorStore);
 
     return (
         <div className="my-4 pb-4 bg-sky-500/20 border rounded-md">
 
-            {(snap.status || snap.error || snap.dirty || snap.fileExists) && (
+            {(snapStore.status || snapStore.error || snapStore.dirty || snapStore.fileExists) && (
                 <div className="px-3 py-1 text-[0.72rem] border-t flex items-center gap-2">
-                    {snap.error
-                        ? <span className="text-destructive flex items-center gap-1"><AlertTriangle className="size-3.5" /> {snap.error}</span>
-                        : <span className="text-muted-foreground">{snap.status}</span>
+                    {snapStore.error
+                        ? (
+                            <span className="text-destructive flex items-center gap-1">
+                                <AlertTriangle className="size-3.5" /> {snapStore.error}
+                            </span>
+                        )
+                        : (
+                            <span className="text-muted-foreground">
+                                {snapStore.status}
+                            </span>
+                        )
                     }
 
-                    {snap.dirty
-                        ? <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">Unsaved changes</span>
-                        : snap.fileExists && <span className="ml-auto px-1.5 py-0.5 text-muted-foreground bg-muted rounded">No unsaved changes</span>
+                    {snapStore.dirty
+                        ? (
+                            <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">
+                                Unsaved changes
+                            </span>
+                        )
+                        : snapStore.fileExists && (
+                            <span className="ml-auto px-1.5 py-0.5 text-muted-foreground bg-muted rounded">
+                                No unsaved changes
+                            </span>
+                        )
                     }
                 </div>
             )}
@@ -26,9 +42,12 @@ export function ToolsEditorState() {
             <div className="px-3 py-2 bg-muted border-t flex flex-wrap items-center gap-2">
                 <div className="mr-auto flex flex-col">
                     <span className="text-[0.7rem] text-muted-foreground">
-                        {snap.path
-                            ? <>File: <span className="font-mono">{snap.path}</span></>
-                            : "Edit the Tools menu and create tools.json"}
+                        {snapStore.path
+                            ? (<>
+                                File: <span className="font-mono">{snapStore.path}</span>
+                            </>)
+                            : "Edit the Tools menu and create tools.json"
+                        }
                     </span>
                 </div>
 
@@ -44,7 +63,7 @@ export function ToolsEditorState() {
                     <Save /> Save
                 </Button>
             </div>
-            
+
         </div>
     );
 }

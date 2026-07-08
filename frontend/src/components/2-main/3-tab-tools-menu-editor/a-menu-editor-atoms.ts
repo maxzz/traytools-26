@@ -179,7 +179,7 @@ function writeCache(config: ToolsConfig) {
     try {
         localStorage.setItem(STORAGE_ID, JSON.stringify({
             config,
-            rootComments: toolsEditor.rootComments,
+            rootComments: toolsEditorStore.rootComments,
         }));
     } catch (e) {
         console.error("Failed to cache tools config", e);
@@ -369,16 +369,16 @@ export function buildToolsFileText(config: ToolsConfig, rootComments = ""): stri
 // Compare the live editor tree against the last loaded/saved baseline. When no
 // tools.json exists on disk yet, the editor is always considered modified.
 function computeDirty(): boolean {
-    if (!toolsEditor.fileExists) {
+    if (!toolsEditorStore.fileExists) {
         return true;
     }
-    return buildToolsFileText(toolsEditor.config, toolsEditor.rootComments) !== toolsEditor.baseline;
+    return buildToolsFileText(toolsEditorStore.config, toolsEditorStore.rootComments) !== toolsEditorStore.baseline;
 }
 
 function syncDirty() {
     const dirty = computeDirty();
-    if (toolsEditor.dirty !== dirty) {
-        toolsEditor.dirty = dirty;
+    if (toolsEditorStore.dirty !== dirty) {
+        toolsEditorStore.dirty = dirty;
     }
 }
 
@@ -387,7 +387,7 @@ const initialConfig = cached?.config ?? cloneConfig(DEFAULT_TOOLS_CONFIG);
 ensureUids(initialConfig.menu);
 const initialRootComments = cached?.rootComments ?? "";
 
-export const toolsEditor = proxy<ToolsEditorStore>({
+export const toolsEditorStore = proxy<ToolsEditorStore>({
     config: initialConfig,
     source: cached ? "storage" : "default",
     path: "",
@@ -403,8 +403,8 @@ export const toolsEditor = proxy<ToolsEditorStore>({
 // Persist edits to localStorage so a loaded config survives a restart even when
 // the file later goes missing. Recompute dirty on every config change so edits
 // that are undone back to the loaded state clear the unsaved indicator.
-subscribe(toolsEditor, () => {
-    writeCache(toolsEditor.config);
+subscribe(toolsEditorStore, () => {
+    writeCache(toolsEditorStore.config);
     syncDirty();
 });
 
@@ -420,18 +420,18 @@ export function setToolsConfig(
     opts?: { rootComments?: string; },
 ) {
     ensureUids(config.menu);
-    toolsEditor.rootComments = opts?.rootComments ?? "";
-    toolsEditor.config = config;
-    toolsEditor.source = source;
-    toolsEditor.path = path;
-    toolsEditor.fileExists = fileExists;
-    toolsEditor.baseline = buildToolsFileText(config, toolsEditor.rootComments);
-    toolsEditor.dirty = !fileExists;
-    toolsEditor.error = "";
+    toolsEditorStore.rootComments = opts?.rootComments ?? "";
+    toolsEditorStore.config = config;
+    toolsEditorStore.source = source;
+    toolsEditorStore.path = path;
+    toolsEditorStore.fileExists = fileExists;
+    toolsEditorStore.baseline = buildToolsFileText(config, toolsEditorStore.rootComments);
+    toolsEditorStore.dirty = !fileExists;
+    toolsEditorStore.error = "";
 
     // Keep the current selection if it still exists, otherwise clear it.
-    if (toolsEditor.selectedUid && !findByUid(config.menu, toolsEditor.selectedUid)) {
-        toolsEditor.selectedUid = null;
+    if (toolsEditorStore.selectedUid && !findByUid(config.menu, toolsEditorStore.selectedUid)) {
+        toolsEditorStore.selectedUid = null;
     }
 }
 
@@ -465,7 +465,7 @@ export function findByUid(root: ToolMenuItem, uid: string): NodeLocation | null 
 
 // True when `uid` is the (fixed, non-movable, non-deletable) root menu node.
 export function isRootUid(uid: string | null | undefined): boolean {
-    return !!uid && uid === toolsEditor.config.menu.uid;
+    return !!uid && uid === toolsEditorStore.config.menu.uid;
 }
 
 // Look up a node by uid including the root menu itself (which findByUid, being
@@ -498,10 +498,10 @@ export function createNode(kind: NodeKind): ToolMenuItem {
 // sibling right after it (or as a child when the selection is a submenu).
 // Otherwise it is appended to the root menu. The new node becomes selected.
 export function addNode(kind: NodeKind): void {
-    const root = toolsEditor.config.menu;
+    const root = toolsEditorStore.config.menu;
     const node = createNode(kind);
 
-    const sel = toolsEditor.selectedUid ? findByUid(root, toolsEditor.selectedUid) : null;
+    const sel = toolsEditorStore.selectedUid ? findByUid(root, toolsEditorStore.selectedUid) : null;
     if (sel) {
         if (sel.node.menuItems) {
             sel.node.menuItems.push(node);
@@ -512,22 +512,22 @@ export function addNode(kind: NodeKind): void {
         (root.menuItems ??= []).push(node);
     }
 
-    toolsEditor.selectedUid = node.uid!;
+    toolsEditorStore.selectedUid = node.uid!;
 }
 
 export function removeNode(uid: string): void {
     if (isRootUid(uid)) {
         return; // the root "Tools" node cannot be deleted
     }
-    const loc = findByUid(toolsEditor.config.menu, uid);
+    const loc = findByUid(toolsEditorStore.config.menu, uid);
     if (!loc) {
         return;
     }
     loc.siblings.splice(loc.index, 1);
-    if (toolsEditor.selectedUid === uid) {
+    if (toolsEditorStore.selectedUid === uid) {
         // Select the nearest remaining sibling, else the parent, else nothing.
         const next = loc.siblings[loc.index] ?? loc.siblings[loc.index - 1] ?? loc.parent;
-        toolsEditor.selectedUid = next && next !== toolsEditor.config.menu ? next.uid ?? null : null;
+        toolsEditorStore.selectedUid = next && next !== toolsEditorStore.config.menu ? next.uid ?? null : null;
     }
 }
 
@@ -547,7 +547,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
     if (dragUid === targetUid) {
         return false;
     }
-    const root = toolsEditor.config.menu;
+    const root = toolsEditorStore.config.menu;
 
     // The root cannot be moved.
     if (dragUid === root.uid) {
@@ -598,11 +598,11 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
 export function resetToDefaults() {
     const config = cloneConfig(DEFAULT_TOOLS_CONFIG);
     ensureUids(config.menu);
-    toolsEditor.config = config;
-    toolsEditor.rootComments = "";
-    toolsEditor.source = "default";
+    toolsEditorStore.config = config;
+    toolsEditorStore.rootComments = "";
+    toolsEditorStore.source = "default";
     syncDirty();
-    toolsEditor.status = "Reset to default tools";
+    toolsEditorStore.status = "Reset to default tools";
 }
 
 // ---------------------------------------------------------------------------
@@ -621,10 +621,10 @@ export async function loadToolsConfig(): Promise<void> {
                 const rootComments = extractRootComments(raw.content);
                 setToolsConfig(config, "file", raw.path, true, { rootComments });
                 writeCache(config);
-                toolsEditor.status = `Loaded from ${raw.path}`;
+                toolsEditorStore.status = `Loaded from ${raw.path}`;
                 return;
             } catch (e) {
-                toolsEditor.error = `Invalid tools.json: ${String(e)}`;
+                toolsEditorStore.error = `Invalid tools.json: ${String(e)}`;
                 // fall through to cached/default below
             }
         }
@@ -633,34 +633,34 @@ export async function loadToolsConfig(): Promise<void> {
         const cached = readCache();
         if (cached) {
             setToolsConfig(cached.config, "storage", raw?.path ?? "", false, { rootComments: cached.rootComments });
-            if (!toolsEditor.error) {
-                toolsEditor.status = "File not found — using saved copy";
+            if (!toolsEditorStore.error) {
+                toolsEditorStore.status = "File not found — using saved copy";
             }
             return;
         }
 
         setToolsConfig(cloneConfig(DEFAULT_TOOLS_CONFIG), "default", raw?.path ?? "", false);
-        if (!toolsEditor.error) {
-            toolsEditor.status = "No tools.json — showing defaults";
+        if (!toolsEditorStore.error) {
+            toolsEditorStore.status = "No tools.json — showing defaults";
         }
     } catch (e) {
-        toolsEditor.error = `Failed to load tools menu: ${String(e)}`;
+        toolsEditorStore.error = `Failed to load tools menu: ${String(e)}`;
     }
 }
 
 export async function saveToolsConfig(): Promise<void> {
     try {
-        const text = buildToolsFileText(toolsEditor.config, toolsEditor.rootComments);
+        const text = buildToolsFileText(toolsEditorStore.config, toolsEditorStore.rootComments);
         const res = await toolsBus.save(text);
-        toolsEditor.path = res?.path ?? toolsEditor.path;
-        toolsEditor.source = "file";
-        toolsEditor.baseline = text;
-        toolsEditor.fileExists = true;
-        toolsEditor.dirty = false;
-        toolsEditor.error = "";
-        toolsEditor.status = `Saved to ${toolsEditor.path}`;
-        writeCache(toolsEditor.config);
+        toolsEditorStore.path = res?.path ?? toolsEditorStore.path;
+        toolsEditorStore.source = "file";
+        toolsEditorStore.baseline = text;
+        toolsEditorStore.fileExists = true;
+        toolsEditorStore.dirty = false;
+        toolsEditorStore.error = "";
+        toolsEditorStore.status = `Saved to ${toolsEditorStore.path}`;
+        writeCache(toolsEditorStore.config);
     } catch (e) {
-        toolsEditor.error = `Failed to save tools.json: ${String(e)}`;
+        toolsEditorStore.error = `Failed to save tools.json: ${String(e)}`;
     }
 }

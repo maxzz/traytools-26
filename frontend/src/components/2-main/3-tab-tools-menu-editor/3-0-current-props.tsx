@@ -1,7 +1,7 @@
 import { useSnapshot } from "valtio";
 import { Folder, Minus, MousePointerClick, ShieldCheck, Terminal } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { effectiveRunElevated, getNode, isRootUid, nodeKind, toolsEditor, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
+import { effectiveRunElevated, getNode, isRootUid, nodeKind, toolsEditorStore, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
@@ -13,14 +13,14 @@ import { Textarea } from "@/ui/shadcn/textarea";
 // recomputed automatically by the store subscriber. Reads use the snapshot so the
 // panel stays reactive.
 function patch(uid: string, fn: (node: ToolMenuItem) => void) {
-    const node = getNode(toolsEditor.config.menu, uid);
+    const node = getNode(toolsEditorStore.config.menu, uid);
     if (node) {
         fn(node);
     }
 }
 
 export function ToolsProps() {
-    const snap = useSnapshot(toolsEditor);
+    const snap = useSnapshot(toolsEditorStore);
     const uid = snap.selectedUid;
 
     const node = uid ? getNode(snap.config.menu as unknown as ToolMenuItem, uid) : null;

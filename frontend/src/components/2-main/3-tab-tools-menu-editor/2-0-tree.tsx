@@ -4,7 +4,7 @@ import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-react";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { moveNode, nodeKind, toolsEditor, type DropPosition, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
+import { moveNode, nodeKind, toolsEditorStore, type DropPosition, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {
@@ -41,7 +41,7 @@ function useDnd(): DndState {
 // ---------------------------------------------------------------------------
 
 export function ToolsTree() {
-    const snap = useSnapshot(toolsEditor);
+    const snap = useSnapshot(toolsEditorStore);
     const root = snap.config.menu as SnapNode;
 
     const [dragUid, setDragUid] = useState<string | null>(null);
@@ -114,7 +114,7 @@ export function ToolsTree() {
 // `isRoot` marks the fixed top-level "Tools" node: it draws no guide lines and
 // cannot be dragged (only dropped into).
 function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: SnapNode; depth: number; isLast: boolean; ancestors: boolean[]; isRoot?: boolean; }) {
-    const snap = useSnapshot(toolsEditor);
+    const snap = useSnapshot(toolsEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
 
@@ -158,7 +158,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                         isRoot && "font-medium",
                     )}
                     style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
-                    onClick={(e) => { if (isSubmenu) { e.stopPropagation(); setCollapsed((v) => !v); } toolsEditor.selectedUid = uid; }}
+                    onClick={(e) => { if (isSubmenu) { e.stopPropagation(); setCollapsed((v) => !v); } toolsEditorStore.selectedUid = uid; }}
                 >
                     {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} />}
 
