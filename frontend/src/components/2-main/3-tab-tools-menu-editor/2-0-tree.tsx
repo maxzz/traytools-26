@@ -1,11 +1,11 @@
 import { createContext, useContext, useMemo, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
-import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { moveNode, nodeKind, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
+import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-react";
+import { IconTerminalHero } from "@/ui/icons/normal";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
+import { moveNode, nodeKind, toolsEditor, type DropPosition, type ToolMenuItem } from "@/store/5-tools-editor";
 import { TreeToolbar } from "./1-1-tree-toolbar";
-import { IconTerminal, IconTerminalHero } from "@/ui/icons/normal";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {
@@ -14,8 +14,6 @@ type SnapNode = {
     readonly uid?: string;
     readonly menuItems?: readonly SnapNode[];
 };
-
-const INDENT = 16;
 
 // ---------------------------------------------------------------------------
 // Drag-and-drop shared state (kept local to the tree).
@@ -169,14 +167,10 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
                     {isSubmenu
                         ? (
-                            <button
-                                className="shrink-0 relative size-4 text-muted-foreground flex items-center justify-center"
-                                onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }}
-                                title={collapsed ? "Expand" : "Collapse"}
-                            >
+                            <button className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center" onClick={(e) => { e.stopPropagation(); setCollapsed((v) => !v); }} title={collapsed ? "Expand" : "Collapse"}>
                                 {collapsed
-                                    ? <ChevronRight className="size-3.5" />
-                                    : <ChevronDown className="size-3.5" />
+                                    ? <ChevronRight className="size-3" />
+                                    : <ChevronDown className="size-3" />
                                 }
                             </button>
                         ) : (
@@ -223,34 +217,32 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     );
 }
 
-// X position (px) of the vertical guide column for a given depth.
-function guideX(depth: number): number {
-    return depth * INDENT + 11;
-}
-
 // Connector lines: continuation verticals for ancestors, plus the ├ / └ branch
 // (vertical + horizontal tick) that links this row to its parent and siblings.
 function TreeGuides({ depth, isLast, ancestors }: { depth: number; isLast: boolean; ancestors: boolean[]; }) {
     const x = guideX(depth);
     return (
         <div className="absolute inset-y-0 left-0 pointer-events-none">
-            {ancestors.map(
-                (cont, a) => cont
-                    ? <span key={a} className="absolute top-0 bottom-0 border-l border-border" style={{ left: guideX(a) }} />
-                    : null)
-            }
+            {ancestors.map((cont, a) => cont ? <span key={a} className="absolute top-0 bottom-0 border-l border-foreground/40" style={{ left: guideX(a) }} /> : null)}
 
             {/* Vertical from the top down to this row's midpoint (always present). */}
-            <span className="absolute top-0 border-l border-border" style={{ left: x, height: "50%" }} />
+            <span className="absolute top-0 border-l border-foreground/40" style={{ left: x, height: "50%" }} />
 
             {/* Continue below the midpoint only when a sibling follows. */}
-            {!isLast && <span className="absolute bottom-0 border-l border-border" style={{ left: x, top: "50%" }} />}
+            {!isLast && <span className="absolute bottom-0 border-l border-foreground/40" style={{ left: x, top: "50%" }} />}
 
             {/* Horizontal tick reaching toward the row content. */}
-            <span className="absolute top-1/2 border-t border-border" style={{ left: x, width: INDENT - 5 }} />
+            <span className="absolute top-1/2 border-t border-foreground/40" style={{ left: x, width: INDENT - 5 }} />
         </div>
     );
 }
+
+// X position (px) of the vertical guide column for a given depth.
+function guideX(depth: number): number {
+    return depth * INDENT + 11;
+}
+
+const INDENT = 16;
 
 function DragAndDropTargetLine({ style }: { style: React.CSSProperties; }) {
     return (
