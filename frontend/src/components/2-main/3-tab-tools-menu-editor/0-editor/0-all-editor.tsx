@@ -5,8 +5,8 @@ import { loadToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-a
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
-import { ToolsTree } from "./2-0-tree";
-import { ToolsProps } from "./3-0-current-props";
+import { Panel_Tree } from "./2-0-panel-tree";
+import { Panel_Props } from "./3-0-panel-props";
 import { TopBar } from "./1-1-top-bar";
 import { TreeViewMenu } from "./2-1-tree-menu";
 
@@ -34,14 +34,14 @@ export function Page_ToolsMenuEditor() {
                 <ResizablePanel id="tree" minSize={22}>
                     <div className="relative size-full min-h-0">
                         <TreeViewMenu className="absolute top-1 right-1 z-10" />
-                        <ToolsTree />
+                        <Panel_Tree />
                     </div>
                 </ResizablePanel>
 
                 <ResizableHandle withHandle />
 
                 <ResizablePanel id="props" minSize={30}>
-                    <ToolsProps />
+                    <Panel_Props />
                 </ResizablePanel>
             </ResizablePanelGroup>
         </div>

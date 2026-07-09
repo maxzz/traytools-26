@@ -5,7 +5,7 @@ import { Props_Item, Props_Separator, Props_Submenu } from "@/components/2-main/
 import { useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 
-export function ToolsProps() {
+export function Panel_Props() {
     const { uid, node } = useSelectedNode();
 
     if (!uid || !node) {

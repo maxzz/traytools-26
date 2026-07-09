@@ -40,7 +40,7 @@ function useDnd(): DndState {
 
 // ---------------------------------------------------------------------------
 
-export function ToolsTree() {
+export function Panel_Tree() {
     const snap = useSnapshot(toolsEditorStore);
     const root = snap.config.menu as SnapNode;
 
