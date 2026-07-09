@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
 
-export function Field({ label, children }: { label: string; children: React.ReactNode; }) {
+function Field({ label, children }: { label: string; children: React.ReactNode; }) {
     return (
         <div className="flex flex-col gap-1">
             <Label className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{label}</Label>
@@ -33,6 +33,15 @@ export function CommentField() {
             />
         </Field>
     );
+}
+
+export function Props_Separator() {
+    return (<>
+        <p className="text-muted-foreground">
+            A separator draws a horizontal divider line in the menu.
+        </p>
+        <CommentField />
+    </>);
 }
 
 export function Props_Submenu() {
