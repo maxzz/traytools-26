@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useSnapshot } from "valtio";
 import { type Layout } from "react-resizable-panels";
-import { loadToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
+import { loadToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
 import { ToolsTree } from "./2-0-tree";
 import { ToolsProps } from "./3-0-current-props";
-import { ToolsEditorState } from "./1-1-editor-state";
+import { TopBar } from "./1-1-top-bar";
 import { TreeViewMenu } from "./2-1-tree-menu";
 
 // Tools Menu editor. Lets the user edit the "Tools" menu tree and write it to
@@ -28,7 +28,7 @@ export function Page_ToolsMenuEditor() {
 
     return (
         <div className="flex-1 size-full min-h-0 overflow-hidden grid grid-rows-[auto_1fr] 1gap-1">
-            <ToolsEditorState />
+            <TopBar />
 
             <ResizablePanelGroup className="bg-card" orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => savePanelLayout(PANEL_GROUPS.toolsEditorMain, layout)}>
                 <ResizablePanel id="tree" minSize={22}>

@@ -1,13 +1,13 @@
 import { useSnapshot } from "valtio";
 import { AlertTriangle, RotateCcw, RefreshCw, Save } from "lucide-react";
-import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
+import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
 import { Button } from "@/ui/shadcn/button";
 
-export function ToolsEditorState() {
+export function TopBar() {
     const snapStore = useSnapshot(toolsEditorStore);
 
     return (
-        <div className="my-4 pb-4 bg-sky-500/20 border rounded-md">
+        <div className="mx-2 my-1 py-4 bg-sky-500/20 border rounded-md">
 
             {(snapStore.status || snapStore.error || snapStore.dirty || snapStore.fileExists) && (
                 <div className="px-3 py-1 text-[0.72rem] border-t flex items-center gap-2">

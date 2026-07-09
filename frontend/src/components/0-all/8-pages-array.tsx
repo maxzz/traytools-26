@@ -5,7 +5,7 @@ import { PageTestTabB } from "../2-main/xyz-demos/02-page-b/0-page-b-all";
 import { PageWelcome } from "../2-main/8-tab-welcome/0-all-welcome";
 import { Page_TraceBits } from "../2-main/2-tab-trace-bits/0-all-trace-bits";
 import { Page_WindowsTree } from "../2-main/1-tab-windows-tree/0-all-windows-tree";
-import { Page_ToolsMenuEditor } from "../2-main/3-tab-tools-menu-editor/0-all-menu-editor";
+import { Page_ToolsMenuEditor } from "../2-main/3-tab-tools-menu-editor/0-editor/0-all-editor";
 
 export const MAIN_PAGES = [
     { id: "welcome", label: "Welcome", Page: PageWelcome },

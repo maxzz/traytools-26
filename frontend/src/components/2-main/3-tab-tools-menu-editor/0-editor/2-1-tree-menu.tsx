@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import { useSnapshot } from "valtio";
 import { Menu, Minus, Plus, SquarePlus, Trash2 } from "lucide-react";
-import { addNode, isRootUid, removeNode, toolsEditorStore, type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-menu-editor-atoms";
+import { addNode, isRootUid, removeNode, toolsEditorStore, type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 
