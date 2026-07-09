@@ -1,10 +1,30 @@
 import { defaultRunElevated, type ToolMenuItem, type ToolsConfig, type ToolsEditorStore } from "./9-types-menu";
 
 /**
+ * Build the full tools.json text, optionally preserving root-object JSONC
+ * comments loaded from the on-disk file.
+ */
+export function buildToolsFileText(config: ToolsConfig, rootComments = ""): string {
+    const body = serializeToolsConfig(config);
+    if (!rootComments.trim()) {
+        return normalizeFileText(body);
+    }
+
+    const newline = body.indexOf("\n");
+    if (newline < 0) {
+        return normalizeFileText(body);
+    }
+
+    const rest = body.slice(newline + 1);
+    const header = rootComments.endsWith("\n") ? rootComments : `${rootComments}\n`;
+    return normalizeFileText(`{\n${header}${rest}`);
+}
+
+/**
  * Serialize the config object to JSON (4-space indent). Does not include the
  * root-object JSONC header comments — use buildToolsFileText for the full file.
  */
-export function serializeToolsConfig(config: ToolsConfig): string {
+function serializeToolsConfig(config: ToolsConfig): string {
     return JSON.stringify(config, jsonReplacer, 4);
 }
 
@@ -29,25 +49,10 @@ function jsonReplacer(this: ToolMenuItem, key: string, value: unknown): unknown 
 }
 
 /**
- * Build the full tools.json text, optionally preserving root-object JSONC
- * comments loaded from the on-disk file.
+ * Normalize the file text to remove any trailing newlines.
+ * @param text - The text to normalize.
+ * @returns The normalized text.
  */
-export function buildToolsFileText(config: ToolsConfig, rootComments = ""): string {
-    const body = serializeToolsConfig(config);
-    if (!rootComments.trim()) {
-        return normalizeFileText(body);
-    }
-
-    const newline = body.indexOf("\n");
-    if (newline < 0) {
-        return normalizeFileText(body);
-    }
-
-    const rest = body.slice(newline + 1);
-    const header = rootComments.endsWith("\n") ? rootComments : `${rootComments}\n`;
-    return normalizeFileText(`{\n${header}${rest}`);
-}
-
 function normalizeFileText(text: string): string {
     return text.replace(/\r\n/g, "\n").replace(/\n+$/, "\n");
 }
