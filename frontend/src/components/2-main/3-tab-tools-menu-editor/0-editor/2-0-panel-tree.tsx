@@ -5,8 +5,8 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-rea
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { type ToolMenuItem, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
-import { type DropPosition, moveNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-editor-atoms";
-import { toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/1-menu-local-storage";
+import { type DropPosition, moveNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/1-menu-editor-atoms";
+import { toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {

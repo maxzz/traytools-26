@@ -106,7 +106,7 @@ function removeTrailingCommas(src: string): string {
 }
 
 /**
- * Pull inline (//) and block (/* */) comment lines that appear inside the root object before the "menu" property.
+ * Pull inline (//) and block (/* * /) comment lines that appear inside the root object before the "menu" property.
  * These are re-inserted when the file is saved so a loaded tools.json keeps its header comments.
  */
 export function extractRootComments(raw: string): string {

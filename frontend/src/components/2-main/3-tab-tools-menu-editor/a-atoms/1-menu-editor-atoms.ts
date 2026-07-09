@@ -1,5 +1,5 @@
 import { type NodeKind, type ToolMenuItem, createNode, findByUid } from "./9-types-menu";
-import { toolsEditorStore } from "./1-menu-local-storage";
+import { toolsEditorStore } from "./0-menu-local-storage";
 
 // ---------------------------------------------------------------------------
 // Tree navigation + mutation helpers (all keyed by the runtime `uid`).

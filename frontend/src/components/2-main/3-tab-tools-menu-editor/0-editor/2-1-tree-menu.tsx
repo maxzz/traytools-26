@@ -4,8 +4,8 @@ import { Menu, Minus, Plus, SquarePlus, Trash2 } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
-import { addNode, isRootUid, removeNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-editor-atoms";
-import { toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/1-menu-local-storage";
+import { addNode, isRootUid, removeNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/1-menu-editor-atoms";
+import { toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 
 export function TreeViewMenu(props: ComponentProps<typeof Button>) {
     const { selectedUid } = useSnapshot(toolsEditorStore);
