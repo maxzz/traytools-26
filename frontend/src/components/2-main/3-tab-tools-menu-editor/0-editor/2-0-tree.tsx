@@ -151,7 +151,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
                 <div
                     className={cn(
-                        "group relative pr-1 h-7 hover:bg-accent/60 rounded-md select-none flex items-center gap-1 cursor-pointer",
+                        "group relative pr-1 h-5 hover:bg-accent/60 rounded-md select-none flex items-center gap-1 cursor-pointer",
                         selected && "bg-accent text-accent-foreground",
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
@@ -160,7 +160,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                     style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
                     onClick={(e) => { if (isSubmenu) { e.stopPropagation(); setCollapsed((v) => !v); } toolsEditorStore.selectedUid = uid; }}
                 >
-                    {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} />}
+                    {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} isSubmenu={isSubmenu} />}
 
                     {isSubmenu
                         ? (
@@ -218,7 +218,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
 // Connector lines: continuation verticals for ancestors, plus the ├ / └ branch
 // (vertical + horizontal tick) that links this row to its parent and siblings.
-function TreeGuides({ depth, isLast, ancestors }: { depth: number; isLast: boolean; ancestors: boolean[]; }) {
+function TreeGuides({ depth, isLast, ancestors, isSubmenu }: { depth: number; isLast: boolean; ancestors: boolean[]; isSubmenu: boolean; }) {
     const x = guideX(depth);
     return (
         <div className="absolute inset-y-0 left-0 pointer-events-none">
@@ -231,7 +231,7 @@ function TreeGuides({ depth, isLast, ancestors }: { depth: number; isLast: boole
             {!isLast && <span className="absolute bottom-0 border-l border-foreground/40" style={{ left: x, top: "50%" }} />}
 
             {/* Horizontal tick reaching toward the row content. */}
-            <span className="absolute top-1/2 border-t border-foreground/40" style={{ left: x, width: INDENT - 5 }} />
+            <span className="absolute top-1/2 border-t border-foreground/40" style={{ left: x, width: isSubmenu ? INDENT - 6 : INDENT - 3 }} />
         </div>
     );
 }
