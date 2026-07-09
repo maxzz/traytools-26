@@ -1,7 +1,7 @@
 import { Folder, Minus, MousePointerClick, Terminal } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
-import { Props_Item, Props_Separator, Props_Submenu } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
+import { PropsByKind } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
 import { useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 
@@ -30,11 +30,7 @@ export function Panel_Props() {
 
             <ScrollArea className="flex-1 min-h-0">
                 <div className="p-3 flex flex-col gap-3">
-                    {kind === "separator" && <Props_Separator />}
-
-                    {kind === "submenu" && <Props_Submenu />}
-
-                    {kind === "item" && <Props_Item />}
+                    <PropsByKind kind={kind} />
                 </div>
             </ScrollArea>
         </div>
