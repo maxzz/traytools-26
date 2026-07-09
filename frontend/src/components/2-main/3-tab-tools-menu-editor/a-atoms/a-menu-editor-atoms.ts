@@ -1,135 +1,32 @@
 import { proxy, subscribe } from "valtio";
 import { toolsBus } from "@/bridge";
+import {
+    defaultRunElevated,
+    type NodeKind,
+    type ToolMenuItem,
+    type ToolsConfig,
+} from "./9-types-menu";
 
-// ---------------------------------------------------------------------------
-// Editable model
-//
-// These types mirror backend/toolsmenu.MenuNode (and the on-disk tools.json
-// format) exactly, so the editor round-trips cleanly to the file the backend
-// reads. A node is one of:
-//   - a separator  ({ menuName: "-" })
-//   - a sub-menu    (has menuItems[])
-//   - a command     (has cmdLine)
+export {
+    defaultRunElevated,
+    effectiveRunElevated,
+    nodeKind,
+    type CmdPlat,
+    type CmdWhat,
+    type NodeKind,
+    type ToolMenuItem,
+    type ToolsConfig,
+} from "./9-types-menu";
 
-export type CmdWhat = "rel" | "abs" | "reg";
-export type CmdPlat = "curr" | "32" | "64" | "both";
+import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
+import {
+    cloneConfig,
+    STORAGE_ID,
+    type ToolsEditorStore,
+    type ToolsSource,
+} from "./1-menu-local-storage";
 
-export interface ToolMenuItem {
-    menuName: string;
-    cmdLine?: string;
-    cmdArgs?: string;
-    cmdPlat?: CmdPlat;
-    cmdWhat?: CmdWhat;
-    hotKey?: string;
-    // Run the command with elevated (administrator) privileges. Optional: when
-    // absent the effective value defaults to true for registry actions and false
-    // for everything else (see `effectiveRunElevated`). It is only written to
-    // tools.json when it differs from that default.
-    runElevated?: boolean;
-    // Optional note stored in tools.json; omitted when empty.
-    comment?: string;
-    menuItems?: ToolMenuItem[];
-
-    // Runtime-only stable identity used by the editor for selection and
-    // drag-and-drop. It is stripped before the tree is written to tools.json.
-    uid?: string;
-}
-
-export type NodeKind = "separator" | "submenu" | "item";
-
-export function nodeKind(node: Pick<ToolMenuItem, "menuName" | "menuItems" | "cmdLine">): NodeKind {
-    if (node.menuItems) {
-        return "submenu";
-    }
-    if (node.menuName.trim() === "-" && !node.cmdLine) {
-        return "separator";
-    }
-    return "item";
-}
-
-// The default "Run Elevated" value for a node when the attribute is absent:
-// registry actions run elevated by default, all other actions do not.
-export function defaultRunElevated(node: Pick<ToolMenuItem, "cmdWhat">): boolean {
-    return node.cmdWhat === "reg";
-}
-
-// The effective "Run Elevated" value shown in the editor / used at runtime.
-export function effectiveRunElevated(node: Pick<ToolMenuItem, "cmdWhat" | "runElevated">): boolean {
-    return node.runElevated ?? defaultRunElevated(node);
-}
-
-export interface ToolsConfig {
-    menu: ToolMenuItem;
-}
-
-// ---------------------------------------------------------------------------
-// Default config — must correspond to the entries shipped in tools/tools.json.
-
-export const DEFAULT_TOOLS_CONFIG: ToolsConfig = {
-    menu: {
-        menuName: "Tools",
-        menuItems: [
-            {
-                menuName: "Registry",
-                menuItems: [
-                    { menuName: "Regedit: DP Tracing", cmdLine: "HKLM\\SOFTWARE\\DigitalPersona\\Tracing", cmdPlat: "both", cmdWhat: "reg" },
-                    { menuName: "Regedit: DP Tracing VirtualStore", cmdLine: "HKCU\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\DigitalPersona\\Tracing", cmdPlat: "both", cmdWhat: "reg" },
-                    { menuName: "Regedit: Run keys", cmdLine: "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", cmdWhat: "reg" },
-                ],
-            },
-            { menuName: "-" },
-            {
-                menuName: "Folders",
-                menuItems: [
-                    { menuName: "Open tools folder", cmdLine: "./", cmdWhat: "rel" },
-                    { menuName: "Open %AppData%", cmdLine: "%AppData%", cmdWhat: "abs" },
-                    { menuName: "Open %TEMP%", cmdLine: "%TEMP%", cmdWhat: "abs" },
-                ],
-            },
-            { menuName: "-" },
-            {
-                menuName: "Utilities",
-                menuItems: [
-                    { menuName: "Notepad", cmdLine: "notepad.exe", cmdWhat: "abs" },
-                    { menuName: "Calculator", cmdLine: "calc.exe", cmdWhat: "abs", hotKey: "F4" },
-                    { menuName: "-" },
-                    { menuName: "UAC Settings", cmdLine: "\"%windir%/system32/UserAccountControlSettings.exe\"", cmdWhat: "abs" },
-                ],
-            },
-            {
-                menuName: "Web links",
-                menuItems: [
-                    { menuName: "Sysinternals", cmdLine: "https://learn.microsoft.com/sysinternals/", cmdWhat: "abs" },
-                    { menuName: "Process Explorer", cmdLine: "https://learn.microsoft.com/sysinternals/downloads/process-explorer", cmdWhat: "abs" },
-                ],
-            },
-        ],
-    },
-};
-
-// ---------------------------------------------------------------------------
-// Persistence
-
-const STORAGE_ID = "traytools-26__tools__v1.1";
-
-export type ToolsSource = "default" | "file" | "storage";
-
-export interface ToolsEditorStore {
-    config: ToolsConfig;         // the current editable tree
-    source: ToolsSource;         // where `config` came from on the last load
-    path: string;                // file path reported by the backend (load/save target)
-    baseline: string;            // full file text at last load/save (includes JSONC comments)
-    rootComments: string;        // // and /* */ lines inside the root { } before "menu"
-    fileExists: boolean;         // whether tools.json currently exists on disk
-    dirty: boolean;              // true when the editor differs from the loaded/saved file
-    status: string;              // last user-facing status message
-    error: string;               // last error, if any
-    selectedUid: string | null;  // uid of the node shown in the properties panel
-}
-
-function cloneConfig(config: ToolsConfig): ToolsConfig {
-    return structuredClone(config);
-}
+export { DEFAULT_TOOLS_CONFIG };
 
 // ---------------------------------------------------------------------------
 // Stable runtime ids

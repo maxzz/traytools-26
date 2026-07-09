@@ -1,7 +1,6 @@
 import { Folder, Minus, MousePointerClick, Terminal } from "lucide-react";
-import { cn } from "@/utils/classnames";
-import { nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
-import { PropsByKind } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
+import { nodeKind, type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
+import { Props_Item, Props_Separator, Props_Submenu } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
 import { useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 
@@ -45,7 +44,7 @@ function PanelHeader({ kind }: { kind?: "separator" | "submenu" | "item"; }) {
         <div className="px-3 py-1.5 border-b flex items-center gap-2">
             <span className="font-medium text-[0.7rem] text-muted-foreground uppercase tracking-wide">Properties</span>
             {kind && (
-                <span className={cn("ml-auto px-1.5 py-0.5 text-[0.65rem] text-muted-foreground bg-muted rounded inline-flex items-center gap-1")}>
+                <span className={"ml-auto px-1.5 py-0.5 text-[0.65rem] text-muted-foreground bg-muted rounded inline-flex items-center gap-1"}>
                     <Icon className="size-3" /> {label}
                 </span>
             )}
@@ -53,3 +52,13 @@ function PanelHeader({ kind }: { kind?: "separator" | "submenu" | "item"; }) {
     );
 }
 
+const PROPS_BY_KIND = {
+    separator: Props_Separator,
+    submenu: Props_Submenu,
+    item: Props_Item,
+} satisfies Record<NodeKind, React.ComponentType>;
+
+function PropsByKind({ kind }: { kind: NodeKind; }) {
+    const Component = PROPS_BY_KIND[kind];
+    return <Component />;
+}

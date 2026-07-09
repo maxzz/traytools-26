@@ -1,5 +1,5 @@
 import { ShieldCheck } from "lucide-react";
-import { effectiveRunElevated, type CmdPlat, type CmdWhat, type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
+import { effectiveRunElevated, type CmdPlat, type CmdWhat } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
 import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
@@ -167,15 +167,4 @@ export function Props_Item() {
 
         <CommentField />
     </>);
-}
-
-const PROPS_BY_KIND = {
-    separator: Props_Separator,
-    submenu: Props_Submenu,
-    item: Props_Item,
-} satisfies Record<NodeKind, React.ComponentType>;
-
-export function PropsByKind({ kind }: { kind: NodeKind; }) {
-    const Component = PROPS_BY_KIND[kind];
-    return <Component />;
 }
