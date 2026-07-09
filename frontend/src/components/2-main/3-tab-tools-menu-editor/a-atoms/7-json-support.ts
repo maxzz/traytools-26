@@ -1,13 +1,37 @@
 import { defaultRunElevated, type ToolMenuItem, type ToolsConfig, type ToolsEditorStore } from "./9-types-menu";
 
-// Serialize the config object to JSON (4-space indent). Does not include the
-// root-object JSONC header comments — use buildToolsFileText for the full file.
+/**
+ * Serialize the config object to JSON (4-space indent). Does not include the
+ * root-object JSONC header comments — use buildToolsFileText for the full file.
+ */
 export function serializeToolsConfig(config: ToolsConfig): string {
     return JSON.stringify(config, jsonReplacer, 4);
 }
 
-// Build the full tools.json text, optionally preserving root-object JSONC
-// comments loaded from the on-disk file.
+/**
+ * JSON replacer function for the config object.
+ * @param this - The ToolMenuItem object.
+ * @param key - The key of the property being serialized.
+ * @param value - The value of the property being serialized.
+ * @returns The value to be serialized.
+*/
+function jsonReplacer(this: ToolMenuItem, key: string, value: unknown): unknown {
+    if (key === "uid") {
+        return undefined;
+    }
+    if (key === "runElevated") {
+        return value === defaultRunElevated(this) ? undefined : value;
+    }
+    if (key === "comment") {
+        return typeof value === "string" && value.trim() === "" ? undefined : value;
+    }
+    return value;
+}
+
+/**
+ * Build the full tools.json text, optionally preserving root-object JSONC
+ * comments loaded from the on-disk file.
+ */
 export function buildToolsFileText(config: ToolsConfig, rootComments = ""): string {
     const body = serializeToolsConfig(config);
     if (!rootComments.trim()) {
@@ -24,15 +48,17 @@ export function buildToolsFileText(config: ToolsConfig, rootComments = ""): stri
     return normalizeFileText(`{\n${header}${rest}`);
 }
 
-// Compare the live editor tree against the last loaded/saved baseline. When no
-// tools.json exists on disk yet, the editor is always considered modified.
-export function computeDirty(store: ToolsEditorStore): boolean {
-    if (!store.fileExists) {
-        return true;
-    }
-    return buildToolsFileText(store.config, store.rootComments) !== store.baseline;
+function normalizeFileText(text: string): string {
+    return text.replace(/\r\n/g, "\n").replace(/\n+$/, "\n");
 }
 
+// ---------------------------------------------------------------------------
+// Dirty tracking
+
+/**
+ * Sync the dirty state of the editor store.
+ * @param store - The ToolsEditorStore object.
+ */
 export function syncDirty(store: ToolsEditorStore): void {
     const dirty = computeDirty(store);
     if (store.dirty !== dirty) {
@@ -40,9 +66,28 @@ export function syncDirty(store: ToolsEditorStore): void {
     }
 }
 
+/**
+ * Compare the live editor tree against the last loaded/saved baseline. When no
+ * tools.json exists on disk yet, the editor is always considered modified.
+ */
+function computeDirty(store: ToolsEditorStore): boolean {
+    if (!store.fileExists) {
+        return true;
+    }
+    return buildToolsFileText(store.config, store.rootComments) !== store.baseline;
+}
+
 // ---------------------------------------------------------------------------
 // JSONC parsing (mirrors the backend jsonc stripper) so raw tools.json files
-// with // and /* */ comments and trailing commas parse on the frontend too.
+// with inline (//) and block (/* * /) comments and trailing commas parse on the frontend too.
+
+export function parseToolsJsonc(text: string): ToolsConfig {
+    const parsed = JSON.parse(stripJsonComments(text)) as Partial<ToolsConfig>;
+    if (!parsed || typeof parsed !== "object" || !parsed.menu) {
+        throw new Error("tools.json must contain a top-level \"menu\" object");
+    }
+    return parsed as ToolsConfig;
+}
 
 function stripJsonComments(src: string): string {
     let out = "";
@@ -137,17 +182,10 @@ function removeTrailingCommas(src: string): string {
     return out;
 }
 
-export function parseToolsJsonc(text: string): ToolsConfig {
-    const parsed = JSON.parse(stripJsonComments(text)) as Partial<ToolsConfig>;
-    if (!parsed || typeof parsed !== "object" || !parsed.menu) {
-        throw new Error("tools.json must contain a top-level \"menu\" object");
-    }
-    return parsed as ToolsConfig;
-}
-
-// Pull // and /* */ comment lines that appear inside the root object before the
-// "menu" property. These are re-inserted when the file is saved so a loaded
-// tools.json keeps its header comments.
+/**
+ * Pull inline (//) and block (/* * /) comment lines that appear inside the root object before the "menu" property.
+ * These are re-inserted when the file is saved so a loaded tools.json keeps its header comments.
+ */
 export function extractRootComments(raw: string): string {
     const menuMatch = raw.match(/"menu"\s*:\s*\{/);
     if (!menuMatch || menuMatch.index === undefined) {
@@ -177,21 +215,4 @@ export function extractRootComments(raw: string): string {
         kept.pop();
     }
     return kept.join("\n");
-}
-
-function normalizeFileText(text: string): string {
-    return text.replace(/\r\n/g, "\n").replace(/\n+$/, "\n");
-}
-
-function jsonReplacer(this: ToolMenuItem, key: string, value: unknown) {
-    if (key === "uid") {
-        return undefined;
-    }
-    if (key === "runElevated") {
-        return value === defaultRunElevated(this) ? undefined : value;
-    }
-    if (key === "comment") {
-        return typeof value === "string" && value.trim() === "" ? undefined : value;
-    }
-    return value;
 }

@@ -1,4 +1,4 @@
-import type { ToolsConfig } from "./9-types-menu";
+import { type ToolsConfig } from "./9-types-menu";
 
 // ---------------------------------------------------------------------------
 // Default config — must correspond to the entries shipped in tools/tools.json.

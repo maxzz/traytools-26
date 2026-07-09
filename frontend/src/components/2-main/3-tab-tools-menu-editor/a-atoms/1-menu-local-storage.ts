@@ -1,8 +1,7 @@
-import { proxy } from "valtio";
+import { proxy, subscribe } from "valtio";
 import { toolsBus } from "@/bridge";
-import { type ToolsConfig, type ToolsEditorStore, ensureUids } from "./9-types-menu";
-import { setToolsConfig } from "./0-menu-editor-atoms";
-import { buildToolsFileText, extractRootComments, parseToolsJsonc } from "./7-json-support";
+import { type ToolsConfig, type ToolsEditorStore, type ToolsSource, ensureUids, findByUid } from "./9-types-menu";
+import { buildToolsFileText, extractRootComments, parseToolsJsonc, syncDirty } from "./7-json-support";
 import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
 
 // ---------------------------------------------------------------------------
@@ -26,6 +25,14 @@ export const toolsEditorStore = proxy<ToolsEditorStore>({
     status: "",
     error: "",
     selectedUid: null,
+});
+
+// Persist edits to localStorage so a loaded config survives a restart even when
+// the file later goes missing. Recompute dirty on every config change so edits
+// that are undone back to the loaded state clear the unsaved indicator.
+subscribe(toolsEditorStore, () => {
+    writeCache(toolsEditorStore.config, toolsEditorStore.rootComments);
+    syncDirty(toolsEditorStore);
 });
 
 // ---------------------------------------------------------------------------
@@ -113,6 +120,30 @@ export async function loadToolsConfig(): Promise<void> {
     }
 }
 
+// Record a freshly loaded (or saved) config as the baseline for dirty tracking.
+function setToolsConfig(
+    config: ToolsConfig,
+    source: ToolsSource,
+    path = "",
+    fileExists = source === "file",
+    opts?: { rootComments?: string; },
+) {
+    ensureUids(config.menu);
+    toolsEditorStore.rootComments = opts?.rootComments ?? "";
+    toolsEditorStore.config = config;
+    toolsEditorStore.source = source;
+    toolsEditorStore.path = path;
+    toolsEditorStore.fileExists = fileExists;
+    toolsEditorStore.baseline = buildToolsFileText(config, toolsEditorStore.rootComments);
+    toolsEditorStore.dirty = !fileExists;
+    toolsEditorStore.error = "";
+
+    // Keep the current selection if it still exists, otherwise clear it.
+    if (toolsEditorStore.selectedUid && !findByUid(config.menu, toolsEditorStore.selectedUid)) {
+        toolsEditorStore.selectedUid = null;
+    }
+}
+
 export async function saveToolsConfig(): Promise<void> {
     try {
         const text = buildToolsFileText(toolsEditorStore.config, toolsEditorStore.rootComments);
@@ -128,4 +159,14 @@ export async function saveToolsConfig(): Promise<void> {
     } catch (e) {
         toolsEditorStore.error = `Failed to save tools.json: ${String(e)}`;
     }
+}
+
+export function resetToDefaults() {
+    const config = cloneConfig(DEFAULT_TOOLS_CONFIG);
+    ensureUids(config.menu);
+    toolsEditorStore.config = config;
+    toolsEditorStore.rootComments = "";
+    toolsEditorStore.source = "default";
+    syncDirty(toolsEditorStore);
+    toolsEditorStore.status = "Reset to default tools";
 }

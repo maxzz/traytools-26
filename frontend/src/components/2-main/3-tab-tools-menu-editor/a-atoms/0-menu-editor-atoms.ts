@@ -1,71 +1,8 @@
-import { subscribe } from "valtio";
-import { type NodeKind, type ToolMenuItem, type ToolsConfig, type ToolsSource, ensureUids, createNode } from "./9-types-menu";
-import { cloneConfig, toolsEditorStore, writeCache } from "./1-menu-local-storage";
-import { buildToolsFileText, syncDirty } from "./7-json-support";
-import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
-
-// Persist edits to localStorage so a loaded config survives a restart even when
-// the file later goes missing. Recompute dirty on every config change so edits
-// that are undone back to the loaded state clear the unsaved indicator.
-subscribe(toolsEditorStore, () => {
-    writeCache(toolsEditorStore.config, toolsEditorStore.rootComments);
-    syncDirty(toolsEditorStore);
-});
-
-// ---------------------------------------------------------------------------
-// Mutations
-
-// Record a freshly loaded (or saved) config as the baseline for dirty tracking.
-export function setToolsConfig(
-    config: ToolsConfig,
-    source: ToolsSource,
-    path = "",
-    fileExists = source === "file",
-    opts?: { rootComments?: string; },
-) {
-    ensureUids(config.menu);
-    toolsEditorStore.rootComments = opts?.rootComments ?? "";
-    toolsEditorStore.config = config;
-    toolsEditorStore.source = source;
-    toolsEditorStore.path = path;
-    toolsEditorStore.fileExists = fileExists;
-    toolsEditorStore.baseline = buildToolsFileText(config, toolsEditorStore.rootComments);
-    toolsEditorStore.dirty = !fileExists;
-    toolsEditorStore.error = "";
-
-    // Keep the current selection if it still exists, otherwise clear it.
-    if (toolsEditorStore.selectedUid && !findByUid(config.menu, toolsEditorStore.selectedUid)) {
-        toolsEditorStore.selectedUid = null;
-    }
-}
+import { type NodeKind, type ToolMenuItem, createNode, findByUid } from "./9-types-menu";
+import { toolsEditorStore } from "./1-menu-local-storage";
 
 // ---------------------------------------------------------------------------
 // Tree navigation + mutation helpers (all keyed by the runtime `uid`).
-
-export interface NodeLocation {
-    node: ToolMenuItem;    // the found node
-    parent: ToolMenuItem;  // its parent (the root menu for top-level nodes)
-    siblings: ToolMenuItem[]; // parent.menuItems (the array the node lives in)
-    index: number;         // node's index within `siblings`
-}
-
-export function findByUid(root: ToolMenuItem, uid: string): NodeLocation | null {
-    const siblings = root.menuItems;
-    if (!siblings) {
-        return null;
-    }
-    for (let index = 0; index < siblings.length; index++) {
-        const node = siblings[index];
-        if (node.uid === uid) {
-            return { node, parent: root, siblings, index };
-        }
-        const found = findByUid(node, uid);
-        if (found) {
-            return found;
-        }
-    }
-    return null;
-}
 
 // True when `uid` is the (fixed, non-movable, non-deletable) root menu node.
 export function isRootUid(uid: string | null | undefined): boolean {
@@ -181,14 +118,4 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
     }
 
     return true;
-}
-
-export function resetToDefaults() {
-    const config = cloneConfig(DEFAULT_TOOLS_CONFIG);
-    ensureUids(config.menu);
-    toolsEditorStore.config = config;
-    toolsEditorStore.rootComments = "";
-    toolsEditorStore.source = "default";
-    syncDirty(toolsEditorStore);
-    toolsEditorStore.status = "Reset to default tools";
 }

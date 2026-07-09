@@ -11,7 +11,7 @@
 export type CmdWhat = "rel" | "abs" | "reg";
 export type CmdPlat = "curr" | "32" | "64" | "both";
 
-export interface ToolMenuItem {
+export type ToolMenuItem = {
     menuName: string;
     cmdLine?: string;
     cmdArgs?: string;
@@ -30,7 +30,7 @@ export interface ToolMenuItem {
     // Runtime-only stable identity used by the editor for selection and
     // drag-and-drop. It is stripped before the tree is written to tools.json.
     uid?: string;
-}
+};
 
 export type NodeKind = "separator" | "submenu" | "item";
 
@@ -55,9 +55,9 @@ export function effectiveRunElevated(node: Pick<ToolMenuItem, "cmdWhat" | "runEl
     return node.runElevated ?? defaultRunElevated(node);
 }
 
-export interface ToolsConfig {
+export type ToolsConfig = {
     menu: ToolMenuItem;
-}
+};
 
 // ---------------------------------------------------------------------------
 // Editor state
@@ -111,4 +111,32 @@ function newSeparator(): ToolMenuItem {
 
 export function createNode(kind: NodeKind): ToolMenuItem {
     return kind === "submenu" ? newSubmenu() : kind === "separator" ? newSeparator() : newItem();
+}
+
+// ---------------------------------------------------------------------------
+// Tree navigation helpers
+
+export type NodeLocation = {
+    node: ToolMenuItem;        // the found node
+    parent: ToolMenuItem;      // its parent (the root menu for top-level nodes)
+    siblings: ToolMenuItem[];  // parent.menuItems (the array the node lives in)
+    index: number;             // node's index within `siblings`
+};
+
+export function findByUid(root: ToolMenuItem, uid: string): NodeLocation | null {
+    const siblings = root.menuItems;
+    if (!siblings) {
+        return null;
+    }
+    for (let index = 0; index < siblings.length; index++) {
+        const node = siblings[index];
+        if (node.uid === uid) {
+            return { node, parent: root, siblings, index };
+        }
+        const found = findByUid(node, uid);
+        if (found) {
+            return found;
+        }
+    }
+    return null;
 }
