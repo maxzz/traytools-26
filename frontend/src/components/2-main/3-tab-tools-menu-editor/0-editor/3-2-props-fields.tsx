@@ -1,6 +1,6 @@
 import { Label } from "@/ui/shadcn/label";
 import { Textarea } from "@/ui/shadcn/textarea";
-import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/use-selected-node";
+import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 
 export function Field({ label, children }: { label: string; children: React.ReactNode; }) {
     return (

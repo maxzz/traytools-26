@@ -1,5 +1,5 @@
 import { useSnapshot } from "valtio";
-import { getNode, isRootUid, toolsEditorStore, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
+import { getNode, isRootUid, toolsEditorStore, type ToolMenuItem } from "./a-menu-editor-atoms";
 
 export function useSelectedNode() {
     const snap = useSnapshot(toolsEditorStore);
@@ -9,7 +9,10 @@ export function useSelectedNode() {
     return { uid, node, isRoot: isRootUid(uid) };
 }
 
-/** Mutate the currently selected node on the live valtio proxy. */
+/** 
+ * Mutate the currently selected node on the live valtio proxy. 
+ * @param fn - A function that mutates the node.
+ */
 export function patchSelectedNode(fn: (node: ToolMenuItem) => void) {
     const uid = toolsEditorStore.selectedUid;
     if (!uid) {
