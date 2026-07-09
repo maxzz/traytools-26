@@ -1,30 +1,16 @@
-import { useSnapshot } from "valtio";
 import { Folder, Minus, MousePointerClick, ShieldCheck, Terminal } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { effectiveRunElevated, getNode, isRootUid, nodeKind, toolsEditorStore, type CmdPlat, type CmdWhat, type ToolMenuItem } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
+import { effectiveRunElevated, nodeKind, type CmdPlat, type CmdWhat } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
+import { CommentField, Field } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-props-fields";
+import { SubmenuProps } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-submenu-props";
+import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/use-selected-node";
 import { Input } from "@/ui/shadcn/input";
-import { Label } from "@/ui/shadcn/label";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
-import { Textarea } from "@/ui/shadcn/textarea";
-
-// Apply a mutation to the selected node on the live valtio proxy. Dirty state is
-// recomputed automatically by the store subscriber. Reads use the snapshot so the
-// panel stays reactive.
-function patch(uid: string, fn: (node: ToolMenuItem) => void) {
-    const node = getNode(toolsEditorStore.config.menu, uid);
-    if (node) {
-        fn(node);
-    }
-}
 
 export function ToolsProps() {
-    const snap = useSnapshot(toolsEditorStore);
-    const uid = snap.selectedUid;
-
-    const node = uid ? getNode(snap.config.menu as unknown as ToolMenuItem, uid) : null;
-    const isRoot = isRootUid(uid);
+    const { uid, node } = useSelectedNode();
 
     if (!uid || !node) {
         return (
@@ -53,29 +39,11 @@ export function ToolsProps() {
                             <p className="text-muted-foreground">
                                 A separator draws a horizontal divider line in the menu.
                             </p>
-                            <CommentField uid={uid} value={node.comment ?? ""} />
+                            <CommentField />
                         </>
                     )}
 
-                    {kind === "submenu" && (
-                        <>
-                            <Field label="Name">
-                                <Input
-                                    value={node.menuName}
-                                    placeholder="Submenu name"
-                                    onChange={(e) => patch(uid, (n) => { n.menuName = e.target.value; })}
-                                />
-                            </Field>
-
-                            <CommentField uid={uid} value={node.comment ?? ""} />
-
-                            {isRoot && (
-                                <p className="text-muted-foreground">
-                                    This is the root of the Tools menu. New items are added inside it. It cannot be moved or deleted.
-                                </p>
-                            )}
-                        </>
-                    )}
+                    {kind === "submenu" && <SubmenuProps />}
 
                     {kind === "item" && (
                         <>
@@ -83,14 +51,14 @@ export function ToolsProps() {
                                 <Input
                                     value={node.menuName}
                                     placeholder="Menu label"
-                                    onChange={(e) => patch(uid, (n) => { n.menuName = e.target.value; })}
+                                    onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
                                 />
                             </Field>
 
                             <Field label="Type">
                                 <Select
                                     value={node.cmdWhat ?? "rel"}
-                                    onValueChange={(v) => patch(uid, (n) => { n.cmdWhat = v as CmdWhat; })}
+                                    onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue />
@@ -108,7 +76,7 @@ export function ToolsProps() {
                                     className="font-mono text-[0.72rem]"
                                     value={node.cmdLine ?? ""}
                                     placeholder={node.cmdWhat === "reg" ? "HKLM\\SOFTWARE\\..." : "notepad.exe or https://..."}
-                                    onChange={(e) => patch(uid, (n) => { n.cmdLine = e.target.value; })}
+                                    onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
                                 />
                             </Field>
 
@@ -117,7 +85,7 @@ export function ToolsProps() {
                                     className="font-mono text-[0.72rem]"
                                     value={node.cmdArgs ?? ""}
                                     placeholder="(optional)"
-                                    onChange={(e) => patch(uid, (n) => {
+                                    onChange={(e) => patchSelectedNode((n) => {
                                         const v = e.target.value;
                                         if (v) { n.cmdArgs = v; } else { delete n.cmdArgs; }
                                     })}
@@ -128,7 +96,7 @@ export function ToolsProps() {
                                 <Field label="Platform">
                                     <Select
                                         value={node.cmdPlat ?? "curr"}
-                                        onValueChange={(v) => patch(uid, (n) => {
+                                        onValueChange={(v) => patchSelectedNode((n) => {
                                             if (v === "curr") { delete n.cmdPlat; } else { n.cmdPlat = v as CmdPlat; }
                                         })}
                                     >
@@ -148,7 +116,7 @@ export function ToolsProps() {
                                     <Input
                                         value={node.hotKey ?? ""}
                                         placeholder="e.g. F4"
-                                        onChange={(e) => patch(uid, (n) => {
+                                        onChange={(e) => patchSelectedNode((n) => {
                                             const v = e.target.value;
                                             if (v) { n.hotKey = v; } else { delete n.hotKey; }
                                         })}
@@ -164,11 +132,11 @@ export function ToolsProps() {
                                 </div>
                                 <Switch
                                     checked={effectiveRunElevated(node)}
-                                    onCheckedChange={(checked) => patch(uid, (n) => { n.runElevated = checked; })}
+                                    onCheckedChange={(checked) => patchSelectedNode((n) => { n.runElevated = checked; })}
                                 />
                             </label>
 
-                            <CommentField uid={uid} value={node.comment ?? ""} />
+                            <CommentField />
                         </>
                     )}
                 </div>
@@ -193,26 +161,3 @@ function PanelHeader({ kind }: { kind?: "separator" | "submenu" | "item"; }) {
     );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode; }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <Label className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{label}</Label>
-            {children}
-        </div>
-    );
-}
-
-function CommentField({ uid, value }: { uid: string; value: string; }) {
-    return (
-        <Field label="Comment">
-            <Textarea
-                value={value}
-                placeholder="Optional note (saved in tools.json when non-empty)"
-                onChange={(e) => patch(uid, (n) => {
-                    const v = e.target.value;
-                    if (v.trim()) { n.comment = v; } else { delete n.comment; }
-                })}
-            />
-        </Field>
-    );
-}
