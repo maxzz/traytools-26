@@ -1,8 +1,7 @@
 import { Folder, Minus, MousePointerClick, ShieldCheck, Terminal } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { effectiveRunElevated, nodeKind, type CmdPlat, type CmdWhat } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
-import { CommentField, Field } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-2-props-fields";
-import { Props_Submenu } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
+import { CommentField, Field, Props_Submenu } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
 import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { Input } from "@/ui/shadcn/input";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
