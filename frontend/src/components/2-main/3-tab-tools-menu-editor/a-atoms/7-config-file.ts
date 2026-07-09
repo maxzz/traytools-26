@@ -1,33 +1,9 @@
 import { toolsBus } from "@/bridge";
 import type { ToolsConfig } from "./9-types-menu";
-import { STORAGE_ID, cloneConfig } from "./1-menu-local-storage";
+import { STORAGE_ID, cloneConfig, readCache, toolsEditorStore } from "./1-menu-local-storage";
 import { buildToolsFileText, extractRootComments, parseToolsJsonc } from "./7-json-support";
 import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
-import { setToolsConfig, toolsEditorStore } from "./0-menu-editor-atoms";
-
-export function readCache(): { config: ToolsConfig; rootComments: string; } | null {
-    try {
-        const stored = localStorage.getItem(STORAGE_ID);
-        if (stored) {
-            const parsed = JSON.parse(stored) as ToolsConfig | { config: ToolsConfig; rootComments?: string; };
-            // Legacy v1.0 cache: plain ToolsConfig JSON.
-            if (parsed && typeof parsed === "object" && "menu" in parsed) {
-                return { config: parsed as ToolsConfig, rootComments: "" };
-            }
-            if (parsed && typeof parsed === "object" && "config" in parsed && parsed.config?.menu) {
-                return { config: parsed.config, rootComments: parsed.rootComments ?? "" };
-            }
-        }
-        // Fall back to the previous cache key once.
-        const legacy = localStorage.getItem("traytools-26__tools__v1.0");
-        if (legacy) {
-            return { config: JSON.parse(legacy) as ToolsConfig, rootComments: "" };
-        }
-    } catch (e) {
-        console.error("Failed to read cached tools config", e);
-    }
-    return null;
-}
+import { setToolsConfig } from "./0-menu-editor-atoms";
 
 export function writeCache(config: ToolsConfig, rootComments: string) {
     try {

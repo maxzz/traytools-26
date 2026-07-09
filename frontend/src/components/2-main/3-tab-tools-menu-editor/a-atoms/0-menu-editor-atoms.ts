@@ -1,47 +1,9 @@
-import { proxy, subscribe } from "valtio";
-import { type NodeKind, type ToolMenuItem, type ToolsConfig } from "./9-types-menu";
-import { type ToolsEditorStore, type ToolsSource, cloneConfig } from "./1-menu-local-storage";
-import { readCache, writeCache } from "./7-config-file";
+import { subscribe } from "valtio";
+import { type NodeKind, type ToolMenuItem, type ToolsConfig, ensureUids, createNode } from "./9-types-menu";
+import { type ToolsSource, cloneConfig, toolsEditorStore } from "./1-menu-local-storage";
+import { writeCache } from "./7-config-file";
 import { buildToolsFileText, syncDirty } from "./7-json-support";
 import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
-
-// ---------------------------------------------------------------------------
-// Stable runtime ids
-//
-// Each node gets a `uid` used only by the editor (selection + drag-and-drop).
-// The uid is assigned lazily on load / create and stripped before saving.
-
-let uidCounter = 0;
-
-export function newUid(): string {
-    uidCounter += 1;
-    return `n${uidCounter}`;
-}
-
-function ensureUids(node: ToolMenuItem) {
-    if (!node.uid) {
-        node.uid = newUid();
-    }
-    node.menuItems?.forEach(ensureUids);
-}
-
-const cached = readCache();
-const initialConfig = cached?.config ?? cloneConfig(DEFAULT_TOOLS_CONFIG);
-ensureUids(initialConfig.menu);
-const initialRootComments = cached?.rootComments ?? "";
-
-export const toolsEditorStore = proxy<ToolsEditorStore>({
-    config: initialConfig,
-    source: cached ? "storage" : "default",
-    path: "",
-    baseline: buildToolsFileText(initialConfig, initialRootComments),
-    rootComments: initialRootComments,
-    fileExists: false,
-    dirty: true, // no on-disk file yet — unsaved until first save
-    status: "",
-    error: "",
-    selectedUid: null,
-});
 
 // Persist edits to localStorage so a loaded config survives a restart even when
 // the file later goes missing. Recompute dirty on every config change so edits
@@ -119,22 +81,6 @@ export function getNode(root: ToolMenuItem, uid: string): ToolMenuItem | null {
         return root;
     }
     return findByUid(root, uid)?.node ?? null;
-}
-
-function newItem(): ToolMenuItem {
-    return { uid: newUid(), menuName: "New Command", cmdLine: "", cmdWhat: "abs" };
-}
-
-function newSubmenu(): ToolMenuItem {
-    return { uid: newUid(), menuName: "New Submenu", menuItems: [] };
-}
-
-function newSeparator(): ToolMenuItem {
-    return { uid: newUid(), menuName: "-" };
-}
-
-export function createNode(kind: NodeKind): ToolMenuItem {
-    return kind === "submenu" ? newSubmenu() : kind === "separator" ? newSeparator() : newItem();
 }
 
 // Add a node. If a node is currently selected, the new node is inserted as a

@@ -58,3 +58,38 @@ export function effectiveRunElevated(node: Pick<ToolMenuItem, "cmdWhat" | "runEl
 export interface ToolsConfig {
     menu: ToolMenuItem;
 }
+// ---------------------------------------------------------------------------
+// Stable runtime ids
+//
+// Each node gets a `uid` used only by the editor (selection + drag-and-drop).
+// The uid is assigned lazily on load / create and stripped before saving.
+
+let uidCounter = 0;
+
+function newUid(): string {
+    uidCounter += 1;
+    return `n${uidCounter}`;
+}
+
+export function ensureUids(node: ToolMenuItem) {
+    if (!node.uid) {
+        node.uid = newUid();
+    }
+    node.menuItems?.forEach(ensureUids);
+}
+
+function newItem(): ToolMenuItem {
+    return { uid: newUid(), menuName: "New Command", cmdLine: "", cmdWhat: "abs" };
+}
+
+function newSubmenu(): ToolMenuItem {
+    return { uid: newUid(), menuName: "New Submenu", menuItems: [] };
+}
+
+function newSeparator(): ToolMenuItem {
+    return { uid: newUid(), menuName: "-" };
+}
+
+export function createNode(kind: NodeKind): ToolMenuItem {
+    return kind === "submenu" ? newSubmenu() : kind === "separator" ? newSeparator() : newItem();
+}

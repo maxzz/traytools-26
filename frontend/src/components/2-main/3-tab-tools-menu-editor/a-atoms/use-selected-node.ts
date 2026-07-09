@@ -1,6 +1,7 @@
 import { useSnapshot } from "valtio";
 import { type ToolMenuItem } from "./9-types-menu";
-import { getNode, isRootUid, toolsEditorStore } from "./0-menu-editor-atoms";
+import { getNode, isRootUid } from "./0-menu-editor-atoms";
+import { toolsEditorStore } from "./1-menu-local-storage";
 
 export function useSelectedNode() {
     const snap = useSnapshot(toolsEditorStore);
