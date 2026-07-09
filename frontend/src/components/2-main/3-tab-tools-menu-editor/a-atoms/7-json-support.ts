@@ -1,5 +1,4 @@
-import { defaultRunElevated, type ToolMenuItem, type ToolsConfig } from "./9-types-menu";
-import type { ToolsEditorStore } from "./1-menu-local-storage";
+import { defaultRunElevated, type ToolMenuItem, type ToolsConfig, type ToolsEditorStore } from "./9-types-menu";
 
 // Serialize the config object to JSON (4-space indent). Does not include the
 // root-object JSONC header comments — use buildToolsFileText for the full file.

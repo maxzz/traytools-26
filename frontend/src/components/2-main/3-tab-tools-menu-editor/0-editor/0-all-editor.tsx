@@ -4,7 +4,7 @@ import { type Layout } from "react-resizable-panels";
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
-import { loadToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/7-config-file";
+import { loadToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/1-menu-local-storage";
 import { Panel_Tree } from "./2-0-panel-tree";
 import { Panel_Props } from "./3-0-panel-props";
 import { TopBar } from "./1-1-top-bar";

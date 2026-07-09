@@ -1,7 +1,6 @@
 import { subscribe } from "valtio";
-import { type NodeKind, type ToolMenuItem, type ToolsConfig, ensureUids, createNode } from "./9-types-menu";
-import { type ToolsSource, cloneConfig, toolsEditorStore } from "./1-menu-local-storage";
-import { writeCache } from "./7-config-file";
+import { type NodeKind, type ToolMenuItem, type ToolsConfig, type ToolsSource, ensureUids, createNode } from "./9-types-menu";
+import { cloneConfig, toolsEditorStore, writeCache } from "./1-menu-local-storage";
 import { buildToolsFileText, syncDirty } from "./7-json-support";
 import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
 
