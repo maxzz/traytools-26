@@ -1,7 +1,8 @@
 import { proxy, subscribe } from "valtio";
 import { toolsBus } from "@/bridge";
 import { type ToolsConfig, type ToolsEditorStore, type ToolsSource, ensureUids, findByUid } from "./9-types-menu";
-import { buildToolsFileText, extractRootComments, parseToolsJsonc, syncDirty } from "./7-json-support";
+import { buildToolsFileText, syncDirty } from "./7-json-support";
+import { extractRootComments, parseToolsJsonc } from "./7-json-parse";
 import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
 
 // ---------------------------------------------------------------------------
