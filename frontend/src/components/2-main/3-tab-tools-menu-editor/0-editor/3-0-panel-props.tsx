@@ -1,8 +1,8 @@
 import { Folder, Minus, MousePointerClick, Terminal } from "lucide-react";
-import { nodeKind, type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
-import { Props_Item, Props_Separator, Props_Submenu } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
-import { useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
+import { type NodeKind, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
+import { Props_Item, Props_Separator, Props_Submenu } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
 
 export function Panel_Props() {
     const { uid, node } = useSelectedNode();

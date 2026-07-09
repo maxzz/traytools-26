@@ -1,6 +1,6 @@
 import { useSnapshot } from "valtio";
 import { AlertTriangle, RotateCcw, RefreshCw, Save } from "lucide-react";
-import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
+import { loadToolsConfig, resetToDefaults, saveToolsConfig, toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-editor-atoms";
 import { Button } from "@/ui/shadcn/button";
 
 export function TopBar() {

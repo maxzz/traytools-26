@@ -1,11 +1,11 @@
 import { ShieldCheck } from "lucide-react";
-import { effectiveRunElevated, type CmdPlat, type CmdWhat } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
-import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
+import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
+import { type CmdPlat, type CmdWhat, effectiveRunElevated } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 
 function Field({ label, children }: { label: string; children: React.ReactNode; }) {
     return (

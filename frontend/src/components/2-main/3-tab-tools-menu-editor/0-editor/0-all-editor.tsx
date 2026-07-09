@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSnapshot } from "valtio";
 import { type Layout } from "react-resizable-panels";
-import { loadToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
+import { loadToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-editor-atoms";
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";

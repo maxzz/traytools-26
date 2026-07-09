@@ -1,9 +1,10 @@
-import type { ComponentProps } from "react";
+import { type ComponentProps } from "react";
 import { useSnapshot } from "valtio";
 import { Menu, Minus, Plus, SquarePlus, Trash2 } from "lucide-react";
-import { addNode, isRootUid, removeNode, toolsEditorStore, type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/a-menu-editor-atoms";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { addNode, isRootUid, removeNode, toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-editor-atoms";
 
 export function TreeViewMenu(props: ComponentProps<typeof Button>) {
     const { selectedUid } = useSnapshot(toolsEditorStore);
