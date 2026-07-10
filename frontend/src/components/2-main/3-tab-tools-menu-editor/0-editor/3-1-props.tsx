@@ -7,34 +7,6 @@ import { Textarea } from "@/ui/shadcn/textarea";
 import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type CmdPlat, type CmdWhat, effectiveRunElevated } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 
-function Field({ label, children }: { label: string; children: React.ReactNode; }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <Label className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{label}</Label>
-            {children}
-        </div>
-    );
-}
-
-export function CommentField() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
-    return (
-        <Field label="Comment">
-            <Textarea
-                value={node.comment ?? ""}
-                onChange={(e) => patchSelectedNode((n) => {
-                    const v = e.target.value;
-                    if (v.trim()) { n.comment = v; } else { delete n.comment; }
-                })}
-            />
-        </Field>
-    );
-}
-
 export function Props_Separator() {
     return (<>
         <p className="text-muted-foreground">
@@ -51,13 +23,13 @@ export function Props_Submenu() {
     }
 
     return (<>
-        <Field label="Name">
+        <LabelAndField label="Name">
             <Input
                 value={node.menuName}
                 placeholder="Submenu name"
                 onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
             />
-        </Field>
+        </LabelAndField>
 
         <CommentField />
 
@@ -76,13 +48,13 @@ export function Props_Item() {
     }
 
     return (<>
-        <Field label="Name">
+        <LabelAndField label="Name">
             <Input
                 value={node.menuName}
                 placeholder="Menu label"
                 onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
             />
-        </Field>
+        </LabelAndField>
 
         <CmdWhatField />
         <CmdLineField />
@@ -99,6 +71,37 @@ export function Props_Item() {
     </>);
 }
 
+// --------------------------------------------------------------------------
+// Fields
+
+function LabelAndField({ label, children }: { label: string; children: React.ReactNode; }) {
+    return (
+        <div className="flex flex-col gap-1">
+            <Label className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{label}</Label>
+            {children}
+        </div>
+    );
+}
+
+function CommentField() {
+    const { node } = useSelectedNode();
+    if (!node) {
+        return null;
+    }
+
+    return (
+        <LabelAndField label="Comment">
+            <Textarea
+                value={node.comment ?? ""}
+                onChange={(e) => patchSelectedNode((n) => {
+                    const v = e.target.value;
+                    if (v.trim()) { n.comment = v; } else { delete n.comment; }
+                })}
+            />
+        </LabelAndField>
+    );
+}
+
 function CmdWhatField() {
     const { node } = useSelectedNode();
     if (!node) {
@@ -106,7 +109,7 @@ function CmdWhatField() {
     }
 
     return (
-        <Field label="Type">
+        <LabelAndField label="Type">
             <Select
                 value={node.cmdWhat ?? "rel"}
                 onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}
@@ -120,7 +123,7 @@ function CmdWhatField() {
                     <SelectItem value="reg">Registry key</SelectItem>
                 </SelectContent>
             </Select>
-        </Field>
+        </LabelAndField>
     );
 }
 
@@ -131,14 +134,14 @@ function CmdLineField() {
     }
 
     return (
-        <Field label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
+        <LabelAndField label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
             <Input
                 className="font-mono text-[0.72rem]"
                 value={node.cmdLine ?? ""}
                 placeholder={node.cmdWhat === "reg" ? "HKLM\\SOFTWARE\\..." : "notepad.exe or https://..."}
                 onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
             />
-        </Field>
+        </LabelAndField>
     );
 }
 
@@ -149,7 +152,7 @@ function CmdArgsField() {
     }
 
     return (
-        <Field label="Arguments">
+        <LabelAndField label="Arguments">
             <Input
                 className="font-mono text-[0.72rem]"
                 value={node.cmdArgs ?? ""}
@@ -159,7 +162,7 @@ function CmdArgsField() {
                     if (v) { n.cmdArgs = v; } else { delete n.cmdArgs; }
                 })}
             />
-        </Field>
+        </LabelAndField>
     );
 }
 
@@ -170,7 +173,7 @@ function CmdPlatField() {
     }
 
     return (
-        <Field label="Platform">
+        <LabelAndField label="Platform">
             <Select
                 value={node.cmdPlat ?? "curr"}
                 onValueChange={(v) => patchSelectedNode((n) => {
@@ -187,7 +190,7 @@ function CmdPlatField() {
                     <SelectItem value="both">Both</SelectItem>
                 </SelectContent>
             </Select>
-        </Field>
+        </LabelAndField>
     );
 }
 
@@ -198,7 +201,7 @@ function HotKeyField() {
     }
 
     return (
-        <Field label="Hotkey">
+        <LabelAndField label="Hotkey">
             <Input
                 value={node.hotKey ?? ""}
                 placeholder="e.g. F4"
@@ -207,7 +210,7 @@ function HotKeyField() {
                     if (v) { n.hotKey = v; } else { delete n.hotKey; }
                 })}
             />
-        </Field>
+        </LabelAndField>
     );
 }
 
