@@ -186,7 +186,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                             isSubmenu
                                 ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
                                 : isRegistry
-                                    ? ""
+                                    ? "opacity-70"
                                     : "text-foreground/70 fill-foreground/10!",
                         )} />
                     )}
