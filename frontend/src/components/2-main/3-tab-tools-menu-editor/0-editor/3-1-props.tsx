@@ -123,7 +123,7 @@ function Field_Comment({ node }: NodeProps) {
     return (
         <div className="-mt-1 flex flex-col gap-0.5">
             <Label
-                className="pl-1 text-[0.65rem] cursor-pointer select-none inline-flex items-center gap-px"
+                className="pl-1 text-[0.65rem] select-none inline-flex items-center gap-px cursor-pointer"
                 onClick={() => setOpen((v) => !v)}
             >
                 Comment
@@ -173,7 +173,7 @@ function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
                         </TooltipTrigger>
 
                         <TooltipContent side="top" className="max-w-64">
-                            <div className="flex flex-col gap-1.5 text-xs">
+                            <div className="text-xs flex flex-col gap-1.5">
                                 <p><strong>Relative</strong> — path relative to the folder containing tools.json.</p>
                                 <p><strong>Absolute</strong> — full path or program name, used as-is after env-var expansion.</p>
                                 <p><strong>URL</strong> — web link; use Absolute with a scheme:// address (e.g. https://…).</p>
@@ -239,7 +239,7 @@ function Field_CmdPlatform({ node }: NodeProps) {
                         </TooltipTrigger>
 
                         <TooltipContent side="top" className="max-w-64">
-                            <div className="flex flex-col gap-1.5 text-xs">
+                            <div className="text-xs flex flex-col gap-1.5">
                                 <p><strong>Current</strong> — use the default registry view for this OS.</p>
                                 <p><strong>32-bit</strong> — prefer the 32-bit (WOW6432Node) registry view.</p>
                                 <p><strong>64-bit</strong> — prefer the 64-bit registry view.</p>
@@ -251,7 +251,7 @@ function Field_CmdPlatform({ node }: NodeProps) {
             )}
         >
             <Select value={node.cmdPlat ?? "curr"} onValueChange={(v) => patchSelectedNode((n) => { if (v === "curr") { delete n.cmdPlat; } else { n.cmdPlat = v as CmdPlat; } })}>
-                <SelectTrigger className="w-full text-[0.72rem] min-w-20">
+                <SelectTrigger className="w-full min-w-20 text-[0.72rem]">
                     <SelectValue />
                 </SelectTrigger>
 
@@ -302,7 +302,7 @@ function Field_RunElevated({ node }: NodeProps) {
                 </TooltipProvider>
             )}
         >
-            <div className="flex items-center px-2 min-w-20 h-8 rounded-sm border border-input bg-transparent">
+            <div className="px-2 min-w-20 h-8 bg-transparent border border-input rounded-sm flex items-center">
                 <Switch
                     className="mx-auto scale-70"
                     checked={effectiveRunElevated(node)}
