@@ -47,7 +47,7 @@ export function Props_Separator({ node }: NodeProps) {
         <p className="text-muted-foreground">
             A separator draws a horizontal divider line in the menu.
         </p>
-        
+
         <Field_Comment node={node} />
     </>);
 }
@@ -57,8 +57,8 @@ export function Props_Separator({ node }: NodeProps) {
 
 function LabelAndField({ label, children }: { label: string; children: React.ReactNode; }) {
     return (
-        <div className="flex flex-col gap-1">
-            <Label className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{label}</Label>
+        <div className="flex flex-col gap-0.5">
+            <Label className="text-[0.65rem]">{label}</Label>
             {children}
         </div>
     );
@@ -80,6 +80,8 @@ function Field_Comment({ node }: NodeProps) {
     return (
         <LabelAndField label="Comment">
             <Textarea
+                rows={1}
+                className="min-h-4 rounded-sm resize-none"
                 value={node.comment ?? ""}
                 onChange={(e) => patchSelectedNode((n) => {
                     const v = e.target.value;
