@@ -1,4 +1,4 @@
-import { type HTMLAttributes, type SVGAttributes } from "react";
+import { type HTMLAttributes, type SVGAttributes } from "react"; //https://en.wikipedia.org/wiki/File:Windows_11_registry_editor_icon.svg
 import { classNames } from "@/utils";
 
 export function SvgSymbolAppRegedit() { // Windows Registry Editor
