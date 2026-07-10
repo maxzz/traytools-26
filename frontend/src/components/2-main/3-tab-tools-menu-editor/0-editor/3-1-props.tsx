@@ -227,16 +227,34 @@ function Field_CmdArgs({ node }: NodeProps) {
 
 function Field_CmdPlatform({ node }: NodeProps) {
     return (
-        <LabelAndField label="Platform">
-            <Select
-                value={node.cmdPlat ?? "curr"}
-                onValueChange={(v) => patchSelectedNode((n) => {
-                    if (v === "curr") { delete n.cmdPlat; } else { n.cmdPlat = v as CmdPlat; }
-                })}
-            >
-                <SelectTrigger className="w-full">
+        <LabelAndField
+            label="Platform"
+            labelHint={(
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button className="ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center" aria-label="Platform help" type="button">
+                                <Info className="size-2.5" />
+                            </button>
+                        </TooltipTrigger>
+
+                        <TooltipContent side="top" className="max-w-64">
+                            <div className="flex flex-col gap-1.5 text-xs">
+                                <p><strong>Current</strong> — use the default registry view for this OS.</p>
+                                <p><strong>32-bit</strong> — prefer the 32-bit (WOW6432Node) registry view.</p>
+                                <p><strong>64-bit</strong> — prefer the 64-bit registry view.</p>
+                                <p><strong>Both</strong> — for keys that may exist in either view.</p>
+                            </div>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )}
+        >
+            <Select value={node.cmdPlat ?? "curr"} onValueChange={(v) => patchSelectedNode((n) => { if (v === "curr") { delete n.cmdPlat; } else { n.cmdPlat = v as CmdPlat; } })}>
+                <SelectTrigger className="w-full text-[0.72rem] min-w-20">
                     <SelectValue />
                 </SelectTrigger>
+
                 <SelectContent>
                     <SelectItem value="curr">Current</SelectItem>
                     <SelectItem value="32">32-bit</SelectItem>
