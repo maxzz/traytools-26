@@ -34,12 +34,13 @@ export function Props_Item({ node }: NodeProps) {
 
 function Props_CommandItem({ node }: NodeProps) {
     return (<>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-[1fr_auto] gap-3">
             <Field_MenuName node={node} />
             <Field_HotKey node={node} />
         </div>
         <Field_Comment node={node} />
-        <div className="grid grid-cols-2 gap-3">
+
+        <div className="grid grid-cols-[1fr_auto] gap-3">
             <Field_CmdLine node={node} />
             <Field_PathAbsoluteOrRelative node={node} />
             <Field_RunElevated node={node} />
@@ -50,13 +51,16 @@ function Props_CommandItem({ node }: NodeProps) {
 
 function Props_RegistryItem({ node }: NodeProps) {
     return (<>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-[1fr_auto] gap-3">
             <Field_MenuName node={node} />
             <Field_HotKey node={node} />
         </div>
         <Field_Comment node={node} />
-        <Field_CmdLine node={node} />
-        <Field_CmdPlatform node={node} />
+        
+        <div className="grid grid-cols-[1fr_auto] gap-3">
+            <Field_CmdLine node={node} />
+            <Field_CmdPlatform node={node} />
+        </div>
     </>);
 }
 
