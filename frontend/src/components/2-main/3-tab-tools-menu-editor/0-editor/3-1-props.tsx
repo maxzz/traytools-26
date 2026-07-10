@@ -10,7 +10,17 @@ import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, is
 
 type NodeProps = { node: ToolMenuItem; };
 
-export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
+export function PropsFor_Separator({ node }: NodeProps) {
+    return (<>
+        <p className="text-muted-foreground">
+            A separator draws a horizontal divider line in the menu.
+        </p>
+
+        <Field_Comment node={node} />
+    </>);
+}
+
+export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
         <Field_MenuName node={node} isSubmenu />
 
@@ -24,15 +34,15 @@ export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; 
     </>);
 }
 
-export function Props_Item({ node }: NodeProps) {
+export function PropsFor_Item({ node }: NodeProps) {
     return (
         isRegistryPath(node)
-            ? <Props_RegistryItem node={node} />
-            : <Props_CommandItem node={node} />
+            ? <PropsAs_RegistryItem node={node} />
+            : <PropsAs_CommandItem node={node} />
     );
 }
 
-function Props_CommandItem({ node }: NodeProps) {
+function PropsAs_CommandItem({ node }: NodeProps) {
     return (<>
         <div className="grid grid-cols-[1fr_auto] gap-3">
             <Field_MenuName node={node} />
@@ -41,7 +51,7 @@ function Props_CommandItem({ node }: NodeProps) {
         <Field_Comment node={node} />
 
         <div className="grid grid-cols-[1fr_auto] gap-3">
-            <Field_CmdLine node={node} />
+            <Field_CmdLineOrRegistryPath node={node} />
             <Field_PathAbsoluteOrRelative node={node} />
             <Field_RunElevated node={node} />
         </div>
@@ -49,28 +59,18 @@ function Props_CommandItem({ node }: NodeProps) {
     </>);
 }
 
-function Props_RegistryItem({ node }: NodeProps) {
+function PropsAs_RegistryItem({ node }: NodeProps) {
     return (<>
         <div className="grid grid-cols-[1fr_auto] gap-3">
             <Field_MenuName node={node} />
             <Field_HotKey node={node} />
         </div>
         <Field_Comment node={node} />
-        
+
         <div className="grid grid-cols-[1fr_auto] gap-3">
-            <Field_CmdLine node={node} />
+            <Field_CmdLineOrRegistryPath node={node} />
             <Field_CmdPlatform node={node} />
         </div>
-    </>);
-}
-
-export function Props_Separator({ node }: NodeProps) {
-    return (<>
-        <p className="text-muted-foreground">
-            A separator draws a horizontal divider line in the menu.
-        </p>
-
-        <Field_Comment node={node} />
     </>);
 }
 
@@ -130,7 +130,7 @@ function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
     );
 }
 
-function Field_CmdLine({ node }: NodeProps) {
+function Field_CmdLineOrRegistryPath({ node }: NodeProps) {
     return (
         <LabelAndField label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
             <Input

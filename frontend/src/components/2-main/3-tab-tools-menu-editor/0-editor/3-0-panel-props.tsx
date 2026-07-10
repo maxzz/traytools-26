@@ -2,7 +2,7 @@ import { MousePointerClick } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { type NodeKind, type ToolMenuItem, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 import { useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
-import { Props_Item, Props_Separator, Props_Submenu } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
+import { PropsFor_Item, PropsFor_Separator, PropsFor_Submenu } from "@/components/2-main/3-tab-tools-menu-editor/0-editor/3-1-props";
 
 export function Panel_Props() {
     const { uid, node, isRoot } = useSelectedNode();
@@ -28,9 +28,9 @@ function PropsByKind({ node, isRoot }: { node?: ToolMenuItem | null; isRoot: boo
 }
 
 const PROPS_BY_KIND = {
-    separator: Props_Separator,
-    submenu: Props_Submenu,
-    item: Props_Item,
+    separator: PropsFor_Separator,
+    submenu: PropsFor_Submenu,
+    item: PropsFor_Item,
 } satisfies Record<NodeKind, React.ComponentType<{ node: ToolMenuItem; isRoot?: boolean; }>>;
 
 function NoSelectionView() {
