@@ -34,23 +34,29 @@ export function Props_Item({ node }: NodeProps) {
 
 function Props_CommandItem({ node }: NodeProps) {
     return (<>
-        <Field_MenuName node={node} />
+        <div className="grid grid-cols-2 gap-3">
+            <Field_MenuName node={node} />
+            <Field_HotKey node={node} />
+        </div>
         <Field_Comment node={node} />
-        <Field_PathAbsoluteOrRelative node={node} />
-        <Field_CmdLine node={node} />
+        <div className="grid grid-cols-2 gap-3">
+            <Field_CmdLine node={node} />
+            <Field_PathAbsoluteOrRelative node={node} />
+            <Field_RunElevated node={node} />
+        </div>
         <Field_CmdArgs node={node} />
-        <Field_HotKey node={node} />
-        <Field_RunElevated node={node} />
     </>);
 }
 
 function Props_RegistryItem({ node }: NodeProps) {
     return (<>
-        <Field_MenuName node={node} />
+        <div className="grid grid-cols-2 gap-3">
+            <Field_MenuName node={node} />
+            <Field_HotKey node={node} />
+        </div>
         <Field_Comment node={node} />
         <Field_CmdLine node={node} />
         <Field_CmdPlatform node={node} />
-        <Field_HotKey node={node} />
     </>);
 }
 
@@ -67,7 +73,7 @@ export function Props_Separator({ node }: NodeProps) {
 // --------------------------------------------------------------------------
 // Fields
 
-function LabelAndField({ label, children, ...props }: { label: string;} & ComponentProps<"div">) {
+function LabelAndField({ label, children, ...props }: { label: string; } & ComponentProps<"div">) {
     return (
         <div className="flex flex-col gap-0.5" {...props}>
             <Label className="pl-1 text-[0.65rem]">{label}</Label>
