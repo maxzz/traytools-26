@@ -1,4 +1,4 @@
-import { Folder, Minus, MousePointerClick, Terminal } from "lucide-react";
+import { MousePointerClick } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { type NodeKind, type ToolMenuItem, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 import { useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
@@ -32,24 +32,6 @@ const PROPS_BY_KIND = {
     submenu: Props_Submenu,
     item: Props_Item,
 } satisfies Record<NodeKind, React.ComponentType<{ node: ToolMenuItem; isRoot?: boolean; }>>;
-
-function FieldTypeIcon({ node }: { node: ToolMenuItem; }) {
-    const kind = nodeKind(node);
-    const label =
-        kind === "submenu"
-            ? "Submenu"
-            : kind === "separator"
-                ? "Separator"
-                : kind === "item"
-                    ? "Command"
-                    : "Properties";
-    const Icon = kind === "submenu" ? Folder : kind === "separator" ? Minus : Terminal;
-    return (
-        <span className={"ml-auto px-1.5 py-0.5 text-[0.65rem] text-muted-foreground bg-muted rounded inline-flex items-center gap-1"}>
-            <Icon className="size-3" /> {label}
-        </span>
-    );
-}
 
 function NoSelectionView() {
     return (

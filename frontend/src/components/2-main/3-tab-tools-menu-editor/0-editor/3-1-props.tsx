@@ -1,19 +1,19 @@
-import { ShieldCheck } from "lucide-react";
+import { Folder, Minus, ShieldCheck, Terminal } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { patchSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
-import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 
 type NodeProps = { node: ToolMenuItem; };
 
 export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
-        <MenuNameField node={node} placeholder="Submenu name" />
+        <Field_MenuName node={node} placeholder="Submenu name" />
 
-        <CommentField node={node} />
+        <Field_Comment node={node} />
 
         {isRoot && (
             <p className="text-muted-foreground">
@@ -25,20 +25,20 @@ export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; 
 
 export function Props_Item({ node }: NodeProps) {
     return (<>
-        <MenuNameField node={node} placeholder="Menu label" />
+        <Field_MenuName node={node} placeholder="Menu label" />
 
-        <CmdWhatField node={node} />
-        <CmdLineField node={node} />
-        <CmdArgsField node={node} />
+        <Field_CmdWhat node={node} />
+        <Field_CmdLine node={node} />
+        <Field_CmdArgs node={node} />
 
         <div className="grid grid-cols-2 gap-3">
-            <CmdPlatField node={node} />
-            <HotKeyField node={node} />
+            <Field_CmdPlatform node={node} />
+            <Field_HotKey node={node} />
         </div>
 
-        <RunElevatedField node={node} />
+        <Field_RunElevated node={node} />
 
-        <CommentField node={node} />
+        <Field_Comment node={node} />
     </>);
 }
 
@@ -48,7 +48,7 @@ export function Props_Separator({ node }: NodeProps) {
             A separator draws a horizontal divider line in the menu.
         </p>
         
-        <CommentField node={node} />
+        <Field_Comment node={node} />
     </>);
 }
 
@@ -64,7 +64,7 @@ function LabelAndField({ label, children }: { label: string; children: React.Rea
     );
 }
 
-function MenuNameField({ node, placeholder }: NodeProps & { placeholder: string; }) {
+function Field_MenuName({ node, placeholder }: NodeProps & { placeholder: string; }) {
     return (
         <LabelAndField label="Name">
             <Input
@@ -76,7 +76,7 @@ function MenuNameField({ node, placeholder }: NodeProps & { placeholder: string;
     );
 }
 
-function CommentField({ node }: NodeProps) {
+function Field_Comment({ node }: NodeProps) {
     return (
         <LabelAndField label="Comment">
             <Textarea
@@ -90,7 +90,7 @@ function CommentField({ node }: NodeProps) {
     );
 }
 
-function CmdWhatField({ node }: NodeProps) {
+function Field_CmdWhat({ node }: NodeProps) {
     return (
         <LabelAndField label="Type">
             <Select
@@ -110,7 +110,7 @@ function CmdWhatField({ node }: NodeProps) {
     );
 }
 
-function CmdLineField({ node }: NodeProps) {
+function Field_CmdLine({ node }: NodeProps) {
     return (
         <LabelAndField label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
             <Input
@@ -123,7 +123,7 @@ function CmdLineField({ node }: NodeProps) {
     );
 }
 
-function CmdArgsField({ node }: NodeProps) {
+function Field_CmdArgs({ node }: NodeProps) {
     return (
         <LabelAndField label="Arguments">
             <Input
@@ -139,7 +139,7 @@ function CmdArgsField({ node }: NodeProps) {
     );
 }
 
-function CmdPlatField({ node }: NodeProps) {
+function Field_CmdPlatform({ node }: NodeProps) {
     return (
         <LabelAndField label="Platform">
             <Select
@@ -162,7 +162,7 @@ function CmdPlatField({ node }: NodeProps) {
     );
 }
 
-function HotKeyField({ node }: NodeProps) {
+function Field_HotKey({ node }: NodeProps) {
     return (
         <LabelAndField label="Hotkey">
             <Input
@@ -177,7 +177,7 @@ function HotKeyField({ node }: NodeProps) {
     );
 }
 
-function RunElevatedField({ node }: NodeProps) {
+function Field_RunElevated({ node }: NodeProps) {
     return (
         <label className="mt-1 px-2.5 py-2 bg-muted/40 border rounded-md flex items-center gap-2 cursor-pointer">
             <ShieldCheck className="size-4 text-muted-foreground" />
@@ -190,5 +190,23 @@ function RunElevatedField({ node }: NodeProps) {
                 onCheckedChange={(checked) => patchSelectedNode((n) => { n.runElevated = checked; })}
             />
         </label>
+    );
+}
+
+function Field_TypeIcon({ node }: { node: ToolMenuItem; }) {
+    const kind = nodeKind(node);
+    const label =
+        kind === "submenu"
+            ? "Submenu"
+            : kind === "separator"
+                ? "Separator"
+                : kind === "item"
+                    ? "Command"
+                    : "Properties";
+    const Icon = kind === "submenu" ? Folder : kind === "separator" ? Minus : Terminal;
+    return (
+        <span className={"ml-auto px-1.5 py-0.5 text-[0.65rem] text-muted-foreground bg-muted rounded inline-flex items-center gap-1"}>
+            <Icon className="size-3" /> {label}
+        </span>
     );
 }
