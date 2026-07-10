@@ -9,7 +9,6 @@
     //   - "cmdWhat":          "rel" (default) | "abs" | "reg".
     //   - "cmdPlat":          "curr" (default) | "32" | "64" | "both".
     //   - Relative paths are resolved against the folder holding this file.
-
     "menu": {
         "menuName": "Tools",
         "menuItems": [

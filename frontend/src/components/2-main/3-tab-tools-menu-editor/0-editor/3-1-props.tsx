@@ -1,5 +1,6 @@
-import type { ComponentProps } from "react";
+import { type ComponentProps, useEffect, useState } from "react";
 import { Folder, ShieldCheck } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
@@ -108,18 +109,42 @@ function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; 
 }
 
 function Field_Comment({ node }: NodeProps) {
+    const hasComment = !!(node.comment?.trim());
+    const [open, setOpen] = useState(hasComment);
+
+    useEffect(() => {
+        setOpen(hasComment);
+    }, [hasComment]);
+
     return (
-        <LabelAndField className="-mt-1" label="Comment">
-            <Textarea
-                // rows={1}
-                className="px-3 py-2 min-h-6 rounded-sm resize-none"
-                value={node.comment ?? ""}
-                onChange={(e) => patchSelectedNode((n) => {
-                    const v = e.target.value;
-                    if (v.trim()) { n.comment = v; } else { delete n.comment; }
-                })}
-            />
-        </LabelAndField>
+        <div className="-mt-1 flex flex-col gap-0.5">
+            <Label
+                className="pl-1 text-[0.65rem] cursor-pointer select-none"
+                onClick={() => setOpen(true)}
+            >
+                Comment
+            </Label>
+            <AnimatePresence initial={false}>
+                {open && (
+                    <motion.div
+                        animate={{ height: "auto", opacity: 1 }}
+                        className="overflow-hidden"
+                        exit={{ height: 0, opacity: 0 }}
+                        initial={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
+                        <Textarea
+                            className="px-3 py-2 min-h-6 rounded-sm resize-none"
+                            value={node.comment ?? ""}
+                            onChange={(e) => patchSelectedNode((n) => {
+                                const v = e.target.value;
+                                if (v.trim()) { n.comment = v; } else { delete n.comment; }
+                            })}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 }
 
