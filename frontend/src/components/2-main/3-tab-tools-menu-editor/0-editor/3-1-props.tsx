@@ -120,7 +120,7 @@ function Field_Comment({ node }: NodeProps) {
         <div className="-mt-1 flex flex-col gap-0.5">
             <Label
                 className="pl-1 text-[0.65rem] cursor-pointer select-none"
-                onClick={() => setOpen(true)}
+                onClick={() => setOpen((v) => !v)}
             >
                 Comment
             </Label>
