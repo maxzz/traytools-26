@@ -11,21 +11,19 @@ export function Panel_Props() {
         <div className="min-h-0 h-full flex flex-col">
             <PanelHeader node={node} />
 
-            {!uid || !node
-                ? <NoSelectionView />
-                : (
-                    <ScrollArea className="flex-1 min-h-0">
-                        <div className="p-3 flex flex-col gap-3">
-                            <PropsByKind node={node} isRoot={isRoot} />
-                        </div>
-                    </ScrollArea>
-                )
-            }
+            <ScrollArea className="flex-1 min-h-0" fullHeight>
+                <div className="p-3 h-full flex flex-col gap-3">
+                    <PropsByKind node={node} isRoot={isRoot} />
+                </div>
+            </ScrollArea>
         </div>
     );
 }
 
-function PropsByKind({ node, isRoot }: { node: ToolMenuItem; isRoot: boolean; }) {
+function PropsByKind({ node, isRoot }: { node?: ToolMenuItem | null; isRoot: boolean; }) {
+    if (!node) {
+        return <NoSelectionView />;
+    }
     const kind = nodeKind(node);
     const Component = PROPS_BY_KIND[kind];
     return <Component node={node} isRoot={isRoot} />;
@@ -69,7 +67,7 @@ function PanelHeader({ node }: { node?: ToolMenuItem | null; }) {
 
 function NoSelectionView() {
     return (
-        <div className="flex-1 p-6 min-h-0 text-center text-muted-foreground flex items-center justify-center">
+        <div className="flex-1 p-6 h-full min-h-0 text-center text-muted-foreground flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
                 <MousePointerClick className="size-6 opacity-50" />
                 <span>
