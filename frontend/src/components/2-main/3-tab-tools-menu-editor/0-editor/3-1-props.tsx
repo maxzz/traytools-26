@@ -24,23 +24,32 @@ export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; 
 }
 
 export function Props_Item({ node }: NodeProps) {
-    const registry = isRegistryPath(node);
+    return (
+        isRegistryPath(node)
+            ? <Props_RegistryItem node={node} />
+            : <Props_CommandItem node={node} />
+    );
+}
+
+function Props_CommandItem({ node }: NodeProps) {
     return (<>
         <Field_MenuName node={node} />
-
-        {!registry && <Field_CmdWhat node={node} />}
-
-        <Field_CmdLine node={node} />
-
-        {!registry && <Field_CmdArgs node={node} />}
-
-        {registry && <Field_CmdPlatform node={node} />}
-        
-        <Field_HotKey node={node} />
-
-        {!registry && <Field_RunElevated node={node} />}
-
         <Field_Comment node={node} />
+        <Field_CmdWhat node={node} />
+        <Field_CmdLine node={node} />
+        <Field_CmdArgs node={node} />
+        <Field_HotKey node={node} />
+        <Field_RunElevated node={node} />
+    </>);
+}
+
+function Props_RegistryItem({ node }: NodeProps) {
+    return (<>
+        <Field_MenuName node={node} />
+        <Field_Comment node={node} />
+        <Field_CmdLine node={node} />
+        <Field_CmdPlatform node={node} />
+        <Field_HotKey node={node} />
     </>);
 }
 
@@ -60,7 +69,7 @@ export function Props_Separator({ node }: NodeProps) {
 function LabelAndField({ label, children }: { label: string; children: React.ReactNode; }) {
     return (
         <div className="flex flex-col gap-0.5">
-            <Label className="text-[0.65rem]">{label}</Label>
+            <Label className="pl-1 text-[0.65rem]">{label}</Label>
             {children}
         </div>
     );
@@ -81,8 +90,8 @@ function Field_Comment({ node }: NodeProps) {
     return (
         <LabelAndField label="Comment">
             <Textarea
-                rows={1}
-                className="min-h-4 rounded-sm resize-none"
+                // rows={1}
+                className="px-3 py-2 min-h-6 rounded-sm resize-none"
                 value={node.comment ?? ""}
                 onChange={(e) => patchSelectedNode((n) => {
                     const v = e.target.value;
