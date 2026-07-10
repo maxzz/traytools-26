@@ -157,15 +157,15 @@ function Field_Comment({ node }: NodeProps) {
 
 function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
     return (
-        <LabelAndField label="Type">
+        <LabelAndField label="Path type">
             <Select value={node.cmdWhat ?? "rel"} onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="px-2 w-full text-[0.72rem]">
                     <SelectValue />
                 </SelectTrigger>
 
                 <SelectContent>
-                    <SelectItem value="rel">Relative path</SelectItem>
-                    <SelectItem value="abs">Absolute path / URL</SelectItem>
+                    <SelectItem className="text-[0.72rem]" value="abs">Absolute</SelectItem>
+                    <SelectItem className="text-[0.72rem]" value="rel">Relative</SelectItem>
                 </SelectContent>
             </Select>
         </LabelAndField>
