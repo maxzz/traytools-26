@@ -1,5 +1,5 @@
 import { type ComponentProps, useEffect, useState } from "react";
-import { Folder, ShieldCheck } from "lucide-react";
+import { ChevronDown, ChevronRight, Folder, ShieldCheck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 import { IconTerminalHero } from "@/ui/icons/normal";
@@ -119,10 +119,16 @@ function Field_Comment({ node }: NodeProps) {
     return (
         <div className="-mt-1 flex flex-col gap-0.5">
             <Label
-                className="pl-1 text-[0.65rem] cursor-pointer select-none"
+                className="pl-1 text-[0.65rem] cursor-pointer select-none inline-flex items-center gap-px"
                 onClick={() => setOpen((v) => !v)}
             >
                 Comment
+                <span className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center">
+                    {open
+                        ? <ChevronDown className="size-2.5" />
+                        : <ChevronRight className="size-2.5" />
+                    }
+                </span>
             </Label>
             <AnimatePresence initial={false}>
                 {open && (
