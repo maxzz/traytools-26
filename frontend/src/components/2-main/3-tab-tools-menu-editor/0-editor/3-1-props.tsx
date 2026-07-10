@@ -84,6 +84,28 @@ export function Props_Item() {
             />
         </Field>
 
+        <CmdWhatField />
+        <CmdLineField />
+        <CmdArgsField />
+
+        <div className="grid grid-cols-2 gap-3">
+            <CmdPlatField />
+            <HotKeyField />
+        </div>
+
+        <RunElevatedField />
+
+        <CommentField />
+    </>);
+}
+
+function CmdWhatField() {
+    const { node } = useSelectedNode();
+    if (!node) {
+        return null;
+    }
+
+    return (
         <Field label="Type">
             <Select
                 value={node.cmdWhat ?? "rel"}
@@ -99,7 +121,16 @@ export function Props_Item() {
                 </SelectContent>
             </Select>
         </Field>
+    );
+}
 
+function CmdLineField() {
+    const { node } = useSelectedNode();
+    if (!node) {
+        return null;
+    }
+
+    return (
         <Field label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
             <Input
                 className="font-mono text-[0.72rem]"
@@ -108,7 +139,16 @@ export function Props_Item() {
                 onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
             />
         </Field>
+    );
+}
 
+function CmdArgsField() {
+    const { node } = useSelectedNode();
+    if (!node) {
+        return null;
+    }
+
+    return (
         <Field label="Arguments">
             <Input
                 className="font-mono text-[0.72rem]"
@@ -120,39 +160,64 @@ export function Props_Item() {
                 })}
             />
         </Field>
+    );
+}
 
-        <div className="grid grid-cols-2 gap-3">
-            <Field label="Platform">
-                <Select
-                    value={node.cmdPlat ?? "curr"}
-                    onValueChange={(v) => patchSelectedNode((n) => {
-                        if (v === "curr") { delete n.cmdPlat; } else { n.cmdPlat = v as CmdPlat; }
-                    })}
-                >
-                    <SelectTrigger className="w-full">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="curr">Current</SelectItem>
-                        <SelectItem value="32">32-bit</SelectItem>
-                        <SelectItem value="64">64-bit</SelectItem>
-                        <SelectItem value="both">Both</SelectItem>
-                    </SelectContent>
-                </Select>
-            </Field>
+function CmdPlatField() {
+    const { node } = useSelectedNode();
+    if (!node) {
+        return null;
+    }
 
-            <Field label="Hotkey">
-                <Input
-                    value={node.hotKey ?? ""}
-                    placeholder="e.g. F4"
-                    onChange={(e) => patchSelectedNode((n) => {
-                        const v = e.target.value;
-                        if (v) { n.hotKey = v; } else { delete n.hotKey; }
-                    })}
-                />
-            </Field>
-        </div>
+    return (
+        <Field label="Platform">
+            <Select
+                value={node.cmdPlat ?? "curr"}
+                onValueChange={(v) => patchSelectedNode((n) => {
+                    if (v === "curr") { delete n.cmdPlat; } else { n.cmdPlat = v as CmdPlat; }
+                })}
+            >
+                <SelectTrigger className="w-full">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="curr">Current</SelectItem>
+                    <SelectItem value="32">32-bit</SelectItem>
+                    <SelectItem value="64">64-bit</SelectItem>
+                    <SelectItem value="both">Both</SelectItem>
+                </SelectContent>
+            </Select>
+        </Field>
+    );
+}
 
+function HotKeyField() {
+    const { node } = useSelectedNode();
+    if (!node) {
+        return null;
+    }
+
+    return (
+        <Field label="Hotkey">
+            <Input
+                value={node.hotKey ?? ""}
+                placeholder="e.g. F4"
+                onChange={(e) => patchSelectedNode((n) => {
+                    const v = e.target.value;
+                    if (v) { n.hotKey = v; } else { delete n.hotKey; }
+                })}
+            />
+        </Field>
+    );
+}
+
+function RunElevatedField() {
+    const { node } = useSelectedNode();
+    if (!node) {
+        return null;
+    }
+
+    return (
         <label className="mt-1 px-2.5 py-2 bg-muted/40 border rounded-md flex items-center gap-2 cursor-pointer">
             <ShieldCheck className="size-4 text-muted-foreground" />
             <div className="mr-auto flex flex-col">
@@ -164,7 +229,5 @@ export function Props_Item() {
                 onCheckedChange={(checked) => patchSelectedNode((n) => { n.runElevated = checked; })}
             />
         </label>
-
-        <CommentField />
-    </>);
+    );
 }
