@@ -3,8 +3,9 @@ import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-react";
 import { IconTerminalHero } from "@/ui/icons/normal";
+import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { type ToolMenuItem, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 import { type DropPosition, moveNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/1-menu-editor-atoms";
 import { toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 
@@ -12,6 +13,7 @@ import { toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-
 type SnapNode = {
     readonly menuName: string;
     readonly cmdLine?: string;
+    readonly cmdWhat?: string;
     readonly uid?: string;
     readonly menuItems?: readonly SnapNode[];
 };
@@ -124,6 +126,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     const kind = nodeKind(node as ToolMenuItem);
     const isSubmenu = kind === "submenu" || isRoot;
     const isSeparator = kind === "separator" && !isRoot;
+    const isRegistry = kind === "item" && isRegistryPath(node as ToolMenuItem);
     const selected = snap.selectedUid === uid;
 
     const isDragging = dnd.dragUid === uid;
@@ -132,7 +135,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     const showAfter = !isRoot && isDropTarget && dnd.dropPos === "after";
     const showInside = isDropTarget && dnd.dropPos === "inside";
 
-    const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : IconTerminalHero;
+    const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : isRegistry ? SymbolAppRegedit : IconTerminalHero;
     const childAncestors = [...ancestors, !isLast];
     const children = node.menuItems ?? [];
 
@@ -178,7 +181,14 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                     }
 
                     {!isSeparator && (
-                        <Icon className={cn("shrink-0 relative size-3.5", isSubmenu ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" : "text-foreground/70 fill-foreground/10!")} />
+                        <Icon className={cn(
+                            "shrink-0 relative size-3.5",
+                            isSubmenu
+                                ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
+                                : isRegistry
+                                    ? ""
+                                    : "text-foreground/70 fill-foreground/10!",
+                        )} />
                     )}
 
                     {isSeparator

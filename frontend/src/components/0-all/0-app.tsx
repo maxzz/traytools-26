@@ -8,11 +8,13 @@ import { appSettings } from '@/store/1-ui-settings';
 import { WindowSetTitle } from '../../../wailsjs/runtime/runtime';
 import { settingsBus } from '@/bridge/groups/settings';
 import { formatMainWindowTitle, getValidMainTab, MAIN_PAGES } from './8-pages-array';
+import { UISymbolDefs } from '@/ui/icons';
 
 export function App() {
     const { showFooter } = useSnapshot(appSettings);
 
     return (<>
+        <UISymbolDefs />
         <Toaster />
         <AllDialogs />
 
