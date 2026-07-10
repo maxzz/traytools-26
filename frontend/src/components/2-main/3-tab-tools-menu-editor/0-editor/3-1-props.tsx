@@ -11,7 +11,7 @@ type NodeProps = { node: ToolMenuItem; };
 
 export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
-        <Field_MenuName node={node} placeholder="Submenu name" />
+        <Field_MenuName node={node} isSubmenu />
 
         <Field_Comment node={node} />
 
@@ -26,7 +26,7 @@ export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; 
 export function Props_Item({ node }: NodeProps) {
     const registry = isRegistryPath(node);
     return (<>
-        <Field_MenuName node={node} placeholder="Menu label" />
+        <Field_MenuName node={node} />
 
         {!registry && <Field_CmdWhat node={node} />}
 
@@ -66,12 +66,11 @@ function LabelAndField({ label, children }: { label: string; children: React.Rea
     );
 }
 
-function Field_MenuName({ node, placeholder }: NodeProps & { placeholder: string; }) {
+function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; }) {
     return (
-        <LabelAndField label="Name">
+        <LabelAndField label={isSubmenu ? "Submenu name" : "Menu label"}>
             <Input
                 value={node.menuName}
-                placeholder={placeholder}
                 onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
             />
         </LabelAndField>
