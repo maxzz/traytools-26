@@ -1,5 +1,5 @@
 import { type ComponentProps, useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, Folder, ShieldCheck } from "lucide-react";
+import { ChevronRight, Folder, ShieldCheck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 import { IconTerminalHero } from "@/ui/icons/normal";
@@ -123,20 +123,21 @@ function Field_Comment({ node }: NodeProps) {
                 onClick={() => setOpen((v) => !v)}
             >
                 Comment
-                <span className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center">
-                    {open
-                        ? <ChevronDown className="size-2.5" />
-                        : <ChevronRight className="size-2.5" />
-                    }
-                </span>
+                <motion.span
+                    animate={{ rotate: open ? 90 : 0 }}
+                    className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
+                    transition={{ duration: 0.1, ease: "easeInOut" }}
+                >
+                    <ChevronRight className="size-2.5" />
+                </motion.span>
             </Label>
             <AnimatePresence initial={false}>
                 {open && (
                     <motion.div
-                        animate={{ height: "auto", opacity: 1 }}
                         className="overflow-hidden"
-                        exit={{ height: 0, opacity: 0 }}
                         initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2, ease: "easeInOut" }}
                     >
                         <Textarea
@@ -233,7 +234,7 @@ function Field_HotKey({ node }: NodeProps) {
                     const v = e.target.value;
                     if (v) { n.hotKey = v; } else { delete n.hotKey; }
                 })}
-                // placeholder="e.g. F4"
+            // placeholder="e.g. F4"
             />
         </LabelAndField>
     );
