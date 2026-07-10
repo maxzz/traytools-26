@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { Folder, Minus, ShieldCheck, Terminal } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
@@ -66,9 +67,9 @@ export function Props_Separator({ node }: NodeProps) {
 // --------------------------------------------------------------------------
 // Fields
 
-function LabelAndField({ label, children }: { label: string; children: React.ReactNode; }) {
+function LabelAndField({ label, children, ...props }: { label: string;} & ComponentProps<"div">) {
     return (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-0.5" {...props}>
             <Label className="pl-1 text-[0.65rem]">{label}</Label>
             {children}
         </div>
@@ -88,7 +89,7 @@ function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; 
 
 function Field_Comment({ node }: NodeProps) {
     return (
-        <LabelAndField label="Comment">
+        <LabelAndField className="-mt-1" label="Comment">
             <Textarea
                 // rows={1}
                 className="px-3 py-2 min-h-6 rounded-sm resize-none"
