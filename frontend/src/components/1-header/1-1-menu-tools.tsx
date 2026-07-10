@@ -68,7 +68,7 @@ export function ToolsMenu({ value, active }: { value: string; active: boolean; }
 
                 <MenubarSeparator />
 
-                <MenubarItem onSelect={() => { appSettings.mainTab = "tools-editor"; }}>
+                <MenubarItem onSelect={() => { appSettings.mainTab = "tools-menu-editor"; }}>
                     Edit Tools Menu...
                 </MenubarItem>
             </MenubarContent>

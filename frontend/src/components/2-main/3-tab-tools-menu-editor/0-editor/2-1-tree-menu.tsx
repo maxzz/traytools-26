@@ -1,6 +1,6 @@
 import { type ComponentProps } from "react";
 import { useSnapshot } from "valtio";
-import { Menu, Minus, Plus, SquarePlus, Trash2 } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
@@ -20,9 +20,8 @@ export function TreeViewMenu(props: ComponentProps<typeof Button>) {
 
             <DropdownMenuContent align="end">
                 {ADD_ITEMS.map(
-                    ({ kind, label, icon: Icon }) => (
+                    ({ kind, label }) => (
                         <DropdownMenuItem key={kind} onSelect={() => addNode(kind)}>
-                            <Icon />
                             {label}
                         </DropdownMenuItem>
                     )
@@ -31,7 +30,6 @@ export function TreeViewMenu(props: ComponentProps<typeof Button>) {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem variant="destructive" disabled={!canDelete} onSelect={() => canDelete && selectedUid && removeNode(selectedUid)}>
-                    <Trash2 />
                     Delete selected
                 </DropdownMenuItem>
             </DropdownMenuContent>
@@ -39,8 +37,8 @@ export function TreeViewMenu(props: ComponentProps<typeof Button>) {
     );
 }
 
-const ADD_ITEMS: { kind: NodeKind; label: string; icon: typeof Plus; }[] = [
-    { kind: "item", label: "Add Command", icon: Plus },
-    { kind: "submenu", label: "Add Menu", icon: SquarePlus },
-    { kind: "separator", label: "Add Separator", icon: Minus },
+const ADD_ITEMS: { kind: NodeKind; label: string; }[] = [
+    { kind: "item", label: "Add Command" },
+    { kind: "submenu", label: "Add Menu" },
+    { kind: "separator", label: "Add Separator" },
 ];
