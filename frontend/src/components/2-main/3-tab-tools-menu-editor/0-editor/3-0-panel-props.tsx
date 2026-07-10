@@ -9,8 +9,6 @@ export function Panel_Props() {
 
     return (
         <div className="min-h-0 h-full flex flex-col">
-            <PanelHeader node={node} />
-
             <ScrollArea className="flex-1 min-h-0" fullHeight>
                 <div className="p-3 h-full flex flex-col gap-3">
                     <PropsByKind node={node} isRoot={isRoot} />
@@ -35,33 +33,21 @@ const PROPS_BY_KIND = {
     item: Props_Item,
 } satisfies Record<NodeKind, React.ComponentType<{ node: ToolMenuItem; isRoot?: boolean; }>>;
 
-function PanelHeader({ node }: { node?: ToolMenuItem | null; }) {
-    const kind = node ? nodeKind(node) : null;
+function FieldTypeIcon({ node }: { node: ToolMenuItem; }) {
+    const kind = nodeKind(node);
     const label =
-        !kind
-            ? "Properties"
-            : kind === "submenu"
-                ? "Submenu"
-                : kind === "separator"
-                    ? "Separator"
-                    : kind === "item"
-                        ? "Command"
-                        : "Properties";
-
+        kind === "submenu"
+            ? "Submenu"
+            : kind === "separator"
+                ? "Separator"
+                : kind === "item"
+                    ? "Command"
+                    : "Properties";
     const Icon = kind === "submenu" ? Folder : kind === "separator" ? Minus : Terminal;
-
     return (
-        <div className="px-3 py-1.5 border-b flex items-center gap-2">
-            <span className="font-medium text-[0.7rem] text-muted-foreground uppercase tracking-wide">
-                Properties
-            </span>
-
-            {kind && (
-                <span className={"ml-auto px-1.5 py-0.5 text-[0.65rem] text-muted-foreground bg-muted rounded inline-flex items-center gap-1"}>
-                    <Icon className="size-3" /> {label}
-                </span>
-            )}
-        </div>
+        <span className={"ml-auto px-1.5 py-0.5 text-[0.65rem] text-muted-foreground bg-muted rounded inline-flex items-center gap-1"}>
+            <Icon className="size-3" /> {label}
+        </span>
     );
 }
 
