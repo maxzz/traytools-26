@@ -1,5 +1,5 @@
-import { type ComponentProps, useEffect, useState } from "react";
-import { ChevronRight, Folder, ShieldCheck } from "lucide-react";
+import { type ComponentProps, type ReactNode, useEffect, useState } from "react";
+import { ChevronRight, Folder, Info, ShieldCheck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 import { IconTerminalHero } from "@/ui/icons/normal";
@@ -9,6 +9,7 @@ import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { patchSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, isRegistryPath, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 
@@ -88,10 +89,13 @@ function PropsAs_RegistryItem({ node }: NodeProps) {
 // --------------------------------------------------------------------------
 // Fields
 
-function LabelAndField({ label, children, ...props }: { label: string; } & ComponentProps<"div">) {
+function LabelAndField({ label, labelHint, children, ...props }: { label: string; labelHint?: ReactNode; } & ComponentProps<"div">) {
     return (
         <div className="flex flex-col gap-0.5" {...props}>
-            <Label className="pl-1 text-[0.65rem]">{label}</Label>
+            <div className="inline-flex items-center gap-0.5">
+                <Label className="pl-1 text-[0.65rem]">{label}</Label>
+                {labelHint}
+            </div>
             {children}
         </div>
     );
@@ -157,7 +161,28 @@ function Field_Comment({ node }: NodeProps) {
 
 function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
     return (
-        <LabelAndField label="Path type">
+        <LabelAndField
+            label="Path type"
+            labelHint={(
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button className="ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center" aria-label="Path type help" type="button">
+                                <Info className="size-2.5" />
+                            </button>
+                        </TooltipTrigger>
+
+                        <TooltipContent side="top" className="max-w-64">
+                            <div className="flex flex-col gap-1.5 text-xs">
+                                <p><strong>Relative</strong> — path relative to the folder containing tools.json.</p>
+                                <p><strong>Absolute</strong> — full path or program name, used as-is after env-var expansion.</p>
+                                <p><strong>URL</strong> — web link; use Absolute with a scheme:// address (e.g. https://…).</p>
+                            </div>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )}
+        >
             <Select value={node.cmdWhat ?? "rel"} onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}>
                 <SelectTrigger className="px-2 w-full text-[0.72rem]">
                     <SelectValue />
