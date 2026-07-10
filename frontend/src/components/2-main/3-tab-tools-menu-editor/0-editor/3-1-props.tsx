@@ -9,24 +9,9 @@ import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated } f
 
 type NodeProps = { node: ToolMenuItem; };
 
-export function Props_Separator({ node }: NodeProps) {
-    return (<>
-        <p className="text-muted-foreground">
-            A separator draws a horizontal divider line in the menu.
-        </p>
-        <CommentField node={node} />
-    </>);
-}
-
 export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
-        <LabelAndField label="Name">
-            <Input
-                value={node.menuName}
-                placeholder="Submenu name"
-                onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
-            />
-        </LabelAndField>
+        <MenuNameField node={node} placeholder="Submenu name" />
 
         <CommentField node={node} />
 
@@ -40,13 +25,7 @@ export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; 
 
 export function Props_Item({ node }: NodeProps) {
     return (<>
-        <LabelAndField label="Name">
-            <Input
-                value={node.menuName}
-                placeholder="Menu label"
-                onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
-            />
-        </LabelAndField>
+        <MenuNameField node={node} placeholder="Menu label" />
 
         <CmdWhatField node={node} />
         <CmdLineField node={node} />
@@ -63,6 +42,16 @@ export function Props_Item({ node }: NodeProps) {
     </>);
 }
 
+export function Props_Separator({ node }: NodeProps) {
+    return (<>
+        <p className="text-muted-foreground">
+            A separator draws a horizontal divider line in the menu.
+        </p>
+        
+        <CommentField node={node} />
+    </>);
+}
+
 // --------------------------------------------------------------------------
 // Fields
 
@@ -72,6 +61,18 @@ function LabelAndField({ label, children }: { label: string; children: React.Rea
             <Label className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">{label}</Label>
             {children}
         </div>
+    );
+}
+
+function MenuNameField({ node, placeholder }: NodeProps & { placeholder: string; }) {
+    return (
+        <LabelAndField label="Name">
+            <Input
+                value={node.menuName}
+                placeholder={placeholder}
+                onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
+            />
+        </LabelAndField>
     );
 }
 
