@@ -1,5 +1,5 @@
 import { type ComponentProps, type ReactNode, useEffect, useState } from "react";
-import { ChevronRight, Folder, Info, ShieldCheck } from "lucide-react";
+import { ChevronRight, Folder, Info } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 import { IconTerminalHero } from "@/ui/icons/normal";
@@ -62,10 +62,10 @@ function PropsAs_CommandItem({ node }: NodeProps) {
         </div>
         <Field_Comment node={node} />
 
-        <div className="grid grid-cols-[1fr_auto] gap-2">
+        <div className="grid grid-cols-[1fr_auto_auto] gap-2">
             <Field_CmdLineOrRegistryPath node={node} />
-            <Field_PathAbsoluteOrRelative node={node} />
             <Field_RunElevated node={node} />
+            <Field_PathAbsoluteOrRelative node={node} />
         </div>
         <Field_CmdArgs node={node} />
     </>);
@@ -216,7 +216,6 @@ function Field_CmdArgs({ node }: NodeProps) {
             <Input
                 className="font-mono text-[0.72rem]"
                 value={node.cmdArgs ?? ""}
-                placeholder="(optional)"
                 onChange={(e) => patchSelectedNode((n) => {
                     const v = e.target.value;
                     if (v) { n.cmdArgs = v; } else { delete n.cmdArgs; }
@@ -267,17 +266,32 @@ function Field_HotKey({ node }: NodeProps) {
 
 function Field_RunElevated({ node }: NodeProps) {
     return (
-        <label className="mt-1 px-2.5 py-2 bg-muted/40 border rounded-md flex items-center gap-2 cursor-pointer">
-            <ShieldCheck className="size-4 text-muted-foreground" />
-            <div className="mr-auto flex flex-col">
-                <span className="font-medium">Run elevated</span>
-                <span className="text-[0.7rem] text-muted-foreground">Launch this command with administrator privileges.</span>
+        <LabelAndField
+            label="Elevated"
+            labelHint={(
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button className="ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center" aria-label="Run elevated help" type="button">
+                                <Info className="size-2.5" />
+                            </button>
+                        </TooltipTrigger>
+
+                        <TooltipContent side="top" className="max-w-64">
+                            <p className="text-xs">Launch this command with administrator privileges.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )}
+        >
+            <div className="flex items-center px-2 h-8 w-full rounded-sm border border-input bg-transparent">
+                <Switch
+                    className="mx-auto scale-70"
+                    checked={effectiveRunElevated(node)}
+                    onCheckedChange={(checked) => patchSelectedNode((n) => { n.runElevated = checked; })}
+                />
             </div>
-            <Switch
-                checked={effectiveRunElevated(node)}
-                onCheckedChange={(checked) => patchSelectedNode((n) => { n.runElevated = checked; })}
-            />
-        </label>
+        </LabelAndField>
     );
 }
 
