@@ -64,8 +64,8 @@ function PropsAs_CommandItem({ node }: NodeProps) {
 
         <div className="grid grid-cols-[1fr_auto_auto] gap-2">
             <Field_CmdLineOrRegistryPath node={node} />
-            <Field_RunElevated node={node} />
             <Field_PathAbsoluteOrRelative node={node} />
+            <Field_RunElevated node={node} />
         </div>
         <Field_CmdArgs node={node} />
     </>);
@@ -302,7 +302,7 @@ function Field_RunElevated({ node }: NodeProps) {
                 </TooltipProvider>
             )}
         >
-            <div className="flex items-center px-2 h-8 w-full rounded-sm border border-input bg-transparent">
+            <div className="flex items-center px-2 min-w-20 h-8 rounded-sm border border-input bg-transparent">
                 <Switch
                     className="mx-auto scale-70"
                     checked={effectiveRunElevated(node)}
