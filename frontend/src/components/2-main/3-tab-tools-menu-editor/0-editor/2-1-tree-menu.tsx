@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio";
 import { Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
-import { type NodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { type AddNodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 import { addNode, isRootUid, removeNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/1-menu-editor-atoms";
 import { toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 
@@ -37,8 +37,9 @@ export function TreeViewMenu(props: ComponentProps<typeof Button>) {
     );
 }
 
-const ADD_ITEMS: { kind: NodeKind; label: string; }[] = [
-    { kind: "item", label: "Add Command" },
+const ADD_ITEMS: { kind: AddNodeKind; label: string; }[] = [
+    { kind: "command", label: "Add Command" },
+    { kind: "registry", label: "Add Registry Path" },
     { kind: "submenu", label: "Add Menu" },
     { kind: "separator", label: "Add Separator" },
 ];

@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { patchSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
-import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, isRegistryPath, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 
 type NodeProps = { node: ToolMenuItem; };
 
@@ -24,19 +24,18 @@ export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; 
 }
 
 export function Props_Item({ node }: NodeProps) {
+    const registry = isRegistryPath(node);
     return (<>
         <Field_MenuName node={node} placeholder="Menu label" />
 
-        <Field_CmdWhat node={node} />
+        {!registry && <Field_CmdWhat node={node} />}
         <Field_CmdLine node={node} />
-        <Field_CmdArgs node={node} />
+        {!registry && <Field_CmdArgs node={node} />}
 
-        <div className="grid grid-cols-2 gap-3">
-            <Field_CmdPlatform node={node} />
-            <Field_HotKey node={node} />
-        </div>
+        {registry && <Field_CmdPlatform node={node} />}
+        <Field_HotKey node={node} />
 
-        <Field_RunElevated node={node} />
+        {!registry && <Field_RunElevated node={node} />}
 
         <Field_Comment node={node} />
     </>);
@@ -105,7 +104,6 @@ function Field_CmdWhat({ node }: NodeProps) {
                 <SelectContent>
                     <SelectItem value="rel">Relative path</SelectItem>
                     <SelectItem value="abs">Absolute path / URL</SelectItem>
-                    <SelectItem value="reg">Registry key</SelectItem>
                 </SelectContent>
             </Select>
         </LabelAndField>

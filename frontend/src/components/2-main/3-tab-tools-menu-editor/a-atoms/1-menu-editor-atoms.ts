@@ -1,4 +1,4 @@
-import { type NodeKind, type ToolMenuItem, createNode, findByUid } from "./9-types-menu";
+import { type AddNodeKind, type ToolMenuItem, createNode, findByUid } from "./9-types-menu";
 import { toolsEditorStore } from "./0-menu-local-storage";
 
 // ---------------------------------------------------------------------------
@@ -22,7 +22,7 @@ export function getNode(root: ToolMenuItem, uid: string): ToolMenuItem | null {
 // Add a node. If a node is currently selected, the new node is inserted as a
 // sibling right after it (or as a child when the selection is a submenu).
 // Otherwise it is appended to the root menu. The new node becomes selected.
-export function addNode(kind: NodeKind): void {
+export function addNode(kind: AddNodeKind): void {
     const root = toolsEditorStore.config.menu;
     const node = createNode(kind);
 

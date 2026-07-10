@@ -34,6 +34,14 @@ export type ToolMenuItem = {
 
 export type NodeKind = "separator" | "submenu" | "item";
 
+// Kinds used when creating nodes from the editor menu. Command vs registry path
+// is fixed at creation and cannot be changed afterwards.
+export type AddNodeKind = "separator" | "submenu" | "command" | "registry";
+
+export function isRegistryPath(node: Pick<ToolMenuItem, "cmdWhat">): boolean {
+    return node.cmdWhat === "reg";
+}
+
 export function nodeKind(node: Pick<ToolMenuItem, "menuName" | "menuItems" | "cmdLine">): NodeKind {
     if (node.menuItems) {
         return "submenu";
@@ -97,8 +105,12 @@ export function ensureUids(node: ToolMenuItem) {
     node.menuItems?.forEach(ensureUids);
 }
 
-function newItem(): ToolMenuItem {
+function newCommand(): ToolMenuItem {
     return { uid: newUid(), menuName: "New Command", cmdLine: "", cmdWhat: "abs" };
+}
+
+function newRegistryItem(): ToolMenuItem {
+    return { uid: newUid(), menuName: "New Registry Path", cmdLine: "", cmdWhat: "reg" };
 }
 
 function newSubmenu(): ToolMenuItem {
@@ -109,8 +121,13 @@ function newSeparator(): ToolMenuItem {
     return { uid: newUid(), menuName: "-" };
 }
 
-export function createNode(kind: NodeKind): ToolMenuItem {
-    return kind === "submenu" ? newSubmenu() : kind === "separator" ? newSeparator() : newItem();
+export function createNode(kind: AddNodeKind): ToolMenuItem {
+    switch (kind) {
+        case "submenu": return newSubmenu();
+        case "separator": return newSeparator();
+        case "registry": return newRegistryItem();
+        case "command": return newCommand();
+    }
 }
 
 // ---------------------------------------------------------------------------
