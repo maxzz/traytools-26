@@ -12,16 +12,8 @@ export function Panel_Props() {
             <PanelHeader node={node} />
 
             {!uid || !node
-                ? (
-                    <div className="flex-1 p-6 min-h-0 text-center text-muted-foreground flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-2">
-                            <MousePointerClick className="size-6 opacity-50" />
-                            <span>
-                                Select a menu item on the left to edit its properties.
-                            </span>
-                        </div>
-                    </div>
-                ) : (
+                ? <NoSelectionView />
+                : (
                     <ScrollArea className="flex-1 min-h-0">
                         <div className="p-3 flex flex-col gap-3">
                             <PropsByKind node={node} isRoot={isRoot} />
@@ -71,6 +63,19 @@ function PanelHeader({ node }: { node?: ToolMenuItem | null; }) {
                     <Icon className="size-3" /> {label}
                 </span>
             )}
+        </div>
+    );
+}
+
+function NoSelectionView() {
+    return (
+        <div className="flex-1 p-6 min-h-0 text-center text-muted-foreground flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2">
+                <MousePointerClick className="size-6 opacity-50" />
+                <span>
+                    Select a menu item on the left to edit its properties.
+                </span>
+            </div>
         </div>
     );
 }
