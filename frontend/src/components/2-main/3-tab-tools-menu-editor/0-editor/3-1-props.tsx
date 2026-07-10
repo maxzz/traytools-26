@@ -1,7 +1,8 @@
 import type { ComponentProps } from "react";
-import { Folder, KeyRound, ShieldCheck } from "lucide-react";
+import { Folder, ShieldCheck } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { IconTerminalHero } from "@/ui/icons/normal";
+import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
@@ -195,12 +196,13 @@ function Field_HotKey({ node }: NodeProps) {
     return (
         <LabelAndField label="Hotkey">
             <Input
+                className="w-20 font-mono text-[0.72rem]"
                 value={node.hotKey ?? ""}
-                placeholder="e.g. F4"
                 onChange={(e) => patchSelectedNode((n) => {
                     const v = e.target.value;
                     if (v) { n.hotKey = v; } else { delete n.hotKey; }
                 })}
+                // placeholder="e.g. F4"
             />
         </LabelAndField>
     );
@@ -239,7 +241,9 @@ function Field_TypeIcon({ node }: { node: ToolMenuItem; }) {
         "shrink-0 size-3.5",
         kind === "submenu"
             ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
-            : "text-foreground/70 fill-foreground/10!",
+            : isRegistry
+                ? ""
+                : "text-foreground/70 fill-foreground/10!",
     );
     return (
         <div className={"px-2 py-1 w-fit text-[0.65rem] text-muted-foreground bg-muted border rounded inline-flex items-center gap-1"}>
@@ -247,7 +251,7 @@ function Field_TypeIcon({ node }: { node: ToolMenuItem; }) {
                 kind === "submenu"
                     ? <Folder className={iconClass} />
                     : isRegistry
-                        ? <KeyRound className={iconClass} />
+                        ? <SymbolAppRegedit className={iconClass} />
                         : <IconTerminalHero className={iconClass} />
             )}
             {label}
