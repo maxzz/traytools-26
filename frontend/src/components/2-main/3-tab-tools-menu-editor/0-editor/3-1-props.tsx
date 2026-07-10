@@ -36,7 +36,7 @@ function Props_CommandItem({ node }: NodeProps) {
     return (<>
         <Field_MenuName node={node} />
         <Field_Comment node={node} />
-        <Field_CmdWhat node={node} />
+        <Field_PathAbsoluteOrRelative node={node} />
         <Field_CmdLine node={node} />
         <Field_CmdArgs node={node} />
         <Field_HotKey node={node} />
@@ -103,7 +103,7 @@ function Field_Comment({ node }: NodeProps) {
     );
 }
 
-function Field_CmdWhat({ node }: NodeProps) {
+function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
     return (
         <LabelAndField label="Type">
             <Select value={node.cmdWhat ?? "rel"} onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}>
