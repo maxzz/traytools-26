@@ -4,24 +4,21 @@ import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
-import { patchSelectedNode, useSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
-import { type CmdPlat, type CmdWhat, effectiveRunElevated } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { patchSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
+import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 
-export function Props_Separator() {
+type NodeProps = { node: ToolMenuItem; };
+
+export function Props_Separator({ node }: NodeProps) {
     return (<>
         <p className="text-muted-foreground">
             A separator draws a horizontal divider line in the menu.
         </p>
-        <CommentField />
+        <CommentField node={node} />
     </>);
 }
 
-export function Props_Submenu() {
-    const { node, isRoot } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+export function Props_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
         <LabelAndField label="Name">
             <Input
@@ -31,7 +28,7 @@ export function Props_Submenu() {
             />
         </LabelAndField>
 
-        <CommentField />
+        <CommentField node={node} />
 
         {isRoot && (
             <p className="text-muted-foreground">
@@ -41,12 +38,7 @@ export function Props_Submenu() {
     </>);
 }
 
-export function Props_Item() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+export function Props_Item({ node }: NodeProps) {
     return (<>
         <LabelAndField label="Name">
             <Input
@@ -56,18 +48,18 @@ export function Props_Item() {
             />
         </LabelAndField>
 
-        <CmdWhatField />
-        <CmdLineField />
-        <CmdArgsField />
+        <CmdWhatField node={node} />
+        <CmdLineField node={node} />
+        <CmdArgsField node={node} />
 
         <div className="grid grid-cols-2 gap-3">
-            <CmdPlatField />
-            <HotKeyField />
+            <CmdPlatField node={node} />
+            <HotKeyField node={node} />
         </div>
 
-        <RunElevatedField />
+        <RunElevatedField node={node} />
 
-        <CommentField />
+        <CommentField node={node} />
     </>);
 }
 
@@ -83,12 +75,7 @@ function LabelAndField({ label, children }: { label: string; children: React.Rea
     );
 }
 
-function CommentField() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+function CommentField({ node }: NodeProps) {
     return (
         <LabelAndField label="Comment">
             <Textarea
@@ -102,12 +89,7 @@ function CommentField() {
     );
 }
 
-function CmdWhatField() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+function CmdWhatField({ node }: NodeProps) {
     return (
         <LabelAndField label="Type">
             <Select
@@ -127,12 +109,7 @@ function CmdWhatField() {
     );
 }
 
-function CmdLineField() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+function CmdLineField({ node }: NodeProps) {
     return (
         <LabelAndField label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
             <Input
@@ -145,12 +122,7 @@ function CmdLineField() {
     );
 }
 
-function CmdArgsField() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+function CmdArgsField({ node }: NodeProps) {
     return (
         <LabelAndField label="Arguments">
             <Input
@@ -166,12 +138,7 @@ function CmdArgsField() {
     );
 }
 
-function CmdPlatField() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+function CmdPlatField({ node }: NodeProps) {
     return (
         <LabelAndField label="Platform">
             <Select
@@ -194,12 +161,7 @@ function CmdPlatField() {
     );
 }
 
-function HotKeyField() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+function HotKeyField({ node }: NodeProps) {
     return (
         <LabelAndField label="Hotkey">
             <Input
@@ -214,12 +176,7 @@ function HotKeyField() {
     );
 }
 
-function RunElevatedField() {
-    const { node } = useSelectedNode();
-    if (!node) {
-        return null;
-    }
-
+function RunElevatedField({ node }: NodeProps) {
     return (
         <label className="mt-1 px-2.5 py-2 bg-muted/40 border rounded-md flex items-center gap-2 cursor-pointer">
             <ShieldCheck className="size-4 text-muted-foreground" />
