@@ -29,10 +29,13 @@ export function Props_Item({ node }: NodeProps) {
         <Field_MenuName node={node} placeholder="Menu label" />
 
         {!registry && <Field_CmdWhat node={node} />}
+
         <Field_CmdLine node={node} />
+
         {!registry && <Field_CmdArgs node={node} />}
 
         {registry && <Field_CmdPlatform node={node} />}
+        
         <Field_HotKey node={node} />
 
         {!registry && <Field_RunElevated node={node} />}
@@ -94,13 +97,11 @@ function Field_Comment({ node }: NodeProps) {
 function Field_CmdWhat({ node }: NodeProps) {
     return (
         <LabelAndField label="Type">
-            <Select
-                value={node.cmdWhat ?? "rel"}
-                onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}
-            >
+            <Select value={node.cmdWhat ?? "rel"} onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}>
                 <SelectTrigger className="w-full">
                     <SelectValue />
                 </SelectTrigger>
+
                 <SelectContent>
                     <SelectItem value="rel">Relative path</SelectItem>
                     <SelectItem value="abs">Absolute path / URL</SelectItem>
