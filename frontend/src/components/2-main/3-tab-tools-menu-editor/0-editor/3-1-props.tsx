@@ -1,5 +1,7 @@
 import type { ComponentProps } from "react";
-import { Folder, Minus, ShieldCheck, Terminal } from "lucide-react";
+import { Folder, KeyRound, ShieldCheck } from "lucide-react";
+import { cn } from "@/utils/classnames";
+import { IconTerminalHero } from "@/ui/icons/normal";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
@@ -12,6 +14,8 @@ type NodeProps = { node: ToolMenuItem; };
 
 export function PropsFor_Separator({ node }: NodeProps) {
     return (<>
+        <Field_TypeIcon node={node} />
+
         <p className="text-muted-foreground">
             A separator draws a horizontal divider line in the menu.
         </p>
@@ -22,6 +26,8 @@ export function PropsFor_Separator({ node }: NodeProps) {
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
+        <Field_TypeIcon node={node} />
+
         <Field_MenuName node={node} isSubmenu />
 
         <Field_Comment node={node} />
@@ -35,22 +41,25 @@ export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolea
 }
 
 export function PropsFor_Item({ node }: NodeProps) {
-    return (
-        isRegistryPath(node)
+    return (<>
+        <Field_TypeIcon node={node} />
+
+        {isRegistryPath(node)
             ? <PropsAs_RegistryItem node={node} />
             : <PropsAs_CommandItem node={node} />
-    );
+        }
+    </>);
 }
 
 function PropsAs_CommandItem({ node }: NodeProps) {
     return (<>
-        <div className="grid grid-cols-[1fr_auto] gap-3">
+        <div className="grid grid-cols-[1fr_auto] gap-2">
             <Field_MenuName node={node} />
             <Field_HotKey node={node} />
         </div>
         <Field_Comment node={node} />
 
-        <div className="grid grid-cols-[1fr_auto] gap-3">
+        <div className="grid grid-cols-[1fr_auto] gap-2">
             <Field_CmdLineOrRegistryPath node={node} />
             <Field_PathAbsoluteOrRelative node={node} />
             <Field_RunElevated node={node} />
@@ -61,13 +70,13 @@ function PropsAs_CommandItem({ node }: NodeProps) {
 
 function PropsAs_RegistryItem({ node }: NodeProps) {
     return (<>
-        <div className="grid grid-cols-[1fr_auto] gap-3">
+        <div className="grid grid-cols-[1fr_auto] gap-2">
             <Field_MenuName node={node} />
             <Field_HotKey node={node} />
         </div>
         <Field_Comment node={node} />
 
-        <div className="grid grid-cols-[1fr_auto] gap-3">
+        <div className="grid grid-cols-[1fr_auto] gap-2">
             <Field_CmdLineOrRegistryPath node={node} />
             <Field_CmdPlatform node={node} />
         </div>
@@ -215,18 +224,33 @@ function Field_RunElevated({ node }: NodeProps) {
 
 function Field_TypeIcon({ node }: { node: ToolMenuItem; }) {
     const kind = nodeKind(node);
+    const isRegistry = kind === "item" && isRegistryPath(node);
     const label =
         kind === "submenu"
-            ? "Submenu"
+            ? "Menu"
             : kind === "separator"
                 ? "Separator"
-                : kind === "item"
-                    ? "Command"
-                    : "Properties";
-    const Icon = kind === "submenu" ? Folder : kind === "separator" ? Minus : Terminal;
+                : isRegistry
+                    ? "Registry Path"
+                    : kind === "item"
+                        ? "Command"
+                        : "Properties";
+    const iconClass = cn(
+        "shrink-0 size-3.5",
+        kind === "submenu"
+            ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
+            : "text-foreground/70 fill-foreground/10!",
+    );
     return (
-        <span className={"ml-auto px-1.5 py-0.5 text-[0.65rem] text-muted-foreground bg-muted rounded inline-flex items-center gap-1"}>
-            <Icon className="size-3" /> {label}
-        </span>
+        <div className={"px-2 py-1 w-fit text-[0.65rem] text-muted-foreground bg-muted border rounded inline-flex items-center gap-1"}>
+            {kind !== "separator" && (
+                kind === "submenu"
+                    ? <Folder className={iconClass} />
+                    : isRegistry
+                        ? <KeyRound className={iconClass} />
+                        : <IconTerminalHero className={iconClass} />
+            )}
+            {label}
+        </div>
     );
 }
