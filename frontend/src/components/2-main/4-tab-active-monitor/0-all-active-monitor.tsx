@@ -96,18 +96,33 @@ function WindowRow({ label, win }: { label: string; win: MonitorWindow | undefin
 
 function WindowText({ win }: { win: MonitorWindow | undefined; }): ReactNode {
     if (!win) {
-        return <span className="text-muted-foreground/60">—</span>;
+        return (
+            <span className="text-muted-foreground/60">
+                —
+            </span>);
     }
     if (win.noWindow) {
-        return <span className="text-muted-foreground/60">{win.handle} (no window)</span>;
+        return (
+            <span className="text-muted-foreground/60">
+                {win.handle} (no window)
+            </span>);
     }
     if (!win.valid) {
-        return <span className="text-amber-500">{win.handle} (invalid window)</span>;
+        return (
+            <span className="text-amber-500">
+                {win.handle} (invalid window)
+            </span>);
     }
     return (
         <span>
-            <span className="text-sky-500">{win.handle}</span>{" "}
-            <span className="text-foreground">{win.className || "(no class)"}</span>{" "}
+            <span className="text-sky-500">
+                {win.handle}
+            </span>
+            {" "}
+            <span className="text-foreground">
+                {win.className || "(no class)"}
+            </span>
+            {" "}
             <span className="text-muted-foreground">
                 {win.title ? `'${win.title}'` : "''"}
             </span>
