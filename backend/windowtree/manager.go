@@ -32,4 +32,7 @@ func (m *Manager) Register(b *bus.Bus) {
 		}
 		return platformGetWindowInfo(req.Handle)
 	})
+	b.Register(Group, "getActiveWindows", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return platformGetActiveWindows()
+	})
 }

@@ -31,6 +31,27 @@ func platformGetTree() (WindowTree, error) {
 
 func wsCaption() uint32 { return wsBorder | wsDlgFrame | wsSysMenu }
 
+// platformGetActiveWindows returns a small synthetic snapshot so the active
+// monitor tab stays exercisable on non-Windows platforms.
+func platformGetActiveWindows() (ActiveWindowsInfo, error) {
+	sample := MonitorWindow{
+		Handle:    "0x00010001",
+		ClassName: "DemoTopLevel",
+		Title:     "Sample Window (non-Windows demo)",
+		Valid:     true,
+		ProcessID: 1234,
+		ThreadID:  10,
+	}
+	return ActiveWindowsInfo{
+		Foreground: sample,
+		Active:     sample,
+		Focus:      MonitorWindow{Handle: "0x00000000", NoWindow: true},
+		Capture:    MonitorWindow{Handle: "0x00000000", NoWindow: true},
+		ThreadID:   10,
+		SystemWide: true,
+	}, nil
+}
+
 func platformGetWindowInfo(handle string) (WindowInfo, error) {
 	if handle == "" || handle == "root" {
 		return WindowInfo{Handle: handle}, nil

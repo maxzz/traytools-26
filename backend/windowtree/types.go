@@ -27,6 +27,37 @@ type WindowTree struct {
 	Count int        `json:"count"`
 }
 
+// MonitorWindow describes one of the windows reported by the active-window
+// monitor (foreground / active / focus / capture). Valid distinguishes a real
+// window from the "no window" (handle 0) and "invalid window" cases, mirroring
+// the legacy liswatch calcwindowtext() formatting.
+type MonitorWindow struct {
+	Handle    string `json:"handle"`
+	ClassName string `json:"className"`
+	Title     string `json:"title"`
+	Valid     bool   `json:"valid"`
+	NoWindow  bool   `json:"noWindow"`
+	ProcessID uint32 `json:"processId"`
+	ThreadID  uint32 `json:"threadId"`
+}
+
+// ActiveWindowsInfo is the payload returned by getActiveWindows: a single
+// snapshot of the local input state, polled periodically by the frontend. It is
+// the Go analogue of the legacy liswatch_t::on_timer() output which showed the
+// Foreground, Active, Focus and Capture windows plus the attached thread.
+type ActiveWindowsInfo struct {
+	Foreground MonitorWindow `json:"foreground"`
+	Active     MonitorWindow `json:"active"`
+	Focus      MonitorWindow `json:"focus"`
+	Capture    MonitorWindow `json:"capture"`
+	// ThreadID is the thread that created the foreground window (the thread we
+	// attach our input queue to while reading the per-thread active/focus state).
+	ThreadID uint32 `json:"threadId"`
+	// SystemWide is true when monitoring the whole system (following whatever
+	// window is currently in the foreground) rather than a fixed thread.
+	SystemWide bool `json:"systemWide"`
+}
+
 // RectInfo mirrors a Win32 RECT plus derived size, used for both the window and
 // client rectangles on the General tab.
 type RectInfo struct {

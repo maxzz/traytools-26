@@ -29,6 +29,12 @@ var (
 	procGetWindowRect           = user32.NewProc("GetWindowRect")
 	procGetClientRect           = user32.NewProc("GetClientRect")
 	procMapWindowPoints         = user32.NewProc("MapWindowPoints")
+
+	procGetForegroundWindow = user32.NewProc("GetForegroundWindow")
+	procGetActiveWindow     = user32.NewProc("GetActiveWindow")
+	procGetFocus            = user32.NewProc("GetFocus")
+	procGetCapture          = user32.NewProc("GetCapture")
+	procAttachThreadInput   = user32.NewProc("AttachThreadInput")
 )
 
 const (
@@ -249,4 +255,64 @@ func classNameOrEmpty(hwnd uintptr) string {
 		return ""
 	}
 	return getClassNameStr(hwnd)
+}
+
+// calcMonitorWindow reads the display info for one monitored window, splitting
+// out the "no window" (handle 0) and "invalid window" cases the same way the
+// legacy liswatch calcwindowtext() did.
+func calcMonitorWindow(hwnd uintptr) MonitorWindow {
+	if hwnd == 0 {
+		return MonitorWindow{Handle: handleToString(0), NoWindow: true}
+	}
+	if !isWindowBool(procIsWindow, hwnd) {
+		return MonitorWindow{Handle: handleToString(hwnd)}
+	}
+	tid, pid := getThreadProcess(hwnd)
+	return MonitorWindow{
+		Handle:    handleToString(hwnd),
+		ClassName: getClassNameStr(hwnd),
+		Title:     getWindowTextStr(hwnd),
+		Valid:     true,
+		ProcessID: pid,
+		ThreadID:  tid,
+	}
+}
+
+// platformGetActiveWindows returns a snapshot of the local input state. This is
+// the Go port of liswatch_t::on_timer(): GetActiveWindow/GetFocus/GetCapture
+// return state from the *calling* thread's input queue, so to observe another
+// application we temporarily AttachThreadInput to the thread that owns the
+// current foreground window, read the values, then detach.
+func platformGetActiveWindows() (ActiveWindowsInfo, error) {
+	fg, _, _ := procGetForegroundWindow.Call()
+
+	current := uintptr(windows.GetCurrentThreadId())
+
+	var fgThread uint32
+	if fg != 0 {
+		fgThread, _ = getThreadProcess(fg)
+	}
+
+	attached := false
+	if fgThread != 0 && uintptr(fgThread) != current {
+		r, _, _ := procAttachThreadInput.Call(current, uintptr(fgThread), 1)
+		attached = r != 0
+	}
+
+	active, _, _ := procGetActiveWindow.Call()
+	focus, _, _ := procGetFocus.Call()
+	capture, _, _ := procGetCapture.Call()
+
+	if attached {
+		procAttachThreadInput.Call(current, uintptr(fgThread), 0)
+	}
+
+	return ActiveWindowsInfo{
+		Foreground: calcMonitorWindow(fg),
+		Active:     calcMonitorWindow(active),
+		Focus:      calcMonitorWindow(focus),
+		Capture:    calcMonitorWindow(capture),
+		ThreadID:   fgThread,
+		SystemWide: true,
+	}, nil
 }

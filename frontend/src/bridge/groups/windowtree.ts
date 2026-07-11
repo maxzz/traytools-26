@@ -68,14 +68,37 @@ export interface WindowInfo {
     processPath: string;
 }
 
+export interface MonitorWindow {
+    handle: string;
+    className: string;
+    title: string;
+    valid: boolean;
+    noWindow: boolean;
+    processId: number;
+    threadId: number;
+}
+
+export interface ActiveWindowsInfo {
+    foreground: MonitorWindow;
+    active: MonitorWindow;
+    focus: MonitorWindow;
+    capture: MonitorWindow;
+    threadId: number;
+    systemWide: boolean;
+}
+
 /**
  * Windows Tree command group. Mirrors the "windowtree" group on the backend
  * bus (manager.go). 
  * 
  * - getTree returns the whole desktop window tree; 
  * - getWindowInfo returns the detailed properties for one window on demand.
+ * - getActiveWindows returns a single snapshot of the local input state
+ *   (foreground / active / focus / capture windows) for the Active Monitor tab,
+ *   which polls it periodically.
  */
 export const windowTreeBus = {
     getTree: () => dispatch<WindowTree>(GROUP, "getTree"),
     getWindowInfo: (handle: string) => dispatch<WindowInfo>(GROUP, "getWindowInfo", { handle }),
+    getActiveWindows: () => dispatch<ActiveWindowsInfo>(GROUP, "getActiveWindows"),
 };
