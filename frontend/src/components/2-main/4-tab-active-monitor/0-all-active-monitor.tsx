@@ -1,9 +1,9 @@
-import { type ReactNode, useEffect, useRef } from "react";
-import { useAtom } from "jotai";
-import { windowTreeBus, type ActiveWindowsInfo, type MonitorWindow } from "@/bridge";
+import { type ReactNode, useEffect } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { type ActiveWindowsInfo, type MonitorWindow } from "@/bridge";
 import { Button } from "@/ui/shadcn/button";
 import { classNames } from "@/utils";
-import { activeMonitorErrorAtom, activeWindowsInfoAtom, monitoringAtom } from "./a-monitor-atoms";
+import { activeMonitorErrorAtom, activeWindowsInfoAtom, monitoringAtom, pollActiveWindowsAtom } from "./a-monitor-atoms";
 
 // Active Monitor tab. A port of the legacy liswatch_t "Watch Input" view: it
 // polls the local input state and shows which windows are currently the
@@ -22,36 +22,20 @@ const ROWS: { key: keyof Pick<ActiveWindowsInfo, "foreground" | "active" | "focu
 
 export function Page_ActiveMonitor() {
     const [monitoring, setMonitoring] = useAtom(monitoringAtom);
-    const [info, setInfo] = useAtom(activeWindowsInfoAtom);
-    const [error, setError] = useAtom(activeMonitorErrorAtom);
-    const inFlight = useRef(false);
-
-    async function poll() {
-        if (inFlight.current) {
-            return;
-        }
-        inFlight.current = true;
-        try {
-            const next = await windowTreeBus.getActiveWindows();
-            setInfo(next);
-            setError(null);
-        } catch (e) {
-            setError(String(e));
-        } finally {
-            inFlight.current = false;
-        }
-    }
+    const info = useAtomValue(activeWindowsInfoAtom);
+    const error = useAtomValue(activeMonitorErrorAtom);
+    const pollActiveWindows = useSetAtom(pollActiveWindowsAtom);
 
     useEffect(
         () => {
             if (!monitoring) {
                 return;
             }
-            void poll();
-            const id = window.setInterval(() => void poll(), POLL_INTERVAL_MS);
+            void pollActiveWindows();
+            const id = window.setInterval(() => void pollActiveWindows(), POLL_INTERVAL_MS);
             return () => window.clearInterval(id);
         },
-        [monitoring],
+        [monitoring, pollActiveWindows],
     );
 
     return (
@@ -61,7 +45,7 @@ export function Page_ActiveMonitor() {
                     {monitoring ? "Stop monitoring" : "Start monitoring"}
                 </Button>
 
-                <Button variant="outline" size="xs" type="button" onClick={() => void poll()} disabled={monitoring}>
+                <Button variant="outline" size="xs" type="button" onClick={() => void pollActiveWindows()} disabled={monitoring}>
                     Refresh
                 </Button>
 
