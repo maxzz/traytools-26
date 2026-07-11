@@ -1,7 +1,9 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
+import { useAtom } from "jotai";
 import { windowTreeBus, type ActiveWindowsInfo, type MonitorWindow } from "@/bridge";
 import { Button } from "@/ui/shadcn/button";
 import { classNames } from "@/utils";
+import { activeMonitorErrorAtom, activeWindowsInfoAtom, monitoringAtom } from "./a-monitor-atoms";
 
 // Active Monitor tab. A port of the legacy liswatch_t "Watch Input" view: it
 // polls the local input state and shows which windows are currently the
@@ -19,9 +21,9 @@ const ROWS: { key: keyof Pick<ActiveWindowsInfo, "foreground" | "active" | "focu
 ];
 
 export function Page_ActiveMonitor() {
-    const [monitoring, setMonitoring] = useState(true);
-    const [info, setInfo] = useState<ActiveWindowsInfo | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [monitoring, setMonitoring] = useAtom(monitoringAtom);
+    const [info, setInfo] = useAtom(activeWindowsInfoAtom);
+    const [error, setError] = useAtom(activeMonitorErrorAtom);
     const inFlight = useRef(false);
 
     async function poll() {
