@@ -1,4 +1,6 @@
 import { type ReactNode, useEffect } from "react";
+import { Play, Square } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { classNames } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
@@ -68,17 +70,32 @@ function MonitorToolbar() {
     const pollActiveWindows = useSetAtom(pollActiveWindowsAtom);
 
     return (
-        <div className="flex items-center gap-2">
-            <Button variant={monitoring ? "default" : "outline"} size="xs" type="button" onClick={() => setMonitoring((v) => !v)}>
+        <div className="flex items-center gap-1">
+            <Button className="font-normal font-condensed active:not-aria-[haspopup]:translate-y-0" variant={monitoring ? "outline" : "outline"} size="xs" type="button" onClick={() => setMonitoring((v) => !v)}>
+                {monitoring ? <Square className="size-3 text-red-500" /> : <Play className="size-3 text-green-500" />}
                 {monitoring ? "Stop monitoring" : "Start monitoring"}
             </Button>
 
-            <Button variant="outline" size="xs" type="button" onClick={() => void pollActiveWindows()} disabled={monitoring}>
-                Refresh
-            </Button>
+            <AnimatePresence initial={false}>
+                {!monitoring && (
+                    <motion.div
+                        className="overflow-hidden"
+                        initial={{ width: 0, opacity: 0 }}
+                        animate={{ width: "auto", opacity: 1 }}
+                        exit={{ width: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
+                        <Button className="font-normal font-condensed active:not-aria-[haspopup]:translate-y-0" variant="outline" size="xs" type="button" onClick={() => void pollActiveWindows()}>
+                            Refresh
+                        </Button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            <span className={classNames("size-2 rounded-full", monitoring ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/40")} aria-hidden />
-            <span className="text-muted-foreground">{monitoring ? "Watching local input state…" : "Paused"}</span>
+            {monitoring && (<>
+                <span className={"ml-2 size-2 bg-emerald-500 animate-pulse rounded-full"} aria-hidden />
+                <span className="font-condensed text-[0.65rem] text-muted-foreground">watching local input state…</span>
+            </>)}
         </div>
     );
 }
