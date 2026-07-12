@@ -158,6 +158,8 @@ export type TreeProviderProps = {
     showIcons?: boolean;
     selectable?: boolean;
     multiSelect?: boolean;
+    /** When false (default), clicking an already-selected row does nothing. */
+    deselectOnReselect?: boolean;
     selectedIds?: string[];
     onSelectionChange?: (selectedIds: string[]) => void;
     indent?: number;
@@ -165,7 +167,7 @@ export type TreeProviderProps = {
     className?: string;
 };
 
-export function TreeProvider({ children, defaultExpandedIds = [], showLines = true, showIcons = true, selectable = true, multiSelect = false, selectedIds, onSelectionChange, indent = 20, animateExpand = true, className, }: TreeProviderProps) {
+export function TreeProvider({ children, defaultExpandedIds = [], showLines = true, showIcons = true, selectable = true, multiSelect = false, deselectOnReselect = false, selectedIds, onSelectionChange, indent = 20, animateExpand = true, className, }: TreeProviderProps) {
     const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>(selectedIds ?? []);
     const selectionStoreRef = useRef<TreeSelectionStore>({
         selectedIds: selectedIds ?? [],
@@ -230,7 +232,10 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
                     ? current.filter((id) => id !== nodeId)
                     : [...current, nodeId];
             } else if (current.includes(nodeId)) {
-                return;
+                if (!deselectOnReselect) {
+                    return;
+                }
+                newSelection = [];
             } else {
                 newSelection = [nodeId];
             }
@@ -244,7 +249,7 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
                 setInternalSelectedIds(newSelection);
             }
         },
-        [selectable, multiSelect, isControlled, onSelectionChange]);
+        [selectable, multiSelect, deselectOnReselect, isControlled, onSelectionChange]);
 
     const treeContextValue = useMemo(
         () => ({
