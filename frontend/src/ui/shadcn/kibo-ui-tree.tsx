@@ -229,8 +229,10 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
                 newSelection = current.includes(nodeId)
                     ? current.filter((id) => id !== nodeId)
                     : [...current, nodeId];
+            } else if (current.includes(nodeId)) {
+                return;
             } else {
-                newSelection = current.includes(nodeId) ? [] : [nodeId];
+                newSelection = [nodeId];
             }
 
             selectedIdsRef.current = newSelection;
@@ -382,7 +384,7 @@ function TreeNodeTriggerContent({
                 onClick?.(e);
             }}
             style={{ paddingLeft: level * (indent ?? 0) + 8 }}
-            whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
+            //whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
             {...props}
         >
             <TreeLines />
