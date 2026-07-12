@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { classNames } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { type ActiveWindowsInfo, type MonitorWindow } from "@/bridge";
 import { activeMonitorErrorAtom, activeWindowsInfoAtom, monitoringAtom, pollActiveWindowsAtom } from "./a-monitor-atoms";
 
@@ -42,24 +43,29 @@ export function Page_ActiveMonitor() {
                     <div className="mb-2 text-destructive">{error}</div>
                 )}
 
-                <div className="grid grid-cols-[6.5rem_1fr] gap-x-2 divide-y divide-border/60">
-                    {ROWS.map(
-                        ({ key, label }) => (
-                            <WindowRow key={key} label={label} win={info?.[key]} />
-                        )
-                    )}
-                </div>
+                <TooltipProvider>
+                    <div className="grid grid-cols-[auto_1fr] gap-y-1.5 divide-y divide-border/60">
+                        {ROWS.map(
+                            ({ key, label, tooltip }) => (
+                                <WindowRow key={key} label={label} tooltip={tooltip} win={info?.[key]} />
+                            )
+                        )}
 
-                <div className="mt-3 pt-2 border-t border-border/60 grid grid-cols-[6.5rem_1fr] gap-2 items-start">
-                    <span className="text-muted-foreground">Thread</span>
-                    <span className="min-w-0 truncate">
-                        {info
-                            ? info.systemWide
-                                ? `System-wide (foreground thread 0x${threadHex(info.threadId)})`
-                                : `0x${threadHex(info.threadId)}`
-                            : "—"}
-                    </span>
-                </div>
+                        <div className="col-span-full grid grid-cols-subgrid gap-x-4 items-start">
+                            <span className="text-muted-foreground">
+                                Thread
+                            </span>
+                            <span className="min-w-0 truncate">
+                                {info
+                                    ? info.systemWide
+                                        ? `System-wide (foreground thread 0x${threadHex(info.threadId)})`
+                                        : `0x${threadHex(info.threadId)}`
+                                    : "—"}
+                            </span>
+
+                        </div>
+                    </div>
+                </TooltipProvider>
             </div>
         </div>
     );
@@ -100,10 +106,19 @@ function MonitorToolbar() {
     );
 }
 
-function WindowRow({ label, win }: { label: string; win: MonitorWindow | undefined; }) {
+function WindowRow({ label, tooltip, win }: { label: string; tooltip: string; win: MonitorWindow | undefined; }) {
     return (
-        <div className="col-span-full grid grid-cols-subgrid gap-x-1 py-1 items-start">
-            <span className="pt-0.5 text-muted-foreground">{label}</span>
+        <div className="col-span-full grid grid-cols-subgrid gap-x-4 items-start">
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span className="pt-0.5 text-muted-foreground underline decoration-dotted underline-offset-2 cursor-help w-fit">
+                        {label}
+                    </span>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-72">
+                    {tooltip}
+                </TooltipContent>
+            </Tooltip>
             <div className="min-w-0 truncate">
                 <WindowText win={win} />
             </div>
@@ -121,7 +136,10 @@ function WindowText({ win }: { win: MonitorWindow | undefined; }): ReactNode {
     if (win.noWindow) {
         return (
             <span className="text-muted-foreground/60">
-                {win.handle} (no window)
+                <span className="font-mono">
+                    {win.handle}
+                </span> 
+                {" "}(no window)
             </span>);
     }
     if (!win.valid) {
@@ -151,9 +169,25 @@ function threadHex(id: number): string {
 
 const POLL_INTERVAL_MS = 500; // Matches the legacy liswatch TIMER_DELAY.
 
-const ROWS: { key: keyof Pick<ActiveWindowsInfo, "foreground" | "active" | "focus" | "capture">; label: string; }[] = [
-    { key: "foreground", label: "Foreground" },
-    { key: "active", label: "Active" },
-    { key: "focus", label: "Focus" },
-    { key: "capture", label: "Capture" },
+const ROWS: { key: keyof Pick<ActiveWindowsInfo, "foreground" | "active" | "focus" | "capture">; label: string; tooltip: string; }[] = [
+    {
+        key: "foreground",
+        label: "Foreground",
+        tooltip: "The top-level window that currently has system-wide keyboard focus (GetForegroundWindow).",
+    },
+    {
+        key: "active",
+        label: "Active",
+        tooltip: "The active window in the foreground thread's input queue (GetActiveWindow). Read after temporarily attaching to that thread.",
+    },
+    {
+        key: "focus",
+        label: "Focus",
+        tooltip: "The window that owns keyboard focus within the foreground thread's input queue (GetFocus).",
+    },
+    {
+        key: "capture",
+        label: "Capture",
+        tooltip: "The window that has captured the mouse and receives all mouse input until capture is released (GetCapture).",
+    },
 ];
