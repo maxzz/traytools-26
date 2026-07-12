@@ -37,7 +37,7 @@ export function Page_ActiveMonitor() {
         <div className="flex-1 p-2 min-h-0 min-w-0 flex flex-col gap-2">
             <MonitorToolbar />
 
-            <div className="flex-1 p-3 min-h-0 text-xs bg-card border rounded-md overflow-auto">
+            <div className="flex-1 p-3 min-h-0 font-condensed text-xs bg-card border rounded-md overflow-auto">
                 {error && (
                     <div className="mb-2 text-destructive">{error}</div>
                 )}
@@ -52,7 +52,7 @@ export function Page_ActiveMonitor() {
 
                 <div className="mt-3 pt-2 border-t border-border/60 grid grid-cols-[6.5rem_1fr] gap-2 items-start">
                     <span className="text-muted-foreground">Thread</span>
-                    <span className="font-mono break-all">
+                    <span className="break-all truncate">
                         {info
                             ? info.systemWide
                                 ? `System-wide (foreground thread 0x${threadHex(info.threadId)})`
@@ -102,9 +102,9 @@ function MonitorToolbar() {
 
 function WindowRow({ label, win }: { label: string; win: MonitorWindow | undefined; }) {
     return (
-        <div className="col-span-full grid grid-cols-subgrid gap-x-2 py-1 items-start">
+        <div className="col-span-full grid grid-cols-subgrid gap-x-1 py-1 items-start">
             <span className="pt-0.5 text-muted-foreground">{label}</span>
-            <div className="font-mono break-all">
+            <div className="break-all truncate flex items-center gap-3">
                 <WindowText win={win} />
             </div>
         </div>
@@ -130,21 +130,17 @@ function WindowText({ win }: { win: MonitorWindow | undefined; }): ReactNode {
                 {win.handle} (invalid window)
             </span>);
     }
-    return (
-        <span>
-            <span className="text-sky-500">
-                {win.handle}
-            </span>
-            {" "}
-            <span className="text-foreground">
-                {win.className || "(no class)"}
-            </span>
-            {" "}
-            <span className="text-muted-foreground">
-                {win.title ? `'${win.title}'` : "''"}
-            </span>
+    return (<>
+        <span className="font-mono text-sky-500">
+            {win.handle}
         </span>
-    );
+        <span className="text-foreground">
+            {win.className || "(no class)"}
+        </span>
+        <span className="text-muted-foreground">
+            {win.title ? `'${win.title}'` : "''"}
+        </span>
+    </>);
 }
 
 function threadHex(id: number): string {
