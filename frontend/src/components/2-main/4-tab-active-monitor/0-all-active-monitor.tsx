@@ -51,19 +51,17 @@ export function Page_ActiveMonitor() {
                             )
                         )}
 
-                        <div className="col-span-full grid grid-cols-subgrid gap-x-4 items-start">
-                            <span className="text-muted-foreground">
-                                Thread
-                            </span>
-                            <span className="min-w-0 truncate">
-                                {info
+                        <WindowRow
+                            label="Thread"
+                            tooltip="The thread that owns the foreground window. Active, focus, and capture are read from this thread's input queue via AttachThreadInput."
+                            contents={
+                                info
                                     ? info.systemWide
                                         ? `System-wide (foreground thread 0x${threadHex(info.threadId)})`
                                         : `0x${threadHex(info.threadId)}`
-                                    : "—"}
-                            </span>
-
-                        </div>
+                                    : "—"
+                            }
+                        />
                     </div>
                 </TooltipProvider>
             </div>
@@ -106,7 +104,7 @@ function MonitorToolbar() {
     );
 }
 
-function WindowRow({ label, tooltip, win }: { label: string; tooltip: string; win: MonitorWindow | undefined; }) {
+function WindowRow({ label, tooltip, win, contents }: { label: string; tooltip: string; win?: MonitorWindow | undefined; contents?: ReactNode; }) {
     return (
         <div className="col-span-full grid grid-cols-subgrid gap-x-4 items-start">
             <Tooltip>
@@ -120,7 +118,7 @@ function WindowRow({ label, tooltip, win }: { label: string; tooltip: string; wi
                 </TooltipContent>
             </Tooltip>
             <div className="min-w-0 truncate">
-                <WindowText win={win} />
+                {contents ?? <WindowText win={win} />}
             </div>
         </div>
     );
