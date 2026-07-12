@@ -1,0 +1,23 @@
+@theme inline {
+    --color-tree-select: var(--tree-select);
+    --color-tree-select-foreground: var(--tree-select-foreground);
+    --color-tree-select-focused: var(--tree-select-focused);
+    --color-tree-select-focused-foreground: var(--tree-select-focused-foreground);
+    --color-tree-select-border: var(--tree-select-border);
+}
+
+:root {
+    --tree-select: oklch(0.94 0.005 286);
+    --tree-select-foreground: oklch(0.35 0 0);
+    --tree-select-focused: oklch(0.9 0.05 242);
+    --tree-select-focused-foreground: oklch(0.25 0.04 242);
+    --tree-select-border: oklch(0.55 0.13 242);
+}
+
+.dark {
+    --tree-select: oklch(0.28 0.01 286);
+    --tree-select-foreground: oklch(0.85 0 0);
+    --tree-select-focused: oklch(0.32 0.07 242);
+    --tree-select-focused-foreground: oklch(0.97 0.01 242);
+    --tree-select-border: oklch(0.55 0.12 242);
+}

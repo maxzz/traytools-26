@@ -296,7 +296,12 @@ export type TreeViewProps = HTMLAttributes<HTMLDivElement>;
 
 export function TreeView({ className, children, ...props }: TreeViewProps) {
     return (
-        <div className={cn("p-2", className)} {...props}>
+        <div
+            className={cn("group/tree p-2 outline-none", className)}
+            data-slot="tree-view"
+            tabIndex={0}
+            {...props}
+        >
             {children}
         </div>
     );
@@ -377,11 +382,16 @@ function TreeNodeTriggerContent({
         <motion.div
             className={cn(
                 "relative group mx-1 px-3 py-2 transition-all duration-200 rounded-md flex items-center cursor-pointer",
-                "hover:bg-accent/50",
-                isSelected && "bg-accent/80",
+                !isSelected && "hover:bg-accent/50",
+                isSelected && "bg-tree-select text-tree-select-foreground",
+                isSelected && "group-focus-within/tree:bg-tree-select-focused group-focus-within/tree:text-tree-select-focused-foreground",
+                isSelected && "group-focus-within/tree:ring-1 group-focus-within/tree:ring-inset group-focus-within/tree:ring-tree-select-border",
+                isSelected && "group-focus-within/tree:font-medium",
                 className
             )}
+            data-selected={isSelected ? "" : undefined}
             onClick={(e) => {
+                (e.currentTarget.closest("[data-slot=tree-view]") as HTMLElement | null)?.focus();
                 if (hasChildren) {
                     toggleExpanded(nodeId);
                 }
