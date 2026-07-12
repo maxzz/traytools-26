@@ -42,7 +42,7 @@ export function Page_ActiveMonitor() {
                     <div className="mb-2 text-destructive">{error}</div>
                 )}
 
-                <div className="divide-y divide-border/60 flex flex-col">
+                <div className="grid grid-cols-[6.5rem_1fr] gap-x-2 divide-y divide-border/60">
                     {ROWS.map(
                         ({ key, label }) => (
                             <WindowRow key={key} label={label} win={info?.[key]} />
@@ -102,7 +102,7 @@ function MonitorToolbar() {
 
 function WindowRow({ label, win }: { label: string; win: MonitorWindow | undefined; }) {
     return (
-        <div className="py-1 grid grid-cols-[6.5rem_1fr] gap-2 items-start">
+        <div className="col-span-full grid grid-cols-subgrid gap-x-2 py-1 items-start">
             <span className="pt-0.5 text-muted-foreground">{label}</span>
             <div className="font-mono break-all">
                 <WindowText win={win} />
