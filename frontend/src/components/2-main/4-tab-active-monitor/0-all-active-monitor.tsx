@@ -47,21 +47,15 @@ export function Page_ActiveMonitor() {
                     <div className="grid grid-cols-[auto_1fr] gap-y-1.5 divide-y divide-border/60">
                         {ROWS.map(
                             ({ key, label, tooltip }) => (
-                                <WindowRow key={key} label={label} tooltip={tooltip} win={info?.[key]} />
+                                <WindowRow key={key} label={label} tooltip={tooltip} win={key === "thread" ? undefined : info?.[key]}
+                                    contents={
+                                        key === "thread"
+                                            ? info ? info.systemWide ? `System-wide (foreground thread 0x${threadHex(info.threadId)})` : `0x${threadHex(info.threadId)}` : "—"
+                                            : undefined
+                                    }
+                                />
                             )
                         )}
-
-                        <WindowRow
-                            label="Thread"
-                            tooltip="The thread that owns the foreground window. Active, focus, and capture are read from this thread's input queue via AttachThreadInput."
-                            contents={
-                                info
-                                    ? info.systemWide
-                                        ? `System-wide (foreground thread 0x${threadHex(info.threadId)})`
-                                        : `0x${threadHex(info.threadId)}`
-                                    : "—"
-                            }
-                        />
                     </div>
                 </TooltipProvider>
             </div>
@@ -109,10 +103,11 @@ function WindowRow({ label, tooltip, win, contents }: { label: string; tooltip: 
         <div className="col-span-full grid grid-cols-subgrid gap-x-4 items-start">
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <span className="pt-0.5 text-muted-foreground underline decoration-dotted underline-offset-2 cursor-help w-fit">
+                    <span className="pt-0.5 w-full text-muted-foreground underline decoration-dotted underline-offset-2 cursor-help">
                         {label}
                     </span>
                 </TooltipTrigger>
+
                 <TooltipContent side="right" className="max-w-72">
                     {tooltip}
                 </TooltipContent>
@@ -136,7 +131,7 @@ function WindowText({ win }: { win: MonitorWindow | undefined; }): ReactNode {
             <span className="text-muted-foreground/60">
                 <span className="font-mono">
                     {win.handle}
-                </span> 
+                </span>
                 {" "}(no window)
             </span>);
     }
@@ -167,7 +162,9 @@ function threadHex(id: number): string {
 
 const POLL_INTERVAL_MS = 500; // Matches the legacy liswatch TIMER_DELAY.
 
-const ROWS: { key: keyof Pick<ActiveWindowsInfo, "foreground" | "active" | "focus" | "capture">; label: string; tooltip: string; }[] = [
+type MonitorRowKey = keyof Pick<ActiveWindowsInfo, "foreground" | "active" | "focus" | "capture"> | "thread";
+
+const ROWS: { key: MonitorRowKey; label: string; tooltip: string; }[] = [
     {
         key: "foreground",
         label: "Foreground",
@@ -187,5 +184,10 @@ const ROWS: { key: keyof Pick<ActiveWindowsInfo, "foreground" | "active" | "focu
         key: "capture",
         label: "Capture",
         tooltip: "The window that has captured the mouse and receives all mouse input until capture is released (GetCapture).",
+    },
+    {
+        key: "thread",
+        label: "Thread",
+        tooltip: "The thread that owns the foreground window. Active, focus, and capture are read from this thread's input queue via AttachThreadInput.",
     },
 ];
