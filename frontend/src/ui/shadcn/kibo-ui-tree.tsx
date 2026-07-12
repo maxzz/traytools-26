@@ -381,7 +381,7 @@ function TreeNodeTriggerContent({
     return (
         <motion.div
             className={cn(
-                "relative group mx-1 px-3 py-2 transition-all duration-200 rounded-md flex items-center cursor-pointer",
+                "relative group mx-1 px-3 py-1 transition-all duration-200 rounded-none flex items-center cursor-pointer",
                 !isSelected && "hover:bg-accent/50",
                 isSelected && "bg-tree-select text-tree-select-foreground",
                 isSelected && "group-focus-within/tree:bg-tree-select-focused group-focus-within/tree:text-tree-select-focused-foreground",
@@ -427,7 +427,7 @@ export function TreeLines() {
 
                 return (
                     <div
-                        className="absolute top-0 bottom-0 border-border/40 border-l"
+                        className="absolute top-0 bottom-0 border-foreground/40 border-l"
                         key={index.toString()}
                         style={{
                             left: index * (indent ?? 0) + 12,
@@ -438,7 +438,7 @@ export function TreeLines() {
 
             {/* Horizontal connector line */}
             <div
-                className="absolute top-1/2 border-border/40 border-t"
+                className="absolute top-1/2 border-foreground/40 border-t"
                 style={{
                     left: (level - 1) * (indent ?? 0) + 12,
                     width: (indent ?? 0) - 4,
@@ -448,7 +448,7 @@ export function TreeLines() {
             {/* Vertical line to midpoint for last items */}
             {isLast && (
                 <div
-                    className="absolute top-0 border-border/40 border-l"
+                    className="absolute top-0 border-foreground/40 border-l"
                     style={{
                         left: (level - 1) * (indent ?? 0) + 12,
                         height: "50%",
