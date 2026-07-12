@@ -319,16 +319,12 @@ export function TreeNode({ nodeId: providedNodeId, level = 0, isLast = false, pa
     const generatedId = useId();
     const nodeId = providedNodeId ?? generatedId;
 
-    // Build the parent path - mark positions where the parent was the last child
-    const currentPath = level === 0 ? [] : [...parentPath];
-    if (level > 0 && parentPath.length < level - 1) {
-        // Fill in missing levels with false (not last)
-        while (currentPath.length < level - 1) {
-            currentPath.push(false);
+    // Ancestor path: parentPath[i] is true when the ancestor at level i was the last child.
+    const ancestorPath = level === 0 ? [] : [...parentPath];
+    if (level > 0 && ancestorPath.length < level) {
+        while (ancestorPath.length < level) {
+            ancestorPath.push(false);
         }
-    }
-    if (level > 0) {
-        currentPath[level - 1] = isLast;
     }
 
     return (
@@ -337,7 +333,7 @@ export function TreeNode({ nodeId: providedNodeId, level = 0, isLast = false, pa
                 nodeId,
                 level,
                 isLast,
-                parentPath: currentPath,
+                parentPath: ancestorPath,
             }}
         >
             <div className={cn("select-none", className)} {...props}>
@@ -398,7 +394,7 @@ function TreeNodeTriggerContent({
                 handleSelection(nodeId, e.ctrlKey || e.metaKey);
                 onClick?.(e);
             }}
-            style={{ paddingLeft: level * (indent ?? 0) + 8 }}
+            style={{ paddingLeft: (level + 1) * (indent ?? 0) + 8 }}
             //whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
             {...props}
         >
@@ -416,44 +412,37 @@ export function TreeLines() {
         return null;
     }
 
+    const guideX = (depth: number) => depth * (indent ?? 0) + 12;
+    const x = guideX(level);
+
     return (
-        <div className="absolute top-0 bottom-0 left-0 pointer-events-none">
-            {/* Render vertical lines for all parent levels */}
-            {Array.from({ length: level }, (_, index) => {
-                const shouldHideLine = parentPath[index] === true;
-                if (shouldHideLine && index === level - 1) {
-                    return null;
-                }
-
-                return (
+        <div className="absolute inset-y-0 left-0 pointer-events-none">
+            {/* Ancestor continuation at columns 0..level-1. */}
+            {parentPath.map((ancestorIsLast, index) =>
+                !ancestorIsLast ? (
                     <div
-                        className="absolute top-0 bottom-0 border-foreground/40 border-l"
-                        key={index.toString()}
-                        style={{
-                            left: index * (indent ?? 0) + 12,
-                            display: shouldHideLine ? "none" : "block",
-                        }} />
-                );
-            })}
+                        key={index}
+                        className="absolute top-0 border-foreground/40 border-l"
+                        style={{ left: guideX(index), bottom: -1 }}
+                    />
+                ) : null
+            )}
 
-            {/* Horizontal connector line */}
+            {/* Current level: vertical from top down to this row's midpoint. */}
+            <div className="absolute top-0 border-foreground/40 border-l" style={{ left: x, height: "calc(50% + 1px)" }} />
+
+            {/* Continue below the midpoint only when a sibling follows. */}
+            {!isLast && <div className="absolute border-foreground/40 border-l" style={{ left: x, top: "50%", bottom: -1 }} />}
+
+            {/* Horizontal tick reaching toward the row content. */}
             <div
                 className="absolute top-1/2 border-foreground/40 border-t"
                 style={{
-                    left: (level - 1) * (indent ?? 0) + 12,
+                    left: x,
                     width: (indent ?? 0) - 4,
                     transform: "translateY(-1px)",
-                }} />
-
-            {/* Vertical line to midpoint for last items */}
-            {isLast && (
-                <div
-                    className="absolute top-0 border-foreground/40 border-l"
-                    style={{
-                        left: (level - 1) * (indent ?? 0) + 12,
-                        height: "50%",
-                    }} />
-            )}
+                }}
+            />
         </div>
     );
 }
