@@ -25,7 +25,7 @@
         "rollup-plugin-visualizer": "^7.0.1",
         "tailwindcss-plugin-debug-screens-tw4": "^1.0.4",
         "tailwindcss-plugin-overflow-tw4": "^1.0.1",
-        "tsx": "^4.22.4",
+        "tsx": "^4.23.1",
         "typescript": "~6.0.2",
         "upen": "^1.0.2",
         "vite": "^8.1.4",
