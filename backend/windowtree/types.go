@@ -36,6 +36,9 @@ type MonitorWindow struct {
 	ClassName string `json:"className"`
 	Title     string `json:"title"`
 	Valid     bool   `json:"valid"`
+	// NoWindow is true when the Win32 call returned HWND 0 (e.g. no focus or
+	// capture target). Distinct from Valid=false, which means a non-zero but
+	// invalid/stale handle.
 	NoWindow  bool   `json:"noWindow"`
 	ProcessID uint32 `json:"processId"`
 	ThreadID  uint32 `json:"threadId"`

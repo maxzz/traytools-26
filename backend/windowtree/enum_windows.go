@@ -14,21 +14,21 @@ import (
 var (
 	user32 = windows.NewLazySystemDLL("user32.dll")
 
-	procEnumWindows             = user32.NewProc("EnumWindows")
-	procGetWindow               = user32.NewProc("GetWindow")
-	procGetParent               = user32.NewProc("GetParent")
-	procGetWindowTextW          = user32.NewProc("GetWindowTextW")
-	procGetClassNameW           = user32.NewProc("GetClassNameW")
+	procEnumWindows              = user32.NewProc("EnumWindows")
+	procGetWindow                = user32.NewProc("GetWindow")
+	procGetParent                = user32.NewProc("GetParent")
+	procGetWindowTextW           = user32.NewProc("GetWindowTextW")
+	procGetClassNameW            = user32.NewProc("GetClassNameW")
 	procGetWindowThreadProcessId = user32.NewProc("GetWindowThreadProcessId")
-	procGetWindowLongPtrW       = user32.NewProc("GetWindowLongPtrW")
-	procGetClassLongPtrW        = user32.NewProc("GetClassLongPtrW")
-	procIsWindow                = user32.NewProc("IsWindow")
-	procIsWindowVisible         = user32.NewProc("IsWindowVisible")
-	procIsWindowEnabled         = user32.NewProc("IsWindowEnabled")
-	procIsWindowUnicode         = user32.NewProc("IsWindowUnicode")
-	procGetWindowRect           = user32.NewProc("GetWindowRect")
-	procGetClientRect           = user32.NewProc("GetClientRect")
-	procMapWindowPoints         = user32.NewProc("MapWindowPoints")
+	procGetWindowLongPtrW        = user32.NewProc("GetWindowLongPtrW")
+	procGetClassLongPtrW         = user32.NewProc("GetClassLongPtrW")
+	procIsWindow                 = user32.NewProc("IsWindow")
+	procIsWindowVisible          = user32.NewProc("IsWindowVisible")
+	procIsWindowEnabled          = user32.NewProc("IsWindowEnabled")
+	procIsWindowUnicode          = user32.NewProc("IsWindowUnicode")
+	procGetWindowRect            = user32.NewProc("GetWindowRect")
+	procGetClientRect            = user32.NewProc("GetClientRect")
+	procMapWindowPoints          = user32.NewProc("MapWindowPoints")
 
 	procGetForegroundWindow = user32.NewProc("GetForegroundWindow")
 	procGetActiveWindow     = user32.NewProc("GetActiveWindow")
@@ -42,11 +42,11 @@ const (
 	gwOwner    = 4
 	gwChild    = 5
 
-	gwlStyle       = ^uintptr(15) // -16
-	gwlExStyle     = ^uintptr(19) // -20
-	gwlpID         = ^uintptr(11) // -12
-	gwlpHInstance  = ^uintptr(5)  // -6
-	gwlpUserData   = ^uintptr(20) // -21
+	gwlStyle      = ^uintptr(15) // -16
+	gwlExStyle    = ^uintptr(19) // -20
+	gwlpID        = ^uintptr(11) // -12
+	gwlpHInstance = ^uintptr(5)  // -6
+	gwlpUserData  = ^uintptr(20) // -21
 
 	gcwAtom       = ^uintptr(31) // -32
 	gclStyle      = ^uintptr(25) // -26
@@ -257,26 +257,8 @@ func classNameOrEmpty(hwnd uintptr) string {
 	return getClassNameStr(hwnd)
 }
 
-// calcMonitorWindow reads the display info for one monitored window, splitting
-// out the "no window" (handle 0) and "invalid window" cases the same way the
-// legacy liswatch calcwindowtext() did.
-func calcMonitorWindow(hwnd uintptr) MonitorWindow {
-	if hwnd == 0 {
-		return MonitorWindow{Handle: handleToString(0), NoWindow: true}
-	}
-	if !isWindowBool(procIsWindow, hwnd) {
-		return MonitorWindow{Handle: handleToString(hwnd)}
-	}
-	tid, pid := getThreadProcess(hwnd)
-	return MonitorWindow{
-		Handle:    handleToString(hwnd),
-		ClassName: getClassNameStr(hwnd),
-		Title:     getWindowTextStr(hwnd),
-		Valid:     true,
-		ProcessID: pid,
-		ThreadID:  tid,
-	}
-}
+// ------------------------------------------------------------
+// Active Windows Monitor
 
 // platformGetActiveWindows returns a snapshot of the local input state. This is
 // the Go port of liswatch_t::on_timer(): GetActiveWindow/GetFocus/GetCapture
@@ -315,4 +297,25 @@ func platformGetActiveWindows() (ActiveWindowsInfo, error) {
 		ThreadID:   fgThread,
 		SystemWide: true,
 	}, nil
+}
+
+// calcMonitorWindow reads the display info for one monitored window, splitting
+// out the "no window" (handle 0) and "invalid window" cases the same way the
+// legacy liswatch calcwindowtext() did.
+func calcMonitorWindow(hwnd uintptr) MonitorWindow {
+	if hwnd == 0 {
+		return MonitorWindow{Handle: handleToString(0), NoWindow: true}
+	}
+	if !isWindowBool(procIsWindow, hwnd) {
+		return MonitorWindow{Handle: handleToString(hwnd)}
+	}
+	tid, pid := getThreadProcess(hwnd)
+	return MonitorWindow{
+		Handle:    handleToString(hwnd),
+		ClassName: getClassNameStr(hwnd),
+		Title:     getWindowTextStr(hwnd),
+		Valid:     true,
+		ProcessID: pid,
+		ThreadID:  tid,
+	}
 }
