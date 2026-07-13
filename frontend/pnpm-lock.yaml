@@ -78,8 +78,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       tailwindcss:
-        specifier: ^4.3.0
-        version: 4.3.1
+        specifier: ^4.3.2
+        version: 4.3.2
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -89,7 +89,7 @@ importers:
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.11
-        version: 0.5.11(tailwindcss@4.3.1)
+        version: 0.5.11(tailwindcss@4.3.2)
       '@types/node':
         specifier: ^26.0.1
         version: 26.0.1
@@ -113,10 +113,10 @@ importers:
         version: 7.0.1(rolldown@1.1.3)
       tailwindcss-plugin-debug-screens-tw4:
         specifier: ^1.0.4
-        version: 1.0.4(tailwindcss@4.3.1)
+        version: 1.0.4(tailwindcss@4.3.2)
       tailwindcss-plugin-overflow-tw4:
         specifier: ^1.0.1
-        version: 1.0.1(tailwindcss@4.3.1)
+        version: 1.0.1(tailwindcss@4.3.2)
       tsx:
         specifier: ^4.22.4
         version: 4.22.4
@@ -2886,6 +2886,9 @@ packages:
   tailwindcss@4.3.1:
     resolution: {integrity: sha512-hk+TB1m+K8CYNrP6rjQaq/Y+4Zylwpa87mLYBKCunwnnQ9p+fHb7kmSfGqyEJoxF/O6CDyABWVFEafNSYKll+Q==}
 
+  tailwindcss@4.3.2:
+    resolution: {integrity: sha512-WtctNNSH8A9jlMIqxzuYumOHU5uGZyRv0Q5svQl+oEPy5w84YpBxdb7MdqyiSPQge5jTJ6zFQLq0PFygdccSBA==}
+
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
@@ -4364,10 +4367,10 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@tailwindcss/forms@0.5.11(tailwindcss@4.3.1)':
+  '@tailwindcss/forms@0.5.11(tailwindcss@4.3.2)':
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 4.3.1
+      tailwindcss: 4.3.2
 
   '@tailwindcss/node@4.3.1':
     dependencies:
@@ -5873,15 +5876,17 @@ snapshots:
 
   tailwind-merge@3.6.0: {}
 
-  tailwindcss-plugin-debug-screens-tw4@1.0.4(tailwindcss@4.3.1):
+  tailwindcss-plugin-debug-screens-tw4@1.0.4(tailwindcss@4.3.2):
     dependencies:
-      tailwindcss: 4.3.1
+      tailwindcss: 4.3.2
 
-  tailwindcss-plugin-overflow-tw4@1.0.1(tailwindcss@4.3.1):
+  tailwindcss-plugin-overflow-tw4@1.0.1(tailwindcss@4.3.2):
     dependencies:
-      tailwindcss: 4.3.1
+      tailwindcss: 4.3.2
 
   tailwindcss@4.3.1: {}
+
+  tailwindcss@4.3.2: {}
 
   tapable@2.3.3: {}
 
