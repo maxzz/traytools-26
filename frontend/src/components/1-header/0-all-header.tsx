@@ -11,8 +11,11 @@ export function Header() {
         <header className="px-3 py-1 bg-background border-b border-border flex items-center justify-between">
             <div className="min-w-0 flex items-center gap-3">
                 <AppMenubar />
-                <MainTabs />
-                <UnloadHookNotice />
+
+                <div className="relative min-w-0">
+                    <MainTabs />
+                    <UnloadHookNotice className="absolute inset-y-0 left-0 z-10 flex items-center" />
+                </div>
             </div>
 
             <div className="flex items-center gap-1">
