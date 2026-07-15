@@ -4,7 +4,7 @@ export function IconDpSensorRed({ title, ...rest }: HTMLAttributes<SVGSVGElement
     return (
         <svg viewBox="0 0 24 24" {...rest}>
             {title && <title>{title}</title>}
-            <rect fill="#006a9c" width="24" height="24" />
+            {/* <rect fill="#006a9c" width="24" height="24" /> */}
             <rect fill="#006a9c" x="1.67" y=".73" width="20.49" height="22.54" rx="5.06" ry="5.06" />
             <rect fill="#3d96be" x="2.71" y="1.94" width="18.47" height="20.18" rx="4.07" ry="4.07" />
             <rect fill="#7ac2df" x="3.75" y="3.16" width="16.44" height="17.82" rx="3.08" ry="3.08" />
