@@ -9,6 +9,7 @@ import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/a-
 import { notice } from "@/ui/local-ui/7-toaster";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 import { ToolsMenu } from "./1-1-menu-tools";
+import { unloadHookNotice } from "./3-1-notice-unload-hook-state";
 
 export function AppMenubar() {
     const openSettingsDialog = useSetAtom(isOpenSettingsDialogAtom);
@@ -68,9 +69,14 @@ export function AppMenubar() {
                     <MenubarItem
                         title="Just send notification to unload hook"
                         onSelect={() => {
-                            appBus.sendUnloadHookNotification().catch((e) => {
-                                notice.error(`Send unload hook notification:\n ${String(e)}`);
-                            });
+                            appBus.sendUnloadHookNotification()
+                                .then(() => {
+                                    unloadHookNotice.success("Unload hook notification sent");
+                                })
+                                .catch((e) => {
+                                    //unloadHookNotice.error(`Unload hook failed: ${String(e)}`);
+                                    notice.error(`Send unload hook notification:\n ${String(e)}`);
+                                });
                         }}
                     >
                         Send unload hook notification
