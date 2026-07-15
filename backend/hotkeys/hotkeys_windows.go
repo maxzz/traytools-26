@@ -30,12 +30,12 @@ const (
 	hwndMessage = ^uintptr(0) - 2
 )
 
-// Chord is Ctrl/Alt/Shift + one A–Z letter or F1–F12.
+// Chord is Ctrl/Alt/Shift + A–Z, 0–9, number-row punctuation (` - =), or F1–F12.
 type Chord struct {
 	Ctrl  bool
 	Alt   bool
 	Shift bool
-	Key   string // "A".."Z" or "F1".."F12"
+	Key   string // "A".."Z", "0".."9", "`", "-", "=", or "F1".."F12"
 }
 
 type Handler func(id int)
@@ -152,9 +152,17 @@ func validate(c *Chord) error {
 }
 
 func normalizeKey(key string) (string, error) {
-	upper := strings.ToUpper(strings.TrimSpace(key))
+	trimmed := strings.TrimSpace(key)
+	upper := strings.ToUpper(trimmed)
 	if len(upper) == 1 && upper[0] >= 'A' && upper[0] <= 'Z' {
 		return upper, nil
+	}
+	if len(upper) == 1 && upper[0] >= '0' && upper[0] <= '9' {
+		return upper, nil
+	}
+	switch trimmed {
+	case "`", "-", "=":
+		return trimmed, nil
 	}
 	if len(upper) >= 2 && upper[0] == 'F' {
 		var n int
@@ -162,7 +170,7 @@ func normalizeKey(key string) (string, error) {
 			return upper, nil
 		}
 	}
-	return "", fmt.Errorf("hotkeys: key must be A–Z or F1–F12")
+	return "", fmt.Errorf("hotkeys: key must be A–Z, 0–9, ` - =, or F1–F12")
 }
 
 // virtualKey maps a chord key to a Win32 virtual-key code.
@@ -172,17 +180,27 @@ func virtualKey(key string) (uintptr, error) {
 		return 0, err
 	}
 	if len(normalized) == 1 {
-		return uintptr(normalized[0]), nil
+		switch normalized {
+		case "`":
+			return 0xC0, nil // VK_OEM_3
+		case "-":
+			return 0xBD, nil // VK_OEM_MINUS
+		case "=":
+			return 0xBB, nil // VK_OEM_PLUS
+		default:
+			// VK_A..VK_Z and VK_0..VK_9 share ASCII codes.
+			return uintptr(normalized[0]), nil
+		}
 	}
 	// VK_F1 = 0x70 … VK_F12 = 0x7B
 	var n int
 	if _, err := fmt.Sscanf(normalized, "F%d", &n); err != nil || n < 1 || n > 12 {
-		return 0, fmt.Errorf("hotkeys: key must be A–Z or F1–F12")
+		return 0, fmt.Errorf("hotkeys: key must be A–Z, 0–9, ` - =, or F1–F12")
 	}
 	return uintptr(0x70 + (n - 1)), nil
 }
 
-// Parse accepts "Ctrl+Alt+U" / "Ctrl+F5" style strings (same as the frontend formatter).
+// Parse accepts "Ctrl+Alt+U" / "Ctrl+1" / "Ctrl+F5" style strings (same as the frontend formatter).
 func Parse(text string) (*Chord, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
@@ -204,7 +222,7 @@ func Parse(text string) (*Chord, error) {
 			if c.Key != "" {
 				return nil, fmt.Errorf("hotkeys: invalid token %q", p)
 			}
-			normalized, err := normalizeKey(upper)
+			normalized, err := normalizeKey(p)
 			if err != nil {
 				return nil, fmt.Errorf("hotkeys: invalid token %q", p)
 			}
@@ -232,7 +250,7 @@ func Format(c *Chord) string {
 		parts = append(parts, "Shift")
 	}
 	if c.Key != "" {
-		parts = append(parts, strings.ToUpper(c.Key))
+		parts = append(parts, c.Key)
 	}
 	return strings.Join(parts, "+")
 }

@@ -12,7 +12,8 @@ type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
 };
 
 /**
- * Click-to-capture hotkey editor. Accepts Ctrl/Alt/Shift + A–Z or F1–F12.
+ * Click-to-capture hotkey editor. Accepts Ctrl/Alt/Shift + A–Z, 0–9,
+ * number-row punctuation (` - =), or F1–F12.
  * Escape cancels recording; Backspace/Delete clears the binding.
  */
 export function HotkeyInput({
