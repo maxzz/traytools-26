@@ -20,7 +20,7 @@ export function UnloadHookNotice() {
     );
 
     return (
-        <AnimatedNotice show={show}>
+        <AnimatedNotice show={show} appearDelay={0}>
             <Button className={buttonClasses} variant="ghost" size="sm" disabled>
                 {type === "error"
                     ? <IconStopCircle className="size-3" />
