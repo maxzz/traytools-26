@@ -3,8 +3,8 @@ export {
     type HotkeyChord,
     isHotkeyKey,
     isHotkeyChord,
-    formatHotkey,
-    parseHotkey,
-    chordFromKeyboardEvent,
+    stringFromHotkeyChord as formatHotkey,
+    stringToHotkeyChord as parseHotkey,
+    keyboardEventToHotkeyChord as chordFromKeyboardEvent,
     matchesHotkey,
-} from "./1-hotkey-types";
+} from "./9-types-hotkey";

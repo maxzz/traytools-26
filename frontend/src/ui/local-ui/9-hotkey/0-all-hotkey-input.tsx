@@ -2,7 +2,7 @@ import { type ComponentProps, useCallback, useEffect, useRef, useState } from "r
 import { classNames } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
-import { chordFromKeyboardEvent, formatHotkey, type HotkeyChord } from "./1-hotkey-types";
+import { keyboardEventToHotkeyChord, stringFromHotkeyChord, type HotkeyChord } from "./9-types-hotkey";
 
 type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
     value: HotkeyChord | null;
@@ -55,7 +55,7 @@ export function HotkeyInput({
                     return;
                 }
 
-                const chord = chordFromKeyboardEvent(event);
+                const chord = keyboardEventToHotkeyChord(event);
                 if (!chord) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -68,52 +68,42 @@ export function HotkeyInput({
                 stopRecording();
             }
 
-            window.addEventListener("keydown", onKeyDown, true);
-            return () => window.removeEventListener("keydown", onKeyDown, true);
+            const controller = new AbortController();
+            window.addEventListener("keydown", onKeyDown, { signal: controller.signal });
+            return () => controller.abort();
         },
         [recording, onChange, stopRecording],
     );
 
-    const display = recording
-        ? "Press shortcut…"
-        : (formatHotkey(value) || placeholder);
+    const display = recording ? "Press shortcut…" : (stringFromHotkeyChord(value) || placeholder);
 
     return (
         <div className={classNames("flex items-center gap-1", className)} {...rest}>
             <Input
                 ref={inputRef}
                 readOnly
-                value={display}
-                placeholder={placeholder}
                 className={classNames(
                     "h-7 font-mono cursor-pointer",
                     recording && "border-sky-500 ring-1 ring-sky-500/40",
                     !value && !recording && "text-muted-foreground",
                 )}
+                value={display}
+                onClick={() => { setRecording(true); inputRef.current?.focus(); }}
                 onFocus={() => setRecording(true)}
-                onBlur={() => {
-                    // Defer so a Clear click can run first.
-                    requestAnimationFrame(() => stopRecording());
-                }}
-                onClick={() => {
-                    setRecording(true);
-                    inputRef.current?.focus();
-                }}
+                onBlur={() => { requestAnimationFrame(() => stopRecording()); }} // Defer so a Clear click can run first.
+                placeholder={placeholder}
                 aria-label="Hotkey shortcut"
             />
 
             <Button
-                type="button"
+                className="shrink-0 px-2 h-7"
                 variant="outline"
                 size="xs"
-                className="shrink-0 px-2 h-7"
-                disabled={!value && !recording}
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                    onChange(null);
-                    stopRecording();
-                }}
+                onClick={() => { onChange(null); stopRecording(); }}
+                disabled={!value && !recording}
                 title="Clear shortcut"
+                type="button"
             >
                 Clear
             </Button>

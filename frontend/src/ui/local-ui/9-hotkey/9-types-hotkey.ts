@@ -33,7 +33,7 @@ export function isHotkeyChord(value: unknown): value is HotkeyChord {
 }
 
 /** Display / persistence form, e.g. "Ctrl+Alt+U" or "Ctrl+F5". */
-export function formatHotkey(chord: HotkeyChord | null | undefined): string {
+export function stringFromHotkeyChord(chord: HotkeyChord | null | undefined): string {
     if (!chord || !isHotkeyChord(chord)) {
         return "";
     }
@@ -51,7 +51,7 @@ export function formatHotkey(chord: HotkeyChord | null | undefined): string {
     return parts.join("+");
 }
 
-export function parseHotkey(text: string | null | undefined): HotkeyChord | null {
+export function stringToHotkeyChord(text: string | null | undefined): HotkeyChord | null {
     if (!text?.trim()) {
         return null;
     }
@@ -92,7 +92,7 @@ export function parseHotkey(text: string | null | undefined): HotkeyChord | null
 }
 
 /** Build a chord from a KeyboardEvent; returns null if the event is not a valid binding. */
-export function chordFromKeyboardEvent(event: KeyboardEvent): HotkeyChord | null {
+export function keyboardEventToHotkeyChord(event: KeyboardEvent): HotkeyChord | null {
     if (!event.ctrlKey && !event.altKey && !event.shiftKey) {
         return null;
     }
