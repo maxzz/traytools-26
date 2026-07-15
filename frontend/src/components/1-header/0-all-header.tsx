@@ -19,7 +19,7 @@ export function Header() {
 
                 <div className="relative min-w-0">
                     <MainTabs />
-                    <UnloadHookNotice className="absolute inset-y-0 left-0 z-10 flex items-center" />
+                    <UnloadHookNotice className="absolute inset-y-0 left-0 flex items-center z-10" />
                 </div>
             </div>
 

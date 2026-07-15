@@ -120,7 +120,7 @@ function ControlUnloadHookHotkey() {
 
             <HotkeyInput value={state.chord} onChange={setChord} />
 
-            <Label className="flex items-center gap-2 font-normal">
+            <Label className="font-normal flex items-center gap-2">
                 <Checkbox
                     checked={state.global}
                     disabled={!state.chord}

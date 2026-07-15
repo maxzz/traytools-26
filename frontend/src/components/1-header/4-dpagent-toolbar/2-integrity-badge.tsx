@@ -10,7 +10,7 @@ export function IntegrityBadge({ level, subject, className }: { level: Integrity
     return (
         <span
             className={classNames(
-                "min-w-4 h-5 px-0.5 text-[11px] font-bold leading-none rounded-sm border inline-flex items-center justify-center select-none",
+                "px-0.5 min-w-4 h-5 font-bold text-[11px] border rounded-sm select-none inline-flex items-center justify-center leading-none",
                 isHigh && "text-red-600 border-red-500/50 bg-red-500/10",
                 !isHigh && !isUnknown && "text-amber-700 border-amber-500/40 bg-amber-500/10",
                 isUnknown && "text-muted-foreground border-border bg-muted/40",

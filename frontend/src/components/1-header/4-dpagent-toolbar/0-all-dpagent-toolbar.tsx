@@ -60,7 +60,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
 
     return (
         <div
-            className={classNames("h-6 px-1 gap-1 rounded-sm border border-border bg-muted/30 inline-flex items-center", className)}
+            className={classNames("px-1 h-6 bg-muted/30 border border-border rounded-sm gap-1 inline-flex items-center", className)}
             title={status?.agentPath ? `DPAgent: ${status.agentPath}` : "DPAgent toolbar"}
         >
             <IconDpAgentStatus running={running} title={running ? "DPAgent is running" : "DPAgent is not running"} />
@@ -69,7 +69,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
                 type="button"
                 variant="outline"
                 size="xs"
-                className="h-5 px-1.5"
+                className="px-1.5 h-5"
                 disabled={busy || running}
                 onClick={() => { void onStart(); }}
                 title={settings.startDpAgentHigh ? "Start DPAgent elevated" : "Start DPAgent"}
@@ -81,7 +81,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
                 type="button"
                 variant="outline"
                 size="xs"
-                className="h-5 px-1.5"
+                className="px-1.5 h-5"
                 disabled={busy || !running}
                 onClick={() => { void onStop(); }}
                 title="Stop DPAgent and unload hooks"
@@ -97,7 +97,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
                 type="button"
                 variant="outline"
                 size="xs"
-                className="h-5 px-1.5"
+                className="px-1.5 h-5"
                 onClick={() => appBus.exit().catch(console.error)}
                 title="Exit application"
             >

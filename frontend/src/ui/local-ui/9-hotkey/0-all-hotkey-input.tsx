@@ -106,7 +106,7 @@ export function HotkeyInput({
                 type="button"
                 variant="outline"
                 size="xs"
-                className="h-7 px-2 shrink-0"
+                className="shrink-0 px-2 h-7"
                 disabled={!value && !recording}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
