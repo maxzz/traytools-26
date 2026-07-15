@@ -9,3 +9,5 @@ export * from "./srcoll-area-pos";
 
 export * from "./4-bars-loader";
 
+export * from "./9-hotkey";
+

@@ -5,18 +5,27 @@ import { appSettings } from "@/store/1-ui-settings";
 import { classNames } from "@/utils";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { Button } from "@/ui/shadcn/button";
+import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
-import { isOpenSettingsDialogAtom, settingsQuitOnCloseAtom, settingsRunElevatedAtom, settingsShowFooterAtom, settingsStayOnTopAtom, } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
+import { HotkeyInput, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
+import {
+    isOpenSettingsDialogAtom,
+    settingsQuitOnCloseAtom,
+    settingsRunElevatedAtom,
+    settingsShowFooterAtom,
+    settingsStayOnTopAtom,
+    settingsUnloadHookHotkeyAtom,
+} from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 
 export function SettingsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenSettingsDialogAtom);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! max-w-xs! gap-0!" aria-describedby={DESCRIPTION_ID}>
+            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID}>
 
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
@@ -27,12 +36,13 @@ export function SettingsDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="px-4 py-4 font-normal flex flex-col gap-2">
+                <div className="px-4 py-4 font-normal flex flex-col gap-3">
                     <ControlSwitch label="Run this application elevated" valueAtom={settingsRunElevatedAtom} />
                     <ControlSwitch label="Make the window stay on top of all others" valueAtom={settingsStayOnTopAtom} />
                     <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
                     <ControlSwitch label="Quit the application when the window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                     <ControlTheme />
+                    <ControlUnloadHookHotkey />
                 </div>
 
                 <DialogFooter className="m-0 px-4 pb-3 pt-2 flex justify-center!">
@@ -81,6 +91,43 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
                     <SelectItem value="system">System</SelectItem>
                 </SelectContent>
             </Select>
+        </div>
+    );
+}
+
+function ControlUnloadHookHotkey() {
+    const [state, setState] = useAtom(settingsUnloadHookHotkeyAtom);
+
+    function setChord(chord: HotkeyChord | null) {
+        setState({
+            chord,
+            global: chord ? state.global : false,
+        });
+    }
+
+    function setGlobal(global: boolean) {
+        setState({
+            chord: state.chord,
+            global,
+        });
+    }
+
+    return (
+        <div className="pt-1 border-t border-border flex flex-col gap-2">
+            <div className="text-xs text-muted-foreground">
+                Send unload hook notification
+            </div>
+
+            <HotkeyInput value={state.chord} onChange={setChord} />
+
+            <Label className="flex items-center gap-2 font-normal">
+                <Checkbox
+                    checked={state.global}
+                    disabled={!state.chord}
+                    onCheckedChange={(v) => setGlobal(v === true)}
+                />
+                Global system-wide hotkey
+            </Label>
         </div>
     );
 }

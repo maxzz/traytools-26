@@ -54,6 +54,7 @@ func (a *App) SetTrayIcon(icon []byte) {
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 	setupSingleInstanceIPC(a.showWindow)
+	a.startHotkeys()
 	a.trace.Start(ctx)
 	a.startTray()
 }
@@ -112,6 +113,21 @@ func (a *App) registerHandlers() {
 			}
 		}
 		if err := SetQuitOnCloseOption(req.Value); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	a.bus.Register("settings", "getUnloadHookHotkey", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return GetUnloadHookHotkeyOptions(), nil
+	})
+	a.bus.Register("settings", "setUnloadHookHotkey", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req UnloadHookHotkeyOptions
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		if err := SetUnloadHookHotkeyOptions(req.Hotkey, req.Global); err != nil {
 			return nil, err
 		}
 		return nil, nil

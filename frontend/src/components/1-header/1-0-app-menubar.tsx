@@ -1,18 +1,20 @@
 import { useState } from "react";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appBus } from "@/bridge";
 import { getValidMainTab, VIEW_MENU_ITEMS } from "@/components/0-all/8-pages-array";
 import { appSettings } from "@/store/1-ui-settings";
 import { refreshWindowTree } from "@/store/4-windows-tree";
-import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
-import { notice } from "@/ui/local-ui/7-toaster";
+import { isOpenSettingsDialogAtom, settingsUnloadHookHotkeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
+import { formatHotkey } from "@/ui/local-ui/9-hotkey";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 import { ToolsMenu } from "./1-1-menu-tools";
-import { unloadHookNotice } from "./3-1-notice-unload-hook-state";
+import { sendUnloadHookNotification } from "./3-2-unload-hook-action";
 
 export function AppMenubar() {
     const openSettingsDialog = useSetAtom(isOpenSettingsDialogAtom);
+    const unloadHookHotkey = useAtomValue(settingsUnloadHookHotkeyAtom);
+    const unloadHookShortcut = formatHotkey(unloadHookHotkey.chord);
     const [menuValue, setMenuValue] = useState("");
     const settings = useSnapshot(appSettings);
     const activeTab = getValidMainTab(settings.mainTab);
@@ -68,22 +70,13 @@ export function AppMenubar() {
 
                     <MenubarItem
                         className="pl-7"
-                        onSelect={
-                            () => {
-                                unloadHookNotice.info("Sending...");
-                                appBus.sendUnloadHookNotification()
-                                    .then(() => {
-                                        unloadHookNotice.success("Sent");
-                                    })
-                                    .catch((e) => {
-                                        unloadHookNotice.dismiss();
-                                        notice.error(`Failed: Send unload hook notification:\n ${String(e)}`);
-                                    });
-                            }
-                        }
+                        onSelect={() => { void sendUnloadHookNotification(); }}
                         title="Just send notification to unload hook"
                     >
                         Send unload hook notification
+                        {unloadHookShortcut && (
+                            <MenubarShortcut>{unloadHookShortcut}</MenubarShortcut>
+                        )}
                     </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>

@@ -4,13 +4,11 @@ const GROUP = "settings";
 
 /**
  * Settings command group. Mirrors the "settings" group on the backend bus.
- * 
- * - getRunElevated returns the value of the Run Elevated setting; 
- * - setRunElevated sets the value of the Run Elevated setting; 
- * - isElevated returns the value of the Elevated setting; 
- * - requestElevationRestart requests a restart with elevation; 
- * - getQuitOnClose returns the value of the Quit on Close setting; 
- * - setQuitOnClose sets the value of the Quit on Close setting.
+ *
+ * - getRunElevated / setRunElevated — Run Elevated preference
+ * - isElevated / requestElevationRestart — elevation state
+ * - getQuitOnClose / setQuitOnClose — close-to-tray vs quit
+ * - getUnloadHookHotkey / setUnloadHookHotkey — View → unload hook shortcut
  */
 export const settingsBus = {
     getRunElevated: () => dispatch<boolean>(GROUP, "getRunElevated"),
@@ -19,4 +17,11 @@ export const settingsBus = {
     requestElevationRestart: () => dispatch(GROUP, "requestElevationRestart"),
     getQuitOnClose: () => dispatch<boolean>(GROUP, "getQuitOnClose"),
     setQuitOnClose: (value: boolean) => dispatch(GROUP, "setQuitOnClose", { value }),
+    getUnloadHookHotkey: () => dispatch<UnloadHookHotkeyOptions>(GROUP, "getUnloadHookHotkey"),
+    setUnloadHookHotkey: (options: UnloadHookHotkeyOptions) => dispatch(GROUP, "setUnloadHookHotkey", options),
+};
+
+export type UnloadHookHotkeyOptions = {
+    hotkey: string;
+    global: boolean;
 };

@@ -3,6 +3,7 @@ import { atom, useSetAtom } from "jotai";
 import { settingsBus } from "@/bridge/groups/settings";
 import { appSettings } from "@/store/1-ui-settings";
 import { notice } from "@/ui/local-ui/7-toaster";
+import { formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
 
 export const isOpenSettingsDialogAtom = atom(false);
 const settingsShowFooterBaseAtom = atom(appSettings.showFooter);
@@ -76,6 +77,49 @@ export function SettingsQuitOnCloseSync() {
             });
         },
         [setQuitOnClose],
+    );
+
+    return null;
+}
+
+type UnloadHookHotkeyState = {
+    chord: HotkeyChord | null;
+    global: boolean;
+};
+
+const settingsUnloadHookHotkeyBaseAtom = atom<UnloadHookHotkeyState>({
+    chord: null,
+    global: false,
+});
+
+export const settingsUnloadHookHotkeyAtom = atom(
+    (get) => get(settingsUnloadHookHotkeyBaseAtom),
+    (_get, set, next: UnloadHookHotkeyState) => {
+        set(settingsUnloadHookHotkeyBaseAtom, next);
+        settingsBus.setUnloadHookHotkey({
+            hotkey: formatHotkey(next.chord),
+            global: next.global && next.chord != null,
+        }).catch((e) => {
+            notice.error(`Failed to save unload hook hotkey:\n ${String(e)}`);
+        });
+    },
+);
+
+export function SettingsUnloadHookHotkeySync() {
+    const setState = useSetAtom(settingsUnloadHookHotkeyBaseAtom);
+
+    useEffect(
+        () => {
+            settingsBus.getUnloadHookHotkey().then((opts) => {
+                setState({
+                    chord: parseHotkey(opts.hotkey),
+                    global: opts.global,
+                });
+            }).catch((e) => {
+                notice.error(`Failed to load unload hook hotkey:\n ${String(e)}`);
+            });
+        },
+        [setState],
     );
 
     return null;

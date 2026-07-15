@@ -17,11 +17,13 @@ type Rectangle struct {
 }
 
 type IniOptions struct {
-	Bounds      *Rectangle `json:"bounds,omitempty"`
-	DevTools    bool       `json:"devTools"`
-	ShowMenu    bool       `json:"showMenu"`
-	RunElevated bool       `json:"runElevated"`
-	QuitOnClose bool       `json:"quitOnClose"`
+	Bounds                 *Rectangle `json:"bounds,omitempty"`
+	DevTools               bool       `json:"devTools"`
+	ShowMenu               bool       `json:"showMenu"`
+	RunElevated            bool       `json:"runElevated"`
+	QuitOnClose            bool       `json:"quitOnClose"`
+	UnloadHookHotkey       string     `json:"unloadHookHotkey,omitempty"`
+	UnloadHookHotkeyGlobal bool       `json:"unloadHookHotkeyGlobal,omitempty"`
 }
 
 func getIniFilePath() (string, error) {
@@ -107,20 +109,26 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 	var showMenu bool
 	var runElevated bool
 	var quitOnClose bool
+	var unloadHookHotkey string
+	var unloadHookHotkeyGlobal bool
 
 	existing, err := LoadIniFileOptions()
 	if err == nil && existing != nil {
 		showMenu = existing.ShowMenu
 		runElevated = existing.RunElevated
 		quitOnClose = existing.QuitOnClose
+		unloadHookHotkey = existing.UnloadHookHotkey
+		unloadHookHotkeyGlobal = existing.UnloadHookHotkeyGlobal
 	}
 
 	opts := &IniOptions{
-		Bounds:      bounds,
-		DevTools:    devTools,
-		ShowMenu:    showMenu,
-		RunElevated: runElevated,
-		QuitOnClose: quitOnClose,
+		Bounds:                 bounds,
+		DevTools:               devTools,
+		ShowMenu:               showMenu,
+		RunElevated:            runElevated,
+		QuitOnClose:            quitOnClose,
+		UnloadHookHotkey:       unloadHookHotkey,
+		UnloadHookHotkeyGlobal: unloadHookHotkeyGlobal,
 	}
 
 	saveIniFileOptions(opts)
@@ -141,6 +149,36 @@ func SetQuitOnCloseOption(value bool) error {
 	}
 	opts.QuitOnClose = value
 	return saveIniFileOptions(opts)
+}
+
+// UnloadHookHotkeyOptions is the persisted binding for View → Send unload hook notification.
+type UnloadHookHotkeyOptions struct {
+	Hotkey string `json:"hotkey"`
+	Global bool   `json:"global"`
+}
+
+func GetUnloadHookHotkeyOptions() UnloadHookHotkeyOptions {
+	opts, err := LoadIniFileOptions()
+	if err != nil || opts == nil {
+		return UnloadHookHotkeyOptions{}
+	}
+	return UnloadHookHotkeyOptions{
+		Hotkey: opts.UnloadHookHotkey,
+		Global: opts.UnloadHookHotkeyGlobal,
+	}
+}
+
+func SetUnloadHookHotkeyOptions(hotkey string, global bool) error {
+	opts, err := LoadIniFileOptions()
+	if err != nil {
+		opts = &IniOptions{}
+	}
+	opts.UnloadHookHotkey = hotkey
+	opts.UnloadHookHotkeyGlobal = global
+	if err := saveIniFileOptions(opts); err != nil {
+		return err
+	}
+	return applyUnloadHookHotkey(hotkey, global)
 }
 
 func (a *App) restoreWindowOptions(ctx context.Context) {

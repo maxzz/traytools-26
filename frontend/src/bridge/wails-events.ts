@@ -18,3 +18,8 @@ export const TRACE_EVENTS = {
     traceCall: "tracemanager:tracecall",
     streaming: "tracemanager:streaming",
 } as const;
+
+/** Event names emitted by backend/hotkey_bindings.go for system-wide shortcuts. */
+export const HOTKEY_EVENTS = {
+    unloadHook: "hotkey:unloadHook",
+} as const;
