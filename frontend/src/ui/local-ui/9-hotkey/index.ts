@@ -1,6 +1,7 @@
 export { HotkeyInput } from "./0-all-hotkey-input";
 export {
     type HotkeyChord,
+    isHotkeyKey,
     isHotkeyChord,
     formatHotkey,
     parseHotkey,

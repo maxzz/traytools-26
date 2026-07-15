@@ -30,12 +30,12 @@ const (
 	hwndMessage = ^uintptr(0) - 2
 )
 
-// Chord is Ctrl/Alt/Shift + one A–Z letter.
+// Chord is Ctrl/Alt/Shift + one A–Z letter or F1–F12.
 type Chord struct {
 	Ctrl  bool
 	Alt   bool
 	Shift bool
-	Key   string // "A".."Z"
+	Key   string // "A".."Z" or "F1".."F12"
 }
 
 type Handler func(id int)
@@ -111,7 +111,11 @@ func Set(id int, chord *Chord) error {
 			return err
 		}
 		c := *chord
-		c.Key = strings.ToUpper(c.Key)
+		normalized, err := normalizeKey(c.Key)
+		if err != nil {
+			return err
+		}
+		c.Key = normalized
 		chord = &c
 	}
 
@@ -141,14 +145,44 @@ func validate(c *Chord) error {
 	if !c.Ctrl && !c.Alt && !c.Shift {
 		return fmt.Errorf("hotkeys: at least one of Ctrl/Alt/Shift is required")
 	}
-	key := strings.ToUpper(c.Key)
-	if len(key) != 1 || key[0] < 'A' || key[0] > 'Z' {
-		return fmt.Errorf("hotkeys: key must be A–Z")
+	if _, err := virtualKey(c.Key); err != nil {
+		return err
 	}
 	return nil
 }
 
-// Parse accepts "Ctrl+Alt+U" style strings (same as the frontend formatter).
+func normalizeKey(key string) (string, error) {
+	upper := strings.ToUpper(strings.TrimSpace(key))
+	if len(upper) == 1 && upper[0] >= 'A' && upper[0] <= 'Z' {
+		return upper, nil
+	}
+	if len(upper) >= 2 && upper[0] == 'F' {
+		var n int
+		if _, err := fmt.Sscanf(upper, "F%d", &n); err == nil && n >= 1 && n <= 12 && upper == fmt.Sprintf("F%d", n) {
+			return upper, nil
+		}
+	}
+	return "", fmt.Errorf("hotkeys: key must be A–Z or F1–F12")
+}
+
+// virtualKey maps a chord key to a Win32 virtual-key code.
+func virtualKey(key string) (uintptr, error) {
+	normalized, err := normalizeKey(key)
+	if err != nil {
+		return 0, err
+	}
+	if len(normalized) == 1 {
+		return uintptr(normalized[0]), nil
+	}
+	// VK_F1 = 0x70 … VK_F12 = 0x7B
+	var n int
+	if _, err := fmt.Sscanf(normalized, "F%d", &n); err != nil || n < 1 || n > 12 {
+		return 0, fmt.Errorf("hotkeys: key must be A–Z or F1–F12")
+	}
+	return uintptr(0x70 + (n - 1)), nil
+}
+
+// Parse accepts "Ctrl+Alt+U" / "Ctrl+F5" style strings (same as the frontend formatter).
 func Parse(text string) (*Chord, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
@@ -167,11 +201,14 @@ func Parse(text string) (*Chord, error) {
 		case "SHIFT":
 			c.Shift = true
 		default:
-			if len(upper) == 1 && upper[0] >= 'A' && upper[0] <= 'Z' && c.Key == "" {
-				c.Key = upper
-			} else {
+			if c.Key != "" {
 				return nil, fmt.Errorf("hotkeys: invalid token %q", p)
 			}
+			normalized, err := normalizeKey(upper)
+			if err != nil {
+				return nil, fmt.Errorf("hotkeys: invalid token %q", p)
+			}
+			c.Key = normalized
 		}
 	}
 	if err := validate(c); err != nil {
@@ -320,7 +357,11 @@ func syncRegistrations() {
 		if c.Shift {
 			mods |= modShift
 		}
-		vk := uintptr(c.Key[0])
+		vk, err := virtualKey(c.Key)
+		if err != nil {
+			log.Printf("hotkeys: %v", err)
+			continue
+		}
 
 		ret, _, callErr := procRegisterHotKey.Call(h, uintptr(id), uintptr(mods), vk)
 		if ret == 0 {

@@ -1,15 +1,21 @@
 /**
  * Shared hotkey chord model for configurable shortcuts.
- * Only Ctrl / Alt / Shift modifiers plus a single A–Z letter are allowed.
+ * Ctrl / Alt / Shift plus a single A–Z letter or F1–F12 key.
  */
 
 export type HotkeyChord = {
     ctrl: boolean;
     alt: boolean;
     shift: boolean;
-    /** Uppercase A–Z */
+    /** Uppercase A–Z, or F1–F12 */
     key: string;
 };
+
+const KEY_PATTERN = /^(?:[A-Z]|F(?:[1-9]|1[0-2]))$/;
+
+export function isHotkeyKey(key: string): boolean {
+    return KEY_PATTERN.test(key);
+}
 
 export function isHotkeyChord(value: unknown): value is HotkeyChord {
     if (!value || typeof value !== "object") {
@@ -21,12 +27,12 @@ export function isHotkeyChord(value: unknown): value is HotkeyChord {
         && typeof v.alt === "boolean"
         && typeof v.shift === "boolean"
         && typeof v.key === "string"
-        && /^[A-Z]$/.test(v.key)
+        && isHotkeyKey(v.key)
         && (v.ctrl || v.alt || v.shift)
     );
 }
 
-/** Display / persistence form, e.g. "Ctrl+Alt+U". */
+/** Display / persistence form, e.g. "Ctrl+Alt+U" or "Ctrl+F5". */
 export function formatHotkey(chord: HotkeyChord | null | undefined): string {
     if (!chord || !isHotkeyChord(chord)) {
         return "";
@@ -74,7 +80,7 @@ export function parseHotkey(text: string | null | undefined): HotkeyChord | null
             shift = true;
             continue;
         }
-        if (/^[A-Z]$/.test(upper) && !key) {
+        if (isHotkeyKey(upper) && !key) {
             key = upper;
             continue;
         }
@@ -91,8 +97,18 @@ export function chordFromKeyboardEvent(event: KeyboardEvent): HotkeyChord | null
         return null;
     }
 
-    const match = /^Key([A-Z])$/.exec(event.code);
-    if (!match) {
+    let key = "";
+    const letterMatch = /^Key([A-Z])$/.exec(event.code);
+    if (letterMatch) {
+        key = letterMatch[1];
+    } else {
+        const fnMatch = /^F([1-9]|1[0-2])$/.exec(event.code);
+        if (fnMatch) {
+            key = event.code; // "F1".."F12"
+        }
+    }
+
+    if (!key) {
         return null;
     }
 
@@ -100,7 +116,7 @@ export function chordFromKeyboardEvent(event: KeyboardEvent): HotkeyChord | null
         ctrl: event.ctrlKey,
         alt: event.altKey,
         shift: event.shiftKey,
-        key: match[1],
+        key,
     };
 }
 
@@ -110,6 +126,9 @@ export function matchesHotkey(event: KeyboardEvent, chord: HotkeyChord | null | 
     }
     if (event.ctrlKey !== chord.ctrl || event.altKey !== chord.alt || event.shiftKey !== chord.shift) {
         return false;
+    }
+    if (chord.key.startsWith("F")) {
+        return event.code === chord.key;
     }
     return event.code === `Key${chord.key}`;
 }
