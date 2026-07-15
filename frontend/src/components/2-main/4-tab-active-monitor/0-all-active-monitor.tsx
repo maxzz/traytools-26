@@ -38,13 +38,13 @@ export function Page_ActiveMonitor() {
         <div className="flex-1 p-2 min-h-0 min-w-0 flex flex-col gap-2">
             <MonitorToolbar />
 
-            <div className="flex-1 p-3 min-h-0 font-condensed text-xs bg-card border rounded-md overflow-auto">
+            <div className="flex-1 p-3 min-h-0 text-xs font-condensed bg-card border rounded-md overflow-auto">
                 {error && (
                     <div className="mb-2 text-destructive">{error}</div>
                 )}
 
                 <TooltipProvider>
-                    <div className="grid grid-cols-[auto_1fr] gap-y-1.5 divide-y divide-border/60">
+                    <div className="divide-y divide-border/60 grid grid-cols-[auto_1fr] gap-y-1.5">
                         {ROWS.map(
                             ({ key, label, tooltip }) => (
                                 <WindowRow key={key} label={label} tooltip={tooltip} win={key === "thread" ? undefined : info?.[key]}

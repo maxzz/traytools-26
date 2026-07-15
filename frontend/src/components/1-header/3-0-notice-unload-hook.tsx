@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { useSnapshot } from "valtio";
-import { AnimatePresence, motion } from "motion/react";
 import { classNames } from "@/utils";
+import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/ui/shadcn/button";
 import { IconStopCircle, SymbolInfo } from "@/ui/icons";
 import { unloadHookNoticeStore } from "./3-1-notice-unload-hook-state";
