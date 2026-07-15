@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"traytools-26-go/backend/bus"
+	"traytools-26-go/backend/dphook"
 	"traytools-26-go/backend/toolsmenu"
 	"traytools-26-go/backend/tracemanager"
 	"traytools-26-go/backend/windowtree"
@@ -114,6 +115,9 @@ func (a *App) registerHandlers() {
 			return nil, err
 		}
 		return nil, nil
+	})
+	a.bus.Register("app", "sendUnloadHookNotification", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return nil, dphook.ForceUnload()
 	})
 }
 

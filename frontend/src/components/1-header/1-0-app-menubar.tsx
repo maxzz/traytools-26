@@ -6,6 +6,7 @@ import { getValidMainTab, VIEW_MENU_ITEMS } from "@/components/0-all/8-pages-arr
 import { appSettings } from "@/store/1-ui-settings";
 import { refreshWindowTree } from "@/store/4-windows-tree";
 import { isOpenSettingsDialogAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 import { ToolsMenu } from "./1-1-menu-tools";
 
@@ -61,6 +62,19 @@ export function AppMenubar() {
                             )
                         )}
                     </MenubarRadioGroup>
+
+                    <MenubarSeparator />
+
+                    <MenubarItem
+                        title="Just send notification to unload hook"
+                        onSelect={() => {
+                            appBus.sendUnloadHookNotification().catch((e) => {
+                                notice.error(`Send unload hook notification:\n ${String(e)}`);
+                            });
+                        }}
+                    >
+                        Send unload hook notification
+                    </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
 
