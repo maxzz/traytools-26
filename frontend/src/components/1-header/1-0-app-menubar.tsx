@@ -7,7 +7,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { refreshWindowTree } from "@/store/4-windows-tree";
 import { isOpenSettingsDialogAtom, settingsUnloadHookHotkeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { formatHotkey } from "@/ui/local-ui/9-hotkey";
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
+import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 import { ToolsMenu } from "./1-1-menu-tools";
 import { sendUnloadHookNotification } from "./3-2-unload-hook-action";
 
@@ -68,16 +68,41 @@ export function AppMenubar() {
 
                     <MenubarSeparator />
 
-                    <MenubarItem
-                        className="pl-7"
-                        onSelect={() => { void sendUnloadHookNotification(); }}
-                        title="Just send notification to unload hook"
+                    <MenubarCheckboxItem
+                        checked={settings.showDpAgentToolbar}
+                        onCheckedChange={(checked) => { appSettings.showDpAgentToolbar = checked === true; }}
+                        title="Show DPAgent toolbar and run monitoring"
                     >
-                        Send unload hook notification
-                        {unloadHookShortcut && (
-                            <MenubarShortcut>{unloadHookShortcut}</MenubarShortcut>
-                        )}
-                    </MenubarItem>
+                        DPAgent toolbar
+                    </MenubarCheckboxItem>
+
+                    <MenubarSub>
+                        <MenubarSubTrigger>
+                            DPAgent run options
+                        </MenubarSubTrigger>
+
+                        <MenubarSubContent>
+                            <MenubarCheckboxItem
+                                checked={settings.startDpAgentHigh}
+                                onCheckedChange={(checked) => { appSettings.startDpAgentHigh = checked === true; }}
+                                title="Start DPAgent with High Rights (UAC elevation)"
+                            >
+                                Start DPAgent with High Rights
+                            </MenubarCheckboxItem>
+
+                            <MenubarSeparator />
+
+                            <MenubarItem
+                                onSelect={() => { void sendUnloadHookNotification(); }}
+                                title="Just send notification to unload hook"
+                            >
+                                Send unload hook notification
+                                {unloadHookShortcut && (
+                                    <MenubarShortcut>{unloadHookShortcut}</MenubarShortcut>
+                                )}
+                            </MenubarItem>
+                        </MenubarSubContent>
+                    </MenubarSub>
                 </MenubarContent>
             </MenubarMenu>
 

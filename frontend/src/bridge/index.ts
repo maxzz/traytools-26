@@ -1,6 +1,8 @@
 export { dispatch } from "./dispatch";
 export { appBus } from "./groups/app";
 export { settingsBus } from "./groups/settings";
+export { dpAgentBus } from "./groups/dpagent";
+export type { DpAgentStatus, IntegrityLevel } from "./groups/dpagent";
 export { traceManagerBus } from "./groups/tracemanager";
 export type { TraceCall, StringDescription, SectionDescription, RegeditTarget, TraceStatus } from "./groups/tracemanager";
 export { toolsBus } from "./groups/tools";

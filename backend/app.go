@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"traytools-26-go/backend/bus"
+	"traytools-26-go/backend/dpagent"
 	"traytools-26-go/backend/dphook"
 	"traytools-26-go/backend/toolsmenu"
 	"traytools-26-go/backend/tracemanager"
@@ -22,6 +23,7 @@ type App struct {
 	trace         *tracemanager.Manager
 	tools         *toolsmenu.Manager
 	windows       *windowtree.Manager
+	dpagent       *dpagent.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -36,11 +38,13 @@ func NewApp() *App {
 		trace:   tracemanager.New(),
 		tools:   toolsmenu.New(),
 		windows: windowtree.New(),
+		dpagent: dpagent.New(),
 	}
 	a.registerHandlers()
 	a.trace.Register(a.bus)
 	a.tools.Register(a.bus)
 	a.windows.Register(a.bus)
+	a.dpagent.Register(a.bus)
 	return a
 }
 

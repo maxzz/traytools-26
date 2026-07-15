@@ -14,6 +14,8 @@ export interface AppSettings {
     panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
     expandedSections: string[];  // Expanded accordion sections by name
     mainTab: string;             // Active main body tab
+    showDpAgentToolbar: boolean; // Show DPAgent toolbar and run monitoring
+    startDpAgentHigh: boolean;   // Start DPAgent elevated (runas)
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -23,6 +25,8 @@ const DEFAULT_SETTINGS: AppSettings = {
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
     mainTab: 'welcome',
+    showDpAgentToolbar: true,
+    startDpAgentHigh: false,
 };
 
 // Load settings from localStorage
@@ -40,6 +44,8 @@ function loadSettings(): AppSettings {
                 panelSizes: getValidPanelSizes(parsed.panelSizes),
                 expandedSections: parsed.expandedSections ?? DEFAULT_SETTINGS.expandedSections,
                 mainTab: parsed.mainTab ?? DEFAULT_SETTINGS.mainTab,
+                showDpAgentToolbar: parsed.showDpAgentToolbar ?? DEFAULT_SETTINGS.showDpAgentToolbar,
+                startDpAgentHigh: parsed.startDpAgentHigh ?? DEFAULT_SETTINGS.startDpAgentHigh,
             };
         }
     } catch (e) {
