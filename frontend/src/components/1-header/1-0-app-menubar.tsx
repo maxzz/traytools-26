@@ -71,7 +71,7 @@ export function AppMenubar() {
                         onSelect={() => {
                             appBus.sendUnloadHookNotification()
                                 .then(() => {
-                                    unloadHookNotice.success("Success: Unload sent");
+                                    unloadHookNotice.success("Sent");
                                 })
                                 .catch((e) => {
                                     notice.error(`Failed: Send unload hook notification:\n ${String(e)}`); //unloadHookNotice.error(`Unload hook failed: ${String(e)}`);
