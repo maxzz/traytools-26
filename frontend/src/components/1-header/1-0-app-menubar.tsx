@@ -67,18 +67,21 @@ export function AppMenubar() {
                     <MenubarSeparator />
 
                     <MenubarItem
+                        className="pl-7"
+                        onSelect={
+                            () => {
+                                unloadHookNotice.info("Sending...");
+                                appBus.sendUnloadHookNotification()
+                                    .then(() => {
+                                        unloadHookNotice.success("Sent");
+                                    })
+                                    .catch((e) => {
+                                        unloadHookNotice.dismiss();
+                                        notice.error(`Failed: Send unload hook notification:\n ${String(e)}`);
+                                    });
+                            }
+                        }
                         title="Just send notification to unload hook"
-                        onSelect={() => {
-                            unloadHookNotice.info("Sending...");
-                            appBus.sendUnloadHookNotification()
-                                .then(() => {
-                                    unloadHookNotice.success("Sent");
-                                })
-                                .catch((e) => {
-                                    unloadHookNotice.dismiss();
-                                    notice.error(`Failed: Send unload hook notification:\n ${String(e)}`);
-                                });
-                        }}
                     >
                         Send unload hook notification
                     </MenubarItem>
