@@ -28,7 +28,7 @@ export function SettingsDialog() {
             <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID}>
 
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
-                    <DialogTitle className="font-condensed font-normal text-sm select-none">
+                    <DialogTitle className="text-sm font-condensed font-normal select-none">
                         Settings
                     </DialogTitle>
                     <DialogDescription className="sr-only">
@@ -109,7 +109,7 @@ function ControlUnloadHookHotkey() {
     }
 
     return (
-        <div className="grid grid-cols-[auto_1fr] items-center gap-2 select-none">
+        <div className="select-none grid grid-cols-[auto_1fr] items-center gap-2">
             <div title="Send unload hook notification key">
                 Send unload hook key
             </div>

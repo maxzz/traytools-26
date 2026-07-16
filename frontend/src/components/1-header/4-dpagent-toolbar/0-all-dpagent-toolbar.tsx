@@ -62,7 +62,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
             className={classNames("px-1 h-6 bg-muted/30 border border-border rounded-sm gap-1 inline-flex items-center", className)}
             title={status?.agentPath ? `DPAgent: ${status.agentPath}` : "DPAgent toolbar"}
         >
-            <IconDpAgentStatus running={running} title={running ? "DPAgent is running" : "DPAgent is not running"} />
+            <IconDpAgentStatus running={running} title={running ? "DPAgent is running" : "DPAgent not started"} />
 
             <Button
                 type="button"
@@ -89,8 +89,6 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
             </Button>
 
             <IntegrityBadge level={status?.agentIntegrity} subject="DPAgent" />
-
-            <span className="mx-0.5 w-px h-3.5 bg-border" aria-hidden />
         </div>
     );
 }

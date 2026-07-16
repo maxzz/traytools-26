@@ -18,7 +18,7 @@ export function MainTabs({ className, ...rest }: ComponentProps<"div">) {
                         const selected = id === activeTab;
                         return (
                             <Button
-                                className={classNames("px-1 relative h-[calc(100%-1px)] font-medium active:translate-y-0! transition-none cursor-pointer",
+                                className={classNames("relative px-1 h-[calc(100%-1px)] font-medium active:translate-y-0! transition-none cursor-pointer",
                                     selected ? "text-foreground" : "border-transparent bg-transparent text-foreground/60 shadow-none hover:bg-transparent hover:text-foreground"
                                 )}
                                 variant="ghost" size="xs" type="button" role="tab" aria-selected={selected} key={id} onClick={() => { appSettings.mainTab = id; }}
