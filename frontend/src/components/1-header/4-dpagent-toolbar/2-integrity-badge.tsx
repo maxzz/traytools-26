@@ -1,6 +1,5 @@
 import { classNames } from "@/utils";
 import { type IntegrityLevel } from "@/bridge";
-import { integrityGlyph, integrityTitle } from "./a-dpagent-atoms";
 
 export function IntegrityBadge({ level, subject, className }: { level: IntegrityLevel | undefined; subject: string; className?: string; }) {
     const glyph = integrityGlyph(level);
@@ -16,10 +15,48 @@ export function IntegrityBadge({ level, subject, className }: { level: Integrity
                 isUnknown && "text-muted-foreground border-border bg-muted/40",
                 className,
             )}
-            title={integrityTitle(level, subject)}
-            aria-label={integrityTitle(level, subject)}
+            title={integrityAriaLabel(level, subject)}
+            aria-label={integrityAriaLabel(level, subject)}
         >
             {glyph}
         </span>
     );
+}
+
+/** Short glyph shown in the toolbar integrity slots (legacy UAC sprite cells). */
+function integrityGlyph(level: IntegrityLevel | undefined): string {
+    switch (level) {
+        case "high":
+            return "H";
+        case "medium":
+            return "M";
+        case "mediumplus":
+            return "M+";
+        case "low":
+            return "L";
+        case "undetected":
+            return "?";
+        case "na":
+        default:
+            return "?";
+    }
+}
+
+function integrityAriaLabel(level: IntegrityLevel | undefined, subject: string): string {
+    switch (level) {
+        case "high":
+            return `${subject}: High integrity`;
+        case "medium":
+            return `${subject}: Medium integrity`;
+        case "mediumplus":
+            return `${subject}: Medium-plus integrity`;
+        case "low":
+            return `${subject}: Low integrity`;
+        case "undetected":
+            return `${subject}: Integrity undetected`;
+        case "na":
+            return `${subject}: N/A`;
+        default:
+            return `${subject}: Unknown`;
+    }
 }

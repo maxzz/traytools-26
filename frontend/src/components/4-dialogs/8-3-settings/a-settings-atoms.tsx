@@ -26,6 +26,16 @@ export const settingsStayOnTopAtom = atom(
     },
 );
 
+const settingsStartDpAgentHighBaseAtom = atom(appSettings.startDpAgentHigh);
+
+export const settingsStartDpAgentHighAtom = atom(
+    (get) => get(settingsStartDpAgentHighBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsStartDpAgentHighBaseAtom, next);
+        appSettings.startDpAgentHigh = next;
+    },
+);
+
 const settingsRunElevatedBaseAtom = atom(false);
 
 export const settingsRunElevatedAtom = atom(

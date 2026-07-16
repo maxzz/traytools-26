@@ -16,6 +16,7 @@ import {
     settingsQuitOnCloseAtom,
     settingsRunElevatedAtom,
     settingsShowFooterAtom,
+    settingsStartDpAgentHighAtom,
     settingsStayOnTopAtom,
     settingsUnloadHookHotkeyAtom,
 } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
@@ -37,10 +38,11 @@ export function SettingsDialog() {
                 </DialogHeader>
 
                 <div className="px-4 py-4 font-normal flex flex-col gap-3">
-                    <ControlSwitch label="Run this application elevated" valueAtom={settingsRunElevatedAtom} />
+                    <ControlSwitch label="Run TrayTools elevated" valueAtom={settingsRunElevatedAtom} />
+                    <ControlSwitch label="Start DPAgent elevated" title="Run DPAgent with High Rights (UAC elevation)" valueAtom={settingsStartDpAgentHighAtom} />
                     <ControlSwitch label="Make the window stay on top of all others" valueAtom={settingsStayOnTopAtom} />
-                    <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
                     <ControlSwitch label="Quit the application when the window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
+                    <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
                     <ControlTheme />
                     <ControlUnloadHookHotkey />
                 </div>

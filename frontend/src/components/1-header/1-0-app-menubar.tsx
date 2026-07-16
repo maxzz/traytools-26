@@ -82,16 +82,6 @@ export function AppMenubar() {
                         </MenubarSubTrigger>
 
                         <MenubarSubContent>
-                            <MenubarCheckboxItem
-                                checked={settings.startDpAgentHigh}
-                                onCheckedChange={(checked) => { appSettings.startDpAgentHigh = checked === true; }}
-                                title="Start DPAgent with High Rights (UAC elevation)"
-                            >
-                                Start DPAgent with High Rights
-                            </MenubarCheckboxItem>
-
-                            <MenubarSeparator />
-
                             <MenubarItem
                                 onSelect={() => { void sendUnloadHookNotification(); }}
                                 title="Just send notification to unload hook"

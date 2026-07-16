@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { dpAgentBus, type DpAgentStatus, type IntegrityLevel } from "@/bridge";
+import { dpAgentBus, type DpAgentStatus } from "@/bridge";
 
 export const dpAgentStatusAtom = atom<DpAgentStatus | null>(null);
 export const dpAgentBusyAtom = atom(false);
@@ -59,41 +59,3 @@ export const stopDpAgentAtom = atom(
         }
     },
 );
-
-/** Short glyph shown in the toolbar integrity slots (legacy UAC sprite cells). */
-export function integrityGlyph(level: IntegrityLevel | undefined): string {
-    switch (level) {
-        case "high":
-            return "H";
-        case "medium":
-            return "M";
-        case "mediumplus":
-            return "M+";
-        case "low":
-            return "L";
-        case "undetected":
-            return "?";
-        case "na":
-        default:
-            return "?";
-    }
-}
-
-export function integrityTitle(level: IntegrityLevel | undefined, subject: string): string {
-    switch (level) {
-        case "high":
-            return `${subject}: High integrity`;
-        case "medium":
-            return `${subject}: Medium integrity`;
-        case "mediumplus":
-            return `${subject}: Medium-plus integrity`;
-        case "low":
-            return `${subject}: Low integrity`;
-        case "undetected":
-            return `${subject}: Integrity undetected`;
-        case "na":
-            return `${subject}: N/A`;
-        default:
-            return `${subject}: Unknown`;
-    }
-}
