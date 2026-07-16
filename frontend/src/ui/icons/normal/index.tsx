@@ -31,6 +31,4 @@ export * from "./lucid-react";
 export * from "./radix-icons";
 
 export * from "./40-sunnyvale";
-export * from "./41-dp-sensor-gray";
-export * from "./41-dp-sensor-green";
-export * from "./41-dp-sensor-red";
+export * from "./41-dp-sensor";
