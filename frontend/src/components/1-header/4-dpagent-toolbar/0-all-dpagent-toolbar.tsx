@@ -7,7 +7,7 @@ import { Button } from "@/ui/shadcn/button";
 import { classNames } from "@/utils";
 import { IconDpAgentStatus } from "./1-icon-status";
 import { IntegrityBadge } from "./2-integrity-badge";
-import { ExitSelfIntegrity } from "../6-exit-self-integrity";
+
 import {
     dpAgentBusyAtom,
     dpAgentStatusAtom,

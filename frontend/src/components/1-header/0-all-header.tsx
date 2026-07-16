@@ -4,11 +4,9 @@ import { AppMenubar } from "./1-0-app-menubar";
 import { MainTabs } from "./1-2-main-tabs";
 import { UnloadHookNotice } from "./3-0-notice-unload-hook";
 import { DpAgentToolbar } from "./4-dpagent-toolbar";
-import { ElevatedIndicator } from "./5-elevated-indicator";
-import { ButtonExit } from "./6-btn-exit";
-import { ButtonSettings } from "./7-btn-settings";
-import { ButtonThemeToggle } from "./8-btn-theme-toggle";
-import { ExitSelfIntegrity } from "./6-exit-self-integrity";
+import { ButtonSettings } from "./2-1-btn-settings";
+import { ButtonThemeToggle } from "./2-2-btn-theme-toggle";
+import { BadgeSelfIntegrity, ButtonExit } from "./5-btn-exit-self-integrity";
 
 export function Header() {
     const { showDpAgentToolbar } = useSnapshot(appSettings);
@@ -27,15 +25,11 @@ export function Header() {
             <div className="flex items-center gap-1">
                 <ButtonSettings />
                 <ButtonThemeToggle />
-                {showDpAgentToolbar
-                    ? (
-                        <DpAgentToolbar className="ml-1" />
-                    ) : (
-                        <ElevatedIndicator />
-                    )
-                }
-                {!showDpAgentToolbar && <ButtonExit />}
-                <ExitSelfIntegrity />
+                
+                {showDpAgentToolbar && <DpAgentToolbar className="ml-1" />}
+                
+                <ButtonExit />
+                <BadgeSelfIntegrity />
             </div>
         </header>
     );
