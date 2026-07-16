@@ -16,17 +16,9 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-// Known DPAgent main-window class/title pairs from the legacy traytools
-// dpagent::internals::find_dpagnt_window / find_dpagnt64_window.
+// Known 64-bit DPAgent main-window class/title pairs. The 64-bit agent
+// launches the 32-bit companion automatically; we only track Agent64.
 var agentWindows = []struct{ class, title string }{
-	{"DigitalPersona Pro5.x Agent Window Class", "DigitalPersona Pro5.x Agent Window"},
-	{"DigitalPersona Pro Agent", "DigitalPersona Pro Agent"},
-	{"DigitalPersona Personal Agent", "DigitalPersona Personal Agent"},
-	{"U.are.U Personal Agent", "U.are.U Personal Agent"},
-	{"U.are.U Pro Agent", "U.are.U Pro Agent"},
-}
-
-var agent64Windows = []struct{ class, title string }{
 	{"DigitalPersona Pro Agent64", "DigitalPersona Pro Agent64"},
 }
 
@@ -79,9 +71,6 @@ func platformStop() error {
 		if err := postClose(hwnd); err != nil {
 			return err
 		}
-	}
-	if hwnd64, ok64 := findWindowPair(agent64Windows); ok64 {
-		_ = postClose(hwnd64)
 	}
 
 	// Give the agent a moment to exit before broadcasting unhook, matching
@@ -160,33 +149,24 @@ func shellExecute(verb, file string) error {
 	return nil
 }
 
-// resolveAgentPath mirrors dpagent::internals::getagentfullname: BinDir from
+// resolveAgentPath reads BinDir from the 64-bit view of
 // HKLM\SOFTWARE\DigitalPersona\Applications[\OTS], falling back to
 // %ProgramFiles%\DigitalPersona\Bin\DPAgent.exe.
 func resolveAgentPath() string {
-	for _, access64 := range []bool{false, true} {
-		if dir := registryBinDir(access64); dir != "" {
-			return filepath.Join(dir, "DPAgent.exe")
-		}
+	if dir := registryBinDir(); dir != "" {
+		return filepath.Join(dir, "DPAgent.exe")
 	}
-	for _, env := range []string{"ProgramFiles(x86)", "ProgramFiles"} {
-		if root := os.Getenv(env); root != "" {
-			candidate := filepath.Join(root, "DigitalPersona", "Bin", "DPAgent.exe")
-			if _, err := os.Stat(candidate); err == nil {
-				return candidate
-			}
+	if root := os.Getenv("ProgramFiles"); root != "" {
+		candidate := filepath.Join(root, "DigitalPersona", "Bin", "DPAgent.exe")
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
 		}
 	}
 	return ""
 }
 
-func registryBinDir(access64 bool) string {
-	access := uint32(registry.QUERY_VALUE)
-	if access64 {
-		access |= registry.WOW64_64KEY
-	} else {
-		access |= registry.WOW64_32KEY
-	}
+func registryBinDir() string {
+	access := uint32(registry.QUERY_VALUE | registry.WOW64_64KEY)
 
 	for _, keyPath := range []string{
 		`SOFTWARE\DigitalPersona\Applications\OTS`,
