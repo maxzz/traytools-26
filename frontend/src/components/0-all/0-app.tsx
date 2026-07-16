@@ -18,7 +18,7 @@ export function App() {
         <Toaster />
         <AllDialogs />
 
-        <main className={`h-screen text-xs bg-background grid ${showFooter ? "grid-rows-[auto_1fr_auto]" : "grid-rows-[auto_1fr]"}`}>
+        <main className={`h-screen text-xs font-condensed bg-background grid ${showFooter ? "grid-rows-[auto_1fr_auto]" : "grid-rows-[auto_1fr]"}`}>
             <Header />
 
             <div className="h-full min-h-0 bg-sky-900/10 flex flex-col">

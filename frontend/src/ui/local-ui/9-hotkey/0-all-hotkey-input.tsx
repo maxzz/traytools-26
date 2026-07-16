@@ -1,19 +1,17 @@
 import { type ComponentProps, useCallback, useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
 import { classNames } from "@/utils";
-import { earthFills, IconEarth } from "@/ui/icons";
+import { X } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
-import { keyboardEventToHotkeyChord, stringFromHotkeyChord, type HotkeyChord } from "./9-types-hotkey";
+import { earthFills, IconEarth } from "@/ui/icons";
+import { type HotkeyChord, keyboardEventToHotkeyChord, stringFromHotkeyChord } from "./9-types-hotkey";
 
-type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
+type HotkeyInputProps = Omit<ComponentProps<"input">, "value" | "onChange"> & {
     value: HotkeyChord | null;
     onChange: (next: HotkeyChord | null) => void;
-    /** Placeholder when empty / not recording. */
-    placeholder?: string;
-    /** When provided with `onIsGlobalChange`, shows a Global toggle inside the field. */
-    isGlobal?: boolean;
+    isGlobal?: boolean; // When provided with `onIsGlobalChange`, shows a Global toggle inside the field.
     onIsGlobalChange?: (next: boolean) => void;
+    placeholder?: string; // Placeholder when empty / not recording.
 };
 
 /**
@@ -21,15 +19,8 @@ type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
  * number-row punctuation (` - =), or F1–F12.
  * Escape cancels recording; Backspace/Delete clears the binding.
  */
-export function HotkeyInput({
-    value,
-    onChange,
-    isGlobal = false,
-    onIsGlobalChange,
-    placeholder,
-    className,
-    ...rest
-}: HotkeyInputProps) {
+export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, placeholder, className, ...rest }: HotkeyInputProps) {
+
     const [recording, setRecording] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const showGlobalBtn = !!onIsGlobalChange;
@@ -87,13 +78,14 @@ export function HotkeyInput({
     const displayValue = recording ? "Press shortcut…" : (stringFromHotkeyChord(value) || placeholder || "");
 
     return (
-        <div className={classNames("relative", className)} {...rest}>
+        <div className={classNames("relative")} {...rest}>
             <Input
                 className={classNames(
                     "h-7 font-mono cursor-pointer",
                     showGlobalBtn ? "pr-14" : "pr-8",
                     recording && "border-sky-500 ring-1 ring-sky-500/40",
                     !value && !recording && "text-muted-foreground",
+                    className,
                 )}
                 readOnly
                 ref={inputRef}

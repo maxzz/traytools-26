@@ -24,15 +24,15 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-1">
+                <ButtonSettings />
+                <ButtonThemeToggle />
                 {showDpAgentToolbar
                     ? (
-                        <DpAgentToolbar className="mr-1" />
+                        <DpAgentToolbar className="ml-1" />
                     ) : (
                         <ElevatedIndicator />
                     )
                 }
-                <ButtonSettings />
-                <ButtonThemeToggle />
                 {!showDpAgentToolbar && <ButtonExit />}
             </div>
         </header>

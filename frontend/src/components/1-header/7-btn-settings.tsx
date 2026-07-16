@@ -15,7 +15,7 @@ export function ButtonSettings() {
             title="Settings"
             type="button"
         >
-            <IconSliders className="size-3 stroke-1!" />
+            <IconSliders className="size-3.5 stroke-1!" />
         </Button>
     );
 }

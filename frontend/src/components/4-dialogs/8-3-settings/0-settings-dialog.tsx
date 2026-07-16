@@ -28,7 +28,7 @@ export function SettingsDialog() {
             <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID}>
 
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
-                    <DialogTitle className="text-sm">
+                    <DialogTitle className="font-condensed font-normal text-sm select-none">
                         Settings
                     </DialogTitle>
                     <DialogDescription className="sr-only">
@@ -36,18 +36,20 @@ export function SettingsDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="px-4 py-4 font-normal flex flex-col gap-3">
+                <div className="px-4 py-4 text-xs font-condensed font-normal flex flex-col gap-1.5">
                     <ControlSwitch label="Run TrayTools elevated" valueAtom={settingsRunElevatedAtom} />
                     <ControlSwitch label="Start DPAgent elevated" title="Run DPAgent with High Rights (UAC elevation)" valueAtom={settingsStartDpAgentHighAtom} />
                     <ControlSwitch label="Make the window stay on top of all others" valueAtom={settingsStayOnTopAtom} />
+                    <Separator />
                     <ControlSwitch label="Quit the application when the window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                     <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
                     <ControlTheme />
+                    <Separator />
                     <ControlUnloadHookHotkey />
                 </div>
 
                 <DialogFooter className="m-0 px-4 pb-3 pt-2 flex justify-center!">
-                    <Button type="button" variant="outline" className="min-w-16" onClick={() => setIsOpen(false)}>
+                    <Button type="button" variant="outline" className="min-w-16 font-condensed font-normal" onClick={() => setIsOpen(false)}>
                         Close
                     </Button>
                 </DialogFooter>
@@ -56,17 +58,16 @@ export function SettingsDialog() {
     );
 }
 
-type ControlSwitchProps = ComponentProps<typeof Label> & {
-    label: string;
-    valueAtom: WritableAtom<boolean, [boolean], void>;
-};
+function Separator({ className, ...rest }: ComponentProps<"div">) {
+    return <div className={classNames("border-t border-border", className)} {...rest} />;
+}
 
-function ControlSwitch({ label, valueAtom, className, ...rest }: ControlSwitchProps) {
+function ControlSwitch({ label, valueAtom, className, ...rest }: ComponentProps<typeof Label> & { label: string; valueAtom: WritableAtom<boolean, [boolean], void>; }) {
     const [checked, setChecked] = useAtom(valueAtom);
 
     return (
-        <Label className={classNames("-ml-2 flex items-center gap-0", className)} {...rest}>
-            <Switch className="scale-65" checked={checked} onCheckedChange={setChecked} />
+        <Label className={classNames("-ml-2 font-normal flex items-center gap-0", className)} {...rest}>
+            <Switch className="scale-50" checked={checked} onCheckedChange={setChecked} />
             {label}
         </Label>
     );
@@ -77,7 +78,7 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
 
     return (
         <div className={classNames("flex items-center gap-2", className)} {...rest}>
-            <Label htmlFor="settings-theme">
+            <Label className="font-normal" htmlFor="settings-theme">
                 Theme
             </Label>
 
@@ -87,9 +88,9 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
                 </SelectTrigger>
 
                 <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem className="font-condensed font-normal" value="light">Light</SelectItem>
+                    <SelectItem className="font-condensed font-normal" value="dark">Dark</SelectItem>
+                    <SelectItem className="font-condensed font-normal" value="system">System</SelectItem>
                 </SelectContent>
             </Select>
         </div>
@@ -100,23 +101,17 @@ function ControlUnloadHookHotkey() {
     const [state, setState] = useAtom(settingsUnloadHookHotkeyAtom);
 
     function setChord(chord: HotkeyChord | null) {
-        setState({
-            chord,
-            global: chord ? state.global : false,
-        });
+        setState({ chord, global: chord ? state.global : false, });
     }
 
     function setGlobal(global: boolean) {
-        setState({
-            chord: state.chord,
-            global,
-        });
+        setState({ chord: state.chord, global, });
     }
 
     return (
-        <div className="pt-1 border-t border-border flex flex-col gap-2">
-            <div className="text-xs text-muted-foreground">
-                Send unload hook notification
+        <div className="grid grid-cols-[auto_1fr] items-center gap-2 select-none">
+            <div title="Send unload hook notification key">
+                Send unload hook key
             </div>
 
             <HotkeyInput
