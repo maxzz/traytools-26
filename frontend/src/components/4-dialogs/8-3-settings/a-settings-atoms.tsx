@@ -16,6 +16,16 @@ export const settingsShowFooterAtom = atom(
     },
 );
 
+const settingsShowMainTabsBaseAtom = atom(appSettings.showMainTabs);
+
+export const settingsShowMainTabsAtom = atom(
+    (get) => get(settingsShowMainTabsBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsShowMainTabsBaseAtom, next);
+        appSettings.showMainTabs = next;
+    },
+);
+
 const settingsStayOnTopBaseAtom = atom(appSettings.stayOnTop);
 
 export const settingsStayOnTopAtom = atom(

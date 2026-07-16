@@ -15,6 +15,7 @@ import {
     settingsQuitOnCloseAtom,
     settingsRunElevatedAtom,
     settingsShowFooterAtom,
+    settingsShowMainTabsAtom,
     settingsStartDpAgentHighAtom,
     settingsStayOnTopAtom,
     settingsUnloadHookHotkeyAtom,
@@ -43,6 +44,7 @@ export function SettingsDialog() {
                     <Separator />
                     <ControlSwitch label="Quit the application when the window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                     <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
+                    <ControlSwitch label="Show main tabs in header" valueAtom={settingsShowMainTabsAtom} />
                     <ControlTheme />
                     <Separator />
                     <ControlUnloadHookHotkey />

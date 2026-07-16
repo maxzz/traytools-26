@@ -10,6 +10,7 @@ const STORAGE_ID = `${STORE_KEY}__${STORE_VER}`;
 export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showFooter: boolean;         // Show footer in main layout
+    showMainTabs: boolean;       // Show main page tabs in the header
     stayOnTop: boolean;          // Keep main window above other windows
     panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
     expandedSections: string[];  // Expanded accordion sections by name
@@ -21,6 +22,7 @@ export interface AppSettings {
 const DEFAULT_SETTINGS: AppSettings = {
     theme: 'light',
     showFooter: false,
+    showMainTabs: false,
     stayOnTop: false,
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
@@ -44,6 +46,7 @@ function loadSettings(): AppSettings {
                 panelSizes: getValidPanelSizes(parsed.panelSizes),
                 expandedSections: parsed.expandedSections ?? DEFAULT_SETTINGS.expandedSections,
                 mainTab: parsed.mainTab ?? DEFAULT_SETTINGS.mainTab,
+                showMainTabs: parsed.showMainTabs ?? DEFAULT_SETTINGS.showMainTabs,
                 showDpAgentToolbar: parsed.showDpAgentToolbar ?? DEFAULT_SETTINGS.showDpAgentToolbar,
                 startDpAgentHigh: parsed.startDpAgentHigh ?? DEFAULT_SETTINGS.startDpAgentHigh,
             };
