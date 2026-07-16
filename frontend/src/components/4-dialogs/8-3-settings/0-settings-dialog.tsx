@@ -122,8 +122,8 @@ function ControlUnloadHookHotkey() {
             <HotkeyInput
                 value={state.chord}
                 onChange={setChord}
-                global={state.global}
-                onGlobalChange={setGlobal}
+                isGlobal={state.global}
+                onIsGlobalChange={setGlobal}
             />
         </div>
     );
