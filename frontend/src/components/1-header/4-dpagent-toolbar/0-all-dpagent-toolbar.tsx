@@ -7,7 +7,7 @@ import { Button } from "@/ui/shadcn/button";
 import { classNames } from "@/utils";
 import { IconDpAgentStatus } from "./1-icon-status";
 import { IntegrityBadge } from "./2-integrity-badge";
-import { ExitSelfIntegrity } from "./3-exit-self-integrity";
+import { ExitSelfIntegrity } from "../6-exit-self-integrity";
 import {
     dpAgentBusyAtom,
     dpAgentStatusAtom,
@@ -59,7 +59,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
 
     return (
         <div
-            className={classNames("px-1 h-6 bg-muted/30 border border-border rounded-sm gap-1 inline-flex items-center", className)}
+            className={classNames("px-1 h-6 bg-muted/30 border border-border rounded inline-flex items-center gap-px", className)}
             title={status?.agentPath ? `DPAgent: ${status.agentPath}` : "DPAgent toolbar"}
         >
             <IconDpAgentStatus running={running} title={running ? "DPAgent is running" : "DPAgent not started"} />
@@ -68,7 +68,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
                 type="button"
                 variant="outline"
                 size="xs"
-                className="px-1.5 h-5"
+                className="px-1.5 h-5 rounded"
                 disabled={busy || running}
                 onClick={() => { void onStart(); }}
                 title={settings.startDpAgentHigh ? "Start DPAgent elevated" : "Start DPAgent"}
@@ -80,7 +80,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
                 type="button"
                 variant="outline"
                 size="xs"
-                className="px-1.5 h-5"
+                className="px-1.5 h-5 rounded"
                 disabled={busy || !running}
                 onClick={() => { void onStop(); }}
                 title="Stop DPAgent and unload hooks"
@@ -88,7 +88,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
                 Stop
             </Button>
 
-            <IntegrityBadge level={status?.agentIntegrity} subject="DPAgent" />
+            <IntegrityBadge className="ml-0.5" level={status?.agentIntegrity} subject="DPAgent" />
         </div>
     );
 }
