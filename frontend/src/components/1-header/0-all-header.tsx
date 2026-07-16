@@ -8,6 +8,7 @@ import { ElevatedIndicator } from "./5-elevated-indicator";
 import { ButtonExit } from "./6-btn-exit";
 import { ButtonSettings } from "./7-btn-settings";
 import { ButtonThemeToggle } from "./8-btn-theme-toggle";
+import { ExitSelfIntegrity } from "./4-dpagent-toolbar/3-exit-self-integrity";
 
 export function Header() {
     const { showDpAgentToolbar } = useSnapshot(appSettings);
@@ -34,6 +35,7 @@ export function Header() {
                     )
                 }
                 {!showDpAgentToolbar && <ButtonExit />}
+                <ExitSelfIntegrity />
             </div>
         </header>
     );

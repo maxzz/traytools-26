@@ -29,8 +29,8 @@ export function App() {
 }
 
 function MainBody() {
-    const settings = useSnapshot(appSettings);
-    const activeTab = getValidMainTab(settings.mainTab);
+    const { mainTab } = useSnapshot(appSettings);
+    const activeTab = getValidMainTab(mainTab);
     const [isElevated, setIsElevated] = useState<boolean | null>(null);
 
     useEffect(

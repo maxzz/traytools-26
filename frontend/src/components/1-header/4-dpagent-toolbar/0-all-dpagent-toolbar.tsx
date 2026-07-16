@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { appBus } from "@/bridge";
 import { appSettings } from "@/store/1-ui-settings";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { Button } from "@/ui/shadcn/button";
 import { classNames } from "@/utils";
 import { IconDpAgentStatus } from "./1-icon-status";
 import { IntegrityBadge } from "./2-integrity-badge";
+import { ExitSelfIntegrity } from "./3-exit-self-integrity";
 import {
     dpAgentBusyAtom,
     dpAgentStatusAtom,
@@ -35,12 +35,11 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
 
     useEffect(
         () => {
-            void poll();
-            const id = window.setInterval(() => { void poll(); }, POLL_MS);
+            poll();
+            const id = window.setInterval(() => { poll(); }, POLL_MS);
             return () => window.clearInterval(id);
         },
-        [poll],
-    );
+        [poll]);
 
     async function onStart() {
         try {
@@ -92,19 +91,6 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
             <IntegrityBadge level={status?.agentIntegrity} subject="DPAgent" />
 
             <span className="mx-0.5 w-px h-3.5 bg-border" aria-hidden />
-
-            <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                className="px-1.5 h-5"
-                onClick={() => appBus.exit().catch(console.error)}
-                title="Exit application"
-            >
-                Exit
-            </Button>
-
-            <IntegrityBadge level={status?.selfIntegrity} subject="Traytools" />
         </div>
     );
 }
