@@ -68,31 +68,16 @@ export function AppMenubar() {
 
                     <MenubarSeparator />
 
-                    <MenubarCheckboxItem
-                        checked={settings.showDpAgentToolbar}
-                        onCheckedChange={(checked) => { appSettings.showDpAgentToolbar = checked === true; }}
-                        title="Expand DPAgent toolbar controls and run monitoring"
+                    <MenubarItem
+                        className="pl-7"
+                        onSelect={() => { void sendUnloadHookNotification(); }}
+                        title="Just send notification to unload hook"
                     >
-                        DPAgent toolbar
-                    </MenubarCheckboxItem>
-
-                    <MenubarSub>
-                        <MenubarSubTrigger>
-                            DPAgent run options
-                        </MenubarSubTrigger>
-
-                        <MenubarSubContent>
-                            <MenubarItem
-                                onSelect={() => { void sendUnloadHookNotification(); }}
-                                title="Just send notification to unload hook"
-                            >
-                                Send unload hook notification
-                                {unloadHookShortcut && (
-                                    <MenubarShortcut>{unloadHookShortcut}</MenubarShortcut>
-                                )}
-                            </MenubarItem>
-                        </MenubarSubContent>
-                    </MenubarSub>
+                        Send unload hook notification
+                        {unloadHookShortcut && (
+                            <MenubarShortcut>{unloadHookShortcut}</MenubarShortcut>
+                        )}
+                    </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
 

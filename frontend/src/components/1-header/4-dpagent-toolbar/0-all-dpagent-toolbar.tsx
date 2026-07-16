@@ -8,14 +8,7 @@ import { Button } from "@/ui/shadcn/button";
 import { classNames } from "@/utils";
 import { IconDpAgentStatus } from "./1-icon-status";
 import { IntegrityBadge } from "./2-integrity-badge";
-
-import {
-    dpAgentBusyAtom,
-    dpAgentStatusAtom,
-    pollDpAgentStatusAtom,
-    startDpAgentAtom,
-    stopDpAgentAtom,
-} from "./a-dpagent-atoms";
+import { dpAgentBusyAtom, dpAgentStatusAtom, pollDpAgentStatusAtom, startDpAgentAtom, stopDpAgentAtom, } from "./a-dpagent-atoms";
 
 const POLL_MS = 1000;
 
