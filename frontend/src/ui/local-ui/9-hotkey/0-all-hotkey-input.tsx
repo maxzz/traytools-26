@@ -1,9 +1,10 @@
 import { type ComponentProps, useCallback, useEffect, useRef, useState } from "react";
-import { Globe, X } from "lucide-react";
+import { X } from "lucide-react";
 import { classNames } from "@/utils";
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
+import { earthFillsDefault, IconEarth } from "@/ui/icons";
+import { Button } from "@/ui/shadcn/button";
+import { Input } from "@/ui/shadcn/input";
 import { keyboardEventToHotkeyChord, stringFromHotkeyChord, type HotkeyChord } from "./9-types-hotkey";
-import { IconEarth } from "@/ui/icons";
 
 type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
     value: HotkeyChord | null;
@@ -23,9 +24,9 @@ type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
 export function HotkeyInput({
     value,
     onChange,
-    placeholder = "Click to set shortcut",
-    global = false,
     onGlobalChange,
+    placeholder = "",
+    global = false,
     className,
     ...rest
 }: HotkeyInputProps) {
@@ -84,51 +85,30 @@ export function HotkeyInput({
     );
 
     const display = recording ? "Press shortcut…" : (stringFromHotkeyChord(value) || placeholder);
+    const endPad = showGlobal ? "pr-14" : "pr-8";
 
     return (
-        <InputGroup
-            className={classNames(
-                "h-7 rounded-sm",
-                recording && "border-sky-500 ring-1 ring-sky-500/40",
-                className,
-            )}
-            {...rest}
-        >
-            <InputGroupInput
+        <div className={classNames("relative", className)} {...rest}>
+            <Input
                 ref={inputRef}
                 readOnly
                 className={classNames(
                     "h-7 font-mono cursor-pointer",
+                    endPad,
+                    recording && "border-sky-500 ring-1 ring-sky-500/40",
                     !value && !recording && "text-muted-foreground",
                 )}
                 value={display}
                 onClick={() => { setRecording(true); inputRef.current?.focus(); }}
                 onFocus={() => setRecording(true)}
-                onBlur={() => { requestAnimationFrame(() => stopRecording()); }} // Defer so addon clicks can run first.
+                onBlur={() => { requestAnimationFrame(() => stopRecording()); }} // Defer so button clicks can run first.
                 placeholder={placeholder}
                 aria-label="Hotkey shortcut"
             />
 
-            <InputGroupAddon align="inline-end" className="gap-0.5">
-                {showGlobal && (
-                    <InputGroupButton
-                        size="icon-xs"
-                        variant={global ? "secondary" : "ghost"}
-                        aria-pressed={global}
-                        aria-label="Global system-wide hotkey"
-                        title="Global system-wide hotkey"
-                        disabled={!value}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => onGlobalChange(!global)}
-                        className={classNames(
-                            global && "bg-sky-500/15 text-sky-700 ring-1 ring-sky-500/40 dark:text-sky-300",
-                        )}
-                    >
-                        <IconEarth />
-                    </InputGroupButton>
-                )}
-
-                <InputGroupButton
+            <div className="absolute inset-y-0 right-0.5 flex items-center">
+                <Button
+                    type="button"
                     size="icon-xs"
                     variant="ghost"
                     aria-label="Clear shortcut"
@@ -138,8 +118,25 @@ export function HotkeyInput({
                     onClick={() => { onChange(null); stopRecording(); }}
                 >
                     <X />
-                </InputGroupButton>
-            </InputGroupAddon>
-        </InputGroup>
+                </Button>
+
+                {showGlobal && (
+                    <Button
+                        type="button"
+                        size="icon-xs"
+                        variant={global ? "secondary" : "ghost"}
+                        aria-pressed={global}
+                        aria-label="Global system-wide hotkey"
+                        title="Global system-wide hotkey"
+                        disabled={!value}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => onGlobalChange(!global)}
+                    //className={classNames(global && "bg-sky-500/15 text-sky-700 ring-1 ring-sky-500/40 dark:text-sky-300")}
+                    >
+                        <IconEarth className={classNames("size-3.5", global && "stroke-current")} earthFills={global ? earthFillsDefault : undefined} />
+                    </Button>
+                )}
+            </div>
+        </div>
     );
 }

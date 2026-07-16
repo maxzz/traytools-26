@@ -6,7 +6,7 @@ import { classNames } from "@/utils";
 export function IconDpAgentStatus({ running, className, title, ...rest }: SVGProps<SVGSVGElement> & { running: boolean; title: string; }) {
     return (
         <IconDpSensor
-            {...(running ? dpSensorColorsGreen : dpSensorColorsGray)}
+            dpSensorColors={running ? dpSensorColorsGreen : dpSensorColorsGray}
             className={classNames("shrink-0 size-4", className)}
             title={title}
             aria-hidden
