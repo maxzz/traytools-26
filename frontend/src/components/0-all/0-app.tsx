@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Toaster } from '@/ui/shadcn/sonner';
-import { Header } from '../1-header';
+import { Header } from '../1-header/0-all-header/0-all-header';
 import { Section3_Footer } from '../3-footer';
 import { AllDialogs } from './9-globals';
 import { useSnapshot } from 'valtio';

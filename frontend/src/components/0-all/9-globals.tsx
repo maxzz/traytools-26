@@ -11,7 +11,7 @@ import {
     SettingsUnloadHookHotkeySync,
     settingsUnloadHookHotkeyAtom,
 } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
-import { sendUnloadHookNotification } from "@/components/1-header/3-2-unload-hook-action";
+import { sendUnloadHookNotification } from "@/components/1-header/3-send-unload-msg-notice/3-2-unload-hook-action";
 import { matchesHotkey } from "@/ui/local-ui/9-hotkey";
 
 export function AllDialogs() {

@@ -1,6 +1,6 @@
 import { appBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
-import { unloadHookNotice } from "@/components/1-header/3-1-notice-unload-hook-state";
+import { unloadHookNotice } from "@/components/1-header/3-send-unload-msg-notice/3-1-notice-unload-hook-state";
 
 /** Shared action for the View menu item and local/global hotkeys. */
 export function sendUnloadHookNotification() {
