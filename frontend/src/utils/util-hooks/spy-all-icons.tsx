@@ -1,6 +1,12 @@
 import { SpyTestAllIcons } from "./spy-test-all-icons";
 import { SpyTestAllSvgSymbols } from "./spy-test-all-svg-symbols";
-import * as allIcons from "@/ui/icons/normal";
+import * as allIconsModule from "@/ui/icons/normal";
+import type { ComponentType, SVGProps } from "react";
+
+// Filter out non-function values from the allIcons module.
+const allIcons = Object.fromEntries(
+    Object.entries(allIconsModule).filter(([, value]) => typeof value === "function")
+) as Record<string, ComponentType<SVGProps<SVGSVGElement>>>;
 
 export function SpyAllIcons({ includeSvgSymbols }: { includeSvgSymbols?: boolean; }) {
     return (

@@ -9,7 +9,7 @@ export const dpSensorColorsGray: DpSensorColors = { outer: "#565656", inner: "#b
 export const dpSensorColorsGreen: DpSensorColors = { outer: "#119633", inner: "#00ff36" };
 export const dpSensorColorsRed: DpSensorColors = { outer: "#ce262b", inner: "red" };
 
-export function IconDpSensor({ title, outer, inner, ...rest }: HTMLAttributes<SVGSVGElement> & SVGProps<SVGSVGElement> & DpSensorColors) {
+export function IconDpSensor({ title, outer = dpSensorColorsGray.outer, inner = dpSensorColorsGray.inner, ...rest }: HTMLAttributes<SVGSVGElement> & SVGProps<SVGSVGElement> & Partial<DpSensorColors>) {
     return (
         <svg viewBox="0 0 24 24" {...rest}>
             {title && <title>{title}</title>}
