@@ -5,7 +5,6 @@ import { appSettings } from "@/store/1-ui-settings";
 import { classNames } from "@/utils";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { Button } from "@/ui/shadcn/button";
-import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
@@ -120,16 +119,12 @@ function ControlUnloadHookHotkey() {
                 Send unload hook notification
             </div>
 
-            <HotkeyInput value={state.chord} onChange={setChord} />
-
-            <Label className="font-normal flex items-center gap-2">
-                <Checkbox
-                    checked={state.global}
-                    disabled={!state.chord}
-                    onCheckedChange={(v) => setGlobal(v === true)}
-                />
-                Global system-wide hotkey
-            </Label>
+            <HotkeyInput
+                value={state.chord}
+                onChange={setChord}
+                global={state.global}
+                onGlobalChange={setGlobal}
+            />
         </div>
     );
 }

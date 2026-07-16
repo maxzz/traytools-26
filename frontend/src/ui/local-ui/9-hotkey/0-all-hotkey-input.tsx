@@ -1,7 +1,7 @@
 import { type ComponentProps, useCallback, useEffect, useRef, useState } from "react";
+import { Globe, X } from "lucide-react";
 import { classNames } from "@/utils";
-import { Button } from "@/ui/shadcn/button";
-import { Input } from "@/ui/shadcn/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { keyboardEventToHotkeyChord, stringFromHotkeyChord, type HotkeyChord } from "./9-types-hotkey";
 
 type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
@@ -9,6 +9,9 @@ type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
     onChange: (next: HotkeyChord | null) => void;
     /** Placeholder when empty / not recording. */
     placeholder?: string;
+    /** When provided with `onGlobalChange`, shows a Global toggle inside the field. */
+    global?: boolean;
+    onGlobalChange?: (next: boolean) => void;
 };
 
 /**
@@ -20,11 +23,14 @@ export function HotkeyInput({
     value,
     onChange,
     placeholder = "Click to set shortcut",
+    global = false,
+    onGlobalChange,
     className,
     ...rest
 }: HotkeyInputProps) {
     const [recording, setRecording] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const showGlobal = onGlobalChange != null;
 
     const stopRecording = useCallback(() => setRecording(false), []);
 
@@ -79,35 +85,60 @@ export function HotkeyInput({
     const display = recording ? "Press shortcut…" : (stringFromHotkeyChord(value) || placeholder);
 
     return (
-        <div className={classNames("flex items-center gap-1", className)} {...rest}>
-            <Input
+        <InputGroup
+            className={classNames(
+                "h-7 rounded-sm",
+                recording && "border-sky-500 ring-1 ring-sky-500/40",
+                className,
+            )}
+            {...rest}
+        >
+            <InputGroupInput
                 ref={inputRef}
                 readOnly
                 className={classNames(
                     "h-7 font-mono cursor-pointer",
-                    recording && "border-sky-500 ring-1 ring-sky-500/40",
                     !value && !recording && "text-muted-foreground",
                 )}
                 value={display}
                 onClick={() => { setRecording(true); inputRef.current?.focus(); }}
                 onFocus={() => setRecording(true)}
-                onBlur={() => { requestAnimationFrame(() => stopRecording()); }} // Defer so a Clear click can run first.
+                onBlur={() => { requestAnimationFrame(() => stopRecording()); }} // Defer so addon clicks can run first.
                 placeholder={placeholder}
                 aria-label="Hotkey shortcut"
             />
 
-            <Button
-                className="shrink-0 px-2 h-7"
-                variant="outline"
-                size="xs"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => { onChange(null); stopRecording(); }}
-                disabled={!value && !recording}
-                title="Clear shortcut"
-                type="button"
-            >
-                Clear
-            </Button>
-        </div>
+            <InputGroupAddon align="inline-end" className="gap-0.5">
+                {showGlobal && (
+                    <InputGroupButton
+                        size="icon-xs"
+                        variant={global ? "secondary" : "ghost"}
+                        aria-pressed={global}
+                        aria-label="Global system-wide hotkey"
+                        title="Global system-wide hotkey"
+                        disabled={!value}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => onGlobalChange(!global)}
+                        className={classNames(
+                            global && "bg-sky-500/15 text-sky-700 ring-1 ring-sky-500/40 dark:text-sky-300",
+                        )}
+                    >
+                        <Globe />
+                    </InputGroupButton>
+                )}
+
+                <InputGroupButton
+                    size="icon-xs"
+                    variant="ghost"
+                    aria-label="Clear shortcut"
+                    title="Clear shortcut"
+                    disabled={!value && !recording}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => { onChange(null); stopRecording(); }}
+                >
+                    <X />
+                </InputGroupButton>
+            </InputGroupAddon>
+        </InputGroup>
     );
 }
