@@ -3,6 +3,7 @@ import { Globe, X } from "lucide-react";
 import { classNames } from "@/utils";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { keyboardEventToHotkeyChord, stringFromHotkeyChord, type HotkeyChord } from "./9-types-hotkey";
+import { IconEarth } from "@/ui/icons";
 
 type HotkeyInputProps = Omit<ComponentProps<"div">, "onChange"> & {
     value: HotkeyChord | null;
@@ -123,7 +124,7 @@ export function HotkeyInput({
                             global && "bg-sky-500/15 text-sky-700 ring-1 ring-sky-500/40 dark:text-sky-300",
                         )}
                     >
-                        <Globe />
+                        <IconEarth />
                     </InputGroupButton>
                 )}
 
