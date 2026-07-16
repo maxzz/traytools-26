@@ -14,7 +14,7 @@ export interface AppSettings {
     panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
     expandedSections: string[];  // Expanded accordion sections by name
     mainTab: string;             // Active main body tab
-    showDpAgentToolbar: boolean; // Show DPAgent toolbar and run monitoring
+    showDpAgentToolbar: boolean; // Expand DPAgent toolbar controls and run monitoring
     startDpAgentHigh: boolean;   // Start DPAgent elevated (runas)
 }
 

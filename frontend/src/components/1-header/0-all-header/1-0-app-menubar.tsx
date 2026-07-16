@@ -71,7 +71,7 @@ export function AppMenubar() {
                     <MenubarCheckboxItem
                         checked={settings.showDpAgentToolbar}
                         onCheckedChange={(checked) => { appSettings.showDpAgentToolbar = checked === true; }}
-                        title="Show DPAgent toolbar and run monitoring"
+                        title="Expand DPAgent toolbar controls and run monitoring"
                     >
                         DPAgent toolbar
                     </MenubarCheckboxItem>
