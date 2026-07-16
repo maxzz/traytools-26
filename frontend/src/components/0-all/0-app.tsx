@@ -11,21 +11,19 @@ import { formatMainWindowTitle, getValidMainTab, MAIN_PAGES } from './8-pages-ar
 import { UISymbolDefs } from '@/ui/icons';
 
 export function App() {
-    const { showFooter } = useSnapshot(appSettings);
-
     return (<>
         <UISymbolDefs />
         <Toaster />
         <AllDialogs />
 
-        <main className={`h-screen text-xs font-condensed bg-background grid ${showFooter ? "grid-rows-[auto_1fr_auto]" : "grid-rows-[auto_1fr]"}`}>
+        <main className="h-screen text-xs font-condensed bg-background grid grid-rows-[auto_1fr_auto]">
             <Header />
 
             <div className="h-full min-h-0 bg-sky-900/10 flex flex-col">
                 <MainBody />
             </div>
 
-            {showFooter && <Section3_Footer />}
+            <Section3_Footer />
         </main>
     </>);
 }
@@ -39,8 +37,7 @@ function MainBody() {
         () => {
             settingsBus.isElevated().then(setIsElevated).catch(console.error);
         },
-        [],
-    );
+        []);
 
     useEffect(
         () => {

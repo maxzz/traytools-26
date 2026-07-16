@@ -1,9 +1,16 @@
 import { type HTMLAttributes } from "react";
+import { useSnapshot } from "valtio";
 import { classNames, envBuildVersion, envModifiedDate } from "@/utils";
+import { appSettings } from "@/store/1-ui-settings";
 import { IconSunnyvale } from "@/ui/icons/normal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 
 export function Section3_Footer({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
+    const { showFooter } = useSnapshot(appSettings);
+    if (!showFooter) {
+        return null;
+    }
+    
     return (
         <div className={classNames("py-0.5 text-xs text-foreground bg-background border-t border-border flex items-center justify-center", className)} {...rest}>
 
