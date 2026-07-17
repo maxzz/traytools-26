@@ -349,7 +349,7 @@ function TreeNodeTriggerWithInternalSelection(props: TreeNodeTriggerProps) {
 }
 
 function TreeNodeTriggerContent({ children, className, hasChildren = false, isSelected, onClick, ...props }: TreeNodeTriggerProps & { isSelected: boolean; }) {
-    const { toggleExpanded, handleSelection, indent } = useTree();
+    const { handleSelection, indent } = useTree();
     const { nodeId, level } = useTreeNode();
 
     return (
@@ -366,9 +366,6 @@ function TreeNodeTriggerContent({ children, className, hasChildren = false, isSe
             data-selected={isSelected ? "" : undefined}
             onClick={(e) => {
                 (e.currentTarget.closest("[data-slot=tree-view]") as HTMLElement | null)?.focus();
-                if (hasChildren) {
-                    toggleExpanded(nodeId);
-                }
                 handleSelection(nodeId, e.ctrlKey || e.metaKey);
                 onClick?.(e);
             }}
