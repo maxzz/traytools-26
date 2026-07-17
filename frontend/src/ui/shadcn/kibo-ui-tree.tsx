@@ -1,20 +1,5 @@
 "use client";
-
-import {
-    type ComponentProps,
-    createContext,
-    type HTMLAttributes,
-    type ReactNode,
-    type RefObject,
-    useCallback,
-    useContext,
-    useEffect,
-    useId,
-    useMemo,
-    useRef,
-    useState,
-    useSyncExternalStore,
-} from "react";
+import { type ComponentProps, type HTMLAttributes, type ReactNode, type RefObject, createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, } from "react";
 import { cn } from "@/utils/classnames";
 import { ChevronRight, File, Folder, FolderOpen } from "lucide-react"; //source https://www.kibo-ui.com/components/tree //demo https://www.shadcnblocks.com/component/tree/tree-expanded-1
 import { AnimatePresence, motion } from "motion/react";
@@ -391,13 +376,18 @@ function TreeNodeTriggerContent({ children, className, hasChildren = false, isSe
             //whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
             {...props}
         >
-            <TreeLines />
+            <TreeLines hasChildren={hasChildren} />
             {children as ReactNode}
         </motion.div>
     );
 }
 
-export function TreeLines() {
+/** Gap between the horizontal tick and the expander (parents) or icon (leaves). */
+const TREE_LINE_CONTENT_GAP = 4;
+/** TreeExpander is w-4 + mr-1; leaves keep that spacer so the tick can reach the icon. */
+const TREE_EXPANDER_SLOT = 16 + 4;
+
+export function TreeLines({ hasChildren = false }: { hasChildren?: boolean; }) {
     const { showLines, indent } = useTree();
     const { level, isLast, parentPath } = useTreeNode();
 
@@ -405,8 +395,15 @@ export function TreeLines() {
         return null;
     }
 
-    const guideX = (depth: number) => depth * (indent ?? 0) + 16;
+    const indentPx = indent ?? 0;
+    const guideX = (depth: number) => depth * indentPx + 16;
     const x = guideX(level);
+    // Distance from the vertical guide to the row content (paddingLeft).
+    const toContent = indentPx - 8;
+    // Parents: stop ~4px before the chevron. Leaves: extend through the empty expander to ~4px before the icon.
+    const tickWidth = hasChildren
+        ? toContent - TREE_LINE_CONTENT_GAP
+        : toContent + TREE_EXPANDER_SLOT - TREE_LINE_CONTENT_GAP;
 
     return (
         <div className="absolute inset-y-0 left-0 pointer-events-none">
@@ -428,7 +425,7 @@ export function TreeLines() {
                 className="absolute top-1/2 border-foreground/40 border-t"
                 style={{
                     left: x,
-                    width: (indent ?? 0) - 4,
+                    width: Math.max(0, tickWidth),
                     transform: "translateY(-1px)",
                 }}
             />
@@ -492,14 +489,14 @@ export function TreeExpander({ hasChildren = false, className, onClick, ...props
 
     return (
         <motion.div
-            animate={{ rotate: isExpanded ? 90 : 0 }}
             className={cn("mr-1 h-4 w-4 flex items-center justify-center cursor-pointer", className)}
+            animate={{ rotate: isExpanded ? 90 : 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
             onClick={(e) => {
                 e.stopPropagation();
                 toggleExpanded(nodeId);
                 onClick?.(e);
             }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
             {...props}
         >
             <ChevronRight className="h-3 w-3 text-muted-foreground" />

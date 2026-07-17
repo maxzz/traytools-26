@@ -1,7 +1,7 @@
-import { AppWindow, Square, Layers, Folder } from "lucide-react";
 import { type WindowNode } from "@/bridge";
 import { cn } from "@/utils";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
+import { AppWindow, Square, Layers, Folder } from "lucide-react";
 
 interface WindowTreeNodeProps {
     node: WindowNode;
@@ -21,7 +21,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath, showHandles }:
             <TreeNodeTrigger hasChildren={hasChildren}>
                 <TreeExpander hasChildren={hasChildren} />
                 <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot)} />
-                <TreeLabel className={cn("text-xs font-mono", !isRoot && !node.visible && "text-muted-foreground/60")}>
+                <TreeLabel className={cn("text-xs", !isRoot && !node.visible && "")}>
                     {nodeLabel(node, isRoot, showHandles)}
                 </TreeLabel>
             </TreeNodeTrigger>
@@ -46,14 +46,16 @@ export function WindowTreeNode({ node, level, isLast, parentPath, showHandles }:
     );
 }
 
-function nodeLabel(node: WindowNode, isRoot: boolean, showHandles: boolean): string {
+function nodeLabel(node: WindowNode, isRoot: boolean, showHandles: boolean) {
     if (isRoot) {
-        return node.title;
+        return <span className="font-condensed">{node.title}</span>;
     }
     const cls = node.className || "(no class)";
     const text = node.title ? ` "${node.title}"` : "";
-    const handle = showHandles ? `${node.handle}  ` : "";
-    return `${handle}${cls}${text}`;
+    return (<>
+        {showHandles && <span className="mr-1 font-mono text-[0.65rem] text-muted-foreground/60">{node.handle}</span>}
+        <span className="font-condensed">{cls}{text}</span>
+    </>);
 }
 
 function nodeIcon(node: WindowNode, isRoot: boolean) {
