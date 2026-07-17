@@ -29,7 +29,7 @@ export const DEFAULT_TOOLS_CONFIG: ToolsConfig = {
                 menuName: "Utilities",
                 menuItems: [
                     { menuName: "Notepad", cmdLine: "notepad.exe", cmdWhat: "abs" },
-                    { menuName: "Calculator", cmdLine: "calc.exe", cmdWhat: "abs", hotKey: "F4" },
+                    { menuName: "Calculator", cmdLine: "calc.exe", cmdWhat: "abs" },
                     { menuName: "-" },
                     { menuName: "UAC Settings", cmdLine: "\"%windir%/system32/UserAccountControlSettings.exe\"", cmdWhat: "abs" },
                 ],

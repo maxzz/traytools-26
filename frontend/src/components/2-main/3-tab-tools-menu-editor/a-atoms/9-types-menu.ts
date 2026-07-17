@@ -18,6 +18,10 @@ export type ToolMenuItem = {
     cmdPlat?: CmdPlat;
     cmdWhat?: CmdWhat;
     hotKey?: string;
+    // When true, the hotkey is registered system-wide (RegisterHotKey). When
+    // absent or false it is application-local (only while this window is
+    // focused). Defaults are not written to tools.json.
+    hotKeyGlobal?: boolean;
     // Run the command with elevated (administrator) privileges. Optional: when
     // absent the effective value defaults to true for registry actions and false
     // for everything else (see `effectiveRunElevated`). It is only written to

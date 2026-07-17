@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { HotkeyInput, formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
 import { patchSelectedNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, isRegistryPath, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
 
@@ -267,16 +268,38 @@ function Field_CmdPlatform({ node }: NodeProps) {
 }
 
 function Field_HotKey({ node }: NodeProps) {
+    const chord = parseHotkey(node.hotKey);
+    const isGlobal = !!node.hotKeyGlobal;
+
+    function setChord(next: HotkeyChord | null) {
+        patchSelectedNode((n) => {
+            const text = formatHotkey(next);
+            if (text) {
+                n.hotKey = text;
+            } else {
+                delete n.hotKey;
+                delete n.hotKeyGlobal;
+            }
+        });
+    }
+
+    function setGlobal(global: boolean) {
+        patchSelectedNode((n) => {
+            if (global && n.hotKey) {
+                n.hotKeyGlobal = true;
+            } else {
+                delete n.hotKeyGlobal;
+            }
+        });
+    }
+
     return (
-        <LabelAndField label="Hotkey">
-            <Input
-                className="w-20 font-mono text-[0.72rem]"
-                value={node.hotKey ?? ""}
-                onChange={(e) => patchSelectedNode((n) => {
-                    const v = e.target.value;
-                    if (v) { n.hotKey = v; } else { delete n.hotKey; }
-                })}
-            // placeholder="e.g. F4"
+        <LabelAndField className="w-44" label="Hotkey">
+            <HotkeyInput
+                value={chord}
+                onChange={setChord}
+                isGlobal={isGlobal}
+                onIsGlobalChange={setGlobal}
             />
         </LabelAndField>
     );

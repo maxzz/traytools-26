@@ -1,6 +1,6 @@
 import { useSnapshot } from "valtio";
-import { AlertTriangle, RotateCcw, RefreshCw, Save } from "lucide-react";
-import { toolsEditorStore, loadToolsConfig, resetToDefaults, saveToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
+import { AlertTriangle, RotateCcw, RefreshCw, Check } from "lucide-react";
+import { toolsEditorStore, loadToolsConfig, resetToDefaults, applyToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { Button } from "@/ui/shadcn/button";
 
 export function TopBar() {
@@ -59,8 +59,8 @@ export function TopBar() {
                     <RotateCcw /> Reset
                 </Button>
 
-                <Button size="sm" onClick={() => saveToolsConfig()} title="Create/overwrite tools.json">
-                    <Save /> Save
+                <Button size="sm" onClick={() => applyToolsConfig()} title="Save tools.json and apply hotkeys">
+                    <Check /> Apply
                 </Button>
             </div>
 

@@ -9,6 +9,7 @@ export interface ToolMenuNode {
     id?: number;                 // present on "item" leaves; used by exec()
     what?: "rel" | "abs" | "reg"; // hint for icon selection
     hotKey?: string;
+    hotKeyGlobal?: boolean;
     children?: ToolMenuNode[];
 }
 
@@ -34,17 +35,40 @@ export interface ToolsSaveResponse {
     path: string;
 }
 
+export type ToolHotkeyBinding = {
+    id: number;
+    name: string;
+    hotKey: string;
+    global: boolean;
+};
+
+export type ToolHotkeyConflict = {
+    id?: number;
+    name?: string;
+    hotKey?: string;
+    error: string;
+};
+
+// Response of the "syncHotkeys" command. Mirrors backend/toolsmenu.HotkeySyncResponse.
+export interface ToolsHotkeySyncResponse {
+    local: ToolHotkeyBinding[];
+    global: ToolHotkeyBinding[];
+    conflicts: ToolHotkeyConflict[];
+}
+
 /**
  * Tools menu command group. Mirrors the "tools" group on the backend bus.
- * 
- * - getMenu returns the render-ready Tools menu tree; 
+ *
+ * - getMenu returns the render-ready Tools menu tree;
  * - exec executes a tool by id;
  * - getRaw returns the unparsed tools.json text for editing;
- * - save writes tools.json to disk (creating it if missing).
+ * - save writes tools.json to disk (creating it if missing);
+ * - syncHotkeys registers global tool hotkeys and returns local bindings + conflicts.
  */
 export const toolsBus = {
     getMenu: () => dispatch<ToolsMenuResponse>(GROUP, "getMenu"),
     exec: (id: number) => dispatch(GROUP, "exec", { id }),
     getRaw: () => dispatch<ToolsRawResponse>(GROUP, "getRaw"),
     save: (content: string) => dispatch<ToolsSaveResponse>(GROUP, "save", { content }),
+    syncHotkeys: () => dispatch<ToolsHotkeySyncResponse>(GROUP, "syncHotkeys"),
 };
