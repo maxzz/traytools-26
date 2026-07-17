@@ -116,4 +116,11 @@ type WindowInfo struct {
 	ThreadID    uint32 `json:"threadId"`
 	ProcessName string `json:"processName"`
 	ProcessPath string `json:"processPath"`
+	// Bits is 32 or 64 when known, 0 when the process could not be queried.
+	Bits int `json:"bits"`
+	// UserName is DOMAIN\User for the process token owner.
+	UserName string `json:"userName"`
+	// Integrity is the process mandatory integrity level: high / medium /
+	// mediumplus / low / undetected (same vocabulary as dpagent.IntegrityLevel).
+	Integrity string `json:"integrity"`
 }

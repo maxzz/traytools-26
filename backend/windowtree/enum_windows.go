@@ -176,25 +176,146 @@ func rectInfo(r winRect) RectInfo {
 	}
 }
 
-func processImage(pid uint32) (name, path string) {
+// Mandatory integrity RID constants (winnt.h).
+const (
+	securityMandatoryMediumRID     = 0x2000
+	securityMandatoryMediumPlusRID = 0x2100
+	securityMandatoryHighRID       = 0x3000
+
+	imageFileMachineI386  = 0x014c
+	imageFileMachineAMD64 = 0x8664
+	imageFileMachineARM64 = 0xaa64
+)
+
+type processDetails struct {
+	name      string
+	path      string
+	bits      int
+	userName  string
+	integrity string
+}
+
+func processImage(pid uint32) processDetails {
+	d := processDetails{integrity: "undetected"}
 	if pid == 0 {
-		return "", ""
+		return d
 	}
-	const queryLimited = 0x1000
-	h, err := windows.OpenProcess(queryLimited, false, pid)
+	h, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, pid)
 	if err != nil {
-		return "", ""
+		return d
 	}
 	defer windows.CloseHandle(h)
 
 	buf := make([]uint16, windows.MAX_PATH)
 	size := uint32(len(buf))
-	if err := windows.QueryFullProcessImageName(h, 0, &buf[0], &size); err != nil {
-		return "", ""
+	if err := windows.QueryFullProcessImageName(h, 0, &buf[0], &size); err == nil {
+		d.path = windows.UTF16ToString(buf[:size])
+		d.name = filepath.Base(d.path)
 	}
-	path = windows.UTF16ToString(buf[:size])
-	name = filepath.Base(path)
-	return name, path
+
+	d.bits = processBits(h)
+	d.userName, d.integrity = processTokenInfo(h)
+	return d
+}
+
+func processBits(h windows.Handle) int {
+	var processMachine, nativeMachine uint16
+	if err := windows.IsWow64Process2(h, &processMachine, &nativeMachine); err == nil {
+		machine := processMachine
+		if machine == 0 {
+			machine = nativeMachine
+		}
+		switch machine {
+		case imageFileMachineI386:
+			return 32
+		case imageFileMachineAMD64, imageFileMachineARM64:
+			return 64
+		}
+	}
+
+	var wow64 bool
+	if err := windows.IsWow64Process(h, &wow64); err != nil {
+		return 0
+	}
+	if wow64 {
+		return 32
+	}
+	if unsafe.Sizeof(uintptr(0)) == 8 {
+		return 64
+	}
+	return 32
+}
+
+func processTokenInfo(h windows.Handle) (userName, integrity string) {
+	integrity = "undetected"
+	var token windows.Token
+	if err := windows.OpenProcessToken(h, windows.TOKEN_QUERY, &token); err != nil {
+		return "", integrity
+	}
+	defer token.Close()
+
+	userName = tokenUserName(token)
+	integrity = tokenIntegrity(token)
+	return userName, integrity
+}
+
+func tokenUserName(token windows.Token) string {
+	var needed uint32
+	err := windows.GetTokenInformation(token, windows.TokenUser, nil, 0, &needed)
+	if err == nil || needed == 0 {
+		return ""
+	}
+	buf := make([]byte, needed)
+	if err := windows.GetTokenInformation(token, windows.TokenUser, &buf[0], needed, &needed); err != nil {
+		return ""
+	}
+	tu := (*windows.Tokenuser)(unsafe.Pointer(&buf[0]))
+	if tu.User.Sid == nil {
+		return ""
+	}
+	account, domain, _, err := tu.User.Sid.LookupAccount("")
+	if err != nil {
+		return ""
+	}
+	if domain == "" {
+		return account
+	}
+	return domain + "\\" + account
+}
+
+func tokenIntegrity(token windows.Token) string {
+	var needed uint32
+	err := windows.GetTokenInformation(token, windows.TokenIntegrityLevel, nil, 0, &needed)
+	if err == nil || needed == 0 {
+		return "undetected"
+	}
+	buf := make([]byte, needed)
+	if err := windows.GetTokenInformation(token, windows.TokenIntegrityLevel, &buf[0], needed, &needed); err != nil {
+		return "undetected"
+	}
+	til := (*windows.Tokenmandatorylabel)(unsafe.Pointer(&buf[0]))
+	if til.Label.Sid == nil {
+		return "undetected"
+	}
+	rid := integrityRID(til.Label.Sid)
+	switch {
+	case rid < securityMandatoryMediumRID:
+		return "low"
+	case rid < securityMandatoryMediumPlusRID:
+		return "medium"
+	case rid < securityMandatoryHighRID:
+		return "mediumplus"
+	default:
+		return "high"
+	}
+}
+
+func integrityRID(sid *windows.SID) uint32 {
+	count := int(sid.SubAuthorityCount())
+	if count <= 0 {
+		return 0
+	}
+	return sid.SubAuthority(uint32(count - 1))
 }
 
 func platformGetWindowInfo(handle string) (WindowInfo, error) {
@@ -245,7 +366,12 @@ func platformGetWindowInfo(handle string) (WindowInfo, error) {
 
 	// Process info.
 	info.ThreadID, info.ProcessID = getThreadProcess(hwnd)
-	info.ProcessName, info.ProcessPath = processImage(info.ProcessID)
+	proc := processImage(info.ProcessID)
+	info.ProcessName = proc.name
+	info.ProcessPath = proc.path
+	info.Bits = proc.bits
+	info.UserName = proc.userName
+	info.Integrity = proc.integrity
 
 	return info, nil
 }

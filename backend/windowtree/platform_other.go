@@ -82,5 +82,8 @@ func platformGetWindowInfo(handle string) (WindowInfo, error) {
 		ThreadID:     10,
 		ProcessName:  "demo",
 		ProcessPath:  "/usr/bin/demo",
+		Bits:         64,
+		UserName:     "DEMO\\user",
+		Integrity:    "medium",
 	}, nil
 }

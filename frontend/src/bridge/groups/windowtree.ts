@@ -1,4 +1,5 @@
 import { dispatch } from "../dispatch";
+import type { IntegrityLevel } from "./dpagent";
 
 const GROUP = "windowtree";
 
@@ -66,6 +67,11 @@ export interface WindowInfo {
     threadId: number;
     processName: string;
     processPath: string;
+    /** 32 or 64 when known; 0 when the process could not be queried. */
+    bits: number;
+    /** DOMAIN\User for the process token owner. */
+    userName: string;
+    integrity: IntegrityLevel;
 }
 
 export interface MonitorWindow {

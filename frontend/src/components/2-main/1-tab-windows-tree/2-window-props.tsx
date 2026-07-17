@@ -106,8 +106,24 @@ function Tab_Process({ info }: { info: WindowInfo; }) {
             <Row label="Thread ID"><Mono>{hex8(info.threadId)}</Mono>  (<Mono>{info.threadId}</Mono>)</Row>
             <Row label="Name">{info.processName || <span className="text-muted-foreground/60">N/A</span>}</Row>
             <Row label="Path">{info.processPath || <span className="text-muted-foreground/60">N/A</span>}</Row>
+            <Row label="Bits">{info.bits ? `${info.bits}-bit` : <span className="text-muted-foreground/60">N/A</span>}</Row>
+            <Row label="User">{info.userName || <span className="text-muted-foreground/60">N/A</span>}</Row>
+            <Row label="Integrity">{integrityLabel(info.integrity)}</Row>
         </Grid>
     );
+}
+
+function integrityLabel(level: WindowInfo["integrity"]): ReactNode {
+    switch (level) {
+        case "high": return "High";
+        case "medium": return "Medium";
+        case "mediumplus": return "Medium Plus";
+        case "low": return "Low";
+        case "na": return "N/A";
+        case "undetected":
+        default:
+            return <span className="text-muted-foreground/60">N/A</span>;
+    }
 }
 
 // Utility components and functions
