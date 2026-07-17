@@ -3,7 +3,7 @@ import { type WindowNode } from "@/bridge";
 import { cn } from "@/utils";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
 import { AppWindow, Square, Layers, Folder } from "lucide-react";
-import { showHandlesAtom } from "./a-windows-tree-atoms";
+import { showHandlesAtom } from "./s-windows-tree-state";
 
 interface WindowTreeNodeProps {
     node: WindowNode;

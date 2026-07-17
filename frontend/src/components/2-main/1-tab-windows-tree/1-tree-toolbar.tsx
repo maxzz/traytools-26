@@ -5,8 +5,8 @@ import { cn } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
-import { windowTreeStore, refreshWindowTree } from "@/store/4-windows-tree";
-import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./a-windows-tree-atoms";
+import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./s-windows-tree-state";
 
 export function WindowTreeToolbar() {
     const snap = useSnapshot(windowTreeStore);

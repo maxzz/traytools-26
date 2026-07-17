@@ -4,9 +4,9 @@ import { useSnapshot } from "valtio";
 import { type WindowNode } from "@/bridge";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
-import { windowTreeStore, loadWindowInfo } from "@/store/4-windows-tree";
-import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom } from "./a-windows-tree-atoms";
-import { WindowTreeNode } from "./1-1-tree-node";
+import { windowTreeStore, loadWindowInfo } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom } from "./s-windows-tree-state";
+import { WindowTreeNode } from "./2-1-tree-node";
 
 // Recursively filter the tree, keeping a node when it (or any descendant)
 // matches the text filter and passes the visibility filter. Returns plain
@@ -67,32 +67,30 @@ export function WindowTreeView() {
     const providerKey = `${snap.count}|${needle}|${hideInvisible}`;
 
     return (
-        <div className="h-full min-h-0 flex flex-col">
-            <div className="relative size-full min-h-0">
-                <div className="absolute inset-0">
-                    <ScrollArea className="size-full" fixedWidth parentContentWidth>
-                        {snap.error
-                            ? <div className="p-3 text-xs text-destructive">Failed to load window tree: {snap.error}</div>
-                            : !tree
-                                ? <div className="p-3 text-xs text-muted-foreground">{snap.loading ? "Loading..." : "No windows. Press Refresh."}</div>
-                                : (
-                                    <TreeProvider
-                                        key={providerKey}
-                                        defaultExpandedIds={expandIds}
-                                        selectedIds={selected ? [selected] : []}
-                                        onSelectionChange={onSelectionChange}
-                                        showLines
-                                        indent={16}
-                                        animateExpand={false}
-                                        className="w-full"
-                                    >
-                                        <TreeView className="p-1">
-                                            <WindowTreeNode node={tree} level={0} isLast parentPath={[]} />
-                                        </TreeView>
-                                    </TreeProvider>
-                                )}
-                    </ScrollArea>
-                </div>
+        <div className="relative size-full min-h-0">
+            <div className="absolute inset-0">
+                <ScrollArea className="size-full" fixedWidth parentContentWidth>
+                    {snap.error
+                        ? <div className="p-3 text-xs text-destructive">Failed to load window tree: {snap.error}</div>
+                        : !tree
+                            ? <div className="p-3 text-xs text-muted-foreground">{snap.loading ? "Loading..." : "No windows. Press Refresh."}</div>
+                            : (
+                                <TreeProvider
+                                    key={providerKey}
+                                    defaultExpandedIds={expandIds}
+                                    selectedIds={selected ? [selected] : []}
+                                    onSelectionChange={onSelectionChange}
+                                    showLines
+                                    indent={16}
+                                    animateExpand={false}
+                                    className="w-full"
+                                >
+                                    <TreeView className="p-1">
+                                        <WindowTreeNode node={tree} level={0} isLast parentPath={[]} />
+                                    </TreeView>
+                                </TreeProvider>
+                            )}
+                </ScrollArea>
             </div>
         </div>
     );

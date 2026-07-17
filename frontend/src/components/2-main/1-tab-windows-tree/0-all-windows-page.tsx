@@ -4,10 +4,10 @@ import { type Layout } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
-import { windowTreeStore, refreshWindowTree } from "@/store/4-windows-tree";
-import { WindowTreeView } from "./1-0-windows-tree";
-import { WindowProps } from "./2-window-props";
-import { WindowTreeToolbar } from "./1-2-tree-toolbar";
+import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+import { WindowTreeView } from "./2-0-windows-tree";
+import { WindowProps } from "./5-window-props";
+import { WindowTreeToolbar } from "./1-tree-toolbar";
 
 // Windows Tree tab. A port of the legacy "User32 spy" window: a resizable
 // [ window tree | properties ] split. The tree enumerates every top-level
