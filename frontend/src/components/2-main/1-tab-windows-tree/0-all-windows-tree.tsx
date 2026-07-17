@@ -7,6 +7,7 @@ import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { windowTreeStore, refreshWindowTree } from "@/store/4-windows-tree";
 import { WindowTreeView } from "./1-0-windows-tree";
 import { WindowProps } from "./2-window-props";
+import { WindowTreeToolbar } from "./1-2-tree-toolbar";
 
 // Windows Tree tab. A port of the legacy "User32 spy" window: a resizable
 // [ window tree | properties ] split. The tree enumerates every top-level
@@ -27,7 +28,9 @@ export function Page_WindowsTree() {
         }, [loaded]);
 
     return (
-        <div className="flex-1 min-h-0 min-w-0 bg-card border overflow-hidden">
+        <div className="flex-1 min-h-0 min-w-0 bg-card border overflow-hidden flex flex-col">
+            <WindowTreeToolbar />
+
             <ResizablePanelGroup orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => savePanelLayout(PANEL_GROUPS.windowTreeMain, layout)}>
                 <ResizablePanel id="tree" minSize={30}>
                     <WindowTreeView />

@@ -1,16 +1,11 @@
 import { useMemo } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
-import { RefreshCw } from "lucide-react";
 import { type WindowNode } from "@/bridge";
-import { cn } from "@/utils";
-import { Button } from "@/ui/shadcn/button";
-import { Input } from "@/ui/shadcn/input";
-import { Checkbox } from "@/ui/shadcn/checkbox";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
-import { windowTreeStore, refreshWindowTree, loadWindowInfo } from "@/store/4-windows-tree";
-import { selectedHandleAtom, treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./a-windows-tree-atoms";
+import { windowTreeStore, loadWindowInfo } from "@/store/4-windows-tree";
+import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom } from "./a-windows-tree-atoms";
 import { WindowTreeNode } from "./1-1-tree-node";
 
 // Recursively filter the tree, keeping a node when it (or any descendant)
@@ -43,9 +38,8 @@ function filterNode(node: WindowNode, needle: string, hideInvisible: boolean, co
 export function WindowTreeView() {
     const snap = useSnapshot(windowTreeStore);
     const [selected, setSelected] = useAtom(selectedHandleAtom);
-    const [filter, setFilter] = useAtom(treeFilterAtom);
-    const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
-    const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
+    const filter = useAtomValue(treeFilterAtom);
+    const hideInvisible = useAtomValue(hideInvisibleAtom);
 
     const needle = filter.trim().toLowerCase();
 
@@ -74,39 +68,6 @@ export function WindowTreeView() {
 
     return (
         <div className="h-full min-h-0 flex flex-col">
-            <div className="px-2 py-1.5 border-b flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-semibold">Windows Tree</span>
-                <span className="tabular-nums text-[11px] text-muted-foreground">{snap.count} windows</span>
-
-                <Button
-                    size="xs"
-                    variant="outline"
-                    className="ml-auto"
-                    onClick={() => void refreshWindowTree()}
-                    disabled={snap.loading}
-                >
-                    <RefreshCw className={cn("mr-1 size-3", snap.loading && "animate-spin")} />
-                    Refresh
-                </Button>
-            </div>
-
-            <div className="px-2 py-1.5 border-b flex items-center gap-3 flex-wrap">
-                <Input
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    placeholder="Filter by class or title..."
-                    className="flex-1 h-7 min-w-40 text-xs"
-                />
-                <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={showHandles} onCheckedChange={(v) => setShowHandles(v === true)} />
-                    Handles
-                </label>
-                <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={hideInvisible} onCheckedChange={(v) => setHideInvisible(v === true)} />
-                    Hide invisible
-                </label>
-            </div>
-
             <div className="relative size-full min-h-0">
                 <div className="absolute inset-0">
                     <ScrollArea className="size-full" fixedWidth parentContentWidth>
@@ -126,7 +87,7 @@ export function WindowTreeView() {
                                         className="w-full"
                                     >
                                         <TreeView className="p-1">
-                                            <WindowTreeNode node={tree} level={0} isLast parentPath={[]} showHandles={showHandles} />
+                                            <WindowTreeNode node={tree} level={0} isLast parentPath={[]} />
                                         </TreeView>
                                     </TreeProvider>
                                 )}

@@ -1,17 +1,19 @@
+import { useAtomValue } from "jotai";
 import { type WindowNode } from "@/bridge";
 import { cn } from "@/utils";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
 import { AppWindow, Square, Layers, Folder } from "lucide-react";
+import { showHandlesAtom } from "./a-windows-tree-atoms";
 
 interface WindowTreeNodeProps {
     node: WindowNode;
     level: number;
     isLast: boolean;
     parentPath: boolean[];
-    showHandles: boolean;
 }
 
-export function WindowTreeNode({ node, level, isLast, parentPath, showHandles }: WindowTreeNodeProps) {
+export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNodeProps) {
+    const showHandles = useAtomValue(showHandlesAtom);
     const isRoot = node.handle === "root";
     const children = node.children ?? [];
     const hasChildren = children.length > 0;
@@ -36,7 +38,6 @@ export function WindowTreeNode({ node, level, isLast, parentPath, showHandles }:
                                 level={level + 1}
                                 isLast={index === children.length - 1}
                                 parentPath={[...parentPath, isLast]}
-                                showHandles={showHandles}
                             />
                         )
                     )}
