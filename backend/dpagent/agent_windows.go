@@ -16,21 +16,13 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-// Known 64-bit DPAgent main-window class/title pairs. The 64-bit agent
-// launches the 32-bit companion automatically; we only track Agent64.
-var agentWindows = []struct{ class, title string }{
-	{"DigitalPersona Pro Agent64", "DigitalPersona Pro Agent64"},
-}
-
 var (
-	user32               = windows.NewLazySystemDLL("user32.dll")
-	procFindWindowW      = user32.NewProc("FindWindowW")
-	procPostMessageW     = user32.NewProc("PostMessageW")
-	shell32              = windows.NewLazySystemDLL("shell32.dll")
-	procShellExecuteW    = shell32.NewProc("ShellExecuteW")
+	user32            = windows.NewLazySystemDLL("user32.dll")
+	procFindWindowW   = user32.NewProc("FindWindowW")
+	procPostMessageW  = user32.NewProc("PostMessageW")
+	shell32           = windows.NewLazySystemDLL("shell32.dll")
+	procShellExecuteW = shell32.NewProc("ShellExecuteW")
 )
-
-const wmClose = 0x0010
 
 func platformGetStatus() (Status, error) {
 	hwnd, running := findAgentWindow()
@@ -79,8 +71,21 @@ func platformStop() error {
 	return dphook.ForceUnload()
 }
 
+// Implementaion
+
 func findAgentWindow() (windows.HWND, bool) {
 	return findWindowPair(agentWindows)
+}
+
+// Known DPAgent main-window class/title pairs from the legacy traytools
+// dpagent::internals::find_dpagnt_window / find_dpagnt64_window.
+var agentWindows = []struct{ class, title string }{
+	{"DigitalPersona Pro5.x Agent Window Class", "DigitalPersona Pro5.x Agent Window"}, // This is 64-bit agent C:\Program Files\DigitalPersona\Bin\DPAgent.exe
+	{"DigitalPersona Pro Agent", "DigitalPersona Pro Agent"},                           // This is 64-bit agent C:\Program Files\DigitalPersona\Bin\DPAgent.exe
+	{"DigitalPersona Pro Agent64", "DigitalPersona Pro Agent64"},                       // This is 32-bit agent C:\Program Files (x86)\DigitalPersona\Bin\DpAgent.exe
+	// {"DigitalPersona Personal Agent", "DigitalPersona Personal Agent"},
+	// {"U.are.U Personal Agent", "U.are.U Personal Agent"},
+	// {"U.are.U Pro Agent", "U.are.U Pro Agent"},
 }
 
 func findWindowPair(pairs []struct{ class, title string }) (windows.HWND, bool) {
@@ -116,6 +121,8 @@ func postClose(hwnd windows.HWND) error {
 	}
 	return nil
 }
+
+const wmClose = 0x0010
 
 func windowPID(hwnd windows.HWND) uint32 {
 	var pid uint32
