@@ -36,56 +36,63 @@ function filterNode(node: WindowNode, needle: string, hideInvisible: boolean, co
 }
 
 export function WindowTreeView() {
-    const snap = useSnapshot(windowTreeStore);
+    const { root, count, loading, error } = useSnapshot(windowTreeStore);
     const [selected, setSelected] = useAtom(selectedHandleAtom);
-    const filter = useAtomValue(treeFilterAtom);
+    const filterText = useAtomValue(treeFilterAtom);
     const hideInvisible = useAtomValue(hideInvisibleAtom);
 
-    const needle = filter.trim().toLowerCase();
+    const needle = filterText.trim().toLowerCase();
 
     const { tree, expandIds } = useMemo(
         () => {
-            if (!snap.root) {
+            if (!root) {
                 return { tree: null as WindowNode | null, expandIds: [] as string[] };
             }
             const ids: string[] = [];
-            const filtered = filterNode(snap.root as WindowNode, needle, hideInvisible, ids);
+            const filtered = filterNode(root as WindowNode, needle, hideInvisible, ids);
             const isFiltering = needle !== "" || hideInvisible;
             return { tree: filtered, expandIds: isFiltering ? ids : ["root"] };
         },
-        [snap.root, needle, hideInvisible],
-    );
+        [root, needle, hideInvisible]);
 
     const onSelectionChange = (ids: string[]) => {
         const handle = ids.length > 0 ? ids[0] : null;
         setSelected(handle);
-        void loadWindowInfo(handle);
+        loadWindowInfo(handle);
     };
 
     // Re-key the provider so default expansion re-applies when the data or the
     // filter changes (kibo tree expansion is otherwise uncontrolled).
-    const providerKey = `${snap.count}|${needle}|${hideInvisible}`;
+    const providerKey = `${count}|${needle}|${hideInvisible}`;
 
     return (
         <div className="relative size-full min-h-0">
             <div className="absolute inset-0 px-0.5">
                 <ScrollArea className="size-full" fixedWidth parentContentWidth>
-                    {snap.error
-                        ? <div className="p-3 text-xs text-destructive">Failed to load window tree: {snap.error}</div>
+                    {error
+                        ? (
+                            <div className="p-3 text-xs text-destructive">
+                                Failed to load window tree: {error}
+                            </div>
+                        )
                         : !tree
-                            ? <div className="p-3 text-xs text-muted-foreground">{snap.loading ? "Loading..." : "No windows. Press Refresh."}</div>
+                            ? (
+                                <div className="p-3 text-xs text-muted-foreground">
+                                    {loading ? "Loading..." : "No windows. Press Refresh."}
+                                </div>
+                            )
                             : (
                                 <TreeProvider
-                                    key={providerKey}
+                                    className="w-full"
+                                    indent={16}
+                                    showLines
+                                    animateExpand={false}
                                     defaultExpandedIds={expandIds}
                                     selectedIds={selected ? [selected] : []}
                                     onSelectionChange={onSelectionChange}
-                                    showLines
-                                    indent={16}
-                                    animateExpand={false}
-                                    className="w-full"
+                                    key={providerKey}
                                 >
-                                    <TreeView className="p-1">
+                                    <TreeView className="p-0">
                                         <WindowTreeNode node={tree} level={0} isLast parentPath={[]} />
                                     </TreeView>
                                 </TreeProvider>

@@ -1,18 +1,17 @@
 import { useAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { RefreshCw } from "lucide-react";
-import { classNames, cn } from "@/utils";
+import { RefreshCw, Settings } from "lucide-react";
+import { cn } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
 import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./s-windows-tree-state";
 
 export function WindowTreeToolbar() {
     const { count, loading } = useSnapshot(windowTreeStore);
     const [filter, setFilter] = useAtom(treeFilterAtom);
-    const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
-    const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
 
     return (
         <div className="bg-app-background/10">
@@ -34,17 +33,34 @@ export function WindowTreeToolbar() {
                         Refresh
                     </Button>
 
-                    <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
-                        <Checkbox checked={showHandles} onCheckedChange={(v) => setShowHandles(v === true)} />
-                        Handles
-                    </label>
-
-                    <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
-                        <Checkbox checked={hideInvisible} onCheckedChange={(v) => setHideInvisible(v === true)} />
-                        Hide invisible
-                    </label>
+                    <TreeOptionsPopover />
                 </div>
             </div>
         </div>
+    );
+}
+
+function TreeOptionsPopover() {
+    const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
+    const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
+
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button size="icon-xs" variant="outline" title="Tree options" type="button">
+                    <Settings className="size-3" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-auto">
+                <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
+                    <Checkbox checked={showHandles} onCheckedChange={(v) => setShowHandles(v === true)} />
+                    Handles
+                </label>
+                <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
+                    <Checkbox checked={hideInvisible} onCheckedChange={(v) => setHideInvisible(v === true)} />
+                    Hide invisible
+                </label>
+            </PopoverContent>
+        </Popover>
     );
 }
