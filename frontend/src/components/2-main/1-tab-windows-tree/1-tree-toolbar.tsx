@@ -1,21 +1,22 @@
+import { type ComponentProps } from "react";
 import { useAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { RefreshCw } from "lucide-react";
-import { cn } from "@/utils";
+import { classNames, cn } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
 import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./s-windows-tree-state";
 
-export function WindowTreeToolbar() {
+export function WindowTreeToolbar({ className, ...rest }: ComponentProps<"div">) {
     const snap = useSnapshot(windowTreeStore);
     const [filter, setFilter] = useAtom(treeFilterAtom);
     const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
     const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
 
     return (
-        <>
+        <div className={classNames("bg-background border rounded", className)} {...rest}>
             <div className="px-2 py-1.5 border-b flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-semibold">Windows Tree</span>
                 <span className="tabular-nums text-[11px] text-muted-foreground">{snap.count} windows</span>
@@ -48,6 +49,6 @@ export function WindowTreeToolbar() {
                     Hide invisible
                 </label>
             </div>
-        </>
+        </div>
     );
 }

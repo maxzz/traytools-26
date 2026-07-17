@@ -5,7 +5,7 @@ export function PageWelcome() {
     return (
         <div className="flex-1 p-6 min-h-0 flex items-center justify-center">
             <div className="max-w-lg w-full text-center flex flex-col items-center gap-1">
-                <img src={appIcon} alt="" className="size-24 drop-shadow-sm" />
+                <img src={appIcon} alt="" className="size-24 drop-shadow-lg" />
 
                 <div className="flex flex-col gap-1">
                     Welcome to traytools!

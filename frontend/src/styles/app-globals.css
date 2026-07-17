@@ -1,0 +1,11 @@
+@theme inline {
+    --color-app-background: var(--app-background);
+}
+
+:root {
+    --app-background: oklch(39.1% 0.09 240.876);
+}
+
+.dark {
+    --app-background: oklch(39.1% 0.09 240.876);
+}

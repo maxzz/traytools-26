@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
-import { type WindowNode } from "@/bridge";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
 import { windowTreeStore, loadWindowInfo } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
 import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom } from "./s-windows-tree-state";
+import { type WindowNode } from "@/bridge";
 import { WindowTreeNode } from "./2-1-tree-node";
 
 // Recursively filter the tree, keeping a node when it (or any descendant)

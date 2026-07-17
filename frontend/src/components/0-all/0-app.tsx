@@ -16,10 +16,10 @@ export function App() {
         <Toaster />
         <AllDialogs />
 
-        <main className="h-screen text-xs font-condensed bg-background grid grid-rows-[auto_1fr_auto]">
+        <main className="h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto]">
             <Header />
 
-            <div className="h-full min-h-0 bg-sky-900/10 flex flex-col">
+            <div className="h-full min-h-0 bg-app-background/10 flex flex-col">
                 <MainBody />
             </div>
 
