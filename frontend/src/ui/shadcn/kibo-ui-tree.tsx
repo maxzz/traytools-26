@@ -363,14 +363,7 @@ function TreeNodeTriggerWithInternalSelection(props: TreeNodeTriggerProps) {
     return <TreeNodeTriggerContent isSelected={isSelected} {...props} />;
 }
 
-function TreeNodeTriggerContent({
-    children,
-    className,
-    hasChildren = false,
-    isSelected,
-    onClick,
-    ...props
-}: TreeNodeTriggerProps & { isSelected: boolean; }) {
+function TreeNodeTriggerContent({ children, className, hasChildren = false, isSelected, onClick, ...props }: TreeNodeTriggerProps & { isSelected: boolean; }) {
     const { toggleExpanded, handleSelection, indent } = useTree();
     const { nodeId, level } = useTreeNode();
 
@@ -412,27 +405,23 @@ export function TreeLines() {
         return null;
     }
 
-    const guideX = (depth: number) => depth * (indent ?? 0) + 12;
+    const guideX = (depth: number) => depth * (indent ?? 0) + 16;
     const x = guideX(level);
 
     return (
         <div className="absolute inset-y-0 left-0 pointer-events-none">
-            {/* Ancestor continuation at columns 0..level-1. */}
+            {/* Ancestor continuation at columns 0..level-1. Rows abut, so bottom:0 meets the next row's top:0 with no gap/overlap. */}
             {parentPath.map((ancestorIsLast, index) =>
                 !ancestorIsLast ? (
-                    <div
-                        key={index}
-                        className="absolute top-0 border-foreground/40 border-l"
-                        style={{ left: guideX(index), bottom: -1 }}
-                    />
+                    <div className="absolute inset-y-0 border-foreground/40 border-l" style={{ left: guideX(index) }} key={index} />
                 ) : null
             )}
 
-            {/* Current level: vertical from top down to this row's midpoint. */}
-            <div className="absolute top-0 border-foreground/40 border-l" style={{ left: x, height: "calc(50% + 1px)" }} />
-
-            {/* Continue below the midpoint only when a sibling follows. */}
-            {!isLast && <div className="absolute border-foreground/40 border-l" style={{ left: x, top: "50%", bottom: -1 }} />}
+            {/* Current level: full-height when a sibling follows; otherwise stop at the midpoint. */}
+            <div
+                className="absolute top-0 border-foreground/40 border-l"
+                style={isLast ? { left: x, height: "50%" } : { left: x, bottom: 0 }}
+            />
 
             {/* Horizontal tick reaching toward the row content. */}
             <div
@@ -504,15 +493,12 @@ export function TreeExpander({ hasChildren = false, className, onClick, ...props
     return (
         <motion.div
             animate={{ rotate: isExpanded ? 90 : 0 }}
-            className={cn(
-                "mr-1 h-4 w-4 flex items-center justify-center cursor-pointer",
-                className
-            )}
+            className={cn("mr-1 h-4 w-4 flex items-center justify-center cursor-pointer", className)}
             onClick={(e) => {
                 e.stopPropagation();
                 toggleExpanded(nodeId);
                 onClick?.(e);
-            } }
+            }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
             {...props}
         >

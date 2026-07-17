@@ -78,10 +78,10 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
     const displayValue = recording ? "Press shortcut…" : (stringFromHotkeyChord(value) || placeholder || "");
 
     return (
-        <div className={classNames("relative")} {...rest}>
+        <div className="relative">
             <Input
                 className={classNames(
-                    "h-7 font-mono cursor-pointer",
+                    "h-7 font-condensed cursor-pointer",
                     showGlobalBtn ? "pr-14" : "pr-8",
                     recording && "border-sky-500 ring-1 ring-sky-500/40",
                     !value && !recording && "text-muted-foreground",
@@ -95,9 +95,10 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
                 onBlur={() => { requestAnimationFrame(() => stopRecording()); }} // Defer so button clicks can run first.
                 placeholder={placeholder}
                 aria-label="Hotkey shortcut"
+                {...rest}
             />
 
-            <div className="absolute inset-y-0 right-0.5 flex items-center">
+            <div className="absolute inset-y-0 right-0 flex items-center">
                 <Button
                     size="icon-xs"
                     variant="ghost"
@@ -111,11 +112,11 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
                     <X />
                 </Button>
 
-                {showGlobalBtn && (
+                {showGlobalBtn && (<>
                     <Button
-                        className="active:translate-y-0!"
+                        className={classNames("w-8 h-7 border border-border rounded-l-none active:translate-y-0!", isGlobal && "bg-muted dark:bg-muted-foreground/20")}
                         size="icon-xs"
-                        variant={isGlobal ? "secondary" : "ghost"}
+                        variant="ghost"
                         disabled={!value}
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => onIsGlobalChange(!isGlobal)}
@@ -124,9 +125,10 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
                         aria-label="Global system-wide hotkey"
                         title="Global system-wide hotkey"
                     >
-                        <IconEarth className={classNames("size-3.5", !value && "opacity-50", isGlobal ? "stroke-foreground/30 dark:stroke-background/40" : "stroke-foreground/50 dark:stroke-foreground/50")} earthFills={isGlobal ? earthFills : undefined} />
+                        {/* <div className="w-px h-full border-l border-border"></div> */}
+                        <IconEarth className={classNames("mx-1 size-3.5", !value && "opacity-50", isGlobal ? "stroke-foreground/30 dark:stroke-background/40" : "stroke-foreground/50 dark:stroke-foreground/50")} earthFills={isGlobal ? earthFills : undefined} />
                     </Button>
-                )}
+                </>)}
             </div>
         </div>
     );

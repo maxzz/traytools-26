@@ -13,8 +13,6 @@ import { windowTreeStore, refreshWindowTree, loadWindowInfo } from "@/store/4-wi
 import { selectedHandleAtom, treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./a-windows-tree-atoms";
 import { WindowTreeNode } from "./1-1-tree-node";
 
-const WS_VISIBLE = 0x10000000;
-
 // Recursively filter the tree, keeping a node when it (or any descendant)
 // matches the text filter and passes the visibility filter. Returns plain
 // objects so the result is safe to render outside the Valtio snapshot.
@@ -29,9 +27,7 @@ function filterNode(node: WindowNode, needle: string, hideInvisible: boolean, co
 
     const isRoot = node.handle === "root";
     const selfInvisible = !isRoot && hideInvisible && (node.style & WS_VISIBLE) === 0;
-    const selfMatches = needle === ""
-        ? true
-        : `${node.className} ${node.title} ${node.handle}`.toLowerCase().includes(needle);
+    const selfMatches = needle === "" ? true : `${node.className} ${node.title} ${node.handle}`.toLowerCase().includes(needle);
 
     const keep = isRoot || ((selfMatches && !selfInvisible) || kids.length > 0);
     if (!keep) {
@@ -140,3 +136,5 @@ export function WindowTreeView() {
         </div>
     );
 }
+
+const WS_VISIBLE = 0x10000000;
