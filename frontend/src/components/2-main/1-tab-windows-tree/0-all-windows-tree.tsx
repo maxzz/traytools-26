@@ -11,7 +11,7 @@ import { WindowProps } from "./2-window-props";
 // Windows Tree tab. A port of the legacy "User32 spy" window: a resizable
 // [ window tree | properties ] split. The tree enumerates every top-level
 // window and its children; selecting a node fetches and shows that window's
-// details (General / Styles / Class / Process).
+// details (General / Window Extra).
 
 export function Page_WindowsTree() {
     const { panelSizes } = useSnapshot(appSettings);

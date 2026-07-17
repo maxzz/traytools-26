@@ -5,7 +5,7 @@ import { atomWithStorage } from "jotai/utils";
 // state-management split) while the live tree data and selected-window details
 // live in the Valtio store (store/4-windows-tree.ts).
 
-export type PropsTab = "general" | "styles" | "class" | "process";
+export type PropsTab = "general" | "windowExtra";
 
 // Currently selected window handle (string HWND), or null.
 export const selectedHandleAtom = atom<string | null>(null);

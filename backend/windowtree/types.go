@@ -79,8 +79,9 @@ type RelatedWindow struct {
 }
 
 // WindowInfo is the detailed, per-window information shown in the properties
-// panel (General / Styles / Class / Process tabs). It is the Go analogue of the
-// WinSpy++ SetGeneralInfo/SetStyleInfo/SetClassInfo/SetProcessInfo output.
+// panel (General: Window + Process; Window Extra: Class + Style). It is the Go
+// analogue of the WinSpy++ SetGeneralInfo/SetStyleInfo/SetClassInfo/SetProcessInfo
+// output.
 type WindowInfo struct {
 	Valid bool `json:"valid"`
 

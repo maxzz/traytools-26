@@ -1,16 +1,23 @@
 import { type PropsWithChildren, type ReactNode } from "react";
 import { useAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { type RectInfo, type WindowInfo } from "@/bridge";
+import { classNames } from "@/utils/classnames";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
 import { windowTreeStore } from "@/store/4-windows-tree";
 import { propsTabAtom, type PropsTab } from "./a-windows-tree-atoms";
+import { type RectInfo, type WindowInfo } from "@/bridge";
 
 export function WindowProps() {
     const snap = useSnapshot(windowTreeStore);
     const [tab, setTab] = useAtom(propsTabAtom);
     const info = snap.info as WindowInfo | null;
+    // Map legacy Class/Styles tab ids (and the new id) onto Window Extra.
+    const storedTab = tab as string;
+    const activeTab: PropsTab =
+        storedTab === "windowExtra" || storedTab === "class" || storedTab === "styles"
+            ? "windowExtra"
+            : "general";
 
     return (
         <div className="h-full min-h-0 flex flex-col">
@@ -23,19 +30,15 @@ export function WindowProps() {
                 : !info || !info.valid
                     ? <div className="p-3 text-xs text-muted-foreground">{snap.infoLoading ? "Loading..." : "Select a window in the tree to view its properties."}</div>
                     : (
-                        <Tabs value={tab} onValueChange={(v) => setTab(v as PropsTab)} className="flex-1 p-2 min-h-0 flex flex-col gap-2">
+                        <Tabs value={activeTab} onValueChange={(v) => setTab(v as PropsTab)} className="flex-1 p-2 min-h-0 flex flex-col gap-2">
                             <TabsList>
                                 <TabsTrigger value="general">General</TabsTrigger>
-                                <TabsTrigger value="class">Class</TabsTrigger>
-                                <TabsTrigger value="process">Process</TabsTrigger>
-                                <TabsTrigger value="styles">Styles</TabsTrigger>
+                                <TabsTrigger value="windowExtra">Window Extra</TabsTrigger>
                             </TabsList>
 
                             <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
                                 <TabsContent value="general"><Tab_General info={info} /></TabsContent>
-                                <TabsContent value="class"><Tab_Class info={info} /></TabsContent>
-                                <TabsContent value="process"><Tab_Process info={info} /></TabsContent>
-                                <TabsContent value="styles"><Tab_Styles info={info} /></TabsContent>
+                                <TabsContent value="windowExtra"><Tab_WindowExtra info={info} /></TabsContent>
                             </ScrollArea>
                         </Tabs>
                     )
@@ -46,36 +49,62 @@ export function WindowProps() {
 
 function Tab_General({ info }: { info: WindowInfo; }) {
     return (
-        <Grid>
-            <Row label="Handle"><Mono>{info.handle}</Mono></Row>
-            <Row label="Caption">{info.caption || <span className="text-muted-foreground/60">(empty)</span>}</Row>
-            <Row label="Class">{info.className}{info.unicode ? "  (unicode)" : ""}</Row>
-            <Row label="Style"> <Mono>{hex8(info.style)}</Mono> {"  "}({info.visible ? "visible" : "hidden"}, {info.enabled ? "enabled" : "disabled"})</Row>
-            <Row label="ExStyle"><Mono>{hex8(info.exStyle)}</Mono></Row>
-            <Row label="Rectangle"><Mono>{rectText(info.rect)}</Mono></Row>
-            <Row label="Client Rect"><Mono>{rectText(info.clientRect)}</Mono></Row>
-            <Row label="Control ID"><Mono>{info.controlId}</Mono></Row>
-            <Row label="Instance"><Mono>{info.instance}</Mono></Row>
-            <Row label="User Data"><Mono>{info.userData}</Mono></Row>
-            <Row label="Parent"><Mono>{info.parent.handle}</Mono>{info.parent.className ? ` — ${info.parent.className}` : ""}</Row>
-            <Row label="Owner"><Mono>{info.owner.handle}</Mono>{info.owner.className ? ` — ${info.owner.className}` : ""}</Row>
-        </Grid>
+        <div className="space-y-3">
+            <Section title="Window">
+                <Row label="Caption">{info.caption || <span className="text-muted-foreground/60">(empty)</span>}</Row>
+                <Row label="Class">{info.className}{info.unicode ? "  (unicode)" : ""}</Row>
+                <Row label="Handle"><Mono>{info.handle}</Mono></Row>
+                <Row label="Style"> <Mono>{hex8(info.style)}</Mono> {"  "}({info.visible ? "visible" : "hidden"}, {info.enabled ? "enabled" : "disabled"})</Row>
+                <Row label="ExStyle"><Mono>{hex8(info.exStyle)}</Mono></Row>
+                <Row label="Rectangle"><Mono>{rectText(info.rect)}</Mono></Row>
+                <Row label="Client Rect"><Mono>{rectText(info.clientRect)}</Mono></Row>
+                <Row label="Control ID"><Mono>{info.controlId}</Mono></Row>
+                <Row label="Instance"><Mono>{info.instance}</Mono></Row>
+                <Row label="User Data"><Mono>{info.userData}</Mono></Row>
+                <Row label="Parent"><Mono>{info.parent.handle}</Mono>{info.parent.className ? ` — ${info.parent.className}` : ""}</Row>
+                <Row label="Owner"><Mono>{info.owner.handle}</Mono>{info.owner.className ? ` — ${info.owner.className}` : ""}</Row>
+            </Section>
+
+            <Section title="Process">
+                <Row label="Process ID"><Mono>{hex8(info.processId)}</Mono>  (<Mono>{info.processId}</Mono>)</Row>
+                <Row label="Thread ID"><Mono>{hex8(info.threadId)}</Mono>  (<Mono>{info.threadId}</Mono>)</Row>
+                <Row label="Name">{info.processName || <span className="text-muted-foreground/60">N/A</span>}</Row>
+                <Row label="Path">{info.processPath || <span className="text-muted-foreground/60">N/A</span>}</Row>
+                <Row label="Bits">{info.bits ? `${info.bits}-bit` : <span className="text-muted-foreground/60">N/A</span>}</Row>
+                <Row label="User">{info.userName || <span className="text-muted-foreground/60">N/A</span>}</Row>
+                <Row label="Integrity">{integrityLabel(info.integrity)}</Row>
+            </Section>
+        </div>
     );
 }
 
-function Tab_Styles({ info }: { info: WindowInfo; }) {
+function Tab_WindowExtra({ info }: { info: WindowInfo; }) {
     return (
-        <div>
-            <StyleList title="Window styles" hexValue={info.style} names={info.styleNames ?? []} />
-            <StyleList title="Extended styles" hexValue={info.exStyle} names={info.exStyleNames ?? []} />
+        <div className="space-y-3">
+            <Section title="Class">
+                <Row label="Class Name">{info.className}</Row>
+                <Row label="Atom"><Mono>{info.classAtom}</Mono></Row>
+                <Row label="Class Style"><Mono>{hex8(info.classStyle)}</Mono></Row>
+                <Row label="Class Bytes"><Mono>{info.classExtraBytes}</Mono></Row>
+                <Row label="Window Bytes"><Mono>{info.windowExtraBytes}</Mono></Row>
+            </Section>
+
+            <Section title="Style" grid={false}>
+                <StyleList title="Window styles" hexValue={info.style} names={info.styleNames ?? []} />
+                <StyleList title="Extended styles" hexValue={info.exStyle} names={info.exStyleNames ?? []} />
+            </Section>
         </div>
     );
 }
 
 function StyleList({ title, hexValue, names }: { title: string; hexValue: number; names: string[]; }) {
     return (
-        <div className="mb-3">
-            <div className="mb-1 text-xs font-semibold">{title}: <Mono className="font-normal">{hex8(hexValue)}</Mono></div>
+        <div className="mb-2 last:mb-0">
+            <div className="mb-1 text-xs">
+                <span className="text-muted-foreground">{title}</span>
+                {": "}
+                <Mono>{hex8(hexValue)}</Mono>
+            </div>
             {names.length === 0
                 ? <div className="pl-2 text-xs text-muted-foreground">(none)</div>
                 : (
@@ -84,32 +113,6 @@ function StyleList({ title, hexValue, names }: { title: string; hexValue: number
                     </ul>
                 )}
         </div>
-    );
-}
-
-function Tab_Class({ info }: { info: WindowInfo; }) {
-    return (
-        <Grid>
-            <Row label="Class Name">{info.className}</Row>
-            <Row label="Atom"><Mono>{info.classAtom}</Mono></Row>
-            <Row label="Class Style"><Mono>{hex8(info.classStyle)}</Mono></Row>
-            <Row label="Class Bytes"><Mono>{info.classExtraBytes}</Mono></Row>
-            <Row label="Window Bytes"><Mono>{info.windowExtraBytes}</Mono></Row>
-        </Grid>
-    );
-}
-
-function Tab_Process({ info }: { info: WindowInfo; }) {
-    return (
-        <Grid>
-            <Row label="Process ID"><Mono>{hex8(info.processId)}</Mono>  (<Mono>{info.processId}</Mono>)</Row>
-            <Row label="Thread ID"><Mono>{hex8(info.threadId)}</Mono>  (<Mono>{info.threadId}</Mono>)</Row>
-            <Row label="Name">{info.processName || <span className="text-muted-foreground/60">N/A</span>}</Row>
-            <Row label="Path">{info.processPath || <span className="text-muted-foreground/60">N/A</span>}</Row>
-            <Row label="Bits">{info.bits ? `${info.bits}-bit` : <span className="text-muted-foreground/60">N/A</span>}</Row>
-            <Row label="User">{info.userName || <span className="text-muted-foreground/60">N/A</span>}</Row>
-            <Row label="Integrity">{integrityLabel(info.integrity)}</Row>
-        </Grid>
     );
 }
 
@@ -128,6 +131,15 @@ function integrityLabel(level: WindowInfo["integrity"]): ReactNode {
 
 // Utility components and functions
 
+function Section({ title, children, grid = true }: PropsWithChildren<{ title: string; grid?: boolean; }>) {
+    return (
+        <div>
+            <div className="mb-1 text-xs font-semibold">{title}</div>
+            {grid ? <Grid>{children}</Grid> : children}
+        </div>
+    );
+}
+
 function Grid({ children }: PropsWithChildren) {
     return (
         <div className="text-xs font-condensed grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-start">
@@ -144,7 +156,7 @@ function Row({ label, children }: { label: string; children: ReactNode; }) {
 }
 
 function Mono({ children, className }: PropsWithChildren<{ className?: string; }>) {
-    return <span className={className ? `font-mono ${className}` : "font-mono"}>{children}</span>;
+    return <span className={classNames("text-[0.65rem] font-mono text-foreground/80", className)}>{children}</span>;
 }
 
 function hex8(n: number): string {
