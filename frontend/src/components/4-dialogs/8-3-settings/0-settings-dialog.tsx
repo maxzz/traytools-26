@@ -85,7 +85,7 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
             </Label>
 
             <Select value={theme} onValueChange={(value) => { appSettings.theme = value as ThemeMode; }}>
-                <SelectTrigger className="h-7!" id="settings-theme">
+                <SelectTrigger className="h-6!" id="settings-theme">
                     <SelectValue placeholder="Select theme" />
                 </SelectTrigger>
 
