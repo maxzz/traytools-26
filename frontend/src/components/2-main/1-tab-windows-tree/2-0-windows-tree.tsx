@@ -68,7 +68,7 @@ export function WindowTreeView() {
 
     return (
         <div className="relative size-full min-h-0">
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 px-0.5">
                 <ScrollArea className="size-full" fixedWidth parentContentWidth>
                     {snap.error
                         ? <div className="p-3 text-xs text-destructive">Failed to load window tree: {snap.error}</div>
