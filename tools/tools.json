@@ -8,6 +8,8 @@
     //   - "menuItems": [...]  makes a (nested) sub-menu.
     //   - "cmdWhat":          "rel" (default) | "abs" | "reg".
     //   - "cmdPlat":          "curr" (default) | "32" | "64" | "both".
+    //   - "hotKey":           optional shortcut, e.g. "Ctrl+Alt+T" (Ctrl/Alt/Shift + key).
+    //   - "hotKeyGlobal":     optional; true = system-wide. Default (omit) = app-local.
     //   - Relative paths are resolved against the folder holding this file.
     "menu": {
         "menuName": "Tools",
@@ -71,8 +73,7 @@
                     {
                         "menuName": "Calculator",
                         "cmdLine": "calc.exe",
-                        "cmdWhat": "abs",
-                        "hotKey": "F4"
+                        "cmdWhat": "abs"
                     },
                     {
                         "menuName": "-"

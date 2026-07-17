@@ -4,6 +4,7 @@ import { type ToolsConfig, type ToolsEditorStore, type ToolsSource, ensureUids, 
 import { buildToolsFileText, syncDirty } from "./6-json-serialize-dirty";
 import { extractRootComments, parseToolsJsonc } from "./7-json-parse";
 import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
+import { syncToolsHotkeys } from "./2-tools-hotkeys";
 
 // ---------------------------------------------------------------------------
 // Persistence
@@ -159,6 +160,18 @@ export async function saveToolsConfig(): Promise<void> {
         writeCache(toolsEditorStore.config, toolsEditorStore.rootComments);
     } catch (e) {
         toolsEditorStore.error = `Failed to save tools.json: ${String(e)}`;
+    }
+}
+
+/** Persist tools.json and (re)register global/local tool hotkeys. */
+export async function applyToolsConfig(): Promise<void> {
+    await saveToolsConfig();
+    if (toolsEditorStore.error) {
+        return;
+    }
+    await syncToolsHotkeys();
+    if (!toolsEditorStore.error) {
+        toolsEditorStore.status = `Applied — saved to ${toolsEditorStore.path}`;
     }
 }
 

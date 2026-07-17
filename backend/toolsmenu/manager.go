@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 
 	"traytools-26-go/backend/bus"
+	"traytools-26-go/backend/hotkeys"
 )
 
 // Group is the bus group name shared with the frontend bridge.
@@ -58,6 +60,9 @@ func (m *Manager) Register(b *bus.Bus) {
 			return nil, err
 		}
 		return SaveResponse{Path: path}, nil
+	})
+	b.Register(Group, "syncHotkeys", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return m.SyncHotkeys(), nil
 	})
 }
 
@@ -154,10 +159,88 @@ func buildView(n MenuNode, baseDir string, commands map[int]resolvedCommand, nex
 	commands[id] = cmd
 
 	return &MenuView{
-		Name:   name,
-		Kind:   KindItem,
-		ID:     id,
-		What:   cmd.what,
-		HotKey: n.HotKey,
+		Name:         name,
+		Kind:         KindItem,
+		ID:           id,
+		What:         cmd.what,
+		HotKey:       n.HotKey,
+		HotKeyGlobal: n.HotKeyGlobal,
 	}
+}
+
+// SyncHotkeys reloads tools.json, registers global tool hotkeys, and returns
+// local bindings plus any registration conflicts. Safe to call at startup and
+// after the editor Apply action.
+func (m *Manager) SyncHotkeys() HotkeySyncResponse {
+	resp := m.getMenu()
+	bindings := collectHotkeyBindings(resp.Root)
+
+	local := make([]HotkeyBinding, 0)
+	global := make([]HotkeyBinding, 0)
+	for _, b := range bindings {
+		if b.Global {
+			global = append(global, b)
+		} else {
+			local = append(local, b)
+		}
+	}
+
+	// Stable order so duplicate-chord conflict winners are deterministic.
+	sort.Slice(global, func(i, j int) bool { return global[i].ID < global[j].ID })
+
+	want := map[int]*hotkeys.Chord{}
+	meta := map[int]HotkeyBinding{}
+	var conflicts []HotkeyConflict
+
+	for _, b := range global {
+		chord, err := hotkeys.Parse(b.HotKey)
+		if err != nil {
+			conflicts = append(conflicts, HotkeyConflict{
+				ID: b.ID, Name: b.Name, HotKey: b.HotKey, Error: err.Error(),
+			})
+			continue
+		}
+		if chord == nil {
+			continue
+		}
+		hkID := hotkeys.ToolHotkeyID(b.ID)
+		want[hkID] = chord
+		meta[hkID] = b
+	}
+
+	for id, msg := range hotkeys.ReplaceTools(want) {
+		if id < 0 {
+			conflicts = append(conflicts, HotkeyConflict{Error: msg})
+			continue
+		}
+		b := meta[id]
+		conflicts = append(conflicts, HotkeyConflict{
+			ID: b.ID, Name: b.Name, HotKey: b.HotKey, Error: msg,
+		})
+	}
+
+	return HotkeySyncResponse{Local: local, Global: global, Conflicts: conflicts}
+}
+
+func collectHotkeyBindings(root *MenuView) []HotkeyBinding {
+	if root == nil {
+		return nil
+	}
+	var out []HotkeyBinding
+	var walk func(MenuView)
+	walk = func(n MenuView) {
+		if n.Kind == KindItem && strings.TrimSpace(n.HotKey) != "" && n.ID != 0 {
+			out = append(out, HotkeyBinding{
+				ID:     n.ID,
+				Name:   n.Name,
+				HotKey: n.HotKey,
+				Global: n.HotKeyGlobal,
+			})
+		}
+		for _, child := range n.Children {
+			walk(child)
+		}
+	}
+	walk(*root)
+	return out
 }

@@ -42,6 +42,13 @@ function jsonReplacer(this: ToolMenuItem, key: string, value: unknown): unknown 
     if (key === "runElevated") {
         return value === defaultRunElevated(this) ? undefined : value;
     }
+    if (key === "hotKeyGlobal") {
+        // Default is application-local; only persist an explicit global flag.
+        return value === true ? true : undefined;
+    }
+    if (key === "hotKey") {
+        return typeof value === "string" && value.trim() === "" ? undefined : value;
+    }
     if (key === "comment") {
         return typeof value === "string" && value.trim() === "" ? undefined : value;
     }

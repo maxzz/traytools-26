@@ -22,4 +22,5 @@ export const TRACE_EVENTS = {
 /** Event names emitted by backend/hotkey_bindings.go for system-wide shortcuts. */
 export const HOTKEY_EVENTS = {
     unloadHook: "hotkey:unloadHook",
+    tool: "hotkey:tool",
 } as const;

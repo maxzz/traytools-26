@@ -19,7 +19,11 @@ type MenuNode struct {
 	CmdArgs  string `json:"cmdArgs,omitempty"`
 	CmdPlat  string `json:"cmdPlat,omitempty"` // curr | 32 | 64 | both
 	CmdWhat  string `json:"cmdWhat,omitempty"` // rel | abs | reg
-	HotKey   string `json:"hotKey,omitempty"`
+	HotKey string `json:"hotKey,omitempty"`
+	// HotKeyGlobal marks a system-wide hotkey (RegisterHotKey). When absent or
+	// false the hotkey is application-local (only while the window is focused).
+	// Defaults are not written to tools.json.
+	HotKeyGlobal bool `json:"hotKeyGlobal,omitempty"`
 	// RunElevated launches the command with administrator privileges. It is a
 	// pointer so an absent value can be distinguished from an explicit false:
 	// when nil the effective value defaults to true for registry actions and
@@ -51,12 +55,36 @@ const (
 // MenuView is the render-ready tree sent to the frontend. Command leaves carry
 // an ID that maps to a resolved command kept on the Manager.
 type MenuView struct {
-	Name     string     `json:"name"`
-	Kind     string     `json:"kind"`
-	ID       int        `json:"id,omitempty"`
-	What     string     `json:"what,omitempty"`   // rel | abs | reg (for icon hints)
-	HotKey   string     `json:"hotKey,omitempty"`
-	Children []MenuView `json:"children,omitempty"`
+	Name         string     `json:"name"`
+	Kind         string     `json:"kind"`
+	ID           int        `json:"id,omitempty"`
+	What         string     `json:"what,omitempty"` // rel | abs | reg (for icon hints)
+	HotKey       string     `json:"hotKey,omitempty"`
+	HotKeyGlobal bool       `json:"hotKeyGlobal,omitempty"`
+	Children     []MenuView `json:"children,omitempty"`
+}
+
+// HotkeyBinding is one tools-menu item that declares a hotkey.
+type HotkeyBinding struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	HotKey string `json:"hotKey"`
+	Global bool   `json:"global"`
+}
+
+// HotkeyConflict describes a hotkey that could not be registered.
+type HotkeyConflict struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	HotKey string `json:"hotKey"`
+	Error  string `json:"error"`
+}
+
+// HotkeySyncResponse is returned by the "syncHotkeys" command.
+type HotkeySyncResponse struct {
+	Local     []HotkeyBinding  `json:"local"`
+	Global    []HotkeyBinding  `json:"global"`
+	Conflicts []HotkeyConflict `json:"conflicts"`
 }
 
 // MenuResponse is returned by the "getMenu" command.
