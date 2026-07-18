@@ -5,13 +5,22 @@ import { classNames } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
+import { Label } from "@/ui/shadcn/label";
+import { Switch } from "@/ui/shadcn/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
-import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+import {
+    windowTreeStore,
+    refreshWindowTree,
+    maybeHighlightSelectedWindow,
+    hideWindowHighlight,
+} from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
 import {
     treeFilterAtom,
     showHandlesAtom,
     hideInvisibleAtom,
     displayedCountAtom,
+    autoHighlightAtom,
+    selectedHandleAtom,
 } from "./s-windows-tree-state";
 import { useFilter } from "./2-2-use-filter";
 
@@ -52,10 +61,37 @@ export function WindowTreeToolbar() {
                         </Button>
                     </div>
 
+                    <AutoHighlightToggle />
                     <TreeOptionsPopover />
                 </div>
             </div>
         </div>
+    );
+}
+
+function AutoHighlightToggle() {
+    const [autoHighlight, setAutoHighlight] = useAtom(autoHighlightAtom);
+    const selectedHandle = useAtomValue(selectedHandleAtom);
+
+    return (
+        <Label
+            className="shrink-0 text-xs font-normal text-muted-foreground cursor-pointer gap-1"
+            title="Highlight the selected window on screen"
+        >
+            <span className="pb-0.5 whitespace-nowrap">Auto-highlight:</span>
+            <Switch
+                className="scale-75"
+                checked={autoHighlight}
+                onCheckedChange={(checked) => {
+                    setAutoHighlight(checked);
+                    if (checked) {
+                        void maybeHighlightSelectedWindow(selectedHandle);
+                    } else {
+                        void hideWindowHighlight();
+                    }
+                }}
+            />
+        </Label>
     );
 }
 

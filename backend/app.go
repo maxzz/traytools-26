@@ -9,6 +9,7 @@ import (
 	"traytools-26-go/backend/bus"
 	"traytools-26-go/backend/dpagent"
 	"traytools-26-go/backend/dphook"
+	"traytools-26-go/backend/highlight"
 	"traytools-26-go/backend/toolsmenu"
 	"traytools-26-go/backend/tracemanager"
 	"traytools-26-go/backend/windowtree"
@@ -24,6 +25,7 @@ type App struct {
 	tools         *toolsmenu.Manager
 	windows       *windowtree.Manager
 	dpagent       *dpagent.Manager
+	highlight     *highlight.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -34,17 +36,19 @@ type App struct {
 // NewApp creates a new App application struct
 func NewApp() *App {
 	a := &App{
-		bus:     bus.New(),
-		trace:   tracemanager.New(),
-		tools:   toolsmenu.New(),
-		windows: windowtree.New(),
-		dpagent: dpagent.New(),
+		bus:       bus.New(),
+		trace:     tracemanager.New(),
+		tools:     toolsmenu.New(),
+		windows:   windowtree.New(),
+		dpagent:   dpagent.New(),
+		highlight: highlight.New(),
 	}
 	a.registerHandlers()
 	a.trace.Register(a.bus)
 	a.tools.Register(a.bus)
 	a.windows.Register(a.bus)
 	a.dpagent.Register(a.bus)
+	a.highlight.Register(a.bus)
 	return a
 }
 

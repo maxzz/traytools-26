@@ -2,8 +2,18 @@ import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
-import { windowTreeStore, loadWindowInfo } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
-import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom, filteredTreeAtom } from "./s-windows-tree-state";
+import {
+    windowTreeStore,
+    loadWindowInfo,
+    maybeHighlightSelectedWindow,
+} from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+import {
+    selectedHandleAtom,
+    treeFilterAtom,
+    hideInvisibleAtom,
+    filteredTreeAtom,
+    autoHighlightAtom,
+} from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
 
 export function WindowTreeView() {
@@ -11,6 +21,7 @@ export function WindowTreeView() {
     const [selected, setSelected] = useAtom(selectedHandleAtom);
     const filterText = useAtomValue(treeFilterAtom);
     const hideInvisible = useAtomValue(hideInvisibleAtom);
+    const autoHighlight = useAtomValue(autoHighlightAtom);
     const { tree, expandIds } = useAtomValue(filteredTreeAtom);
 
     const needle = filterText.trim().toLowerCase();
@@ -18,7 +29,18 @@ export function WindowTreeView() {
     const onSelectionChange = (ids: string[]) => {
         const handle = ids.length > 0 ? ids[0] : null;
         setSelected(handle);
-        loadWindowInfo(handle);
+        if (autoHighlight) {
+            void maybeHighlightSelectedWindow(handle);
+        } else {
+            void loadWindowInfo(handle);
+        }
+    };
+
+    const onReselect = (nodeId: string) => {
+        if (!autoHighlight) {
+            return;
+        }
+        void maybeHighlightSelectedWindow(nodeId);
     };
 
     // Re-key the provider so default expansion re-applies when the data or the
@@ -50,6 +72,7 @@ export function WindowTreeView() {
                                     defaultExpandedIds={expandIds}
                                     selectedIds={selected ? [selected] : []}
                                     onSelectionChange={onSelectionChange}
+                                    onReselect={onReselect}
                                     key={providerKey}
                                 >
                                     <TreeView className="p-0">

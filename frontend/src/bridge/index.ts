@@ -17,5 +17,7 @@ export type {
 } from "./groups/tools";
 export { windowTreeBus } from "./groups/windowtree";
 export type { WindowNode, WindowTree, WindowInfo, RectInfo, RelatedWindow, MonitorWindow, ActiveWindowsInfo } from "./groups/windowtree";
+export { highlightBus } from "./groups/highlight";
+export type { HighlightBounds, HighlightRectOptions } from "./groups/highlight";
 export { onWailsEvent, TRACE_EVENTS, HOTKEY_EVENTS } from "./wails-events";
 export type { UnloadHookHotkeyOptions } from "./groups/settings";

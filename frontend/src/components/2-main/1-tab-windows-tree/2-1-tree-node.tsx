@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
+import { AnimatePresence, motion } from "motion/react";
 import { type WindowNode } from "@/bridge";
 import { cn } from "@/utils";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
 import { AppWindow, Square, Layers, Folder } from "lucide-react";
-import { showHandlesAtom } from "./s-windows-tree-state";
+import { showHandlesAtom, selectedHandleAtom, emptyBoundsFlashTokenAtom } from "./s-windows-tree-state";
 
 interface WindowTreeNodeProps {
     node: WindowNode;
@@ -14,9 +16,11 @@ interface WindowTreeNodeProps {
 
 export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNodeProps) {
     const showHandles = useAtomValue(showHandlesAtom);
+    const selectedHandle = useAtomValue(selectedHandleAtom);
     const isRoot = node.handle === "root";
     const children = node.children ?? [];
     const hasChildren = children.length > 0;
+    const isSelected = !isRoot && selectedHandle === node.handle;
 
     return (
         <TreeNode nodeId={node.handle} level={level} isLast={isLast} parentPath={parentPath}>
@@ -26,6 +30,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
                 <TreeLabel className={cn("text-xs", !isRoot && !node.visible && "")}>
                     {nodeLabel(node, isRoot, showHandles)}
                 </TreeLabel>
+                {isSelected && <EmptyBoundsFlashBadge />}
             </TreeNodeTrigger>
 
             {hasChildren && (
@@ -44,6 +49,45 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
                 </TreeNodeContent>
             )}
         </TreeNode>
+    );
+}
+
+function EmptyBoundsFlashBadge() {
+    const flashToken = useAtomValue(emptyBoundsFlashTokenAtom);
+    const [activeToken, setActiveToken] = useState<number | null>(null);
+
+    useEffect(
+        () => {
+            if (flashToken <= 0) {
+                return;
+            }
+            setActiveToken(flashToken);
+            const timeout = setTimeout(
+                () => {
+                    setActiveToken((current) => current === flashToken ? null : current);
+                },
+                1600
+            );
+            return () => clearTimeout(timeout);
+        },
+        [flashToken]
+    );
+
+    return (
+        <AnimatePresence initial={false}>
+            {activeToken !== null && (
+                <motion.div
+                    key={activeToken}
+                    className="ml-1 shrink-0 px-2 pb-0.5 text-[0.6rem] text-white bg-red-500 rounded"
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: [0, 1, 1, 0], scale: [0.92, 1.06, 1.0, 0.98] }}
+                    transition={{ duration: 1.55, times: [0, 0.2, 0.45, 1], ease: "easeOut" }}
+                    exit={{ opacity: 0, transition: { duration: 0.08 } }}
+                >
+                    empty bounds
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
 

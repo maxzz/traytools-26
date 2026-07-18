@@ -147,12 +147,14 @@ export type TreeProviderProps = {
     deselectOnReselect?: boolean;
     selectedIds?: string[];
     onSelectionChange?: (selectedIds: string[]) => void;
+    /** Fired when a selected row is clicked again and deselectOnReselect is false. */
+    onReselect?: (nodeId: string) => void;
     indent?: number;
     animateExpand?: boolean;
     className?: string;
 };
 
-export function TreeProvider({ children, defaultExpandedIds = [], showLines = true, showIcons = true, selectable = true, multiSelect = false, deselectOnReselect = false, selectedIds, onSelectionChange, indent = 20, animateExpand = true, className, }: TreeProviderProps) {
+export function TreeProvider({ children, defaultExpandedIds = [], showLines = true, showIcons = true, selectable = true, multiSelect = false, deselectOnReselect = false, selectedIds, onSelectionChange, onReselect, indent = 20, animateExpand = true, className, }: TreeProviderProps) {
     const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>(selectedIds ?? []);
     const selectionStoreRef = useRef<TreeSelectionStore>({
         selectedIds: selectedIds ?? [],
@@ -218,6 +220,7 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
                     : [...current, nodeId];
             } else if (current.includes(nodeId)) {
                 if (!deselectOnReselect) {
+                    onReselect?.(nodeId);
                     return;
                 }
                 newSelection = [];
@@ -234,7 +237,7 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
                 setInternalSelectedIds(newSelection);
             }
         },
-        [selectable, multiSelect, deselectOnReselect, isControlled, onSelectionChange]);
+        [selectable, multiSelect, deselectOnReselect, isControlled, onSelectionChange, onReselect]);
 
     const treeContextValue = useMemo(
         () => ({
