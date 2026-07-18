@@ -13,7 +13,7 @@ import {
     hideInvisibleAtom,
     displayedCountAtom,
 } from "./s-windows-tree-state";
-import { useFilter } from "./2-3-use-filter";
+import { useFilter } from "./2-2-use-filter";
 
 export function WindowTreeToolbar() {
     const { loading } = useSnapshot(windowTreeStore);

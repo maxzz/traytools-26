@@ -4,9 +4,9 @@ import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
-import { windowTreeStore } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
-import { propsTabAtom, type PropsTab } from "./s-windows-tree-state";
 import { type RectInfo, type WindowInfo } from "@/bridge";
+import { windowTreeStore } from "./a-windows-tree-calls";
+import { propsTabAtom, type PropsTab } from "./s-windows-tree-state";
 
 export function WindowProps() {
     const snap = useSnapshot(windowTreeStore);
