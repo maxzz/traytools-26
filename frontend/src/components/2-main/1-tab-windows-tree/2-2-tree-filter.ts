@@ -1,10 +1,22 @@
 import { type WindowNode } from "@/bridge";
 
-const WS_VISIBLE = 0x10000000;
+/** Count non-root window nodes currently shown in the (possibly filtered) tree. */
+export function countDisplayedWindows(node: WindowNode | null): number {
+    if (!node) {
+        return 0;
+    }
+    let n = node.handle === "root" ? 0 : 1;
+    for (const child of node.children ?? []) {
+        n += countDisplayedWindows(child);
+    }
+    return n;
+}
 
-// Recursively filter the tree, keeping a node when it (or any descendant)
-// matches the text filter and passes the visibility filter. Returns plain
-// objects so the result is safe to render outside the Valtio snapshot.
+/**
+ * Recursively filter the tree, keeping a node when it (or any descendant)
+ * matches the text filter and passes the visibility filter. Returns plain
+ * objects so the result is safe to render outside the Valtio snapshot.
+ */
 export function filterNode(node: WindowNode, needle: string, hideInvisible: boolean, collectIds: string[]): WindowNode | null {
     const kids: WindowNode[] = [];
     for (const child of node.children ?? []) {
@@ -29,14 +41,4 @@ export function filterNode(node: WindowNode, needle: string, hideInvisible: bool
     return { ...node, children: kids };
 }
 
-/** Count non-root window nodes currently shown in the (possibly filtered) tree. */
-export function countDisplayedWindows(node: WindowNode | null): number {
-    if (!node) {
-        return 0;
-    }
-    let n = node.handle === "root" ? 0 : 1;
-    for (const child of node.children ?? []) {
-        n += countDisplayedWindows(child);
-    }
-    return n;
-}
+const WS_VISIBLE = 0x10000000;

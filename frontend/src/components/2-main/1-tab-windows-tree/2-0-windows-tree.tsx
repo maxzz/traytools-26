@@ -7,7 +7,7 @@ import { windowTreeStore, loadWindowInfo } from "@/components/2-main/1-tab-windo
 import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom } from "./s-windows-tree-state";
 import { type WindowNode } from "@/bridge";
 import { WindowTreeNode } from "./2-1-tree-node";
-import { filterNode } from "./u-tree-filter";
+import { filterNode } from "./2-2-tree-filter";
 
 export function WindowTreeView() {
     const { root, count, loading, error } = useSnapshot(windowTreeStore);

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { RefreshCw, Settings } from "lucide-react";
-import { cn } from "@/utils";
+import { classNames } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { type WindowNode } from "@/bridge";
 import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
 import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./s-windows-tree-state";
-import { countDisplayedWindows, filterNode } from "./u-tree-filter";
+import { countDisplayedWindows, filterNode } from "./2-2-tree-filter";
 
 export function WindowTreeToolbar() {
     const { loading } = useSnapshot(windowTreeStore);
@@ -29,7 +29,7 @@ export function WindowTreeToolbar() {
                     />
 
                     <Button className="ml-auto" size="xs" variant="outline" onClick={() => void refreshWindowTree()} disabled={loading}>
-                        <RefreshCw className={cn("mr-1 size-3", loading && "animate-spin")} />
+                        <RefreshCw className={classNames("mr-1 size-3", loading && "animate-spin")} />
                         Refresh
                     </Button>
 
