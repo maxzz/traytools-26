@@ -62,6 +62,7 @@ func main() {
 		OnStartup:          app.Startup,
 		OnDomReady:         app.DomReady,
 		OnBeforeClose:      app.BeforeClose,
+		OnShutdown:         app.Shutdown,
 		StartHidden:        true,
 		SingleInstanceLock: app.SingleInstanceLock(),
 		Debug: options.Debug{

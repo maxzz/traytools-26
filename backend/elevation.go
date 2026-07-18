@@ -48,6 +48,7 @@ func RequestElevationRestart() error {
 		return err
 	}
 
+	stopTray()
 	os.Exit(0)
 	return nil
 }
@@ -65,6 +66,7 @@ func RequestUnelevatedRestart() error {
 		return err
 	}
 
+	stopTray()
 	os.Exit(0)
 	return nil
 }

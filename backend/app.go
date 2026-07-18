@@ -167,9 +167,20 @@ func (a *App) Dispatch(group string, command string, payloadJSON string) (string
 
 // RequestExit flags an intentional shutdown and asks Wails to quit. The
 // BeforeClose hook then allows the close instead of hiding to the tray.
+//
+// Tray teardown runs on a goroutine so a tray-menu Exit click can return to
+// the systray message loop; otherwise waiting for NIM_DELETE would deadlock.
 func (a *App) RequestExit() {
+	if a.quitRequested {
+		return
+	}
 	a.quitRequested = true
-	runtime.Quit(a.ctx)
+	go func() {
+		stopTray()
+		if a.ctx != nil {
+			runtime.Quit(a.ctx)
+		}
+	}()
 }
 
 // DomReady is called after front-end resources have been loaded
@@ -187,6 +198,9 @@ func (a *App) DomReady(ctx context.Context) {
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	if a.quitRequested || GetQuitOnCloseOption() {
 		a.saveWindowOptions(ctx)
+		// Ensure the tray icon is removed before the process exits (covers the
+		// quit-on-close path that never calls RequestExit).
+		stopTray()
 		return false
 	}
 	a.hideWindow()
@@ -218,8 +232,9 @@ func (a *App) saveDevToolsState(open bool) {
 	saveIniFileOptions(opts)
 }
 
-// shutdown is called at application termination
-func (a *App) shutdown( /*ctx context.Context*/ ) {
+// Shutdown is called at application termination.
+func (a *App) Shutdown(ctx context.Context) {
+	stopTray()
 	a.trace.Shutdown()
 }
 
