@@ -21,14 +21,21 @@ export const showHandlesAtom = atomWithStorage("wt.showHandles", true);
 export const hideInvisibleAtom = atomWithStorage("wt.hideInvisible", false);
 
 // Flash notice when highlight hits empty or off-screen bounds.
+// `handle` keeps the badge on the row that triggered it; `token` forces a
+// fresh animation on every select/reselect.
 export type BoundsNoticeKind = "empty" | "offscreen";
 
 export type BoundsNoticeFlash = {
     token: number;
     kind: BoundsNoticeKind;
+    handle: string | null;
 };
 
-export const boundsNoticeFlashAtom = atom<BoundsNoticeFlash>({ token: 0, kind: "empty" });
+export const boundsNoticeFlashAtom = atom<BoundsNoticeFlash>({
+    token: 0,
+    kind: "empty",
+    handle: null,
+});
 
 // Active tab in the properties panel.
 export const propsTabAtom = atomWithStorage<PropsTab>("wt.propsTab", "general");

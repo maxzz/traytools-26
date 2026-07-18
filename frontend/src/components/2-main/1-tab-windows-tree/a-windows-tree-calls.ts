@@ -1,4 +1,4 @@
-import { proxy } from "valtio";
+import { proxy, snapshot } from "valtio";
 import { getDefaultStore } from "jotai";
 import { highlightBus, windowTreeBus, type WindowNode, type WindowInfo, type RectInfo } from "@/bridge";
 import { appSettings } from "@/store/1-ui-settings";
@@ -30,6 +30,9 @@ export const windowTreeStore = proxy<WindowTreeState>({
     infoLoading: false,
     infoError: null,
 });
+
+/** Ignores stale highlight results when the user clicks another row quickly. */
+let highlightRequestId = 0;
 
 export async function refreshWindowTree(): Promise<void> {
     windowTreeStore.loading = true;
@@ -65,13 +68,17 @@ export async function loadWindowInfo(handle: string | null): Promise<void> {
     }
 }
 
-function triggerBoundsNotice(kind: BoundsNoticeKind): void {
+function triggerBoundsNotice(kind: BoundsNoticeKind, handle: string): void {
     if (!appSettings.windowHighlight.showBoundsNotice) {
         return;
     }
     const store = getDefaultStore();
     const prev = store.get(boundsNoticeFlashAtom);
-    store.set(boundsNoticeFlashAtom, { token: prev.token + 1, kind });
+    store.set(boundsNoticeFlashAtom, {
+        token: prev.token + 1,
+        kind,
+        handle,
+    });
 }
 
 function getSafeBlinkCount(): number {
@@ -103,13 +110,29 @@ function normalizeHexColor(color: string): string {
     return "#ff0000";
 }
 
-function rectToBounds(rect: RectInfo) {
+function plainRect(rect: RectInfo): RectInfo {
+    const left = Number(rect.left);
+    const top = Number(rect.top);
+    const right = Number(rect.right);
+    const bottom = Number(rect.bottom);
+    const width = Number(rect.width);
+    const height = Number(rect.height);
     return {
-        left: rect.left,
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
+        left: Number.isFinite(left) ? left : 0,
+        top: Number.isFinite(top) ? top : 0,
+        right: Number.isFinite(right) ? right : 0,
+        bottom: Number.isFinite(bottom) ? bottom : 0,
+        width: Number.isFinite(width) ? width : 0,
+        height: Number.isFinite(height) ? height : 0,
     };
+}
+
+/** Empty only when the occupied area is zero (or edges inverted). */
+function isBoundsEmpty(rect: RectInfo): boolean {
+    // Prefer explicit width/height from WindowInfo; fall back to edges.
+    const width = rect.width > 0 ? rect.width : rect.right - rect.left;
+    const height = rect.height > 0 ? rect.height : rect.bottom - rect.top;
+    return width <= 0 || height <= 0;
 }
 
 /** Refresh window info and outline its screen rectangle when auto-highlight is on. */
@@ -118,23 +141,57 @@ export async function maybeHighlightSelectedWindow(handle: string | null): Promi
         return;
     }
 
+    const requestId = ++highlightRequestId;
+
     await loadWindowInfo(handle);
-    const info = windowTreeStore.info;
-    if (!info?.valid) {
+    if (requestId !== highlightRequestId) {
         return;
     }
 
-    const classification = await highlightBus.classifyBounds(rectToBounds(info.rect));
-    if (classification.kind === "empty") {
-        triggerBoundsNotice("empty");
+    const infoSnap = windowTreeStore.info ? snapshot(windowTreeStore.info) : null;
+    if (!infoSnap?.valid || infoSnap.handle !== handle) {
         return;
     }
-    if (classification.kind === "offscreen") {
-        triggerBoundsNotice("offscreen");
+
+    const rect = plainRect(infoSnap.rect as RectInfo);
+
+    // Decide empty locally from the same numbers the Properties pane shows.
+    // Do not round-trip to Go for this — a bad/empty payload was classifying
+    // valid rects as empty.
+    if (isBoundsEmpty(rect)) {
+        triggerBoundsNotice("empty", handle);
+        return;
+    }
+
+    let offscreen = false;
+    try {
+        const classification = await highlightBus.classifyBounds({
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+        });
+        if (requestId !== highlightRequestId) {
+            return;
+        }
+        offscreen = classification?.kind === "offscreen";
+    } catch {
+        if (requestId !== highlightRequestId) {
+            return;
+        }
+    }
+
+    if (offscreen) {
+        triggerBoundsNotice("offscreen", handle);
     }
 
     await highlightBus.highlightRect(
-        rectToBounds(info.rect),
+        {
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+        },
         {
             color: getSafeBorderColorRgb(),
             borderWidth: getSafeBorderWidth(),

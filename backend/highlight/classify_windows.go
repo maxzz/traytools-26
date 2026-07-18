@@ -10,7 +10,9 @@ const (
 )
 
 func platformClassifyBounds(r BoundsRect) BoundsClassification {
-	if r.Right <= r.Left || r.Bottom <= r.Top {
+	width := r.Right - r.Left
+	height := r.Bottom - r.Top
+	if width <= 0 || height <= 0 {
 		return BoundsClassification{Kind: "empty"}
 	}
 	if !intersectsVirtualScreen(r) {

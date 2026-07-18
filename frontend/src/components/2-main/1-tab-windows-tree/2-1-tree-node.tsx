@@ -30,7 +30,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
                 <TreeLabel className={cn("text-xs", !isRoot && !node.visible && "")}>
                     {nodeLabel(node, isRoot, showHandles)}
                 </TreeLabel>
-                {isSelected && <BoundsNoticeFlashBadge />}
+                {isSelected && <BoundsNoticeFlashBadge handle={node.handle} />}
             </TreeNodeTrigger>
 
             {hasChildren && (
@@ -52,34 +52,34 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
     );
 }
 
-function BoundsNoticeFlashBadge() {
+function BoundsNoticeFlashBadge({ handle }: { handle: string; }) {
     const flash = useAtomValue(boundsNoticeFlashAtom);
-    const [active, setActive] = useState<{ token: number; kind: BoundsNoticeKind } | null>(null);
+
+    if (flash.token <= 0 || flash.handle !== handle) {
+        return null;
+    }
+
+    // key=token remounts the animation on every select/reselect click.
+    return <BoundsNoticeAnimation key={flash.token} kind={flash.kind} />;
+}
+
+function BoundsNoticeAnimation({ kind }: { kind: BoundsNoticeKind; }) {
+    const [visible, setVisible] = useState(true);
 
     useEffect(
         () => {
-            if (flash.token <= 0) {
-                return;
-            }
-            setActive({ token: flash.token, kind: flash.kind });
-            const timeout = setTimeout(
-                () => {
-                    setActive((current) => current?.token === flash.token ? null : current);
-                },
-                1600
-            );
+            const timeout = setTimeout(() => setVisible(false), 1600);
             return () => clearTimeout(timeout);
         },
-        [flash.token, flash.kind]
+        []
     );
 
-    const label = active?.kind === "offscreen" ? "off-screen" : "empty bounds";
+    const label = kind === "offscreen" ? "off-screen" : "empty bounds";
 
     return (
-        <AnimatePresence initial={false}>
-            {active !== null && (
+        <AnimatePresence>
+            {visible && (
                 <motion.div
-                    key={active.token}
                     className="ml-1 shrink-0 px-2 pb-0.5 text-[0.6rem] text-white bg-red-500 rounded"
                     initial={{ opacity: 0, scale: 0.92 }}
                     animate={{ opacity: [0, 1, 1, 0], scale: [0.92, 1.06, 1.0, 0.98] }}
