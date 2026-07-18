@@ -1,16 +1,13 @@
 import { proxy } from "valtio";
 import { getDefaultStore } from "jotai";
 import { highlightBus, windowTreeBus, type WindowNode, type WindowInfo, type RectInfo } from "@/bridge";
-import { emptyBoundsFlashTokenAtom } from "./s-windows-tree-state";
+import { appSettings } from "@/store/1-ui-settings";
+import { boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
 
 // Live, mutable window-tree data lives in Valtio (mirroring the trace manager
 // split): the fetched tree snapshot and the detailed info for the currently
 // selected window. Discrete UI state (selection, expanded ids, active props
 // tab) lives in Jotai atoms — see tab-windowstree/a-windows-tree-atoms.ts.
-
-const HIGHLIGHT_COLOR_RGB = 0xff0000;
-const HIGHLIGHT_BORDER_WIDTH = 2;
-const HIGHLIGHT_BLINK_COUNT = 3;
 
 interface WindowTreeState {
     root: WindowNode | null;
@@ -68,16 +65,51 @@ export async function loadWindowInfo(handle: string | null): Promise<void> {
     }
 }
 
-function isBoundsEmpty(rect: RectInfo | null | undefined): boolean {
-    if (!rect) {
-        return true;
+function triggerBoundsNotice(kind: BoundsNoticeKind): void {
+    if (!appSettings.windowHighlight.showBoundsNotice) {
+        return;
     }
-    return rect.right <= rect.left || rect.bottom <= rect.top || rect.width <= 0 || rect.height <= 0;
+    const store = getDefaultStore();
+    const prev = store.get(boundsNoticeFlashAtom);
+    store.set(boundsNoticeFlashAtom, { token: prev.token + 1, kind });
 }
 
-function triggerEmptyBoundsFlash(): void {
-    const store = getDefaultStore();
-    store.set(emptyBoundsFlashTokenAtom, store.get(emptyBoundsFlashTokenAtom) + 1);
+function getSafeBlinkCount(): number {
+    const raw = Number(appSettings.windowHighlight.blinkCount);
+    if (!Number.isFinite(raw)) {
+        return 3;
+    }
+    return Math.max(1, Math.min(10, Math.round(raw)));
+}
+
+function getSafeBorderWidth(): number {
+    const raw = Number(appSettings.windowHighlight.borderWidth);
+    if (!Number.isFinite(raw)) {
+        return 2;
+    }
+    return Math.max(1, Math.min(20, Math.round(raw)));
+}
+
+function getSafeBorderColorRgb(): number {
+    const hex = normalizeHexColor(appSettings.windowHighlight.borderColor);
+    return Number.parseInt(hex.slice(1), 16);
+}
+
+function normalizeHexColor(color: string): string {
+    const input = String(color ?? "").trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(input)) {
+        return input.toLowerCase();
+    }
+    return "#ff0000";
+}
+
+function rectToBounds(rect: RectInfo) {
+    return {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+    };
 }
 
 /** Refresh window info and outline its screen rectangle when auto-highlight is on. */
@@ -92,22 +124,21 @@ export async function maybeHighlightSelectedWindow(handle: string | null): Promi
         return;
     }
 
-    if (isBoundsEmpty(info.rect)) {
-        triggerEmptyBoundsFlash();
+    const classification = await highlightBus.classifyBounds(rectToBounds(info.rect));
+    if (classification.kind === "empty") {
+        triggerBoundsNotice("empty");
         return;
+    }
+    if (classification.kind === "offscreen") {
+        triggerBoundsNotice("offscreen");
     }
 
     await highlightBus.highlightRect(
+        rectToBounds(info.rect),
         {
-            left: info.rect.left,
-            top: info.rect.top,
-            right: info.rect.right,
-            bottom: info.rect.bottom,
-        },
-        {
-            color: HIGHLIGHT_COLOR_RGB,
-            borderWidth: HIGHLIGHT_BORDER_WIDTH,
-            blinkCount: HIGHLIGHT_BLINK_COUNT,
+            color: getSafeBorderColorRgb(),
+            borderWidth: getSafeBorderWidth(),
+            blinkCount: getSafeBlinkCount(),
         },
     );
 }

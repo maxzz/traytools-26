@@ -2,6 +2,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { RefreshCw, Settings, X } from "lucide-react";
 import { classNames } from "@/utils";
+import { appSettings } from "@/store/1-ui-settings";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
@@ -19,7 +20,6 @@ import {
     showHandlesAtom,
     hideInvisibleAtom,
     displayedCountAtom,
-    autoHighlightAtom,
     selectedHandleAtom,
 } from "./s-windows-tree-state";
 import { useFilter } from "./2-2-use-filter";
@@ -70,7 +70,7 @@ export function WindowTreeToolbar() {
 }
 
 function AutoHighlightToggle() {
-    const [autoHighlight, setAutoHighlight] = useAtom(autoHighlightAtom);
+    const { windowHighlight } = useSnapshot(appSettings);
     const selectedHandle = useAtomValue(selectedHandleAtom);
 
     return (
@@ -81,9 +81,9 @@ function AutoHighlightToggle() {
             <span className="pb-0.5 whitespace-nowrap">Auto-highlight:</span>
             <Switch
                 className="scale-75"
-                checked={autoHighlight}
+                checked={windowHighlight.autoHighlight}
                 onCheckedChange={(checked) => {
-                    setAutoHighlight(checked);
+                    appSettings.windowHighlight.autoHighlight = checked;
                     if (checked) {
                         void maybeHighlightSelectedWindow(selectedHandle);
                     } else {
@@ -97,6 +97,7 @@ function AutoHighlightToggle() {
 
 function TreeOptionsPopover() {
     const { count } = useSnapshot(windowTreeStore);
+    const { windowHighlight } = useSnapshot(appSettings);
     const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
     const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
     const displayed = useAtomValue(displayedCountAtom);
@@ -109,7 +110,7 @@ function TreeOptionsPopover() {
                 </Button>
             </PopoverTrigger>
 
-            <PopoverContent align="end" className="w-auto min-w-36">
+            <PopoverContent align="end" className="w-auto min-w-56">
 
                 <div className="mx-auto text-xs font-semibold">
                     Tree options
@@ -131,6 +132,49 @@ function TreeOptionsPopover() {
 
                 <div className="-mx-2 h-px border-t border-border"></div>
 
+                <div className="py-1 text-xs font-semibold">
+                    Highlight
+                </div>
+
+                <div className="pb-1 flex flex-col gap-2">
+                    <OptionNumber
+                        label="Blink count"
+                        title="Number of highlight blinks (1–10)"
+                        value={windowHighlight.blinkCount}
+                        min={1}
+                        max={10}
+                        onChange={(v) => { appSettings.windowHighlight.blinkCount = v; }}
+                    />
+                    <OptionNumber
+                        label="Border width"
+                        title="Highlight border width in pixels (1–20)"
+                        value={windowHighlight.borderWidth}
+                        min={1}
+                        max={20}
+                        onChange={(v) => { appSettings.windowHighlight.borderWidth = v; }}
+                    />
+                    <label className="text-xs select-none flex items-center justify-between gap-2" title="Highlight border color">
+                        <span>Border color</span>
+                        <input
+                            type="color"
+                            className="h-6 w-8 cursor-pointer rounded border border-border bg-transparent p-0"
+                            value={normalizeHexColor(windowHighlight.borderColor)}
+                            onChange={(e) => {
+                                appSettings.windowHighlight.borderColor = normalizeHexColor(e.target.value);
+                            }}
+                        />
+                    </label>
+                    <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer" title="Show empty bounds / off-screen notice on the tree row">
+                        <Checkbox
+                            checked={windowHighlight.showBoundsNotice}
+                            onCheckedChange={(v) => { appSettings.windowHighlight.showBoundsNotice = v === true; }}
+                        />
+                        Show bounds notice
+                    </label>
+                </div>
+
+                <div className="-mx-2 h-px border-t border-border"></div>
+
                 <div className="text-muted-foreground grid grid-cols-2 gap-x-2 gap-y-0.5">
                     <span>Total windows</span>
                     <span className="tabular-nums text-[11px]">{count}</span>
@@ -142,4 +186,48 @@ function TreeOptionsPopover() {
             </PopoverContent>
         </Popover>
     );
+}
+
+function OptionNumber({
+    label,
+    title,
+    value,
+    min,
+    max,
+    onChange,
+}: {
+    label: string;
+    title?: string;
+    value: number;
+    min: number;
+    max: number;
+    onChange: (value: number) => void;
+}) {
+    return (
+        <label className="text-xs select-none flex items-center justify-between gap-2" title={title}>
+            <span>{label}</span>
+            <Input
+                type="number"
+                className="h-6 w-14 px-1.5 text-xs tabular-nums"
+                min={min}
+                max={max}
+                value={value}
+                onChange={(e) => {
+                    const n = Number(e.target.value);
+                    if (!Number.isFinite(n)) {
+                        return;
+                    }
+                    onChange(Math.max(min, Math.min(max, Math.round(n))));
+                }}
+            />
+        </label>
+    );
+}
+
+function normalizeHexColor(color: string): string {
+    const input = String(color ?? "").trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(input)) {
+        return input.toLowerCase();
+    }
+    return "#ff0000";
 }

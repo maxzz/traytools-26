@@ -31,6 +31,7 @@ var (
 	procGetDC            = user32.NewProc("GetDC")
 	procReleaseDC        = user32.NewProc("ReleaseDC")
 	procIsWindowVisible  = user32.NewProc("IsWindowVisible")
+	procGetSystemMetrics = user32.NewProc("GetSystemMetrics")
 
 	procCreateCompatibleDC     = gdi32.NewProc("CreateCompatibleDC")
 	procCreateCompatibleBitmap = gdi32.NewProc("CreateCompatibleBitmap")

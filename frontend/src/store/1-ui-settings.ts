@@ -7,6 +7,15 @@ const STORE_KEY = "traytools-26";
 const STORE_VER = "v1.0";
 const STORAGE_ID = `${STORE_KEY}__${STORE_VER}`;
 
+/** Window-tree screen highlight parameters (auto-highlight overlay). */
+export interface WindowHighlightSettings {
+    autoHighlight: boolean;      // Outline selected window on select/reselect
+    blinkCount: number;          // Number of blinks (1..10)
+    borderWidth: number;         // Border thickness in pixels (1..20)
+    borderColor: string;         // Hex color "#rrggbb"
+    showBoundsNotice: boolean;   // Flash empty-bounds / off-screen badge
+}
+
 export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showFooter: boolean;         // Show footer in main layout
@@ -18,7 +27,16 @@ export interface AppSettings {
     mainTab: string;             // Active main body tab
     showDpAgentToolbar: boolean; // Expand DPAgent toolbar controls and run monitoring
     startDpAgentHigh: boolean;   // Start DPAgent elevated (runas)
+    windowHighlight: WindowHighlightSettings;
 }
+
+const DEFAULT_WINDOW_HIGHLIGHT: WindowHighlightSettings = {
+    autoHighlight: false,
+    blinkCount: 3,
+    borderWidth: 2,
+    borderColor: "#ff0000",
+    showBoundsNotice: true,
+};
 
 const DEFAULT_SETTINGS: AppSettings = {
     theme: 'light',
@@ -31,6 +49,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     mainTab: 'welcome',
     showDpAgentToolbar: true,
     startDpAgentHigh: false,
+    windowHighlight: { ...DEFAULT_WINDOW_HIGHLIGHT },
 };
 
 // Load settings from localStorage
@@ -52,6 +71,10 @@ function loadSettings(): AppSettings {
                 showThemeToggle: parsed.showThemeToggle ?? DEFAULT_SETTINGS.showThemeToggle,
                 showDpAgentToolbar: parsed.showDpAgentToolbar ?? DEFAULT_SETTINGS.showDpAgentToolbar,
                 startDpAgentHigh: parsed.startDpAgentHigh ?? DEFAULT_SETTINGS.startDpAgentHigh,
+                windowHighlight: {
+                    ...DEFAULT_WINDOW_HIGHLIGHT,
+                    ...parsed.windowHighlight,
+                },
             };
         }
     } catch (e) {

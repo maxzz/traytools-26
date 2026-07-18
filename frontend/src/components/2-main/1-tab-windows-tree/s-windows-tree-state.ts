@@ -20,12 +20,15 @@ export const showHandlesAtom = atomWithStorage("wt.showHandles", true);
 // Hide windows that are not currently visible (WS_VISIBLE off).
 export const hideInvisibleAtom = atomWithStorage("wt.hideInvisible", false);
 
-// Outline the selected window on screen when a tree row is selected.
-export const autoHighlightAtom = atomWithStorage("wt.autoHighlight", false);
+// Flash notice when highlight hits empty or off-screen bounds.
+export type BoundsNoticeKind = "empty" | "offscreen";
 
-// Bumped when a highlight is attempted on a window with an empty rectangle;
-// the tree row badge watches this token to flash "empty bounds".
-export const emptyBoundsFlashTokenAtom = atom(0);
+export type BoundsNoticeFlash = {
+    token: number;
+    kind: BoundsNoticeKind;
+};
+
+export const boundsNoticeFlashAtom = atom<BoundsNoticeFlash>({ token: 0, kind: "empty" });
 
 // Active tab in the properties panel.
 export const propsTabAtom = atomWithStorage<PropsTab>("wt.propsTab", "general");

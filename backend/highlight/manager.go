@@ -41,6 +41,15 @@ func (m *Manager) Register(b *bus.Bus) {
 		m.ensureHighlighter().Hide()
 		return nil, nil
 	})
+	b.Register(Group, "classifyBounds", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req BoundsRect
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		return platformClassifyBounds(req), nil
+	})
 }
 
 func (m *Manager) ensureHighlighter() platformHighlighter {

@@ -15,6 +15,12 @@ export type HighlightBounds = {
     bottom: number;
 };
 
+export type BoundsNoticeKind = "ok" | "empty" | "offscreen";
+
+export type BoundsClassification = {
+    kind: BoundsNoticeKind;
+};
+
 /**
  * Screen rectangle highlight group. Mirrors the "highlight" group on the
  * backend bus (layered Win32 overlay with optional blink).
@@ -31,4 +37,6 @@ export const highlightBus = {
             blinkCount: options?.blinkCount ?? 0,
         }),
     hide: () => dispatch(GROUP, "hide"),
+    classifyBounds: (bounds: HighlightBounds) =>
+        dispatch<BoundsClassification>(GROUP, "classifyBounds", bounds),
 };

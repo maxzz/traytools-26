@@ -2,6 +2,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
+import { appSettings } from "@/store/1-ui-settings";
 import {
     windowTreeStore,
     loadWindowInfo,
@@ -12,19 +13,19 @@ import {
     treeFilterAtom,
     hideInvisibleAtom,
     filteredTreeAtom,
-    autoHighlightAtom,
 } from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
 
 export function WindowTreeView() {
     const { count, loading, error } = useSnapshot(windowTreeStore);
+    const { windowHighlight } = useSnapshot(appSettings);
     const [selected, setSelected] = useAtom(selectedHandleAtom);
     const filterText = useAtomValue(treeFilterAtom);
     const hideInvisible = useAtomValue(hideInvisibleAtom);
-    const autoHighlight = useAtomValue(autoHighlightAtom);
     const { tree, expandIds } = useAtomValue(filteredTreeAtom);
 
     const needle = filterText.trim().toLowerCase();
+    const autoHighlight = windowHighlight.autoHighlight;
 
     const onSelectionChange = (ids: string[]) => {
         const handle = ids.length > 0 ? ids[0] : null;
