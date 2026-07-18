@@ -58,15 +58,32 @@ export const settingsStartDpAgentHighAtom = atom(
 
 const settingsRunElevatedBaseAtom = atom(false);
 
+/** Current process elevation (admin token). Independent of DpAgent integrity polling. */
+export const appIsElevatedAtom = atom<boolean | null>(null);
+
+export const refreshAppIsElevatedAtom = atom(
+    null,
+    async (_get, set) => {
+        try {
+            set(appIsElevatedAtom, await settingsBus.isElevated());
+        } catch (e) {
+            console.error(e);
+        }
+    },
+);
+
 export const settingsRunElevatedAtom = atom(
     (get) => get(settingsRunElevatedBaseAtom),
     (_get, set, next: boolean) => {
         set(settingsRunElevatedBaseAtom, next);
         settingsBus.setRunElevated(next)
-            .then(() => {
+            .then(async () => {
                 if (next) {
-                    return settingsBus.requestElevationRestart();
+                    // Exits the process when a new elevated instance starts; if UAC is
+                    // cancelled or already elevated, refresh the live status for the UI.
+                    await settingsBus.requestElevationRestart();
                 }
+                await set(refreshAppIsElevatedAtom);
             })
             .catch(console.error);
     },
@@ -82,6 +99,20 @@ export function SettingsRunElevatedSync() {
             });
         },
         [setRunElevated],
+    );
+
+    return null;
+}
+
+/** Loads TrayTools process elevation once at startup for shared UI state. */
+export function AppIsElevatedSync() {
+    const refresh = useSetAtom(refreshAppIsElevatedAtom);
+
+    useEffect(
+        () => {
+            void refresh();
+        },
+        [refresh],
     );
 
     return null;

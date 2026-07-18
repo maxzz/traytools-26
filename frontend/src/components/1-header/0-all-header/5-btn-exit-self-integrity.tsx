@@ -1,9 +1,8 @@
 import { useAtomValue } from "jotai";
-import { appBus } from "@/bridge";
+import { appBus, type IntegrityLevel } from "@/bridge";
 import { Button } from "@/ui/shadcn/button";
 import { IntegrityBadge } from "../4-dpagent-toolbar/2-integrity-badge";
-import { dpAgentStatusAtom } from "../4-dpagent-toolbar/a-dpagent-atoms";
-import { settingsQuitOnCloseAtom } from "../../4-dialogs/8-3-settings/a-settings-atoms";
+import { appIsElevatedAtom, settingsQuitOnCloseAtom } from "../../4-dialogs/8-3-settings/a-settings-atoms";
 
 export function ButtonExit() {
     const quitOnClose = useAtomValue(settingsQuitOnCloseAtom);
@@ -23,9 +22,12 @@ export function ButtonExit() {
     </>);
 }
 
+/** TrayTools elevation badge — uses startup-synced app elevation, not DpAgent poll. */
 export function BadgeSelfIntegrity() {
-    const status = useAtomValue(dpAgentStatusAtom);
+    const isElevated = useAtomValue(appIsElevatedAtom);
+    const level: IntegrityLevel | undefined =
+        isElevated === null ? undefined : isElevated ? "high" : "medium";
     return (
-        <IntegrityBadge level={status?.selfIntegrity} subject="Traytools" />
+        <IntegrityBadge level={level} subject="Traytools" />
     );
 }

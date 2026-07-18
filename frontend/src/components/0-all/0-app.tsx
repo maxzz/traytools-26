@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useAtomValue } from 'jotai';
 import { Toaster } from '@/ui/shadcn/sonner';
 import { Header } from '../1-header/0-all-header/0-all-header';
 import { Section3_Footer } from '../3-footer';
@@ -6,7 +7,7 @@ import { AllDialogs } from './9-globals';
 import { useSnapshot } from 'valtio';
 import { appSettings } from '@/store/1-ui-settings';
 import { WindowSetTitle } from '../../../wailsjs/runtime/runtime';
-import { settingsBus } from '@/bridge/groups/settings';
+import { appIsElevatedAtom } from '@/components/4-dialogs/8-3-settings/a-settings-atoms';
 import { formatMainWindowTitle, getValidMainTab, MAIN_PAGES } from './8-pages-array';
 import { UISymbolDefs } from '@/ui/icons';
 
@@ -31,13 +32,7 @@ export function App() {
 function MainBody() {
     const { mainTab } = useSnapshot(appSettings);
     const activeTab = getValidMainTab(mainTab);
-    const [isElevated, setIsElevated] = useState<boolean | null>(null);
-
-    useEffect(
-        () => {
-            settingsBus.isElevated().then(setIsElevated).catch(console.error);
-        },
-        []);
+    const isElevated = useAtomValue(appIsElevatedAtom);
 
     useEffect(
         () => {

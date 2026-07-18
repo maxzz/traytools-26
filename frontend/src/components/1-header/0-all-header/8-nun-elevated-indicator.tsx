@@ -1,18 +1,11 @@
-import { useEffect, useState } from "react";
+import { useAtomValue } from "jotai";
 import { classNames } from "@/utils";
-import { settingsBus } from "@/bridge/groups/settings";
+import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { IconRadix_DotFilled } from "@/ui/icons/normal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 
 export function ElevatedIndicator() {
-    const [isElevated, setIsElevated] = useState<boolean | null>(null);
-
-    useEffect(
-        () => {
-            settingsBus.isElevated().then(setIsElevated).catch(console.error);
-        },
-        [],
-    );
+    const isElevated = useAtomValue(appIsElevatedAtom);
 
     if (isElevated === null) {
         return null;
