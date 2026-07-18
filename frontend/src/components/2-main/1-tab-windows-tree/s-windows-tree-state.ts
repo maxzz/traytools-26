@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import { type WindowNode } from "@/bridge";
 
 // Discrete UI state for the Windows Tree tab. Kept in Jotai (per the task's
 // state-management split) while the live tree data and selected-window details
@@ -21,3 +22,14 @@ export const hideInvisibleAtom = atomWithStorage("wt.hideInvisible", false);
 
 // Active tab in the properties panel.
 export const propsTabAtom = atomWithStorage<PropsTab>("wt.propsTab", "general");
+
+// Filtered tree + expand ids, owned by WindowTreeToolbar (single filter pass).
+export type FilteredTreeResult = {
+    tree: WindowNode | null;
+    expandIds: string[];
+};
+
+export const filteredTreeAtom = atom<FilteredTreeResult>({ tree: null, expandIds: [] });
+
+// Non-root window count currently shown after filter / hide-invisible.
+export const displayedCountAtom = atom(0);

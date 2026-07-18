@@ -1,33 +1,19 @@
-import { useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
 import { windowTreeStore, loadWindowInfo } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
-import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom } from "./s-windows-tree-state";
-import { type WindowNode } from "@/bridge";
+import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom, filteredTreeAtom } from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
-import { filterNode } from "./2-2-tree-filter";
 
 export function WindowTreeView() {
-    const { root, count, loading, error } = useSnapshot(windowTreeStore);
+    const { count, loading, error } = useSnapshot(windowTreeStore);
     const [selected, setSelected] = useAtom(selectedHandleAtom);
     const filterText = useAtomValue(treeFilterAtom);
     const hideInvisible = useAtomValue(hideInvisibleAtom);
+    const { tree, expandIds } = useAtomValue(filteredTreeAtom);
 
     const needle = filterText.trim().toLowerCase();
-
-    const { tree, expandIds } = useMemo(
-        () => {
-            if (!root) {
-                return { tree: null as WindowNode | null, expandIds: [] as string[] };
-            }
-            const ids: string[] = [];
-            const filtered = filterNode(root as WindowNode, needle, hideInvisible, ids);
-            const isFiltering = needle !== "" || hideInvisible;
-            return { tree: filtered, expandIds: isFiltering ? ids : ["root"] };
-        },
-        [root, needle, hideInvisible]);
 
     const onSelectionChange = (ids: string[]) => {
         const handle = ids.length > 0 ? ids[0] : null;

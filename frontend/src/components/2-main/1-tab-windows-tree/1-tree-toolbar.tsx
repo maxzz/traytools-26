@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useEffect } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { RefreshCw, Settings } from "lucide-react";
 import { classNames } from "@/utils";
@@ -9,12 +9,38 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { type WindowNode } from "@/bridge";
 import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
-import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./s-windows-tree-state";
+import {
+    treeFilterAtom,
+    showHandlesAtom,
+    hideInvisibleAtom,
+    filteredTreeAtom,
+    displayedCountAtom,
+} from "./s-windows-tree-state";
 import { countDisplayedWindows, filterNode } from "./2-2-tree-filter";
 
 export function WindowTreeToolbar() {
-    const { loading } = useSnapshot(windowTreeStore);
+    const { root, loading } = useSnapshot(windowTreeStore);
     const [filter, setFilter] = useAtom(treeFilterAtom);
+    const hideInvisible = useAtomValue(hideInvisibleAtom);
+    const setFilteredTree = useSetAtom(filteredTreeAtom);
+    const setDisplayedCount = useSetAtom(displayedCountAtom);
+
+    // Single filter pass for the tab: drives the tree view and the displayed count.
+    useEffect(
+        () => {
+            if (!root) {
+                setFilteredTree({ tree: null, expandIds: [] });
+                setDisplayedCount(0);
+                return;
+            }
+            const needle = filter.trim().toLowerCase();
+            const ids: string[] = [];
+            const filtered = filterNode(root as WindowNode, needle, hideInvisible, ids);
+            const isFiltering = needle !== "" || hideInvisible;
+            setFilteredTree({ tree: filtered, expandIds: isFiltering ? ids : ["root"] });
+            setDisplayedCount(countDisplayedWindows(filtered));
+        },
+        [root, filter, hideInvisible, setFilteredTree, setDisplayedCount]);
 
     return (
         <div className="bg-app-background/10">
@@ -41,21 +67,10 @@ export function WindowTreeToolbar() {
 }
 
 function TreeOptionsPopover() {
-    const { root, count } = useSnapshot(windowTreeStore);
+    const { count } = useSnapshot(windowTreeStore);
     const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
     const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
-    const filterText = useAtomValue(treeFilterAtom);
-
-    const displayed = useMemo(
-        () => {
-            if (!root) {
-                return 0;
-            }
-            const needle = filterText.trim().toLowerCase();
-            const filtered = filterNode(root as WindowNode, needle, hideInvisible, []);
-            return countDisplayedWindows(filtered);
-        },
-        [root, filterText, hideInvisible]);
+    const displayed = useAtomValue(displayedCountAtom);
 
     return (
         <Popover>
