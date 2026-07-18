@@ -10,6 +10,10 @@ func EnsureSingleInstanceOrExit() {}
 
 func setupSingleInstanceIPC(onSecondInstance func()) {}
 
+func acquireInstanceMutex() bool { return true }
+
+func releaseInstanceMutex() {}
+
 // SingleInstanceLock returns Wails options that ensure only one instance runs on
 // Linux and macOS.
 func (a *App) SingleInstanceLock() *options.SingleInstanceLock {

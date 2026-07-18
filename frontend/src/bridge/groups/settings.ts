@@ -6,7 +6,7 @@ const GROUP = "settings";
  * Settings command group. Mirrors the "settings" group on the backend bus.
  *
  * - getRunElevated / setRunElevated — Run Elevated preference
- * - isElevated / requestElevationRestart — elevation state
+ * - isElevated / requestElevationRestart / requestUnelevatedRestart — elevation state
  * - getQuitOnClose / setQuitOnClose — close-to-tray vs quit
  * - getUnloadHookHotkey / setUnloadHookHotkey — View → unload hook shortcut
  */
@@ -15,6 +15,7 @@ export const settingsBus = {
     setRunElevated: (value: boolean) => dispatch(GROUP, "setRunElevated", { value }),
     isElevated: () => dispatch<boolean>(GROUP, "isElevated"),
     requestElevationRestart: () => dispatch(GROUP, "requestElevationRestart"),
+    requestUnelevatedRestart: () => dispatch(GROUP, "requestUnelevatedRestart"),
     getQuitOnClose: () => dispatch<boolean>(GROUP, "getQuitOnClose"),
     setQuitOnClose: (value: boolean) => dispatch(GROUP, "setQuitOnClose", { value }),
     getUnloadHookHotkey: () => dispatch<UnloadHookHotkeyOptions>(GROUP, "getUnloadHookHotkey"),

@@ -78,14 +78,18 @@ export const settingsRunElevatedAtom = atom(
         set(settingsRunElevatedBaseAtom, next);
         settingsBus.setRunElevated(next)
             .then(async () => {
+                // Restart into the requested privilege level. Successful relaunch
+                // exits this process; on UAC cancel / failure, refresh UI state.
                 if (next) {
-                    // Exits the process when a new elevated instance starts; if UAC is
-                    // cancelled or already elevated, refresh the live status for the UI.
                     await settingsBus.requestElevationRestart();
+                } else {
+                    await settingsBus.requestUnelevatedRestart();
                 }
                 await set(refreshAppIsElevatedAtom);
             })
-            .catch(console.error);
+            .catch((e) => {
+                notice.error(`Failed to change elevation:\n ${String(e)}`);
+            });
     },
 );
 

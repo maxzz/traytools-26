@@ -9,3 +9,7 @@ func IsElevated() bool {
 func RelaunchElevated() error {
 	return nil
 }
+
+func RelaunchUnelevated() error {
+	return nil
+}

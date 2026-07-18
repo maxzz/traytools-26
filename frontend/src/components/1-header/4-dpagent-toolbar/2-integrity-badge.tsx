@@ -1,10 +1,11 @@
 import { classNames } from "@/utils";
 import { type IntegrityLevel } from "@/bridge";
 
-export function IntegrityBadge({ level, subject, className }: { level: IntegrityLevel | undefined; subject: string; className?: string; }) {
+export function IntegrityBadge({ level, subject, className, title }: { level: IntegrityLevel | undefined; subject: string; className?: string; title?: string; }) {
     const glyph = integrityGlyph(level);
     const isHigh = level === "high";
     const isUnknown = !level || level === "na" || level === "undetected";
+    const label = title ?? integrityAriaLabel(level, subject);
 
     return (
         <span
@@ -15,8 +16,8 @@ export function IntegrityBadge({ level, subject, className }: { level: Integrity
                 isUnknown && "text-muted-foreground border-border bg-muted/40",
                 className,
             )}
-            title={integrityAriaLabel(level, subject)}
-            aria-label={integrityAriaLabel(level, subject)}
+            title={label}
+            aria-label={label}
         >
             {glyph}
         </span>

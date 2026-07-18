@@ -25,8 +25,10 @@ func EnsureElevatedIfRequested() {
 		return
 	}
 
+	releaseInstanceMutex()
 	if err := RelaunchElevated(); err != nil {
 		log.Printf("elevation: failed to relaunch elevated: %v", err)
+		_ = acquireInstanceMutex()
 		return
 	}
 
@@ -40,7 +42,26 @@ func RequestElevationRestart() error {
 		return nil
 	}
 
+	releaseInstanceMutex()
 	if err := RelaunchElevated(); err != nil {
+		_ = acquireInstanceMutex()
+		return err
+	}
+
+	os.Exit(0)
+	return nil
+}
+
+// RequestUnelevatedRestart relaunches the current executable at normal
+// (medium) integrity and exits. No-op when not elevated.
+func RequestUnelevatedRestart() error {
+	if !IsElevated() {
+		return nil
+	}
+
+	releaseInstanceMutex()
+	if err := RelaunchUnelevated(); err != nil {
+		_ = acquireInstanceMutex()
 		return err
 	}
 

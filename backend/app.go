@@ -101,6 +101,9 @@ func (a *App) registerHandlers() {
 	a.bus.Register("settings", "requestElevationRestart", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return nil, RequestElevationRestart()
 	})
+	a.bus.Register("settings", "requestUnelevatedRestart", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return nil, RequestUnelevatedRestart()
+	})
 	a.bus.Register("settings", "isElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return IsElevated(), nil
 	})

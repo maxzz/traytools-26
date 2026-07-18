@@ -67,6 +67,17 @@ func acquireInstanceMutex() bool {
 	return true
 }
 
+// releaseInstanceMutex drops the single-instance lock so a relaunched process
+// can acquire it before this process exits.
+func releaseInstanceMutex() {
+	if instanceMutex == 0 {
+		return
+	}
+	windows.ReleaseMutex(instanceMutex)
+	windows.CloseHandle(instanceMutex)
+	instanceMutex = 0
+}
+
 func instanceMutexSecurity() *windows.SecurityAttributes {
 	sa, err := windowsSecurityAttributesForEveryone()
 	if err != nil {
