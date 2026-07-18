@@ -36,8 +36,15 @@ func RelaunchElevated() error {
 	return shellExecuteSelf("runas")
 }
 
+// Access rights CreateProcessAsUser requires on the primary token (winbase docs).
+const createProcessAsUserAccess = windows.TOKEN_ASSIGN_PRIMARY |
+	windows.TOKEN_DUPLICATE |
+	windows.TOKEN_QUERY |
+	windows.TOKEN_ADJUST_DEFAULT |
+	windows.TOKEN_ADJUST_SESSIONID
+
 // RelaunchUnelevated starts a new instance at medium integrity and returns.
-// When the current process is elevated, the shell's linked (filtered) token is
+// When the current process is elevated, the UAC linked (filtered) token is
 // used so the child is not elevated. Callers should exit after success.
 func RelaunchUnelevated() error {
 	exe, err := os.Executable()
@@ -62,12 +69,15 @@ func RelaunchUnelevated() error {
 	}
 	defer linked.Close()
 
+	// Linked tokens are typically Identification-level; requesting Impersonation
+	// returns ERROR_BAD_IMPERSONATION_LEVEL. SecurityIdentification is correct
+	// when duplicating to a primary token for CreateProcessAsUser.
 	var primary windows.Token
 	if err := windows.DuplicateTokenEx(
 		linked,
-		windows.MAXIMUM_ALLOWED,
+		createProcessAsUserAccess,
 		nil,
-		windows.SecurityImpersonation,
+		windows.SecurityIdentification,
 		windows.TokenPrimary,
 		&primary,
 	); err != nil {
