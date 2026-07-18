@@ -1,4 +1,5 @@
-import { useAtom } from "jotai";
+import { useMemo } from "react";
+import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { RefreshCw, Settings } from "lucide-react";
 import { cn } from "@/utils";
@@ -6,8 +7,10 @@ import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
+import { type WindowNode } from "@/bridge";
 import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
 import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./s-windows-tree-state";
+import { countDisplayedWindows, filterNode } from "./u-tree-filter";
 
 export function WindowTreeToolbar() {
     const { loading } = useSnapshot(windowTreeStore);
@@ -38,9 +41,21 @@ export function WindowTreeToolbar() {
 }
 
 function TreeOptionsPopover() {
-    const { count } = useSnapshot(windowTreeStore);
+    const { root, count } = useSnapshot(windowTreeStore);
     const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
     const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
+    const filterText = useAtomValue(treeFilterAtom);
+
+    const displayed = useMemo(
+        () => {
+            if (!root) {
+                return 0;
+            }
+            const needle = filterText.trim().toLowerCase();
+            const filtered = filterNode(root as WindowNode, needle, hideInvisible, []);
+            return countDisplayedWindows(filtered);
+        },
+        [root, filterText, hideInvisible]);
 
     return (
         <Popover>
@@ -66,9 +81,15 @@ function TreeOptionsPopover() {
 
                 <div className="-mx-2 h-px border-t border-border"></div>
 
-                <div className="flex items-center gap-1">
-                    <span className="text-xs">Total windows:</span>
-                    <span className="tabular-nums text-[11px] text-muted-foreground">{count} windows</span>
+                <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1">
+                        <span className="text-xs">Total windows:</span>
+                        <span className="tabular-nums text-[11px] text-muted-foreground">{count}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="text-xs">Displayed:</span>
+                        <span className="tabular-nums text-[11px] text-muted-foreground">{displayed}</span>
+                    </div>
                 </div>
 
             </PopoverContent>
