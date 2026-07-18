@@ -10,7 +10,7 @@ import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-wi
 import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom } from "./s-windows-tree-state";
 
 export function WindowTreeToolbar() {
-    const { count, loading } = useSnapshot(windowTreeStore);
+    const { loading } = useSnapshot(windowTreeStore);
     const [filter, setFilter] = useAtom(treeFilterAtom);
 
     return (
@@ -25,9 +25,6 @@ export function WindowTreeToolbar() {
                         className="flex-1 h-7 min-w-40 text-xs"
                     />
 
-                    <span className="text-xs font-semibold">Windows Tree</span>
-                    <span className="tabular-nums text-[11px] text-muted-foreground">{count} windows</span>
-
                     <Button className="ml-auto" size="xs" variant="outline" onClick={() => void refreshWindowTree()} disabled={loading}>
                         <RefreshCw className={cn("mr-1 size-3", loading && "animate-spin")} />
                         Refresh
@@ -41,6 +38,7 @@ export function WindowTreeToolbar() {
 }
 
 function TreeOptionsPopover() {
+    const { count } = useSnapshot(windowTreeStore);
     const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
     const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
 
@@ -51,15 +49,28 @@ function TreeOptionsPopover() {
                     <Settings className="size-3" />
                 </Button>
             </PopoverTrigger>
+
             <PopoverContent align="end" className="w-auto">
+
+            <span className="text-xs font-semibold">Tree options</span>
+
                 <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                     <Checkbox checked={showHandles} onCheckedChange={(v) => setShowHandles(v === true)} />
                     Handles
                 </label>
+
                 <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                     <Checkbox checked={hideInvisible} onCheckedChange={(v) => setHideInvisible(v === true)} />
                     Hide invisible
                 </label>
+
+                <div className="-mx-2 h-px border-t border-border"></div>
+
+                <div className="flex items-center gap-1">
+                    <span className="text-xs">Total windows:</span>
+                    <span className="tabular-nums text-[11px] text-muted-foreground">{count} windows</span>
+                </div>
+
             </PopoverContent>
         </Popover>
     );
