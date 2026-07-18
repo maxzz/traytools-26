@@ -13,14 +13,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// Token information classes / elevation types (winnt.h) not always exported
-// as named constants in older x/sys revisions.
-const (
-	tokenElevationType     = 18
-	tokenLinkedToken       = 19
-	tokenElevationTypeFull = 2
-)
-
 func IsElevated() bool {
 	var token windows.Token
 	err := windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY, &token)
@@ -36,16 +28,10 @@ func RelaunchElevated() error {
 	return shellExecuteSelf("runas")
 }
 
-// Access rights CreateProcessAsUser requires on the primary token (winbase docs).
-const createProcessAsUserAccess = windows.TOKEN_ASSIGN_PRIMARY |
-	windows.TOKEN_DUPLICATE |
-	windows.TOKEN_QUERY |
-	windows.TOKEN_ADJUST_DEFAULT |
-	windows.TOKEN_ADJUST_SESSIONID
-
 // RelaunchUnelevated starts a new instance at medium integrity and returns.
-// When the current process is elevated, the UAC linked (filtered) token is
-// used so the child is not elevated. Callers should exit after success.
+// When elevated, the child is created with Explorer as its parent so it
+// inherits the shell's (typically non-elevated) integrity level. Callers
+// should exit after success.
 func RelaunchUnelevated() error {
 	exe, err := os.Executable()
 	if err != nil {
@@ -53,62 +39,48 @@ func RelaunchUnelevated() error {
 	}
 	exeDir := filepath.Dir(exe)
 
-	var token windows.Token
-	if err := windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY, &token); err != nil {
-		return err
-	}
-	defer token.Close()
-
-	if !token.IsElevated() {
+	if !IsElevated() {
 		return shellExecuteSelf("open")
 	}
 
-	linked, err := linkedToken(token)
-	if err != nil {
-		return fmt.Errorf("linked token: %w", err)
-	}
-	defer linked.Close()
+	return createProcessWithExplorerParent(exe, exeDir)
+}
 
-	// Linked tokens are typically Identification-level; requesting Impersonation
-	// returns ERROR_BAD_IMPERSONATION_LEVEL. SecurityIdentification is correct
-	// when duplicating to a primary token for CreateProcessAsUser.
-	var primary windows.Token
-	if err := windows.DuplicateTokenEx(
-		linked,
-		createProcessAsUserAccess,
-		nil,
-		windows.SecurityIdentification,
-		windows.TokenPrimary,
-		&primary,
+func createProcessWithExplorerParent(exe, exeDir string) error {
+	shellHWND := windows.GetShellWindow()
+	if shellHWND == 0 {
+		return fmt.Errorf("GetShellWindow returned 0 (is Explorer running?)")
+	}
+
+	var pid uint32
+	if _, err := windows.GetWindowThreadProcessId(shellHWND, &pid); err != nil {
+		return fmt.Errorf("GetWindowThreadProcessId: %w", err)
+	}
+	if pid == 0 {
+		return fmt.Errorf("shell window has no process id")
+	}
+
+	parent, err := windows.OpenProcess(windows.PROCESS_CREATE_PROCESS, false, pid)
+	if err != nil {
+		return fmt.Errorf("OpenProcess(explorer): %w", err)
+	}
+	defer windows.CloseHandle(parent)
+
+	attrList, err := windows.NewProcThreadAttributeList(1)
+	if err != nil {
+		return err
+	}
+	defer attrList.Delete()
+
+	// Update stores the pointer; parent must remain live until CreateProcess returns.
+	if err := attrList.Update(
+		windows.PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,
+		unsafe.Pointer(&parent),
+		unsafe.Sizeof(parent),
 	); err != nil {
-		return fmt.Errorf("duplicate linked token: %w", err)
-	}
-	defer primary.Close()
-
-	return createProcessAsUser(primary, exe, exeDir)
-}
-
-func linkedToken(token windows.Token) (windows.Token, error) {
-	var elevType uint32
-	var needed uint32
-	err := windows.GetTokenInformation(token, tokenElevationType, (*byte)(unsafe.Pointer(&elevType)), uint32(unsafe.Sizeof(elevType)), &needed)
-	if err != nil {
-		return 0, err
-	}
-	if elevType != tokenElevationTypeFull {
-		return 0, fmt.Errorf("process is elevated but has no linked limited token (elevation type %d)", elevType)
+		return fmt.Errorf("UpdateProcThreadAttribute: %w", err)
 	}
 
-	var linked windows.Handle
-	needed = 0
-	err = windows.GetTokenInformation(token, tokenLinkedToken, (*byte)(unsafe.Pointer(&linked)), uint32(unsafe.Sizeof(linked)), &needed)
-	if err != nil {
-		return 0, err
-	}
-	return windows.Token(linked), nil
-}
-
-func createProcessAsUser(token windows.Token, exe, exeDir string) error {
 	cmd := `"` + exe + `"`
 	if len(os.Args) > 1 {
 		cmd += " " + strings.Join(os.Args[1:], " ")
@@ -122,26 +94,26 @@ func createProcessAsUser(token windows.Token, exe, exeDir string) error {
 		return err
 	}
 
-	var si windows.StartupInfo
+	var si windows.StartupInfoEx
 	si.Cb = uint32(unsafe.Sizeof(si))
-	si.Flags = windows.STARTF_USESHOWWINDOW
-	si.ShowWindow = uint16(windows.SW_SHOWDEFAULT)
+	si.ProcThreadAttributeList = attrList.List()
+	si.StartupInfo.Flags = windows.STARTF_USESHOWWINDOW
+	si.StartupInfo.ShowWindow = uint16(windows.SW_SHOWDEFAULT)
 
 	var pi windows.ProcessInformation
-	if err := windows.CreateProcessAsUser(
-		token,
+	if err := windows.CreateProcess(
 		nil,
 		cmdLine,
 		nil,
 		nil,
 		false,
-		0,
+		windows.CREATE_UNICODE_ENVIRONMENT|windows.EXTENDED_STARTUPINFO_PRESENT,
 		nil,
 		dirPtr,
-		&si,
+		&si.StartupInfo,
 		&pi,
 	); err != nil {
-		return fmt.Errorf("CreateProcessAsUser: %w", err)
+		return fmt.Errorf("CreateProcess (explorer parent): %w", err)
 	}
 	windows.CloseHandle(pi.Thread)
 	windows.CloseHandle(pi.Process)
