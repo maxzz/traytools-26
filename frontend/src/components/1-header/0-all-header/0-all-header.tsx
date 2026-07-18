@@ -4,12 +4,13 @@ import { AppMenubar } from "./1-0-app-menubar";
 import { MainTabs } from "./1-2-main-tabs";
 import { UnloadHookNotice } from "../3-send-unload-msg-notice/3-0-notice-unload-hook";
 import { DpAgentToolbar } from "../4-dpagent-toolbar";
-import { ButtonSettings } from "./2-1-btn-settings";
-import { ButtonThemeToggle } from "./2-2-btn-theme-toggle";
+import { ButtonStayOnTop } from "./2-1-btn-stay-on-top";
+import { ButtonSettings } from "./2-2-btn-settings";
+import { ButtonThemeToggle } from "./2-3-btn-theme-toggle";
 import { BadgeSelfIntegrity, ButtonExit } from "./5-btn-exit-self-integrity";
 
 export function Header() {
-    const { showMainTabs } = useSnapshot(appSettings);
+    const { showMainTabs, showThemeToggle } = useSnapshot(appSettings);
 
     return (
         <header className="px-3 py-1 bg-background border-b border-border flex items-center justify-between">
@@ -23,8 +24,9 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-1">
+                <ButtonStayOnTop />
                 <ButtonSettings />
-                <ButtonThemeToggle />
+                {showThemeToggle && <ButtonThemeToggle />}
                 <DpAgentToolbar className="ml-1" />
                 <ButtonExit />
                 <BadgeSelfIntegrity />

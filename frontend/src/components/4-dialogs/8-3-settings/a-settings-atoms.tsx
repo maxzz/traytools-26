@@ -26,6 +26,16 @@ export const settingsShowMainTabsAtom = atom(
     },
 );
 
+const settingsShowThemeToggleBaseAtom = atom(appSettings.showThemeToggle);
+
+export const settingsShowThemeToggleAtom = atom(
+    (get) => get(settingsShowThemeToggleBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsShowThemeToggleBaseAtom, next);
+        appSettings.showThemeToggle = next;
+    },
+);
+
 const settingsStayOnTopBaseAtom = atom(appSettings.stayOnTop);
 
 export const settingsStayOnTopAtom = atom(

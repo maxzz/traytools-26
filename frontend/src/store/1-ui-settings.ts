@@ -11,6 +11,7 @@ export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showFooter: boolean;         // Show footer in main layout
     showMainTabs: boolean;       // Show main page tabs in the header
+    showThemeToggle: boolean;    // Show theme toggle button in the header
     stayOnTop: boolean;          // Keep main window above other windows
     panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
     expandedSections: string[];  // Expanded accordion sections by name
@@ -23,6 +24,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     theme: 'light',
     showFooter: false,
     showMainTabs: false,
+    showThemeToggle: false,
     stayOnTop: false,
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
@@ -47,6 +49,7 @@ function loadSettings(): AppSettings {
                 expandedSections: parsed.expandedSections ?? DEFAULT_SETTINGS.expandedSections,
                 mainTab: parsed.mainTab ?? DEFAULT_SETTINGS.mainTab,
                 showMainTabs: parsed.showMainTabs ?? DEFAULT_SETTINGS.showMainTabs,
+                showThemeToggle: parsed.showThemeToggle ?? DEFAULT_SETTINGS.showThemeToggle,
                 showDpAgentToolbar: parsed.showDpAgentToolbar ?? DEFAULT_SETTINGS.showDpAgentToolbar,
                 startDpAgentHigh: parsed.startDpAgentHigh ?? DEFAULT_SETTINGS.startDpAgentHigh,
             };

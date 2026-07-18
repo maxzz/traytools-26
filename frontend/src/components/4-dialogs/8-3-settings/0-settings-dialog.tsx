@@ -5,6 +5,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { classNames } from "@/utils";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { Button } from "@/ui/shadcn/button";
+import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
@@ -16,6 +17,7 @@ import {
     settingsRunElevatedAtom,
     settingsShowFooterAtom,
     settingsShowMainTabsAtom,
+    settingsShowThemeToggleAtom,
     settingsStartDpAgentHighAtom,
     settingsStayOnTopAtom,
     settingsUnloadHookHotkeyAtom,
@@ -77,6 +79,7 @@ function ControlSwitch({ label, valueAtom, className, ...rest }: ComponentProps<
 
 function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
     const { theme } = useSnapshot(appSettings);
+    const [showThemeToggle, setShowThemeToggle] = useAtom(settingsShowThemeToggleAtom);
 
     return (
         <div className={classNames("flex items-center gap-2", className)} {...rest}>
@@ -95,6 +98,19 @@ function ControlTheme({ className, ...rest }: ComponentProps<"div">) {
                     <SelectItem className="font-condensed font-normal" value="system">System</SelectItem>
                 </SelectContent>
             </Select>
+
+            <Label
+                className="font-normal flex items-center gap-1.5 cursor-pointer"
+                htmlFor="settings-show-theme-toggle"
+                title="Show the theme toggle button in the application header"
+            >
+                <Checkbox
+                    id="settings-show-theme-toggle"
+                    checked={showThemeToggle}
+                    onCheckedChange={(v) => setShowThemeToggle(v === true)}
+                />
+                Show theme toggle button in header
+            </Label>
         </div>
     );
 }
