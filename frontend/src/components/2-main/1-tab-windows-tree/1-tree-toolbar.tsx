@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
-import { RefreshCw, Settings } from "lucide-react";
+import { RefreshCw, Settings, X } from "lucide-react";
 import { classNames } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
@@ -27,15 +27,30 @@ export function WindowTreeToolbar() {
 
                 <div className="px-2 py-1.5 border-b flex items-center gap-x-1 flex-wrap">
                     <Button className="h-7 rounded" size="xs" variant="outline" onClick={() => void refreshWindowTree()} disabled={loading} title="Refresh windows">
-                        <RefreshCw className={classNames("size-3", loading && "animate-spin")} />
+                        <RefreshCw className={classNames("size-3.5 text-muted-foreground", loading && "animate-spin")} />
                     </Button>
 
-                    <Input
-                        className="flex-1 h-7 min-w-40 text-xs rounded"
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        placeholder="Filter by class or title..."
-                    />
+                    <div className="relative flex-1 min-w-40">
+                        <Input
+                            className="h-7 pr-7 text-xs rounded"
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                            placeholder="Filter by class or title..."
+                        />
+
+                        <Button
+                            className="absolute inset-y-0 right-1 my-auto pb-0.5"
+                            size="icon-xs"
+                            variant="ghost"
+                            disabled={!filter}
+                            onClick={() => setFilter("")}
+                            title="Clear filter"
+                            aria-label="Clear filter"
+                            type="button"
+                        >
+                            <X className="size-3.5 text-muted-foreground" />
+                        </Button>
+                    </div>
 
                     <TreeOptionsPopover />
                 </div>
@@ -54,7 +69,7 @@ function TreeOptionsPopover() {
         <Popover>
             <PopoverTrigger asChild>
                 <Button className="size-7 rounded" size="icon-xs" variant="outline" title="Tree options" type="button">
-                    <Settings className="size-3" />
+                    <Settings className="size-3.5 text-muted-foreground" />
                 </Button>
             </PopoverTrigger>
 
