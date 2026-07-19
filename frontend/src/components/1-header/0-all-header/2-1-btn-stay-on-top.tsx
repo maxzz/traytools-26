@@ -12,7 +12,7 @@ export function ButtonStayOnTop() {
             variant="ghost"
             size="icon"
             onClick={() => setStayOnTop(!stayOnTop)}
-            title={stayOnTop ? "Disable always on top" : "Keep window always on top"}
+            title={stayOnTop ? "Now is always on top" : "Now is not always on top"}
             type="button"
             aria-pressed={stayOnTop}
         >

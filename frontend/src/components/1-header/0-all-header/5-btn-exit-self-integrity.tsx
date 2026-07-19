@@ -7,7 +7,7 @@ import { appIsElevatedAtom, settingsQuitOnCloseAtom, settingsRunElevatedAtom } f
 export function ButtonExit() {
     const quitOnClose = useAtomValue(settingsQuitOnCloseAtom);
     return (<>
-        {quitOnClose && (
+        {!quitOnClose && (
             <Button
                 type="button"
                 variant="outline"
