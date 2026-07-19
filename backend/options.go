@@ -105,13 +105,15 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 		}
 	}
 
-	// 2. DevTools & ShowMenu state
-	devTools := a.platformIsDevToolsOpen()
+	// 2. DevTools & ShowMenu state.
+	// Keep the last known DevTools flag here: scanning via EnumWindows during
+	// BeforeClose runs on the UI thread and can delay title-bar close.
 	var showMenu bool
 	var runElevated bool
 	var quitOnClose bool
 	var unloadHookHotkey string
 	var unloadHookHotkeyGlobal bool
+	var devTools bool
 
 	existing, err := LoadIniFileOptions()
 	if err == nil && existing != nil {
@@ -120,6 +122,7 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 		quitOnClose = existing.QuitOnClose
 		unloadHookHotkey = existing.UnloadHookHotkey
 		unloadHookHotkeyGlobal = existing.UnloadHookHotkeyGlobal
+		devTools = existing.DevTools
 	}
 
 	opts := &IniOptions{

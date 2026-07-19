@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"os"
 	"runtime"
 	"traytools-26-go/backend"
 
@@ -76,4 +77,7 @@ func main() {
 	if err != nil {
 		println("Error:", err.Error())
 	}
+	// Force process exit so a stuck systray goroutine cannot keep the process
+	// alive after the main window has already shut down.
+	os.Exit(0)
 }

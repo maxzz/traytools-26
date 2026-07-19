@@ -172,15 +172,15 @@ func (a *App) Dispatch(group string, command string, payloadJSON string) (string
 // RequestExit flags an intentional shutdown and asks Wails to quit. The
 // BeforeClose hook then allows the close instead of hiding to the tray.
 //
-// Tray teardown runs on a goroutine so a tray-menu Exit click can return to
-// the systray message loop; otherwise waiting for NIM_DELETE would deadlock.
+// Quit runs on a goroutine so a tray-menu Exit click can return to the
+// systray message loop immediately. Tray teardown happens in Shutdown —
+// never while handling the title-bar WM_CLOSE on the UI thread.
 func (a *App) RequestExit() {
 	if a.quitRequested {
 		return
 	}
 	a.quitRequested = true
 	go func() {
-		stopTray()
 		if a.ctx != nil {
 			runtime.Quit(a.ctx)
 		}
@@ -199,12 +199,15 @@ func (a *App) DomReady(ctx context.Context) {
 // This app behaves as a background utility by default: unless an explicit exit
 // was requested (via the frontend menu or the tray), or quitOnClose is enabled
 // in settings, closing the window only hides it to the system tray.
+//
+// Do not call stopTray here: BeforeClose runs on the UI thread during WM_CLOSE.
+// Blocking on systray teardown freezes the message pump (slow close) and, if the
+// wait times out, can leave the systray goroutine alive so the process never
+// exits. Tray cleanup belongs in Shutdown.
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	if a.quitRequested || GetQuitOnCloseOption() {
 		a.saveWindowOptions(ctx)
-		// Ensure the tray icon is removed before the process exits (covers the
-		// quit-on-close path that never calls RequestExit).
-		stopTray()
+		a.quitRequested = true
 		return false
 	}
 	a.hideWindow()

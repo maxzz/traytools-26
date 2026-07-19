@@ -11,7 +11,7 @@ import (
 
 var (
 	trayExitCh   chan struct{}
-	trayStopOnce sync.Once
+	trayQuitOnce sync.Once
 )
 
 // startTray launches the system tray icon and menu. systray.Run blocks, so it
@@ -58,15 +58,18 @@ func onTrayExit() {
 // stopTray removes the system tray icon (NIM_DELETE) and waits for the systray
 // event loop to finish. Without this, Windows leaves a ghost icon until the
 // user hovers over it. Safe to call multiple times and before the tray starts.
+//
+// Quit is posted once; waiters may call this again (e.g. Shutdown after a
+// timed-out earlier attempt) and will observe the already-closed exit channel.
 func stopTray() {
-	trayStopOnce.Do(func() {
-		if trayExitCh == nil {
-			return
-		}
+	if trayExitCh == nil {
+		return
+	}
+	trayQuitOnce.Do(func() {
 		systray.Quit()
-		select {
-		case <-trayExitCh:
-		case <-time.After(2 * time.Second):
-		}
 	})
+	select {
+	case <-trayExitCh:
+	case <-time.After(2 * time.Second):
+	}
 }
