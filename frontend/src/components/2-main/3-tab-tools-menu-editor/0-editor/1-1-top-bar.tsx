@@ -1,57 +1,64 @@
 import { useSnapshot } from "valtio";
-import { AlertTriangle, Menu } from "lucide-react";
+import { AlertTriangle, Info, Menu } from "lucide-react";
+import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { toolsEditorStore, ToolsConfig_Load, ToolsConfig_ResetToDefaults, ToolsConfig_Apply } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 
 export function TopBar() {
     return (
-        <div className="mx-1 my-1 px-2 py-2 bg-background border rounded flex items-center gap-2">
-            <StatusMessage />
-            <FilePathLabel />
+        <div className="bg-app-background/10">
+            <div className="mx-1 h-9 px-2 py-1.5 bg-background border rounded flex items-center gap-2">
+                <StatusMessage />
 
-            <DirtyStatusBadge />
-            <ActionsMenu />
-        </div>
-    );
-}
-
-function FilePathLabel() {
-    const { path } = useSnapshot(toolsEditorStore);
-
-    return (
-        <div className="mr-auto flex flex-col">
-            <span className="text-[0.7rem] text-muted-foreground">
-                {path
-                    ? (<>
-                        File: <span className="">{path}</span>
-                    </>)
-                    : "Edit the Tools menu and create tools.json"
-                }
-            </span>
+                <div className="ml-auto flex items-center gap-2">
+                    <DirtyStatusBadge />
+                    <ActionsMenu />
+                </div>
+            </div>
         </div>
     );
 }
 
 function StatusMessage() {
-    const { status, error } = useSnapshot(toolsEditorStore);
-
-    if (error) {
-        return (
-            <span className="text-destructive flex items-center gap-1">
-                <AlertTriangle className="size-3.5" /> {error}
-            </span>
-        );
-    }
-
-    if (!status) {
-        return null;
-    }
+    const { status, error, path } = useSnapshot(toolsEditorStore);
+    const message = error || status;
 
     return (
-        <span className="text-muted-foreground">
-            {status}
-        </span>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button
+                        type="button"
+                        className={cn(
+                            "size-5 rounded-full border inline-flex items-center justify-center",
+                            error
+                                ? "text-destructive border-destructive/70 bg-destructive/15"
+                                : "text-muted-foreground border-border bg-muted",
+                        )}
+                        aria-label="Status"
+                    >
+                        {error
+                            ? <AlertTriangle className="size-3" />
+                            : <Info className="size-3" />
+                        }
+                    </button>
+                </TooltipTrigger>
+
+                <TooltipContent side="bottom" className="max-w-80">
+                    <div className="flex flex-col gap-1">
+                        {message && <p>{message}</p>}
+                        <p>
+                            {path
+                                ? `File: ${path}`
+                                : "Edit the Tools menu and create tools.json"
+                            }
+                        </p>
+                    </div>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     );
 }
 

@@ -10,21 +10,8 @@ import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { IconCollapse } from "@/ui/icons/normal";
-import {
-    windowTreeStore,
-    refreshWindowTree,
-    maybeHighlightSelectedWindow,
-    hideWindowHighlight,
-} from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
-import {
-    treeFilterAtom,
-    showHandlesAtom,
-    hideInvisibleAtom,
-    displayedCountAtom,
-    selectedHandleAtom,
-    filteredTreeAtom,
-    treeExpandRevisionAtom,
-} from "./s-windows-tree-state";
+import { windowTreeStore, refreshWindowTree, maybeHighlightSelectedWindow, hideWindowHighlight } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 import { useFilter } from "./2-2-use-filter";
 
 export function WindowTreeToolbar() {
@@ -35,16 +22,16 @@ export function WindowTreeToolbar() {
 
     return (
         <div className="bg-app-background/10">
-            <div className={"mx-1 my-0.5 bg-background border rounded"}>
+            <div className={"mx-1 h-9 bg-background border rounded"}>
 
                 <div className="px-2 py-1.5 border-b flex items-center gap-x-1 flex-wrap">
-                    <Button className="h-7 rounded" size="xs" variant="outline" onClick={() => void refreshWindowTree()} disabled={loading} title="Refresh windows">
+                    <Button className="size-6 rounded" size="xs" variant="outline" onClick={() => void refreshWindowTree()} disabled={loading} title="Refresh windows">
                         <RefreshCw className={classNames("size-3.5 text-muted-foreground", loading && "animate-spin")} />
                     </Button>
 
                     <div className="relative flex-1 min-w-40">
                         <Input
-                            className="h-7 pr-7 text-xs rounded"
+                            className="h-6 pr-7 text-xs rounded"
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             placeholder="Filter by class or title..."
@@ -73,13 +60,38 @@ export function WindowTreeToolbar() {
     );
 }
 
+function AutoHighlightToggle() {
+    const { windowHighlight } = useSnapshot(appSettings);
+    const selectedHandle = useAtomValue(selectedHandleAtom);
+
+    return (
+        <Label className="shrink-0 ml-4 text-xs font-normal text-muted-foreground cursor-pointer gap-0" title="Highlight the selected window on screen">
+            <span className="-mr-0.5 pb-0.5 whitespace-nowrap">
+                Auto-highlight:
+            </span>
+            <Switch
+                className="scale-65"
+                checked={windowHighlight.autoHighlight}
+                onCheckedChange={(checked) => {
+                    appSettings.windowHighlight.autoHighlight = checked;
+                    if (checked) {
+                        void maybeHighlightSelectedWindow(selectedHandle);
+                    } else {
+                        void hideWindowHighlight();
+                    }
+                }}
+            />
+        </Label>
+    );
+}
+
 function CollapseToTopLevelButton() {
     const setFilteredTree = useSetAtom(filteredTreeAtom);
     const setExpandRevision = useSetAtom(treeExpandRevisionAtom);
 
     return (
         <Button
-            className="size-7 rounded"
+            className="size-6 rounded"
             size="icon-xs"
             variant="outline"
             title="Collapse to top-level windows"
@@ -100,32 +112,6 @@ function CollapseToTopLevelButton() {
     );
 }
 
-function AutoHighlightToggle() {
-    const { windowHighlight } = useSnapshot(appSettings);
-    const selectedHandle = useAtomValue(selectedHandleAtom);
-
-    return (
-        <Label
-            className="shrink-0 text-xs font-normal text-muted-foreground cursor-pointer gap-1"
-            title="Highlight the selected window on screen"
-        >
-            <span className="pb-0.5 whitespace-nowrap">Auto-highlight:</span>
-            <Switch
-                className="scale-75"
-                checked={windowHighlight.autoHighlight}
-                onCheckedChange={(checked) => {
-                    appSettings.windowHighlight.autoHighlight = checked;
-                    if (checked) {
-                        void maybeHighlightSelectedWindow(selectedHandle);
-                    } else {
-                        void hideWindowHighlight();
-                    }
-                }}
-            />
-        </Label>
-    );
-}
-
 function TreeOptionsPopover() {
     const { count } = useSnapshot(windowTreeStore);
     const { windowHighlight } = useSnapshot(appSettings);
@@ -136,7 +122,7 @@ function TreeOptionsPopover() {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button className="size-7 rounded" size="icon-xs" variant="outline" title="Tree options" type="button">
+                <Button className="size-6 rounded" size="icon-xs" variant="outline" title="Tree options" type="button">
                     <Settings className="size-3.5 text-muted-foreground" />
                 </Button>
             </PopoverTrigger>

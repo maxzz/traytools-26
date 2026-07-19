@@ -57,6 +57,6 @@ data-closed:animate-out \
 data-closed:fade-out-0 \
 data-closed:zoom-out-95 \
 \
-rounded-md \
+rounded \
 inline-flex items-center gap-1.5 \
 z-50";

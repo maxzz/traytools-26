@@ -27,7 +27,7 @@ export function Page_ToolsMenuEditor() {
         []);
 
     return (
-        <div className="flex-1 size-full min-h-0 overflow-hidden grid grid-rows-[auto_1fr] 1gap-1">
+        <div className="flex-1 size-full min-h-0 overflow-hidden grid grid-rows-[auto_1fr] gap-0.5">
             <TopBar />
 
             <ResizablePanelGroup className="bg-card" orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => savePanelLayout(PANEL_GROUPS.toolsEditorMain, layout)}>
