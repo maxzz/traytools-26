@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { RefreshCw, Settings, X } from "lucide-react";
 import { classNames } from "@/utils";
@@ -9,6 +9,7 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
+import { IconCollapse } from "@/ui/icons/normal";
 import {
     windowTreeStore,
     refreshWindowTree,
@@ -21,6 +22,8 @@ import {
     hideInvisibleAtom,
     displayedCountAtom,
     selectedHandleAtom,
+    filteredTreeAtom,
+    treeExpandRevisionAtom,
 } from "./s-windows-tree-state";
 import { useFilter } from "./2-2-use-filter";
 
@@ -62,10 +65,38 @@ export function WindowTreeToolbar() {
                     </div>
 
                     <AutoHighlightToggle />
+                    <CollapseToTopLevelButton />
                     <TreeOptionsPopover />
                 </div>
             </div>
         </div>
+    );
+}
+
+function CollapseToTopLevelButton() {
+    const setFilteredTree = useSetAtom(filteredTreeAtom);
+    const setExpandRevision = useSetAtom(treeExpandRevisionAtom);
+
+    return (
+        <Button
+            className="size-7 rounded"
+            size="icon-xs"
+            variant="outline"
+            title="Collapse to top-level windows"
+            aria-label="Collapse to top-level windows"
+            type="button"
+            onClick={() => {
+                // Keep only the root expanded so first-level windows stay visible;
+                // deeper nodes remain in the tree but are collapsed/hidden.
+                setFilteredTree((prev) => ({
+                    ...prev,
+                    expandIds: prev.tree ? ["root"] : [],
+                }));
+                setExpandRevision((n) => n + 1);
+            }}
+        >
+            <IconCollapse className="size-3.5 text-muted-foreground" />
+        </Button>
     );
 }
 

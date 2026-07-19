@@ -13,6 +13,7 @@ import {
     treeFilterAtom,
     hideInvisibleAtom,
     filteredTreeAtom,
+    treeExpandRevisionAtom,
 } from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
 
@@ -22,6 +23,7 @@ export function WindowTreeView() {
     const [selected, setSelected] = useAtom(selectedHandleAtom);
     const filterText = useAtomValue(treeFilterAtom);
     const hideInvisible = useAtomValue(hideInvisibleAtom);
+    const expandRevision = useAtomValue(treeExpandRevisionAtom);
     const { tree, expandIds } = useAtomValue(filteredTreeAtom);
 
     const needle = filterText.trim().toLowerCase();
@@ -44,9 +46,10 @@ export function WindowTreeView() {
         void maybeHighlightSelectedWindow(nodeId);
     };
 
-    // Re-key the provider so default expansion re-applies when the data or the
-    // filter changes (kibo tree expansion is otherwise uncontrolled).
-    const providerKey = `${count}|${needle}|${hideInvisible}`;
+    // Re-key the provider so default expansion re-applies when the data, the
+    // filter, or an explicit collapse/expand revision changes (kibo tree
+    // expansion is otherwise uncontrolled).
+    const providerKey = `${count}|${needle}|${hideInvisible}|${expandRevision}`;
 
     return (
         <div className="relative size-full min-h-0">

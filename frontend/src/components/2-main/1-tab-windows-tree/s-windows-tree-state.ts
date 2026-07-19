@@ -48,5 +48,8 @@ export type FilteredTreeResult = {
 
 export const filteredTreeAtom = atom<FilteredTreeResult>({ tree: null, expandIds: [] });
 
+// Bumped to remount TreeProvider so defaultExpandedIds re-apply (e.g. collapse to top level).
+export const treeExpandRevisionAtom = atom(0);
+
 // Non-root window count currently shown after filter / hide-invisible.
 export const displayedCountAtom = atom(0);
