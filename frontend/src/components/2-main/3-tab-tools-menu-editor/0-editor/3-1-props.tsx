@@ -2,6 +2,7 @@ import { type ComponentProps, type ReactNode, useEffect, useState } from "react"
 import { ChevronRight, Folder, Info } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/utils/classnames";
+import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { Input } from "@/ui/shadcn/input";
@@ -64,7 +65,7 @@ function PropsAs_CommandItem({ node }: NodeProps) {
         <Field_Comment node={node} />
 
         <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-            <Field_CmdLineOrRegistryPath node={node} />
+            <Field_Cmd_Reg_Path node={node} />
             <Field_Cmd_PathAbsOrRelative node={node} />
             <Field_Cmd_RunElevated node={node} />
         </div>
@@ -81,7 +82,7 @@ function PropsAs_RegistryItem({ node }: NodeProps) {
         <Field_Comment node={node} />
 
         <div className="grid grid-cols-[1fr_auto] gap-2">
-            <Field_CmdLineOrRegistryPath node={node} />
+            <Field_Cmd_Reg_Path node={node} />
             <Field_Reg_Platform node={node} />
         </div>
     </>);
@@ -97,6 +98,7 @@ function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; 
                 className="h-7"
                 value={node.menuName}
                 onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
+                {...turnOffAutoComplete}
             />
         </LabelAndField>
     );
@@ -167,7 +169,7 @@ function Field_Cmd_RunElevated({ node }: NodeProps) {
     );
 }
 
-function Field_CmdLineOrRegistryPath({ node }: NodeProps) {
+function Field_Cmd_Reg_Path({ node }: NodeProps) {
     return (
         <LabelAndField label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
             <Input
@@ -175,6 +177,7 @@ function Field_CmdLineOrRegistryPath({ node }: NodeProps) {
                 value={node.cmdLine ?? ""}
                 placeholder={node.cmdWhat === "reg" ? "HKLM\\SOFTWARE\\..." : "notepad.exe or https://..."}
                 onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
+                {...turnOffAutoComplete}
             />
         </LabelAndField>
     );
@@ -190,6 +193,7 @@ function Field_Cmd_CliArgs({ node }: NodeProps) {
                     const v = e.target.value;
                     if (v) { n.cmdArgs = v; } else { delete n.cmdArgs; }
                 })}
+                {...turnOffAutoComplete}
             />
         </LabelAndField>
     );

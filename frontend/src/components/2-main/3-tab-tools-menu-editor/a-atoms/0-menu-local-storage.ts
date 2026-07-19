@@ -70,10 +70,7 @@ export function readCache(): { config: ToolsConfig; rootComments: string; } | nu
 
 export function writeCache(config: ToolsConfig, rootComments: string) {
     try {
-        localStorage.setItem(STORAGE_ID, JSON.stringify({
-            config,
-            rootComments,
-        }));
+        localStorage.setItem(STORAGE_ID, JSON.stringify({ config, rootComments }));
     } catch (e) {
         console.error("Failed to cache tools config", e);
     }
@@ -85,7 +82,7 @@ export function writeCache(config: ToolsConfig, rootComments: string) {
 // On load: prefer the on-disk file (and cache it). If the file is missing, fall
 // back to the previously cached (localStorage) version, then to the defaults.
 
-export async function loadToolsConfig(): Promise<void> {
+export async function ToolsConfig_Load(): Promise<void> {
     try {
         const raw = await toolsBus.getRaw();
 
@@ -93,9 +90,10 @@ export async function loadToolsConfig(): Promise<void> {
             try {
                 const config = parseToolsJsonc(raw.content);
                 const rootComments = extractRootComments(raw.content);
-                setToolsConfig(config, "file", raw.path, true, { rootComments });
+                ToolsConfig_Set(config, "file", raw.path, true, { rootComments });
                 writeCache(config, rootComments);
                 toolsEditorStore.status = `Loaded from ${raw.path}`;
+                //notice.success(`Loaded from ${raw.path}`);
                 return;
             } catch (e) {
                 toolsEditorStore.error = `Invalid tools.json: ${String(e)}`;
@@ -106,14 +104,14 @@ export async function loadToolsConfig(): Promise<void> {
         // No file on disk (or it was unparseable) — use the cached copy.
         const cached = readCache();
         if (cached) {
-            setToolsConfig(cached.config, "storage", raw?.path ?? "", false, { rootComments: cached.rootComments });
+            ToolsConfig_Set(cached.config, "storage", raw?.path ?? "", false, { rootComments: cached.rootComments });
             if (!toolsEditorStore.error) {
                 toolsEditorStore.status = "File not found — using saved copy";
             }
             return;
         }
 
-        setToolsConfig(cloneConfig(DEFAULT_TOOLS_CONFIG), "default", raw?.path ?? "", false);
+        ToolsConfig_Set(cloneConfig(DEFAULT_TOOLS_CONFIG), "default", raw?.path ?? "", false);
         if (!toolsEditorStore.error) {
             toolsEditorStore.status = "No tools.json — showing defaults";
         }
@@ -123,7 +121,7 @@ export async function loadToolsConfig(): Promise<void> {
 }
 
 // Record a freshly loaded (or saved) config as the baseline for dirty tracking.
-function setToolsConfig(
+function ToolsConfig_Set(
     config: ToolsConfig,
     source: ToolsSource,
     path = "",
@@ -146,7 +144,7 @@ function setToolsConfig(
     }
 }
 
-export async function saveToolsConfig(): Promise<void> {
+export async function ToolsConfig_Save(): Promise<void> {
     try {
         const text = buildToolsFileText(toolsEditorStore.config, toolsEditorStore.rootComments);
         const res = await toolsBus.save(text);
@@ -164,8 +162,8 @@ export async function saveToolsConfig(): Promise<void> {
 }
 
 /** Persist tools.json and (re)register global/local tool hotkeys. */
-export async function applyToolsConfig(): Promise<void> {
-    await saveToolsConfig();
+export async function ToolsConfig_Apply(): Promise<void> {
+    await ToolsConfig_Save();
     if (toolsEditorStore.error) {
         return;
     }
@@ -175,7 +173,7 @@ export async function applyToolsConfig(): Promise<void> {
     }
 }
 
-export function resetToDefaults() {
+export function ToolsConfig_ResetToDefaults() {
     const config = cloneConfig(DEFAULT_TOOLS_CONFIG);
     ensureUids(config.menu);
     toolsEditorStore.config = config;
