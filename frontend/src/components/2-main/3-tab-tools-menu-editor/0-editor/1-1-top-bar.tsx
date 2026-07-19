@@ -1,7 +1,8 @@
 import { useSnapshot } from "valtio";
-import { AlertTriangle, RotateCcw, RefreshCw, Check } from "lucide-react";
+import { AlertTriangle, Check, Menu, RefreshCw, RotateCcw } from "lucide-react";
 import { toolsEditorStore, loadToolsConfig, resetToDefaults, applyToolsConfig } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { Button } from "@/ui/shadcn/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 
 export function TopBar() {
     return (
@@ -10,19 +11,34 @@ export function TopBar() {
             <FilePathLabel />
 
             <DirtyStatusBadge />
-
-            <Button variant="outline" size="sm" onClick={() => loadToolsConfig()} title="Reload from tools.json">
-                <RefreshCw /> Reload
-            </Button>
-
-            <Button variant="outline" size="sm" onClick={() => resetToDefaults()} title="Restore default tools">
-                <RotateCcw /> Reset
-            </Button>
-
-            <Button variant="outline" size="sm" onClick={() => applyToolsConfig()} title="Save tools.json and apply hotkeys">
-                <Check /> Apply
-            </Button>
+            <ActionsMenu />
         </div>
+    );
+}
+
+function ActionsMenu() {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon-xs" title="File actions">
+                    <Menu />
+                </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => loadToolsConfig()}>
+                    <RefreshCw /> Reload
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onSelect={() => resetToDefaults()}>
+                    <RotateCcw /> Reset
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onSelect={() => applyToolsConfig()}>
+                    <Check /> Apply
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
 
