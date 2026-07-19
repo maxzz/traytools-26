@@ -65,10 +65,10 @@ function PropsAs_CommandItem({ node }: NodeProps) {
 
         <div className="grid grid-cols-[1fr_auto_auto] gap-2">
             <Field_CmdLineOrRegistryPath node={node} />
-            <Field_PathAbsoluteOrRelative node={node} />
-            <Field_RunElevated node={node} />
+            <Field_Cmd_PathAbsOrRelative node={node} />
+            <Field_Cmd_RunElevated node={node} />
         </div>
-        <Field_CmdArgs node={node} />
+        <Field_Cmd_CliArgs node={node} />
     </>);
 }
 
@@ -82,7 +82,7 @@ function PropsAs_RegistryItem({ node }: NodeProps) {
 
         <div className="grid grid-cols-[1fr_auto] gap-2">
             <Field_CmdLineOrRegistryPath node={node} />
-            <Field_CmdPlatform node={node} />
+            <Field_Reg_Platform node={node} />
         </div>
     </>);
 }
@@ -90,22 +90,11 @@ function PropsAs_RegistryItem({ node }: NodeProps) {
 // --------------------------------------------------------------------------
 // Fields
 
-function LabelAndField({ label, labelHint, children, ...props }: { label: string; labelHint?: ReactNode; } & ComponentProps<"div">) {
-    return (
-        <div className="flex flex-col gap-0.5" {...props}>
-            <div className="inline-flex items-center gap-0.5">
-                <Label className="pl-1 text-[0.65rem]">{label}</Label>
-                {labelHint}
-            </div>
-            {children}
-        </div>
-    );
-}
-
 function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; }) {
     return (
         <LabelAndField label={isSubmenu ? "Submenu name" : "Menu label"}>
             <Input
+                className="h-7"
                 value={node.menuName}
                 onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
             />
@@ -113,54 +102,7 @@ function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; 
     );
 }
 
-function Field_Comment({ node }: NodeProps) {
-    const hasComment = !!(node.comment?.trim());
-    const [open, setOpen] = useState(hasComment);
-
-    useEffect(() => {
-        setOpen(hasComment);
-    }, [hasComment]);
-
-    return (
-        <div className="-mt-1 flex flex-col gap-0.5">
-            <Label
-                className="pl-1 text-[0.65rem] select-none inline-flex items-center gap-px cursor-pointer"
-                onClick={() => setOpen((v) => !v)}
-            >
-                Comment
-                <motion.span
-                    animate={{ rotate: open ? 90 : 0 }}
-                    className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
-                    transition={{ duration: 0.1, ease: "easeInOut" }}
-                >
-                    <ChevronRight className="size-2.5" />
-                </motion.span>
-            </Label>
-            <AnimatePresence initial={false}>
-                {open && (
-                    <motion.div
-                        className="overflow-hidden"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                    >
-                        <Textarea
-                            className="px-3 py-2 min-h-6 rounded-sm resize-none"
-                            value={node.comment ?? ""}
-                            onChange={(e) => patchSelectedNode((n) => {
-                                const v = e.target.value;
-                                if (v.trim()) { n.comment = v; } else { delete n.comment; }
-                            })}
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
-
-function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
+function Field_Cmd_PathAbsOrRelative({ node }: NodeProps) {
     return (
         <LabelAndField
             label="Path type"
@@ -168,9 +110,7 @@ function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <button className="ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center" aria-label="Path type help" type="button">
-                                <Info className="size-2.5" />
-                            </button>
+                            <TriggerInfo aria-label="Path type help" />
                         </TooltipTrigger>
 
                         <TooltipContent side="top" className="max-w-64">
@@ -185,7 +125,7 @@ function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
             )}
         >
             <Select value={node.cmdWhat ?? "rel"} onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}>
-                <SelectTrigger className="px-2 w-full text-[0.72rem]">
+                <SelectTrigger className="px-2 w-full h-7! text-[0.72rem]">
                     <SelectValue />
                 </SelectTrigger>
 
@@ -198,11 +138,40 @@ function Field_PathAbsoluteOrRelative({ node }: NodeProps) {
     );
 }
 
+function Field_Cmd_RunElevated({ node }: NodeProps) {
+    return (
+        <LabelAndField
+            label="Elevated"
+            labelHint={(
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <TriggerInfo aria-label="Run elevated help" />
+                        </TooltipTrigger>
+
+                        <TooltipContent side="top" className="max-w-64">
+                            <p className="text-xs">Launch this command with administrator privileges.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )}
+        >
+            <div className="px-2 h-7 bg-transparent border border-input rounded-sm flex items-center">
+                <Switch
+                    className="mx-auto scale-70"
+                    checked={effectiveRunElevated(node)}
+                    onCheckedChange={(checked) => patchSelectedNode((n) => { n.runElevated = checked; })}
+                />
+            </div>
+        </LabelAndField>
+    );
+}
+
 function Field_CmdLineOrRegistryPath({ node }: NodeProps) {
     return (
         <LabelAndField label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
             <Input
-                className="font-mono text-[0.72rem]"
+                className="h-7"
                 value={node.cmdLine ?? ""}
                 placeholder={node.cmdWhat === "reg" ? "HKLM\\SOFTWARE\\..." : "notepad.exe or https://..."}
                 onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
@@ -211,11 +180,11 @@ function Field_CmdLineOrRegistryPath({ node }: NodeProps) {
     );
 }
 
-function Field_CmdArgs({ node }: NodeProps) {
+function Field_Cmd_CliArgs({ node }: NodeProps) {
     return (
         <LabelAndField label="Arguments">
             <Input
-                className="font-mono text-[0.72rem]"
+                className="h-7"
                 value={node.cmdArgs ?? ""}
                 onChange={(e) => patchSelectedNode((n) => {
                     const v = e.target.value;
@@ -226,7 +195,7 @@ function Field_CmdArgs({ node }: NodeProps) {
     );
 }
 
-function Field_CmdPlatform({ node }: NodeProps) {
+function Field_Reg_Platform({ node }: NodeProps) {
     return (
         <LabelAndField
             label="Platform"
@@ -234,9 +203,7 @@ function Field_CmdPlatform({ node }: NodeProps) {
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <button className="ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center" aria-label="Platform help" type="button">
-                                <Info className="size-2.5" />
-                            </button>
+                            <TriggerInfo aria-label="Platform help" />
                         </TooltipTrigger>
 
                         <TooltipContent side="top" className="max-w-64">
@@ -252,7 +219,7 @@ function Field_CmdPlatform({ node }: NodeProps) {
             )}
         >
             <Select value={node.cmdPlat ?? "curr"} onValueChange={(v) => patchSelectedNode((n) => { if (v === "curr") { delete n.cmdPlat; } else { n.cmdPlat = v as CmdPlat; } })}>
-                <SelectTrigger className="w-full min-w-20 text-[0.72rem]">
+                <SelectTrigger className="w-full h-7! min-w-20 text-[0.72rem]">
                     <SelectValue />
                 </SelectTrigger>
 
@@ -305,34 +272,70 @@ function Field_HotKey({ node }: NodeProps) {
     );
 }
 
-function Field_RunElevated({ node }: NodeProps) {
-    return (
-        <LabelAndField
-            label="Elevated"
-            labelHint={(
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <button className="ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center" aria-label="Run elevated help" type="button">
-                                <Info className="size-2.5" />
-                            </button>
-                        </TooltipTrigger>
+function Field_Comment({ node }: NodeProps) {
+    const hasComment = !!(node.comment?.trim());
+    const [open, setOpen] = useState(hasComment);
 
-                        <TooltipContent side="top" className="max-w-64">
-                            <p className="text-xs">Launch this command with administrator privileges.</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            )}
-        >
-            <div className="px-2 min-w-20 h-8 bg-transparent border border-input rounded-sm flex items-center">
-                <Switch
-                    className="mx-auto scale-70"
-                    checked={effectiveRunElevated(node)}
-                    onCheckedChange={(checked) => patchSelectedNode((n) => { n.runElevated = checked; })}
-                />
+    useEffect(() => {
+        setOpen(hasComment);
+    }, [hasComment]);
+
+    return (
+        <div className="-mt-1 flex flex-col gap-0.5">
+            <Label
+                className="pl-1 text-[0.65rem] select-none inline-flex items-center gap-px cursor-pointer"
+                onClick={() => setOpen((v) => !v)}
+            >
+                Comment
+                <motion.span
+                    animate={{ rotate: open ? 90 : 0 }}
+                    className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
+                    transition={{ duration: 0.1, ease: "easeInOut" }}
+                >
+                    <ChevronRight className="size-2.5" />
+                </motion.span>
+            </Label>
+            <AnimatePresence initial={false}>
+                {open && (
+                    <motion.div
+                        className="overflow-hidden"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
+                        <Textarea
+                            className="px-3 py-2 min-h-6 rounded-sm resize-none"
+                            value={node.comment ?? ""}
+                            onChange={(e) => patchSelectedNode((n) => {
+                                const v = e.target.value;
+                                if (v.trim()) { n.comment = v; } else { delete n.comment; }
+                            })}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+function LabelAndField({ label, labelHint, children, ...props }: { label: string; labelHint?: ReactNode; } & ComponentProps<"div">) {
+    return (
+        <div className="flex flex-col gap-0.5" {...props}>
+            <div className="inline-flex items-center gap-0.5">
+                <Label className="pl-1 text-[0.65rem]">{label}</Label>
+                {labelHint}
             </div>
-        </LabelAndField>
+            {children}
+        </div>
+    );
+}
+
+function TriggerInfo({ className, ...rest }: ComponentProps<"button">) {
+    return (
+        <button className={cn("ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center", className)} type = "button" {...rest}>
+            <Info className="size-2.5" />
+        </button>
     );
 }
 

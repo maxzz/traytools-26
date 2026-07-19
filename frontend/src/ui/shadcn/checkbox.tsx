@@ -48,7 +48,7 @@ after:absolute \
 after:-inset-x-3 \
 after:-inset-y-2 \
 \
-rounded-lg \
+rounded \
 border \
 border-input \
 outline-none \
