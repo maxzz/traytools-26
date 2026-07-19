@@ -98,7 +98,9 @@ func createProcessWithExplorerParent(exe, exeDir string) error {
 	si.Cb = uint32(unsafe.Sizeof(si))
 	si.ProcThreadAttributeList = attrList.List()
 	si.StartupInfo.Flags = windows.STARTF_USESHOWWINDOW
-	si.StartupInfo.ShowWindow = uint16(windows.SW_SHOWDEFAULT)
+	// Do not use SW_SHOWDEFAULT: it can inherit a shortcut's minimized/maximized
+	// Run state into the relaunched process.
+	si.StartupInfo.ShowWindow = uint16(windows.SW_SHOWNORMAL)
 
 	var pi windows.ProcessInformation
 	if err := windows.CreateProcess(
@@ -158,7 +160,7 @@ func shellExecuteSelf(verbStr string) error {
 		uintptr(unsafe.Pointer(exePtr)),
 		paramsArg,
 		uintptr(unsafe.Pointer(dirPtr)),
-		uintptr(windows.SW_SHOWDEFAULT),
+		uintptr(windows.SW_SHOWNORMAL),
 	)
 	if ret <= 32 {
 		if err != nil && err != syscall.Errno(0) {

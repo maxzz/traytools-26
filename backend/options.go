@@ -85,9 +85,10 @@ func FixBounds(bounds *Rectangle) *Rectangle {
 func (a *App) saveWindowOptions(ctx context.Context) {
 	// 1. Get current window state
 	isMaximized := runtime.WindowIsMaximised(ctx)
+	isMinimized := runtime.WindowIsMinimised(ctx)
 
 	var bounds *Rectangle
-	if !isMaximized {
+	if !isMaximized && !isMinimized {
 		x, y := runtime.WindowGetPosition(ctx)
 		w, h := runtime.WindowGetSize(ctx)
 		bounds = &Rectangle{
@@ -97,7 +98,7 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 			Height: h,
 		}
 	} else {
-		// If maximized, try to load existing bounds from file so we don't lose normal bounds
+		// Maximized/minimized geometry is not the normal restore rect; keep prior bounds.
 		existing, err := LoadIniFileOptions()
 		if err == nil && existing != nil && existing.Bounds != nil {
 			bounds = existing.Bounds
@@ -182,20 +183,29 @@ func SetUnloadHookHotkeyOptions(hotkey string, global bool) error {
 }
 
 func (a *App) restoreWindowOptions(ctx context.Context) {
+	var bounds *Rectangle
 	opts, err := LoadIniFileOptions()
-	if err == nil && opts != nil {
-		if opts.Bounds != nil {
-			bounds := FixBounds(opts.Bounds)
-			if bounds != nil {
-				runtime.WindowSetPosition(ctx, bounds.X, bounds.Y)
-				runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
-			}
+	if err == nil && opts != nil && opts.Bounds != nil {
+		bounds = FixBounds(opts.Bounds)
+	}
+
+	// Apply geometry while still hidden (StartHidden), then show. Size uses
+	// Wails DIP APIs; position uses absolute virtual-screen coords (see
+	// setWindowPositionAbsolute) so shortcut vs direct .exe launch does not
+	// depend on which monitor Windows initially assigned the window.
+	if bounds != nil {
+		runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
+		setWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
+	}
+
+	runtime.WindowShow(ctx)
+	runtime.WindowUnminimise(ctx)
+	if runtime.WindowIsMaximised(ctx) {
+		runtime.WindowUnmaximise(ctx)
+		if bounds != nil {
+			setWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
+			runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
 		}
-		// Show window after positioning (if started hidden)
-		runtime.WindowShow(ctx)
-	} else {
-		// Default: just show the window
-		runtime.WindowShow(ctx)
 	}
 
 	a.windowMu.Lock()
