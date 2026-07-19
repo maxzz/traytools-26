@@ -147,7 +147,7 @@ function TreeOptionsPopover() {
                     Tree options
                 </div>
 
-                <div className="-mx-2 h-px border-t border-border"></div>
+                <Separator />
 
                 <div className="py-1 flex flex-col gap-2">
                     <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
@@ -161,40 +161,43 @@ function TreeOptionsPopover() {
                     </label>
                 </div>
 
-                <div className="-mx-2 h-px border-t border-border"></div>
+                <Separator />
 
-                <div className="py-1 text-xs font-semibold">
-                    Highlight Window Rectangle
-                </div>
-
-                <div className="pb-1 flex flex-col gap-1">
-                    <OptionNumber
-                        label="Blink count"
-                        title="Number of highlight blinks (1–10)"
-                        value={windowHighlight.blinkCount}
-                        min={1}
-                        max={10}
-                        onChange={(v) => { appSettings.windowHighlight.blinkCount = v; }}
-                    />
-                    <OptionNumber
-                        label="Border width"
-                        title="Highlight border width in pixels (1–20)"
-                        value={windowHighlight.borderWidth}
-                        min={1}
-                        max={20}
-                        onChange={(v) => { appSettings.windowHighlight.borderWidth = v; }}
-                    />
-                    <label className="text-xs select-none flex items-center justify-between gap-2" title="Highlight border color">
-                        <span>Border color</span>
-                        <input
-                            type="color"
-                            className="h-6 w-8 cursor-pointer rounded border border-border bg-transparent p-0"
-                            value={normalizeHexColor(windowHighlight.borderColor)}
-                            onChange={(e) => {
-                                appSettings.windowHighlight.borderColor = normalizeHexColor(e.target.value);
-                            }}
+                <div className="flex flex-col">
+                    <div className="pb-1 text-xs font-semibold">
+                        Highlight Window Rectangle
+                    </div>
+                    <div className="pb-1 flex items-center gap-1">
+                        Blink:
+                        <OptionNumber
+                            label="count"
+                            title="Number of highlight blinks (1-10)"
+                            value={windowHighlight.blinkCount}
+                            min={1}
+                            max={10}
+                            onChange={(v) => { appSettings.windowHighlight.blinkCount = v; }}
                         />
-                    </label>
+                        <OptionNumber
+                            label="border"
+                            title="Highlight border width in pixels (1-20)"
+                            value={windowHighlight.borderWidth}
+                            min={1}
+                            max={20}
+                            onChange={(v) => { appSettings.windowHighlight.borderWidth = v; }}
+                        />
+                        <label className="text-xs select-none flex items-center justify-between gap-2" title="Highlight border color">
+                            <input
+                                type="color"
+                                title="Highlight border color"
+                                className="h-6 w-8 cursor-pointer rounded border border-border bg-transparent p-0"
+                                value={normalizeHexColor(windowHighlight.borderColor)}
+                                onChange={(e) => {
+                                    appSettings.windowHighlight.borderColor = normalizeHexColor(e.target.value);
+                                }}
+                            />
+                        </label>
+                    </div>
+
                     <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer" title="Show empty bounds / off-screen notice on the tree row">
                         <Checkbox
                             checked={windowHighlight.showBoundsNotice}
@@ -204,9 +207,9 @@ function TreeOptionsPopover() {
                     </label>
                 </div>
 
-                <div className="-mx-2 h-px border-t border-border"></div>
+                <Separator />
 
-                <div className="text-muted-foreground grid grid-cols-2 gap-x-2 gap-y-0.5">
+                <div className="text-muted-foreground grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
                     <span>Total windows</span>
                     <span className="tabular-nums text-[11px]">{count}</span>
 
@@ -219,27 +222,17 @@ function TreeOptionsPopover() {
     );
 }
 
-function OptionNumber({
-    label,
-    title,
-    value,
-    min,
-    max,
-    onChange,
-}: {
-    label: string;
-    title?: string;
-    value: number;
-    min: number;
-    max: number;
-    onChange: (value: number) => void;
-}) {
+function Separator() {
+    return <div className="-mx-2 h-px border-t border-border" />;
+}
+
+function OptionNumber({ label, title, value, min, max, onChange, }: { label: string; title?: string; value: number; min: number; max: number; onChange: (value: number) => void; }) {
     return (
-        <label className="text-xs select-none flex items-center justify-between gap-2" title={title}>
+        <label className="text-xs select-none flex items-center justify-between gap-0.5" title={title}>
             <span>{label}</span>
             <Input
                 type="number"
-                className="h-6 w-14 px-1.5 text-xs tabular-nums"
+                className="h-6 w-10 px-1.5 text-xs tabular-nums"
                 min={min}
                 max={max}
                 value={value}

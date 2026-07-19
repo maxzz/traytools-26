@@ -33,7 +33,7 @@ export interface AppSettings {
 const DEFAULT_WINDOW_HIGHLIGHT: WindowHighlightSettings = {
     autoHighlight: false,
     blinkCount: 3,
-    borderWidth: 2,
+    borderWidth: 4,
     borderColor: "#ff0000",
     showBoundsNotice: true,
 };
