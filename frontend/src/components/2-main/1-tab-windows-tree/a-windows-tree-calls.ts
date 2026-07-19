@@ -1,6 +1,7 @@
 import { proxy, snapshot } from "valtio";
 import { getDefaultStore } from "jotai";
 import { highlightBus, windowTreeBus, type WindowNode, type WindowInfo, type RectInfo } from "@/bridge";
+import { isBackendAvailable } from "@/wails/is-wails";
 import { appSettings } from "@/store/1-ui-settings";
 import { boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
 
@@ -34,19 +35,99 @@ export const windowTreeStore = proxy<WindowTreeState>({
 /** Ignores stale highlight results when the user clicks another row quickly. */
 let highlightRequestId = 0;
 
+/** Ignores overlapping getTree results (StrictMode remount / menu + page refresh). */
+let treeRequestId = 0;
+
+const BACKEND_WAIT_MS = 3000;
+const BACKEND_POLL_MS = 50;
+const LOAD_RETRY_DELAYS_MS = [0, 75, 150, 300, 600] as const;
+
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForBackend(timeoutMs = BACKEND_WAIT_MS): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+    while (!isBackendAvailable()) {
+        if (Date.now() >= deadline) {
+            return false;
+        }
+        await sleep(BACKEND_POLL_MS);
+    }
+    return true;
+}
+
+function isTransientTreeError(error: string): boolean {
+    const msg = error.toLowerCase();
+    return msg.includes("backend is not available")
+        || msg.includes("not available")
+        || msg.includes("cannot read")
+        || msg.includes("undefined");
+}
+
 export async function refreshWindowTree(): Promise<void> {
+    const requestId = ++treeRequestId;
     windowTreeStore.loading = true;
     windowTreeStore.error = null;
     try {
         const tree = await windowTreeBus.getTree();
+        if (requestId !== treeRequestId) {
+            return;
+        }
         windowTreeStore.root = tree?.root ?? null;
         windowTreeStore.count = tree?.count ?? 0;
     } catch (e) {
+        if (requestId !== treeRequestId) {
+            return;
+        }
         windowTreeStore.error = String(e);
-        windowTreeStore.root = null;
-        windowTreeStore.count = 0;
+        // Keep any previously successful tree so a late/failed refresh cannot
+        // blank the UI after a good result.
+        if (windowTreeStore.root === null) {
+            windowTreeStore.count = 0;
+        }
     } finally {
+        if (requestId === treeRequestId) {
+            windowTreeStore.loading = false;
+        }
+    }
+}
+
+/**
+ * Initial tab load: wait for Wails bindings, then retry transient failures.
+ * No-ops when a tree is already present.
+ */
+export async function ensureWindowTreeLoaded(): Promise<void> {
+    if (windowTreeStore.root !== null) {
+        return;
+    }
+
+    windowTreeStore.loading = true;
+    windowTreeStore.error = null;
+
+    const ready = await waitForBackend();
+    if (!ready) {
+        windowTreeStore.error = "Backend is not available.";
         windowTreeStore.loading = false;
+        return;
+    }
+
+    for (let i = 0; i < LOAD_RETRY_DELAYS_MS.length; i++) {
+        const delayMs = LOAD_RETRY_DELAYS_MS[i];
+        if (delayMs > 0) {
+            await sleep(delayMs);
+        }
+        if (windowTreeStore.root !== null) {
+            return;
+        }
+
+        await refreshWindowTree();
+        if (windowTreeStore.root !== null) {
+            return;
+        }
+        if (windowTreeStore.error && !isTransientTreeError(windowTreeStore.error)) {
+            return;
+        }
     }
 }
 

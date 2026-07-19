@@ -1,33 +1,43 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useSnapshot } from "valtio";
+import { snapshot } from "valtio";
+import { subscribeKey } from "valtio/utils";
 import { type WindowNode } from "@/bridge";
 import { treeFilterAtom, hideInvisibleAtom, filteredTreeAtom, displayedCountAtom } from "./s-windows-tree-state";
 import { windowTreeStore } from "./a-windows-tree-calls";
 
 // Single filter pass for the tab: drives the tree view and the displayed count.
+// Syncs via useLayoutEffect + subscribeKey so a successful getTree cannot leave
+// filteredTreeAtom null for a painted frame (or permanently, if an effect was skipped).
 export function useFilter() {
-    const { root } = useSnapshot(windowTreeStore);
     const filter = useAtomValue(treeFilterAtom);
     const hideInvisible = useAtomValue(hideInvisibleAtom);
     const setFilteredTree = useSetAtom(filteredTreeAtom);
     const setDisplayedCount = useSetAtom(displayedCountAtom);
 
-    useEffect(
+    useLayoutEffect(
         () => {
-            if (!root) {
-                setFilteredTree({ tree: null, expandIds: [] });
-                setDisplayedCount(0);
-                return;
-            }
-            const needle = filter.trim().toLowerCase();
-            const ids: string[] = [];
-            const filtered = filterNode(root as WindowNode, needle, hideInvisible, ids);
-            const isFiltering = needle !== "" || hideInvisible;
-            setFilteredTree({ tree: filtered, expandIds: isFiltering ? ids : ["root"] });
-            setDisplayedCount(countDisplayedWindows(filtered));
+            const sync = () => {
+                const root = windowTreeStore.root
+                    ? snapshot(windowTreeStore.root) as WindowNode
+                    : null;
+                if (!root) {
+                    setFilteredTree({ tree: null, expandIds: [] });
+                    setDisplayedCount(0);
+                    return;
+                }
+                const needle = filter.trim().toLowerCase();
+                const ids: string[] = [];
+                const filtered = filterNode(root, needle, hideInvisible, ids);
+                const isFiltering = needle !== "" || hideInvisible;
+                setFilteredTree({ tree: filtered, expandIds: isFiltering ? ids : ["root"] });
+                setDisplayedCount(countDisplayedWindows(filtered));
+            };
+
+            sync();
+            return subscribeKey(windowTreeStore, "root", sync);
         },
-        [root, filter, hideInvisible, setFilteredTree, setDisplayedCount]);
+        [filter, hideInvisible, setFilteredTree, setDisplayedCount]);
 }
 
 /** Count non-root window nodes currently shown in the (possibly filtered) tree. */

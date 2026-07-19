@@ -357,7 +357,6 @@ function TreeNodeTriggerContent({ children, className, hasChildren = false, isSe
 
     return (
         <motion.div
-            {...props}
             className={cn(
                 "relative group mx-1 px-3 py-1 transition-all duration-200 rounded-none flex items-center cursor-pointer",
                 !isSelected && "hover:bg-accent/50",
@@ -375,6 +374,7 @@ function TreeNodeTriggerContent({ children, className, hasChildren = false, isSe
             }}
             style={{ paddingLeft: (level + 1) * (indent ?? 0) + 8 }}
             //whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
+            {...props}
         >
             <TreeLines hasChildren={hasChildren} />
             {children as ReactNode}

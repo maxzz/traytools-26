@@ -4,7 +4,7 @@ import { type Layout } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
-import { windowTreeStore, refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+import { ensureWindowTreeLoaded } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
 import { WindowTreeView } from "./2-0-windows-tree";
 import { WindowProps } from "./5-window-props";
 import { WindowTreeToolbar } from "./1-tree-toolbar";
@@ -17,15 +17,13 @@ import { WindowTreeToolbar } from "./1-tree-toolbar";
 export function Page_WindowsTree() {
     const { panelSizes } = useSnapshot(appSettings);
     const mainLayout = panelSizes[PANEL_GROUPS.windowTreeMain];
-    const loaded = useSnapshot(windowTreeStore).root !== null;
 
-    // Load the tree once when the tab first mounts (unless already loaded).
+    // Load on mount with backend wait + retries. ensureWindowTreeLoaded no-ops
+    // when a tree is already present (e.g. returning to this tab).
     useEffect(
         () => {
-            if (!loaded) {
-                void refreshWindowTree();
-            }
-        }, [loaded]);
+            void ensureWindowTreeLoaded();
+        }, []);
 
     return (
         <div className="flex-1 min-h-0 min-w-0 bg-card border overflow-hidden flex flex-col">
