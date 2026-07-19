@@ -200,8 +200,12 @@ func (a *App) DomReady(ctx context.Context) {
 // was requested (via the frontend menu or the tray), or quitOnClose is enabled
 // in settings, closing the window only hides it to the system tray.
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
+	// Always persist bounds while the window geometry is still valid. The
+	// tray-hide path used to skip this, so the next launch restored a stale
+	// (or never-updated) position.
+	a.saveWindowOptions(ctx)
+
 	if a.quitRequested || GetQuitOnCloseOption() {
-		a.saveWindowOptions(ctx)
 		// Ensure the tray icon is removed before the process exits (covers the
 		// quit-on-close path that never calls RequestExit).
 		stopTray()

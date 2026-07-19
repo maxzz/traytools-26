@@ -83,55 +83,40 @@ func FixBounds(bounds *Rectangle) *Rectangle {
 }
 
 func (a *App) saveWindowOptions(ctx context.Context) {
-	// 1. Get current window state
-	isMaximized := runtime.WindowIsMaximised(ctx)
+	existing, err := LoadIniFileOptions()
+	if err != nil {
+		existing = &IniOptions{}
+	}
 
+	// Position: absolute virtual-screen coords (Win32) so multi-monitor works.
+	// Size: Wails logical DIP via WindowGetSize — must not use GetWindowRect
+	// width/height (physical pixels) or the window grows under DPI scaling.
 	var bounds *Rectangle
-	if !isMaximized {
-		x, y := runtime.WindowGetPosition(ctx)
-		w, h := runtime.WindowGetSize(ctx)
-		bounds = &Rectangle{
-			X:      x,
-			Y:      y,
-			Width:  w,
-			Height: h,
-		}
+	if runtime.WindowIsMaximised(ctx) {
+		bounds = existing.Bounds
 	} else {
-		// If maximized, try to load existing bounds from file so we don't lose normal bounds
-		existing, err := LoadIniFileOptions()
-		if err == nil && existing != nil && existing.Bounds != nil {
+		w, h := runtime.WindowGetSize(ctx)
+		x, y := runtime.WindowGetPosition(ctx)
+		if px, py, ok := platformReadWindowPosition(); ok {
+			x, y = px, py
+		}
+		bounds = FixBounds(&Rectangle{X: x, Y: y, Width: w, Height: h})
+		if bounds == nil {
 			bounds = existing.Bounds
 		}
 	}
 
-	// 2. DevTools & ShowMenu state
-	devTools := a.platformIsDevToolsOpen()
-	var showMenu bool
-	var runElevated bool
-	var quitOnClose bool
-	var unloadHookHotkey string
-	var unloadHookHotkeyGlobal bool
-
-	existing, err := LoadIniFileOptions()
-	if err == nil && existing != nil {
-		showMenu = existing.ShowMenu
-		runElevated = existing.RunElevated
-		quitOnClose = existing.QuitOnClose
-		unloadHookHotkey = existing.UnloadHookHotkey
-		unloadHookHotkeyGlobal = existing.UnloadHookHotkeyGlobal
-	}
-
 	opts := &IniOptions{
 		Bounds:                 bounds,
-		DevTools:               devTools,
-		ShowMenu:               showMenu,
-		RunElevated:            runElevated,
-		QuitOnClose:            quitOnClose,
-		UnloadHookHotkey:       unloadHookHotkey,
-		UnloadHookHotkeyGlobal: unloadHookHotkeyGlobal,
+		DevTools:               a.platformIsDevToolsOpen(),
+		ShowMenu:               existing.ShowMenu,
+		RunElevated:            existing.RunElevated,
+		QuitOnClose:            existing.QuitOnClose,
+		UnloadHookHotkey:       existing.UnloadHookHotkey,
+		UnloadHookHotkeyGlobal: existing.UnloadHookHotkeyGlobal,
 	}
 
-	saveIniFileOptions(opts)
+	_ = saveIniFileOptions(opts)
 }
 
 func GetQuitOnCloseOption() bool {
@@ -184,19 +169,17 @@ func SetUnloadHookHotkeyOptions(hotkey string, global bool) error {
 func (a *App) restoreWindowOptions(ctx context.Context) {
 	opts, err := LoadIniFileOptions()
 	if err == nil && opts != nil {
-		if opts.Bounds != nil {
-			bounds := FixBounds(opts.Bounds)
-			if bounds != nil {
+		if bounds := FixBounds(opts.Bounds); bounds != nil {
+			// Size via Wails (logical DIP); position via Win32 absolute coords.
+			runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
+			if !platformApplyWindowPosition(bounds.X, bounds.Y) {
 				runtime.WindowSetPosition(ctx, bounds.X, bounds.Y)
-				runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
 			}
 		}
-		// Show window after positioning (if started hidden)
-		runtime.WindowShow(ctx)
-	} else {
-		// Default: just show the window
-		runtime.WindowShow(ctx)
 	}
+
+	// Show after positioning (app starts hidden).
+	runtime.WindowShow(ctx)
 
 	a.windowMu.Lock()
 	a.windowVisible = true
