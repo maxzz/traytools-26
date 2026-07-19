@@ -1,4 +1,4 @@
-import { type HTMLAttributes } from "react";
+import { type HTMLAttributes } from "react"; //https://icon-sets.iconify.design/?query=collapse fluent--arrow-collapse-all-24-regular.svg
 import { classNames } from "@/utils";
 
 export function IconCollapse({ className, title, ...rest }: HTMLAttributes<SVGSVGElement>) {

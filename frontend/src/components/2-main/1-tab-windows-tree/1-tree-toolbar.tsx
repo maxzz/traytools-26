@@ -152,22 +152,22 @@ function TreeOptionsPopover() {
                 <div className="py-1 flex flex-col gap-2">
                     <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                         <Checkbox checked={showHandles} onCheckedChange={(v) => setShowHandles(v === true)} />
-                        Handles
+                        Show winsow handles
                     </label>
 
                     <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                         <Checkbox checked={hideInvisible} onCheckedChange={(v) => setHideInvisible(v === true)} />
-                        Hide invisible
+                        Hide invisible windows
                     </label>
                 </div>
 
                 <div className="-mx-2 h-px border-t border-border"></div>
 
                 <div className="py-1 text-xs font-semibold">
-                    Highlight
+                    Highlight Window Rectangle
                 </div>
 
-                <div className="pb-1 flex flex-col gap-2">
+                <div className="pb-1 flex flex-col gap-1">
                     <OptionNumber
                         label="Blink count"
                         title="Number of highlight blinks (1–10)"
@@ -200,7 +200,7 @@ function TreeOptionsPopover() {
                             checked={windowHighlight.showBoundsNotice}
                             onCheckedChange={(v) => { appSettings.windowHighlight.showBoundsNotice = v === true; }}
                         />
-                        Show bounds notice
+                        Show inline empty bounds notice
                     </label>
                 </div>
 
