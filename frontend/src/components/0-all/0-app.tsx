@@ -32,23 +32,23 @@ export function App() {
 function MainBody() {
     const { mainTab } = useSnapshot(appSettings);
     const activeTab = getValidMainTab(mainTab);
-    const isElevated = useAtomValue(appIsElevatedAtom);
+    // const isElevated = useAtomValue(appIsElevatedAtom);
 
-    useEffect(
-        () => {
-            if (isElevated === null) {
-                return;
-            }
+    // useEffect(
+    //     () => {
+    //         if (isElevated === null) {
+    //             return;
+    //         }
 
-            const title = formatMainWindowTitle(activeTab, isElevated);
-            document.title = title;
-            try {
-                WindowSetTitle(title);
-            } catch {
-                // Wails runtime unavailable (e.g. Vite-only browser dev).
-            }
-        },
-        [activeTab, isElevated]);
+    //         const title = formatMainWindowTitle(activeTab, isElevated);
+    //         document.title = title;
+    //         try {
+    //             WindowSetTitle(title);
+    //         } catch {
+    //             // Wails runtime unavailable (e.g. Vite-only browser dev).
+    //         }
+    //     },
+    //     [activeTab, isElevated]);
 
     const Page = MAIN_PAGES.find((page) => page.id === activeTab)?.Page ?? MAIN_PAGES[0].Page;
 
