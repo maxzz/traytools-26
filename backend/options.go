@@ -189,22 +189,23 @@ func (a *App) restoreWindowOptions(ctx context.Context) {
 		bounds = FixBounds(opts.Bounds)
 	}
 
-	// On Windows, the first ShowWindow for a process can ignore the requested
-	// show command and use STARTUPINFO.wShowWindow from the launcher instead.
-	// Shortcuts often pass SW_SHOWMINIMIZED / SW_SHOWMAXIMIZED / SW_SHOWDEFAULT,
-	// while a direct .exe launch usually passes SW_SHOWNORMAL — which is why
-	// restore looked correct only when not started from a shortcut.
-	//
-	// Force a normal visible window, then re-apply saved bounds (placement is
-	// unreliable while the window is still minimized).
+	// Apply geometry while still hidden (StartHidden), then show. Size uses
+	// Wails DIP APIs; position uses absolute virtual-screen coords (see
+	// setWindowPositionAbsolute) so shortcut vs direct .exe launch does not
+	// depend on which monitor Windows initially assigned the window.
+	if bounds != nil {
+		runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
+		setWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
+	}
+
 	runtime.WindowShow(ctx)
 	runtime.WindowUnminimise(ctx)
 	if runtime.WindowIsMaximised(ctx) {
 		runtime.WindowUnmaximise(ctx)
-	}
-	if bounds != nil {
-		runtime.WindowSetPosition(ctx, bounds.X, bounds.Y)
-		runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
+		if bounds != nil {
+			setWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
+			runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
+		}
 	}
 
 	a.windowMu.Lock()
