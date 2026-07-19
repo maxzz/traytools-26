@@ -37,11 +37,6 @@ func (a *App) showWindowLocked() {
 }
 
 func (a *App) hideWindowLocked() {
-	// Persist geometry before hide; GetPosition/GetWindowRect after hide can
-	// be wrong, and tray Exit would otherwise overwrite a good saved position.
-	if a.ctx != nil && a.windowVisible {
-		a.saveWindowOptions(a.ctx)
-	}
 	runtime.WindowHide(a.ctx)
 	a.windowVisible = false
 }
