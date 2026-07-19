@@ -5,10 +5,11 @@ import { Button } from "@/ui/shadcn/button";
 
 export function TopBar() {
     return (
-        <div className="mx-2 my-1 px-2 py-2 bg-background border rounded-md flex items-center gap-2">
-            <DirtyStatusBadge />
+        <div className="mx-1 my-1 px-2 py-2 bg-background border rounded flex items-center gap-2">
             <StatusMessage />
             <FilePathLabel />
+
+            <DirtyStatusBadge />
 
             <Button variant="outline" size="sm" onClick={() => loadToolsConfig()} title="Reload from tools.json">
                 <RefreshCw /> Reload
@@ -65,23 +66,15 @@ function StatusMessage() {
 }
 
 function DirtyStatusBadge() {
-    const { dirty, fileExists } = useSnapshot(toolsEditorStore);
+    const { dirty } = useSnapshot(toolsEditorStore);
 
-    if (dirty) {
-        return (
-            <span className="ml-auto px-1.5 py-0.5 text-amber-600 bg-amber-500/15 dark:text-amber-400 rounded">
-                Unsaved changes
-            </span>
-        );
-    }
-
-    if (!fileExists) {
+    if (!dirty) {
         return null;
     }
 
     return (
-        <span className="ml-auto px-1.5 py-0.5 text-muted-foreground bg-muted rounded">
-            No unsaved changes
+        <span className="px-1.5 text-red-500 dark:text-orange-500 bg-orange-500/30 border border-red-500/70 rounded-full flex items-center justify-center">
+            unsaved
         </span>
     );
 }
