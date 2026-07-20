@@ -24,3 +24,9 @@ export const HOTKEY_EVENTS = {
     unloadHook: "hotkey:unloadHook",
     tool: "hotkey:tool",
 } as const;
+
+/** Event names emitted by backend/copyops while a copy batch runs. */
+export const COPY_OPS_EVENTS = {
+    itemStatus: "copyops:itemStatus",
+    jobDone: "copyops:jobDone",
+} as const;

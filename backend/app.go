@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"traytools-26-go/backend/bus"
+	"traytools-26-go/backend/copyops"
 	"traytools-26-go/backend/dpagent"
 	"traytools-26-go/backend/dphook"
 	"traytools-26-go/backend/highlight"
@@ -26,6 +27,7 @@ type App struct {
 	windows       *windowtree.Manager
 	dpagent       *dpagent.Manager
 	highlight     *highlight.Manager
+	copyops       *copyops.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -42,6 +44,7 @@ func NewApp() *App {
 		windows:   windowtree.New(),
 		dpagent:   dpagent.New(),
 		highlight: highlight.New(),
+		copyops:   copyops.New(),
 	}
 	a.registerHandlers()
 	a.trace.Register(a.bus)
@@ -49,6 +52,7 @@ func NewApp() *App {
 	a.windows.Register(a.bus)
 	a.dpagent.Register(a.bus)
 	a.highlight.Register(a.bus)
+	a.copyops.Register(a.bus)
 	return a
 }
 
@@ -64,6 +68,7 @@ func (a *App) Startup(ctx context.Context) {
 	setupSingleInstanceIPC(a.showWindow)
 	a.startHotkeys()
 	a.trace.Start(ctx)
+	a.copyops.Start(ctx)
 	a.startTray()
 }
 

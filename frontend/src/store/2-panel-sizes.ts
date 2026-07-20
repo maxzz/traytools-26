@@ -11,6 +11,7 @@ export const PANEL_GROUPS = {
     traceManagerLeft: 'trace-manager.left',
     windowTreeMain: 'window-tree.main',
     toolsEditorMain: 'tools-editor.main',
+    copyEditorMain: 'copy-editor.main',
 } as const;
 
 export type PanelGroupKey = (typeof PANEL_GROUPS)[keyof typeof PANEL_GROUPS];
@@ -22,6 +23,7 @@ const PANEL_GROUP_DEFAULTS: PanelSizes = {
     [PANEL_GROUPS.traceManagerLeft]: { list: 38, view: 62 },
     [PANEL_GROUPS.windowTreeMain]: { tree: 58, props: 42 },
     [PANEL_GROUPS.toolsEditorMain]: { tree: 42, props: 58 },
+    [PANEL_GROUPS.copyEditorMain]: { tree: 42, props: 58 },
 };
 
 export function getValidPanelSizes(parsedSizes?: unknown): PanelSizes {
