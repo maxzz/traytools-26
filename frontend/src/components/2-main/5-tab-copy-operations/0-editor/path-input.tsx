@@ -214,6 +214,11 @@ export function PathInput({
 
 /** Call once when the Copy Operations page mounts so the listener is ready early. */
 export function initCopyPathDropListener() {
+    // Do not read window.wails.flags.enableWailsDragAndDrop here: the Wails JS
+    // runtime defaults it to false, and Go flips it to true only after
+    // navigationCompleted (ExecJS). That races with React mount / Vite HMR and
+    // produces a false warning even when main.go has EnableFileDrop: true.
+    /*
     const flags = (window as unknown as { wails?: { flags?: { enableWailsDragAndDrop?: boolean; }; }; }).wails?.flags;
     if (flags && !flags.enableWailsDragAndDrop) {
         console.warn(
@@ -221,5 +226,6 @@ export function initCopyPathDropListener() {
             + "Restart the app after a full rebuild so EnableFileDrop takes effect.",
         );
     }
+    */
     ensureDropListener();
 }
