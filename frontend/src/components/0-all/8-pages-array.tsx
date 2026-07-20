@@ -11,14 +11,14 @@ import { Page_CopyOperations } from "../2-main/5-tab-copy-operations/0-editor/0-
 
 // Pages definitions.
 
-export const MAIN_PAGES = [
+const MAIN_PAGES = [
     { id: "welcome", label: "Welcome", Page: PageWelcome },
     { id: "trace-bits", label: "Trace Bits", Page: Page_TraceBits },
     { id: "windows-tree", label: "Windows", Page: Page_WindowsTree },
     { id: "active-monitor", label: "Active Monitor", Page: Page_ActiveMonitor },
     { id: "tools-menu-editor", label: "Tools Menu Editor", Page: Page_ToolsMenuEditor },
     { id: "copy-operations", label: "Copy Operations", Page: Page_CopyOperations },
-    { id: "demos", label: "Demos", Page: Page_XYZdemos },
+    // { id: "demos", label: "Demos", Page: Page_XYZdemos },
     // { id: "test-a", label: "Test A", Page: PageTestTabA },
     // { id: "test-b", label: "Test B", Page: PageTestTabB },
 ] as const satisfies readonly { id: string; label: string; Page: ComponentType; }[];
@@ -27,10 +27,11 @@ export type MainTabId = (typeof MAIN_PAGES)[number]["id"];
 
 // Top menu view pages.
 
-const ID_FOR_QUICKTABS: MainTabId[] = ["welcome", "windows-tree", "tools-menu-editor", "copy-operations"];
+const ID_FOR_TOPMENU: MainTabId[] = ["welcome", "copy-operations", "windows-tree", "tools-menu-editor", "active-monitor", "trace-bits"];
+const ID_FOR_QUICKTABS: MainTabId[] = ["welcome", "copy-operations", "windows-tree", "tools-menu-editor"];
 
-export const TOPMENU_VIEW_PAGES = MAIN_PAGES.filter((page) => page.id !== "demos");
-export const QUICKTABS_VIEW_PAGES = MAIN_PAGES.filter((page) => ID_FOR_QUICKTABS.includes(page.id));
+export const TOPMENU_VIEW_PAGES = ID_FOR_TOPMENU.map((id) => MAIN_PAGES.find((page) => page.id === id)!);
+export const QUICKTABS_VIEW_PAGES = ID_FOR_QUICKTABS.map((id) => MAIN_PAGES.find((page) => page.id === id)!);
 
 // Validated access to MainTabId and ComponentType.
 
