@@ -66,6 +66,10 @@ func main() {
 		OnShutdown:         app.Shutdown,
 		StartHidden:        true,
 		SingleInstanceLock: app.SingleInstanceLock(),
+		DragAndDrop: &options.DragAndDrop{
+			EnableFileDrop:     true,
+			DisableWebViewDrop: false,
+		},
 		Debug: options.Debug{
 			OpenInspectorOnStartup: openInspector,
 		},

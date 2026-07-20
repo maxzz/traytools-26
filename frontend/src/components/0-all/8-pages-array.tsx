@@ -7,6 +7,7 @@ import { Page_TraceBits } from "../2-main/2-tab-trace-bits/0-all-trace-bits";
 import { Page_WindowsTree } from "../2-main/1-tab-windows-tree/0-all-windows-page";
 import { Page_ToolsMenuEditor } from "../2-main/3-tab-tools-menu-editor/0-editor/0-all-editor";
 import { Page_ActiveMonitor } from "../2-main/4-tab-active-monitor/0-all-active-monitor";
+import { Page_CopyOperations } from "../2-main/5-tab-copy-operations/0-editor/0-all-editor";
 
 export const MAIN_PAGES = [
     { id: "welcome", label: "Welcome", Page: PageWelcome },
@@ -14,6 +15,7 @@ export const MAIN_PAGES = [
     { id: "windows-tree", label: "Windows", Page: Page_WindowsTree },
     { id: "active-monitor", label: "Active Monitor", Page: Page_ActiveMonitor },
     { id: "tools-menu-editor", label: "Tools Menu Editor", Page: Page_ToolsMenuEditor },
+    { id: "copy-operations", label: "Copy Operations", Page: Page_CopyOperations },
     { id: "demos", label: "Demos", Page: Page_XYZdemos },
     // { id: "test-a", label: "Test A", Page: PageTestTabA },
     // { id: "test-b", label: "Test B", Page: PageTestTabB },
@@ -21,7 +23,7 @@ export const MAIN_PAGES = [
 
 export type MainTabId = (typeof MAIN_PAGES)[number]["id"];
 
-export const VIEW_MENU_ITEMS = MAIN_PAGES.slice(0, 5);
+export const VIEW_MENU_ITEMS = MAIN_PAGES.filter((page) => page.id !== "demos");
 
 export const DEFAULT_MAIN_TAB: MainTabId = "welcome";
 

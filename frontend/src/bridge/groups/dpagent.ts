@@ -19,4 +19,5 @@ export const dpAgentBus = {
     getStatus: () => dispatch<DpAgentStatus>(GROUP, "getStatus"),
     start: (asHigh: boolean) => dispatch(GROUP, "start", { asHigh }),
     stop: () => dispatch(GROUP, "stop"),
+    ensureStopped: (timeoutMs?: number) => dispatch(GROUP, "ensureStopped", timeoutMs != null ? { timeoutMs } : undefined),
 };
