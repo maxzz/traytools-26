@@ -37,6 +37,17 @@ type PickResponse struct {
 	Path     string `json:"path,omitempty"`
 }
 
+// NormalizeDropPathRequest is the payload for "normalizeDropPath".
+type NormalizeDropPathRequest struct {
+	Path string `json:"path"`
+	Kind string `json:"kind"` // "file" | "folder"
+}
+
+// NormalizeDropPathResponse is returned by "normalizeDropPath".
+type NormalizeDropPathResponse struct {
+	Path string `json:"path"`
+}
+
 // CopyItemSpec is one source→destination copy in a batch.
 type CopyItemSpec struct {
 	SourceFile string `json:"sourceFile"`

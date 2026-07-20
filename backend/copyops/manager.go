@@ -104,6 +104,19 @@ func (m *Manager) Register(b *bus.Bus) {
 		}
 		return SaveResponse{Path: req.Path}, nil
 	})
+	b.Register(Group, "normalizeDropPath", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req NormalizeDropPathRequest
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		path, err := normalizeDroppedPath(req.Path, req.Kind)
+		if err != nil {
+			return nil, err
+		}
+		return NormalizeDropPathResponse{Path: path}, nil
+	})
 	b.Register(Group, "copyBatch", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		var req CopyBatchRequest
 		if len(payload) > 0 {

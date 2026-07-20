@@ -16,6 +16,7 @@ const DROP_TARGET_STYLE = {
 
 type DropTarget = {
     el: HTMLElement;
+    getKind: () => PathKind;
     onPath: (path: string) => void;
 };
 
@@ -40,6 +41,20 @@ function findTargetAt(x: number, y: number): DropTarget | null {
         }
     }
     return null;
+}
+
+/** Resolve .lnk targets and, for folder fields, strip a trailing filename. */
+async function applyDroppedPath(rawPath: string, kind: PathKind, onPath: (path: string) => void) {
+    try {
+        const res = await copyOpsBus.normalizeDropPath(rawPath, kind);
+        if (res?.path) {
+            onPath(res.path);
+        }
+    } catch (e) {
+        console.error("normalizeDropPath failed", e);
+        // Fall back to raw path so the drop is not silently lost.
+        onPath(rawPath);
+    }
 }
 
 /**
@@ -68,7 +83,10 @@ function ensureDropListener() {
             return;
         }
         const target = findTargetAt(x, y);
-        target?.onPath(paths[0]);
+        if (!target) {
+            return;
+        }
+        void applyDroppedPath(paths[0], target.getKind(), target.onPath);
     }, false);
 }
 
@@ -106,7 +124,9 @@ export function PathInput({
     const [dragOver, setDragOver] = useState(false);
     const dropRef = useRef<HTMLDivElement>(null);
     const onChangeRef = useRef(onChange);
+    const kindRef = useRef(kind);
     onChangeRef.current = onChange;
+    kindRef.current = kind;
 
     useEffect(
         () => {
@@ -116,6 +136,7 @@ export function PathInput({
             }
             return registerDropTarget({
                 el,
+                getKind: () => kindRef.current,
                 onPath: (path) => onChangeRef.current(path),
             });
         },
@@ -154,7 +175,7 @@ export function PathInput({
         setDragOver(false);
         const path = pathFromDataTransfer(e.dataTransfer);
         if (path) {
-            onChange(path);
+            void applyDroppedPath(path, kind, onChange);
         }
         // Let the event bubble to Wails' window listener for WebView2 path resolution.
     };
@@ -195,9 +216,6 @@ export function PathInput({
 export function initCopyPathDropListener() {
     const flags = (window as unknown as { wails?: { flags?: { enableWailsDragAndDrop?: boolean; }; }; }).wails?.flags;
     if (flags && !flags.enableWailsDragAndDrop) {
-        // Go sets this from DragAndDrop.EnableFileDrop on navigationCompleted.
-        // If it's still false, the running binary was built without that option —
-        // path resolution on the Go side will also reject drops.
         console.warn(
             "[copy-ops] window.wails.flags.enableWailsDragAndDrop is false. "
             + "Restart the app after a full rebuild so EnableFileDrop takes effect.",

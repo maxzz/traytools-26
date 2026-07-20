@@ -54,6 +54,12 @@ export type CopyJobDoneEvent = {
 /**
  * Copy Operations command group. Mirrors the "copyops" group on the backend bus.
  */
+export type NormalizeDropPathKind = "file" | "folder";
+
+export type NormalizeDropPathResponse = {
+    path: string;
+};
+
 export const copyOpsBus = {
     getRaw: () => dispatch<CopyOpsRawResponse>(GROUP, "getRaw"),
     save: (content: string) => dispatch<CopyOpsSaveResponse>(GROUP, "save", { content }),
@@ -65,5 +71,8 @@ export const copyOpsBus = {
     readTextFile: (path: string) => dispatch<{ content: string; }>(GROUP, "readTextFile", { path }),
     writeTextFile: (path: string, content: string) =>
         dispatch<CopyOpsSaveResponse>(GROUP, "writeTextFile", { path, content }),
+    /** Resolve .lnk targets and normalize file→parent for folder fields. */
+    normalizeDropPath: (path: string, kind: NormalizeDropPathKind) =>
+        dispatch<NormalizeDropPathResponse>(GROUP, "normalizeDropPath", { path, kind }),
     copyBatch: (req: CopyBatchRequest) => dispatch<CopyBatchResponse>(GROUP, "copyBatch", req),
 };
