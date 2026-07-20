@@ -1,5 +1,6 @@
 import { proxy, subscribe } from "valtio";
-import { toolsBus } from "@/bridge";
+import { appBus, toolsBus } from "@/bridge";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { type ToolsConfig, type ToolsEditorStore, type ToolsSource, ensureUids, findByUid } from "./9-types-menu";
 import { buildToolsFileText, syncDirty } from "./6-json-serialize-dirty";
 import { extractRootComments, parseToolsJsonc } from "./7-json-parse";
@@ -181,4 +182,17 @@ export function ToolsConfig_ResetToDefaults() {
     toolsEditorStore.source = "default";
     syncDirty(toolsEditorStore);
     toolsEditorStore.status = "Reset to default tools";
+}
+
+/** Open File Explorer with tools.json selected, or warn if it was never saved. */
+export async function ToolsConfig_RevealInExplorer(): Promise<void> {
+    if (!toolsEditorStore.fileExists || !toolsEditorStore.path) {
+        notice.warning("tools.json has not been saved yet. Use Apply to create it first.");
+        return;
+    }
+    try {
+        await appBus.revealInExplorer(toolsEditorStore.path);
+    } catch (e) {
+        notice.error(`Failed to reveal tools.json:<br/>${String(e)}`);
+    }
 }

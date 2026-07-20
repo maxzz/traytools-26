@@ -2,9 +2,15 @@ import { useSnapshot } from "valtio";
 import { AlertTriangle, Info, Menu } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { toolsEditorStore, ToolsConfig_Load, ToolsConfig_ResetToDefaults, ToolsConfig_Apply } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
+import {
+    toolsEditorStore,
+    ToolsConfig_Apply,
+    ToolsConfig_Load,
+    ToolsConfig_ResetToDefaults,
+    ToolsConfig_RevealInExplorer,
+} from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 
 export function TopBar() {
     return (
@@ -90,6 +96,12 @@ function ActionsMenu() {
                     {/* <RefreshCw />  */}
                     Reload
                 </DropdownMenuItem>
+
+                <DropdownMenuItem onSelect={() => void ToolsConfig_RevealInExplorer()} title="Show tools.json in File Explorer">
+                    Reveal in File Explorer
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
 
                 <DropdownMenuItem onSelect={() => ToolsConfig_ResetToDefaults()} title="Restore default tools">
                     {/* <RotateCcw />  */}

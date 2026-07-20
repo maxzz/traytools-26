@@ -11,6 +11,7 @@ import {
     CopyConfig_Import,
     CopyConfig_Load,
     CopyConfig_ResetToDefaults,
+    CopyConfig_RevealInExplorer,
 } from "@/components/2-main/5-tab-copy-operations/a-atoms/0-copy-local-storage";
 
 export function TopBar() {
@@ -103,6 +104,10 @@ function ActionsMenu() {
 
                 <DropdownMenuItem onSelect={() => CopyConfig_Export()} title="Export as JSON">
                     Export…
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onSelect={() => void CopyConfig_RevealInExplorer()} title="Show copy.json in File Explorer">
+                    Reveal in File Explorer
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />

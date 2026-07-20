@@ -1,5 +1,6 @@
 import { proxy, subscribe } from "valtio";
-import { copyOpsBus } from "@/bridge";
+import { appBus, copyOpsBus } from "@/bridge";
+import { notice } from "@/ui/local-ui/7-toaster";
 import {
     type CopyConfig,
     type CopyEditorStore,
@@ -152,6 +153,19 @@ export function CopyConfig_ResetToDefaults() {
     copyEditorStore.source = "default";
     syncDirty(copyEditorStore);
     copyEditorStore.status = "Reset to default copy operations";
+}
+
+/** Open File Explorer with copy.json selected, or warn if it was never saved. */
+export async function CopyConfig_RevealInExplorer(): Promise<void> {
+    if (!copyEditorStore.fileExists || !copyEditorStore.path) {
+        notice.warning("copy.json has not been saved yet. Use Apply to create it first.");
+        return;
+    }
+    try {
+        await appBus.revealInExplorer(copyEditorStore.path);
+    } catch (e) {
+        notice.error(`Failed to reveal copy.json:<br/>${String(e)}`);
+    }
 }
 
 /** Import an arbitrary JSON file (native dialog). Sets baseline to imported text so Changed clears. */
