@@ -21,123 +21,109 @@ export function PropsFor_Root() {
 }
 
 export function PropsFor_Group({ group }: { group: CopyGroup; }) {
-    return (
-        <>
-            <LabelAndField label="Group name">
-                <Input
-                    className="h-7"
-                    value={group.name}
-                    onChange={(e) => patchSelectedGroup((g) => { g.name = e.target.value; })}
-                    {...turnOffAutoComplete}
-                />
-            </LabelAndField>
+    return (<>
+        <Button
+            className="-my-2 self-end"
+            variant="default"
+            size="xs"
+            disabled={group.items.length === 0}
+            onClick={() => {
+                const live = copyEditorStore.config.groups.find((g) => g.uid === group.uid);
+                if (live) {
+                    runCopyGroup(live);
+                }
+            }}
+            type="button"
+        >
+            <Copy className="size-3.5" />
+            Copy group
+        </Button>
 
-            <FlagSwitch
-                label="Stop DpAgent before copy"
-                hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
-                checked={!!group.stopDpAgent}
-                onCheckedChange={(v) => patchSelectedGroup((g) => { g.stopDpAgent = v; })}
+        <LabelAndField label="Group name">
+            <Input
+                className="h-7"
+                value={group.name}
+                onChange={(e) => patchSelectedGroup((g) => { g.name = e.target.value; })}
+                {...turnOffAutoComplete}
             />
+        </LabelAndField>
 
-            <FlagSwitch
-                label="Require elevated privileges"
-                hint="Use when destinations include protected folders such as Program Files."
-                checked={!!group.requireElevated}
-                onCheckedChange={(v) => patchSelectedGroup((g) => { g.requireElevated = v; })}
-            />
+        <FlagSwitch
+            label="Stop DpAgent before copy"
+            hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
+            checked={!!group.stopDpAgent}
+            onCheckedChange={(v) => patchSelectedGroup((g) => { g.stopDpAgent = v; })}
+        />
 
-            <Button
-                type="button"
-                variant="default"
-                size="sm"
-                className="mt-2 self-start"
-                disabled={group.items.length === 0}
-                onClick={() => {
-                    const live = copyEditorStore.config.groups.find((g) => g.uid === group.uid);
-                    if (live) {
-                        runCopyGroup(live);
-                    }
-                }}
-            >
-                <Copy className="size-3.5" />
-                Copy group
-            </Button>
-        </>
-    );
+        <FlagSwitch
+            label="Require elevated privileges"
+            hint="Use when destinations include protected folders such as Program Files."
+            checked={!!group.requireElevated}
+            onCheckedChange={(v) => patchSelectedGroup((g) => { g.requireElevated = v; })}
+        />
+    </>);
 }
 
 export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
-    return (
-        <>
-            <PathInput
-                kind="file"
-                label="Source file"
-                value={item.sourceFile}
-                onChange={(path) => patchSelectedItem((it) => { it.sourceFile = path; })}
-            />
-
-            <PathInput
-                kind="folder"
-                label="Destination folder"
-                value={item.destFolder}
-                onChange={(path) => patchSelectedItem((it) => { it.destFolder = path; })}
-            />
-
-            <FlagSwitch
-                label="Stop DpAgent before copy"
-                hint="Stop DpAgent (if running) before this single copy."
-                checked={!!item.stopDpAgent}
-                onCheckedChange={(v) => patchSelectedItem((it) => { it.stopDpAgent = v; })}
-            />
-
-            <FlagSwitch
-                label="Require elevated privileges"
-                hint="Use when the destination is a protected system folder."
-                checked={!!item.requireElevated}
-                onCheckedChange={(v) => patchSelectedItem((it) => { it.requireElevated = v; })}
-            />
-
-            <Button
-                type="button"
-                variant="default"
-                size="sm"
-                className="mt-2 self-start"
-                disabled={!item.sourceFile.trim() || !item.destFolder.trim()}
-                onClick={() => {
-                    for (const g of copyEditorStore.config.groups) {
-                        const live = g.items.find((it) => it.uid === item.uid);
-                        if (live) {
-                            runCopyItem(live);
-                            return;
-                        }
+    return (<>
+        <Button
+            className="-my-2 self-end"
+            variant="default"
+            size="xs"
+            disabled={!item.sourceFile.trim() || !item.destFolder.trim()}
+            onClick={() => {
+                for (const g of copyEditorStore.config.groups) {
+                    const live = g.items.find((it) => it.uid === item.uid);
+                    if (live) {
+                        runCopyItem(live);
+                        return;
                     }
-                }}
-            >
-                <Copy className="size-3.5" />
-                Copy
-            </Button>
-        </>
-    );
+                }
+            }}
+            type="button"
+        >
+            <Copy className="size-3.5" />
+            Copy file
+        </Button>
+
+        <PathInput
+            kind="file"
+            label="Source file"
+            value={item.sourceFile}
+            onChange={(path) => patchSelectedItem((it) => { it.sourceFile = path; })}
+        />
+
+        <PathInput
+            kind="folder"
+            label="Destination folder"
+            value={item.destFolder}
+            onChange={(path) => patchSelectedItem((it) => { it.destFolder = path; })}
+        />
+
+        <FlagSwitch
+            label="Stop DpAgent before copy"
+            hint="Stop DpAgent (if running) before this single copy."
+            checked={!!item.stopDpAgent}
+            onCheckedChange={(v) => patchSelectedItem((it) => { it.stopDpAgent = v; })}
+        />
+
+        <FlagSwitch
+            label="Require elevated privileges"
+            hint="Use when the destination is a protected system folder."
+            checked={!!item.requireElevated}
+            onCheckedChange={(v) => patchSelectedItem((it) => { it.requireElevated = v; })}
+        />
+    </>);
 }
 
-function FlagSwitch({
-    label,
-    hint,
-    checked,
-    onCheckedChange,
-}: {
-    label: string;
-    hint: string;
-    checked: boolean;
-    onCheckedChange: (v: boolean) => void;
-}) {
+function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
-        <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between gap-3">
-                <Label className="text-xs">{label}</Label>
-                <Switch checked={checked} onCheckedChange={onCheckedChange} />
-            </div>
-            <p className="text-xs text-muted-foreground">{hint}</p>
+        <div className="text-xs flex flex-col">
+            <Label className="-mr-1 cursor-pointer flex items-center justify-between gap-1">
+                {label}
+                <Switch className="scale-65" checked={checked} onCheckedChange={onCheckedChange} />
+            </Label>
+            <p className="text-[0.65rem] text-muted-foreground">{hint}</p>
         </div>
     );
 }
