@@ -7,7 +7,7 @@ import { Button } from "@/ui/shadcn/button";
 import { itemLabel, type CopyOpItem } from "@/components/2-main/5-tab-copy-operations/a-atoms/9-types-copy";
 import { type DropPosition, moveNode } from "@/components/2-main/5-tab-copy-operations/a-atoms/1-copy-editor-atoms";
 import { copyEditorStore } from "@/components/2-main/5-tab-copy-operations/a-atoms/0-copy-local-storage";
-import { runCopyItem } from "@/components/2-main/5-tab-copy-operations/a-atoms/2-run-copy";
+import { runCopyGroup, runCopyItem } from "@/components/2-main/5-tab-copy-operations/a-atoms/2-run-copy";
 
 /** Same focus/unfocus selection look as the Windows tab (kibo-ui-tree). */
 const ROW_SELECTED = cn(
@@ -156,11 +156,18 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                     onClick={(e) => {
                         e.stopPropagation();
                         onActivate();
-                        setCollapsed((v) => !v);
                         copyEditorStore.selectedUid = rootUid;
                     }}
                 >
-                    <button type="button" className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center" title={collapsed ? "Expand" : "Collapse"}>
+                    <button
+                        type="button"
+                        className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center"
+                        title={collapsed ? "Expand" : "Collapse"}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setCollapsed((v) => !v);
+                        }}
+                    >
                         {collapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
                     </button>
                     {collapsed
@@ -249,12 +256,19 @@ function GroupRow({
                     onClick={(e) => {
                         e.stopPropagation();
                         onActivate();
-                        setCollapsed((v) => !v);
                         copyEditorStore.selectedUid = uid;
                     }}
                 >
                     <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren />
-                    <button type="button" className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center">
+                    <button
+                        type="button"
+                        className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center"
+                        title={collapsed ? "Expand" : "Collapse"}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setCollapsed((v) => !v);
+                        }}
+                    >
                         {collapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
                     </button>
                     {collapsed
@@ -262,6 +276,22 @@ function GroupRow({
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
                     <span className="flex-1 relative truncate">{group.name || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        className="opacity-0 group-hover:opacity-100 shrink-0"
+                        title="Copy this group"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            const g = copyEditorStore.config.groups.find((row) => row.uid === uid);
+                            if (g) {
+                                runCopyGroup(g);
+                            }
+                        }}
+                    >
+                        <Copy className="size-3" />
+                    </Button>
                 </div>
             </div>
 
