@@ -10,6 +10,7 @@ import { Panel_Props } from "./3-0-panel-props";
 import { TopBar } from "./1-1-top-bar";
 import { TreeViewMenu } from "./2-1-tree-menu";
 import { CopyStatusDialog } from "./4-copy-status-dialog";
+import { initCopyPathDropListener } from "./path-input";
 
 export function Page_CopyOperations() {
     const { panelSizes } = useSnapshot(appSettings);
@@ -17,6 +18,7 @@ export function Page_CopyOperations() {
 
     useEffect(
         () => {
+            initCopyPathDropListener();
             CopyConfig_Load();
         },
         []);
