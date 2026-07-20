@@ -26,7 +26,7 @@ export function WindowTreeToolbar() {
 
                 <div className="px-2 py-1.5 border-b flex items-center gap-x-1 flex-wrap">
                     <Button className="size-6 rounded" size="xs" variant="outline" onClick={() => void refreshWindowTree()} disabled={loading} title="Refresh windows">
-                        <RefreshCw className={classNames("size-3.5 text-muted-foreground", loading && "animate-spin")} />
+                        <RefreshCw className={classNames("size-3 text-muted-foreground", loading && "animate-spin")} />
                     </Button>
 
                     <div className="relative flex-1 min-w-40">

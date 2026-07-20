@@ -9,6 +9,8 @@ import { Page_ToolsMenuEditor } from "../2-main/3-tab-tools-menu-editor/0-editor
 import { Page_ActiveMonitor } from "../2-main/4-tab-active-monitor/0-all-active-monitor";
 import { Page_CopyOperations } from "../2-main/5-tab-copy-operations/0-editor/0-all-editor";
 
+// Pages definitions.
+
 export const MAIN_PAGES = [
     { id: "welcome", label: "Welcome", Page: PageWelcome },
     { id: "trace-bits", label: "Trace Bits", Page: Page_TraceBits },
@@ -19,20 +21,34 @@ export const MAIN_PAGES = [
     { id: "demos", label: "Demos", Page: Page_XYZdemos },
     // { id: "test-a", label: "Test A", Page: PageTestTabA },
     // { id: "test-b", label: "Test B", Page: PageTestTabB },
-] as const satisfies readonly { id: string; label: string; Page: ComponentType }[];
+] as const satisfies readonly { id: string; label: string; Page: ComponentType; }[];
 
 export type MainTabId = (typeof MAIN_PAGES)[number]["id"];
 
-export const VIEW_MENU_ITEMS = MAIN_PAGES.filter((page) => page.id !== "demos");
+// Top menu view pages.
 
-export const DEFAULT_MAIN_TAB: MainTabId = "welcome";
+const ID_FOR_QUICKTABS: MainTabId[] = ["welcome", "windows-tree", "tools-menu-editor", "copy-operations"];
+
+export const TOPMENU_VIEW_PAGES = MAIN_PAGES.filter((page) => page.id !== "demos");
+export const QUICKTABS_VIEW_PAGES = MAIN_PAGES.filter((page) => ID_FOR_QUICKTABS.includes(page.id));
+
+// Validated access to MainTabId and ComponentType.
 
 export function getValidMainTab(tab: string | undefined): MainTabId {
     const match = MAIN_PAGES.find((page) => page.id === tab);
-    return match?.id ?? DEFAULT_MAIN_TAB;
+    const rv: MainTabId = match?.id ?? "welcome";
+    return rv;
 }
 
-export const APP_NAME = "traytools";
+export function getValidTabComponent(tab: string | undefined): ComponentType {
+    const match = MAIN_PAGES.find((page) => page.id === tab);
+    const rv: ComponentType = match?.Page ?? MAIN_PAGES[0].Page;
+    return rv;
+}
+
+// Title format: traytools: Welcome (🦈 elevated)
+
+const APP_NAME = "traytools";
 
 export function formatMainWindowTitle(mainTab: string | undefined, isElevated: boolean): string {
     const page = MAIN_PAGES.find((entry) => entry.id === getValidMainTab(mainTab));

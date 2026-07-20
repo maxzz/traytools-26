@@ -4,7 +4,7 @@ import { LayoutGroup, motion } from "motion/react";
 import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
 import { Button } from "@/ui/shadcn/button";
-import { getValidMainTab, MAIN_PAGES } from "@/components/0-all/8-pages-array";
+import { getValidMainTab, QUICKTABS_VIEW_PAGES } from "@/components/0-all/8-pages-array";
 
 export function MainTabs({ className, ...rest }: ComponentProps<"div">) {
     const settings = useSnapshot(appSettings);
@@ -13,7 +13,7 @@ export function MainTabs({ className, ...rest }: ComponentProps<"div">) {
     return (
         <LayoutGroup id="main-tab-buttons">
             <div className={classNames("hidden p-0.75 w-fit h-8 text-muted-foreground bg-muted md:flex rounded-lg items-center", className)} role="tablist" aria-label="Main pages" {...rest}>
-                {MAIN_PAGES.map(
+                {QUICKTABS_VIEW_PAGES.map(
                     ({ id, label }) => {
                         const selected = id === activeTab;
                         return (
