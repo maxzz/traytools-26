@@ -2,6 +2,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
+import { isProcessGroupHandle } from "@/bridge";
 import { appSettings } from "@/store/1-ui-settings";
 import {
     windowTreeStore,
@@ -12,6 +13,7 @@ import {
     selectedHandleAtom,
     treeFilterAtom,
     hideInvisibleAtom,
+    groupByProcessAtom,
     filteredTreeAtom,
     treeExpandRevisionAtom,
 } from "./s-windows-tree-state";
@@ -23,6 +25,7 @@ export function WindowTreeView() {
     const [selected, setSelected] = useAtom(selectedHandleAtom);
     const filterText = useAtomValue(treeFilterAtom);
     const hideInvisible = useAtomValue(hideInvisibleAtom);
+    const groupByProcess = useAtomValue(groupByProcessAtom);
     const expandRevision = useAtomValue(treeExpandRevisionAtom);
     const { tree, expandIds } = useAtomValue(filteredTreeAtom);
 
@@ -31,6 +34,11 @@ export function WindowTreeView() {
 
     const onSelectionChange = (ids: string[]) => {
         const handle = ids.length > 0 ? ids[0] : null;
+        // Process-group folders are not real windows.
+        if (handle && isProcessGroupHandle(handle)) {
+            setSelected(null);
+            return;
+        }
         setSelected(handle);
         if (autoHighlight) {
             void maybeHighlightSelectedWindow(handle);
@@ -40,7 +48,7 @@ export function WindowTreeView() {
     };
 
     const onReselect = (nodeId: string) => {
-        if (!autoHighlight) {
+        if (!autoHighlight || isProcessGroupHandle(nodeId)) {
             return;
         }
         void maybeHighlightSelectedWindow(nodeId);
@@ -49,7 +57,7 @@ export function WindowTreeView() {
     // Re-key the provider so default expansion re-applies when the data, the
     // filter, or an explicit collapse/expand revision changes (kibo tree
     // expansion is otherwise uncontrolled).
-    const providerKey = `${count}|${needle}|${hideInvisible}|${expandRevision}`;
+    const providerKey = `${count}|${needle}|${hideInvisible}|${groupByProcess}|${expandRevision}`;
 
     return (
         <div className="relative size-full min-h-0">

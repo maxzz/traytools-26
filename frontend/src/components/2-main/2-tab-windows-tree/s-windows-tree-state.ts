@@ -20,6 +20,9 @@ export const showHandlesAtom = atomWithStorage("wt.showHandles", true);
 // Hide windows that are not currently visible (WS_VISIBLE off).
 export const hideInvisibleAtom = atomWithStorage("wt.hideInvisible", false);
 
+// Group top-level windows under synthetic process-name folders.
+export const groupByProcessAtom = atomWithStorage("wt.groupByProcess", false);
+
 // Flash notice when highlight hits empty or off-screen bounds.
 // `handle` keeps the badge on the row that triggered it; `token` forces a
 // fresh animation on every select/reselect.

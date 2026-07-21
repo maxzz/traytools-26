@@ -11,10 +11,17 @@ export interface WindowNode {
     title: string;
     processId: number;
     threadId: number;
+    /** Image basename (e.g. chrome.exe); empty when the process could not be queried. */
+    processName: string;
     style: number;
     exStyle: number;
     visible: boolean;
     children?: WindowNode[];
+}
+
+/** Synthetic folder node used when "Group windows by process name" is on. */
+export function isProcessGroupHandle(handle: string): boolean {
+    return handle.startsWith("proc:");
 }
 
 export interface WindowTree {

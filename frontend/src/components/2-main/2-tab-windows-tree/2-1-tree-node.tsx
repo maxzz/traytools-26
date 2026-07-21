@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
-import { type WindowNode } from "@/bridge";
+import { type WindowNode, isProcessGroupHandle } from "@/bridge";
 import { cn } from "@/utils";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
 import { AppWindow, Square, Layers, Folder } from "lucide-react";
@@ -18,17 +18,18 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
     const showHandles = useAtomValue(showHandlesAtom);
     const selectedHandle = useAtomValue(selectedHandleAtom);
     const isRoot = node.handle === "root";
+    const isProcessGroup = isProcessGroupHandle(node.handle);
     const children = node.children ?? [];
     const hasChildren = children.length > 0;
-    const isSelected = !isRoot && selectedHandle === node.handle;
+    const isSelected = !isRoot && !isProcessGroup && selectedHandle === node.handle;
 
     return (
         <TreeNode nodeId={node.handle} level={level} isLast={isLast} parentPath={parentPath}>
             <TreeNodeTrigger hasChildren={hasChildren}>
                 <TreeExpander hasChildren={hasChildren} />
-                <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot)} />
-                <TreeLabel className={cn("text-xs", !isRoot && !node.visible && "")}>
-                    {nodeLabel(node, isRoot, showHandles)}
+                <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot, isProcessGroup)} />
+                <TreeLabel className={cn("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
+                    {nodeLabel(node, isRoot, isProcessGroup, showHandles)}
                 </TreeLabel>
                 {isSelected && <BoundsNoticeFlashBadge handle={node.handle} />}
             </TreeNodeTrigger>
@@ -93,8 +94,8 @@ function BoundsNoticeAnimation({ kind }: { kind: BoundsNoticeKind; }) {
     );
 }
 
-function nodeLabel(node: WindowNode, isRoot: boolean, showHandles: boolean) {
-    if (isRoot) {
+function nodeLabel(node: WindowNode, isRoot: boolean, isProcessGroup: boolean, showHandles: boolean) {
+    if (isRoot || isProcessGroup) {
         return <span className="font-condensed">{node.title}</span>;
     }
     const cls = node.className || "(no class)";
@@ -105,8 +106,8 @@ function nodeLabel(node: WindowNode, isRoot: boolean, showHandles: boolean) {
     </>);
 }
 
-function nodeIcon(node: WindowNode, isRoot: boolean) {
-    if (isRoot) {
+function nodeIcon(node: WindowNode, isRoot: boolean, isProcessGroup: boolean) {
+    if (isRoot || isProcessGroup) {
         return <Folder className="size-4" />;
     }
     if (node.style & WS_CHILD) {

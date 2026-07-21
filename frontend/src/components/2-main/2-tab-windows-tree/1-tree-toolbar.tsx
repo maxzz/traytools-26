@@ -12,7 +12,7 @@ import { Switch } from "@/ui/shadcn/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { useFilter } from "./2-2-use-filter";
 import { windowTreeStore, refreshWindowTree, maybeHighlightSelectedWindow, hideWindowHighlight } from "./a-windows-tree-calls";
-import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
+import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, groupByProcessAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 
 export function WindowTreeToolbar() {
     const { loading } = useSnapshot(windowTreeStore);
@@ -117,6 +117,7 @@ function TreeOptionsPopover() {
     const { windowHighlight } = useSnapshot(appSettings);
     const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
     const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
+    const [groupByProcess, setGroupByProcess] = useAtom(groupByProcessAtom);
     const displayed = useAtomValue(displayedCountAtom);
 
     return (
@@ -144,6 +145,11 @@ function TreeOptionsPopover() {
                     <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                         <Checkbox checked={hideInvisible} onCheckedChange={(v) => setHideInvisible(v === true)} />
                         Hide invisible windows
+                    </label>
+
+                    <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
+                        <Checkbox checked={groupByProcess} onCheckedChange={(v) => setGroupByProcess(v === true)} />
+                        Group windows by process name
                     </label>
                 </div>
 

@@ -12,21 +12,32 @@ func platformGetTree() (WindowTree, error) {
 		Title:  "Desktop windows:",
 		Children: []WindowNode{
 			{
-				Handle:    "0x00010001",
-				ClassName: "DemoTopLevel",
-				Title:     "Sample Window (non-Windows demo)",
-				ProcessID: 1234,
-				ThreadID:  10,
-				Style:     wsVisible | wsCaption(),
-				Visible:   true,
+				Handle:      "0x00010001",
+				ClassName:   "DemoTopLevel",
+				Title:       "Sample Window (non-Windows demo)",
+				ProcessID:   1234,
+				ThreadID:    10,
+				ProcessName: "demo.exe",
+				Style:       wsVisible | wsCaption(),
+				Visible:     true,
 				Children: []WindowNode{
-					{Handle: "0x00010002", ClassName: "Button", Title: "OK", ProcessID: 1234, ThreadID: 10, Style: wsVisible | wsChild, Visible: true},
-					{Handle: "0x00010003", ClassName: "Edit", Title: "", ProcessID: 1234, ThreadID: 10, Style: wsVisible | wsChild, Visible: true},
+					{Handle: "0x00010002", ClassName: "Button", Title: "OK", ProcessID: 1234, ThreadID: 10, ProcessName: "demo.exe", Style: wsVisible | wsChild, Visible: true},
+					{Handle: "0x00010003", ClassName: "Edit", Title: "", ProcessID: 1234, ThreadID: 10, ProcessName: "demo.exe", Style: wsVisible | wsChild, Visible: true},
 				},
+			},
+			{
+				Handle:      "0x00020001",
+				ClassName:   "OtherTopLevel",
+				Title:       "Another Process Window",
+				ProcessID:   5678,
+				ThreadID:    20,
+				ProcessName: "other.exe",
+				Style:       wsVisible | wsCaption(),
+				Visible:     true,
 			},
 		},
 	}
-	return WindowTree{Root: root, Count: 3}, nil
+	return WindowTree{Root: root, Count: 4}, nil
 }
 
 func wsCaption() uint32 { return wsBorder | wsDlgFrame | wsSysMenu }

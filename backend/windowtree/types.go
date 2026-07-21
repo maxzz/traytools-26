@@ -9,15 +9,16 @@ const Group = "windowtree"
 // selected. Handles are serialized as strings because a HWND can exceed the
 // range JavaScript numbers represent exactly on 64-bit builds.
 type WindowNode struct {
-	Handle    string       `json:"handle"`
-	ClassName string       `json:"className"`
-	Title     string       `json:"title"`
-	ProcessID uint32       `json:"processId"`
-	ThreadID  uint32       `json:"threadId"`
-	Style     uint32       `json:"style"`
-	ExStyle   uint32       `json:"exStyle"`
-	Visible   bool         `json:"visible"`
-	Children  []WindowNode `json:"children,omitempty"`
+	Handle      string       `json:"handle"`
+	ClassName   string       `json:"className"`
+	Title       string       `json:"title"`
+	ProcessID   uint32       `json:"processId"`
+	ThreadID    uint32       `json:"threadId"`
+	ProcessName string       `json:"processName"`
+	Style       uint32       `json:"style"`
+	ExStyle     uint32       `json:"exStyle"`
+	Visible     bool         `json:"visible"`
+	Children    []WindowNode `json:"children,omitempty"`
 }
 
 // WindowTree is the payload returned by getTree: a synthetic root ("Desktop

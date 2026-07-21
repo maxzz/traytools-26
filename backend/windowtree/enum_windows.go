@@ -111,24 +111,26 @@ func isWindowBool(proc *windows.LazyProc, hwnd uintptr) bool {
 }
 
 // buildNode reads the lightweight tree info for a single window.
-func buildNode(hwnd uintptr) WindowNode {
+// nameCache maps PID → process image basename so OpenProcess is done once per process.
+func buildNode(hwnd uintptr, nameCache map[uint32]string) WindowNode {
 	tid, pid := getThreadProcess(hwnd)
 	return WindowNode{
-		Handle:    handleToString(hwnd),
-		ClassName: getClassNameStr(hwnd),
-		Title:     getWindowTextStr(hwnd),
-		ProcessID: pid,
-		ThreadID:  tid,
-		Style:     uint32(getWindowLong(hwnd, gwlStyle)),
-		ExStyle:   uint32(getWindowLong(hwnd, gwlExStyle)),
-		Visible:   isWindowBool(procIsWindowVisible, hwnd),
+		Handle:      handleToString(hwnd),
+		ClassName:   getClassNameStr(hwnd),
+		Title:       getWindowTextStr(hwnd),
+		ProcessID:   pid,
+		ThreadID:    tid,
+		ProcessName: processNameCached(pid, nameCache),
+		Style:       uint32(getWindowLong(hwnd, gwlStyle)),
+		ExStyle:     uint32(getWindowLong(hwnd, gwlExStyle)),
+		Visible:     isWindowBool(procIsWindowVisible, hwnd),
 	}
 }
 
 // buildChildren walks the child windows of hwnd in z-order using
 // GW_CHILD + GW_HWNDNEXT (which also covers windows that EnumChildWindows would
 // return, while preserving the on-screen order).
-func buildChildren(hwnd uintptr, depth int, count *int) []WindowNode {
+func buildChildren(hwnd uintptr, depth int, count *int, nameCache map[uint32]string) []WindowNode {
 	if depth >= maxTreeDepth {
 		return nil
 	}
@@ -136,8 +138,8 @@ func buildChildren(hwnd uintptr, depth int, count *int) []WindowNode {
 	child, _, _ := procGetWindow.Call(hwnd, gwChild)
 	for child != 0 {
 		*count++
-		node := buildNode(child)
-		node.Children = buildChildren(child, depth+1, count)
+		node := buildNode(child, nameCache)
+		node.Children = buildChildren(child, depth+1, count, nameCache)
 		children = append(children, node)
 		child, _, _ = procGetWindow.Call(child, gwHwndNext)
 	}
@@ -147,11 +149,12 @@ func buildChildren(hwnd uintptr, depth int, count *int) []WindowNode {
 func platformGetTree() (WindowTree, error) {
 	count := 0
 	var top []WindowNode
+	nameCache := map[uint32]string{}
 
 	cb := windows.NewCallback(func(hwnd uintptr, _ uintptr) uintptr {
 		count++
-		node := buildNode(hwnd)
-		node.Children = buildChildren(hwnd, 1, &count)
+		node := buildNode(hwnd, nameCache)
+		node.Children = buildChildren(hwnd, 1, &count, nameCache)
 		top = append(top, node)
 		return 1 // continue enumeration
 	})
@@ -163,6 +166,37 @@ func platformGetTree() (WindowTree, error) {
 		Children: top,
 	}
 	return WindowTree{Root: root, Count: count}, nil
+}
+
+// processNameCached returns the image basename for pid, caching results for the
+// current tree enumeration so many windows in one process share a single query.
+func processNameCached(pid uint32, cache map[uint32]string) string {
+	if name, ok := cache[pid]; ok {
+		return name
+	}
+	name := processNameOnly(pid)
+	cache[pid] = name
+	return name
+}
+
+// processNameOnly is a lighter QueryFullProcessImageName lookup used while
+// building the tree (no bits/token work).
+func processNameOnly(pid uint32) string {
+	if pid == 0 {
+		return ""
+	}
+	h, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, pid)
+	if err != nil {
+		return ""
+	}
+	defer windows.CloseHandle(h)
+
+	buf := make([]uint16, windows.MAX_PATH)
+	size := uint32(len(buf))
+	if err := windows.QueryFullProcessImageName(h, 0, &buf[0], &size); err != nil {
+		return ""
+	}
+	return filepath.Base(windows.UTF16ToString(buf[:size]))
 }
 
 func rectInfo(r winRect) RectInfo {

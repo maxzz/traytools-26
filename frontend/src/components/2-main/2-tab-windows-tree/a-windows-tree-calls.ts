@@ -1,6 +1,6 @@
 import { proxy, snapshot } from "valtio";
 import { getDefaultStore } from "jotai";
-import { highlightBus, windowTreeBus, type WindowNode, type WindowInfo, type RectInfo } from "@/bridge";
+import { highlightBus, windowTreeBus, isProcessGroupHandle, type WindowNode, type WindowInfo, type RectInfo } from "@/bridge";
 import { isBackendAvailable } from "@/wails/is-wails";
 import { appSettings } from "@/store/1-ui-settings";
 import { boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
@@ -132,7 +132,7 @@ export async function ensureWindowTreeLoaded(): Promise<void> {
 }
 
 export async function loadWindowInfo(handle: string | null): Promise<void> {
-    if (!handle || handle === "root") {
+    if (!handle || handle === "root" || isProcessGroupHandle(handle)) {
         windowTreeStore.info = null;
         windowTreeStore.infoError = null;
         return;
@@ -218,7 +218,7 @@ function isBoundsEmpty(rect: RectInfo): boolean {
 
 /** Refresh window info and outline its screen rectangle when auto-highlight is on. */
 export async function maybeHighlightSelectedWindow(handle: string | null): Promise<void> {
-    if (!handle || handle === "root") {
+    if (!handle || handle === "root" || isProcessGroupHandle(handle)) {
         return;
     }
 
