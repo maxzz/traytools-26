@@ -46,6 +46,9 @@ export const windowTreeStore = proxy<WindowTreeState>({
 /** Ignores stale highlight results when the user clicks another row quickly. */
 let highlightRequestId = 0;
 
+/** Ignores stale window/process info when selection changes mid-flight. */
+let selectionRequestId = 0;
+
 /** Ignores overlapping getTree results (StrictMode remount / menu + page refresh). */
 let treeRequestId = 0;
 
@@ -144,57 +147,89 @@ export async function ensureWindowTreeLoaded(): Promise<void> {
 
 /** Load window or process details for the current tree selection. */
 export async function loadSelectionInfo(handle: string | null): Promise<void> {
+    const requestId = ++selectionRequestId;
+
     if (!handle || handle === "root") {
+        if (requestId !== selectionRequestId) {
+            return;
+        }
         windowTreeStore.info = null;
         windowTreeStore.processInfo = null;
         windowTreeStore.infoError = null;
+        windowTreeStore.infoLoading = false;
         return;
     }
     if (isProcessGroupHandle(handle)) {
         const pid = processGroupId(handle);
         if (pid == null) {
+            if (requestId !== selectionRequestId) {
+                return;
+            }
             windowTreeStore.info = null;
             windowTreeStore.processInfo = null;
             windowTreeStore.infoError = null;
+            windowTreeStore.infoLoading = false;
             return;
         }
-        await loadProcessInfo(pid);
+        await loadProcessInfo(pid, requestId);
         return;
     }
-    await loadWindowInfo(handle);
+    await loadWindowInfo(handle, requestId);
 }
 
-export async function loadWindowInfo(handle: string | null): Promise<void> {
+export async function loadWindowInfo(handle: string | null, requestId = ++selectionRequestId): Promise<void> {
     if (!handle || handle === "root" || isProcessGroupHandle(handle)) {
+        if (requestId !== selectionRequestId) {
+            return;
+        }
         windowTreeStore.info = null;
         windowTreeStore.processInfo = null;
         windowTreeStore.infoError = null;
+        windowTreeStore.infoLoading = false;
         return;
     }
     windowTreeStore.infoLoading = true;
     windowTreeStore.infoError = null;
     windowTreeStore.processInfo = null;
     try {
-        windowTreeStore.info = await windowTreeBus.getWindowInfo(handle);
+        const info = await windowTreeBus.getWindowInfo(handle);
+        if (requestId !== selectionRequestId) {
+            return;
+        }
+        windowTreeStore.info = info;
     } catch (e) {
+        if (requestId !== selectionRequestId) {
+            return;
+        }
         windowTreeStore.infoError = String(e);
         windowTreeStore.info = null;
     } finally {
-        windowTreeStore.infoLoading = false;
+        if (requestId === selectionRequestId) {
+            windowTreeStore.infoLoading = false;
+        }
     }
 }
 
-export async function loadProcessInfo(processId: number): Promise<void> {
+export async function loadProcessInfo(processId: number, requestId = ++selectionRequestId): Promise<void> {
     windowTreeStore.infoLoading = true;
     windowTreeStore.infoError = null;
     windowTreeStore.info = null;
     try {
-        windowTreeStore.processInfo = await windowTreeBus.getProcessInfo(processId);
+        const processInfo = await windowTreeBus.getProcessInfo(processId);
+        if (requestId !== selectionRequestId) {
+            return;
+        }
+        windowTreeStore.processInfo = processInfo;
     } catch (e) {
+        if (requestId !== selectionRequestId) {
+            return;
+        }
         windowTreeStore.infoError = String(e);
         windowTreeStore.processInfo = null;
     } finally {
-        windowTreeStore.infoLoading = false;
+        if (requestId === selectionRequestId) {
+            windowTreeStore.infoLoading = false;
+        }
     }
 }
 

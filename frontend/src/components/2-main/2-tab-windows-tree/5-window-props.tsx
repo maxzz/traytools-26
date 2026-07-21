@@ -1,11 +1,12 @@
 import { type PropsWithChildren, type ReactNode } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
-import { FolderOpen } from "lucide-react";
+import { Copy, FolderOpen } from "lucide-react";
 import { classNames } from "@/utils/classnames";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { appBus, isProcessGroupHandle, type ProcessInfo, type RectInfo, type WindowInfo } from "@/bridge";
 import { windowTreeStore } from "./a-windows-tree-calls";
 import { propsTabAtom, selectedHandleAtom, type PropsTab } from "./s-windows-tree-state";
@@ -120,22 +121,66 @@ function PathWithReveal({ path }: { path: string; }) {
     if (!path) {
         return <span className="text-muted-foreground/60">N/A</span>;
     }
+    const folder = parentDir(path);
     return (
         <span className="inline-flex items-start gap-1.5 min-w-0">
             <span className="break-all">{path}</span>
-            <Button
-                type="button"
-                size="icon-xs"
-                variant="outline"
-                className="size-5 shrink-0 rounded"
-                title="Open folder in File Explorer and highlight this file"
-                aria-label="Reveal in File Explorer"
-                onClick={() => void appBus.revealInExplorer(path)}
-            >
-                <FolderOpen className="size-3 text-muted-foreground" />
-            </Button>
+            <span className="inline-flex shrink-0 items-center gap-0.5">
+                <Button
+                    type="button"
+                    size="icon-xs"
+                    variant="outline"
+                    className="size-5 rounded"
+                    title="Open folder in File Explorer and highlight this file"
+                    aria-label="Open folder"
+                    onClick={() => {
+                        void appBus.revealInExplorer(path).catch((e) => {
+                            notice.error(`Failed to open folder:<br/>${String(e)}`);
+                        });
+                    }}
+                >
+                    <FolderOpen className="size-3 text-muted-foreground" />
+                </Button>
+                <Button
+                    type="button"
+                    size="icon-xs"
+                    variant="outline"
+                    className="size-5 rounded"
+                    title="Copy folder path (without filename)"
+                    aria-label="Copy folder path"
+                    disabled={!folder}
+                    onClick={() => void copyFolderPath(folder)}
+                >
+                    <Copy className="size-3 text-muted-foreground" />
+                </Button>
+            </span>
         </span>
     );
+}
+
+/** Parent directory of a Windows or POSIX file path (no filename). */
+function parentDir(filePath: string): string {
+    const normalized = filePath.replace(/\//g, "\\").replace(/\\+$/, "");
+    const idx = normalized.lastIndexOf("\\");
+    if (idx < 0) {
+        return "";
+    }
+    // Keep drive root as "C:\"
+    if (idx === 2 && normalized[1] === ":") {
+        return normalized.slice(0, 3);
+    }
+    return normalized.slice(0, idx);
+}
+
+async function copyFolderPath(folder: string): Promise<void> {
+    if (!folder) {
+        return;
+    }
+    try {
+        await navigator.clipboard.writeText(folder);
+    } catch (e) {
+        notice.error(`Failed to copy folder path:<br/>${String(e)}`);
+    }
 }
 
 function Tab_General({ info }: { info: WindowInfo; }) {
