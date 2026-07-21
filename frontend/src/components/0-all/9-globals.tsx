@@ -15,15 +15,19 @@ import {
 } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { sendUnloadHookNotification } from "@/components/1-header/3-send-unload-msg-notice/3-2-unload-hook-action";
 import { syncToolsHotkeys, toolsHotkeysStore } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/2-tools-hotkeys";
+import { zoomLevelAtom } from "@/store/4-atoms-zoom";
 import { matchesHotkey, parseHotkey } from "@/ui/local-ui/9-hotkey";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { toggleDevTools } from "@/wails/tray-backend";
 import { isBackendAvailable } from "@/wails/is-wails";
+import { onZoomChanged, restoreZoom, zoomAction } from "@/wails/zoom";
 
 export function AllDialogs() {
     return (<>
         <DevToolsShortcut />
         <SettingsDialogShortcut />
+        <ZoomShortcut />
+        <ZoomLevelSync />
         <UnloadHookHotkeyShortcut />
         <ToolsHotkeysShortcut />
         <AppIsElevatedSync />
@@ -100,6 +104,60 @@ function SettingsDialogShortcut() {
     return null;
 }
 
+/** Ctrl/Cmd + = / - / 0 — zoom in, out, reset (matches win-watch). */
+function ZoomShortcut() {
+    useEffect(
+        () => {
+            function handleKeyDown(event: KeyboardEvent) {
+                const ctrlOrCmd = event.ctrlKey || event.metaKey;
+                if (!ctrlOrCmd || event.shiftKey || event.altKey) {
+                    return;
+                }
+
+                const key = event.key;
+                const normalized = key.length === 1 ? key.toLowerCase() : key;
+
+                if (normalized === "=" || normalized === "+" || normalized === "Add") {
+                    zoomAction("in");
+                    event.preventDefault();
+                    return;
+                }
+                if (normalized === "-" || normalized === "_" || normalized === "Subtract") {
+                    zoomAction("out");
+                    event.preventDefault();
+                    return;
+                }
+                if (normalized === "0") {
+                    zoomAction("reset");
+                    event.preventDefault();
+                }
+            }
+
+            const controller = new AbortController();
+            window.addEventListener("keydown", handleKeyDown, { signal: controller.signal });
+            return () => controller.abort();
+        },
+        [],
+    );
+
+    return null;
+}
+
+/** Keep the zoom % label in sync with persisted / applied zoom. */
+function ZoomLevelSync() {
+    const setZoomLevel = useSetAtom(zoomLevelAtom);
+
+    useEffect(
+        () => {
+            restoreZoom();
+            return onZoomChanged(setZoomLevel);
+        },
+        [setZoomLevel],
+    );
+
+    return null;
+}
+
 /** Local (in-app) and global (OS) hotkey wiring for unload-hook. */
 function UnloadHookHotkeyShortcut() {
     const { chord, global } = useAtomValue(settingsUnloadHookHotkeyAtom);
@@ -119,7 +177,7 @@ function UnloadHookHotkeyShortcut() {
             }
 
             function handleKeyDown(event: KeyboardEvent) {
-                if (!matchesHotkey(event, chord)) {
+                if (event.defaultPrevented || !matchesHotkey(event, chord)) {
                     return;
                 }
 
@@ -172,6 +230,10 @@ function ToolsHotkeysShortcut() {
             }
 
             function handleKeyDown(event: KeyboardEvent) {
+                if (event.defaultPrevented) {
+                    return;
+                }
+
                 const target = event.target;
                 if (target instanceof HTMLElement && target.closest('input, textarea, select, [contenteditable="true"]')) {
                     return;

@@ -9,6 +9,7 @@ import { isOpenSettingsDialogAtom, settingsUnloadHookHotkeyAtom } from "@/compon
 import { formatHotkey } from "@/ui/local-ui/9-hotkey";
 import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 import { ToolsMenu } from "./1-1-menu-tools";
+import { ZoomControls } from "./1-2-zoom-controls";
 import { sendUnloadHookNotification } from "../3-send-unload-msg-notice/3-2-unload-hook-action";
 
 export function AppMenubar() {
@@ -54,6 +55,10 @@ export function AppMenubar() {
 
                 <MenubarContent>
                     <PageViewSelector />
+
+                    <MenubarSeparator />
+
+                    <ZoomControls />
 
                     <MenubarSeparator />
 

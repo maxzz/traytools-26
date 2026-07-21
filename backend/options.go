@@ -24,6 +24,8 @@ type IniOptions struct {
 	QuitOnClose            bool       `json:"quitOnClose"`
 	UnloadHookHotkey       string     `json:"unloadHookHotkey,omitempty"`
 	UnloadHookHotkeyGlobal bool       `json:"unloadHookHotkeyGlobal,omitempty"`
+	// ZoomLevel is an Electron-style zoom level: factor = 1.2^level (0 == 100%).
+	ZoomLevel float64 `json:"zoomLevel,omitempty"`
 }
 
 func getIniFilePath() (string, error) {
@@ -114,6 +116,7 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 	var quitOnClose bool
 	var unloadHookHotkey string
 	var unloadHookHotkeyGlobal bool
+	var zoomLevel float64
 
 	existing, err := LoadIniFileOptions()
 	if err == nil && existing != nil {
@@ -122,6 +125,7 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 		quitOnClose = existing.QuitOnClose
 		unloadHookHotkey = existing.UnloadHookHotkey
 		unloadHookHotkeyGlobal = existing.UnloadHookHotkeyGlobal
+		zoomLevel = existing.ZoomLevel
 	}
 
 	opts := &IniOptions{
@@ -132,6 +136,7 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 		QuitOnClose:            quitOnClose,
 		UnloadHookHotkey:       unloadHookHotkey,
 		UnloadHookHotkeyGlobal: unloadHookHotkeyGlobal,
+		ZoomLevel:              zoomLevel,
 	}
 
 	saveIniFileOptions(opts)
@@ -182,6 +187,25 @@ func SetUnloadHookHotkeyOptions(hotkey string, global bool) error {
 		return err
 	}
 	return applyUnloadHookHotkey(hotkey, global)
+}
+
+// GetZoomLevelOption returns the persisted zoom level (1.2^level steps; 0 == 100%).
+func GetZoomLevelOption() float64 {
+	opts, err := LoadIniFileOptions()
+	if err != nil || opts == nil {
+		return 0
+	}
+	return opts.ZoomLevel
+}
+
+// SetZoomLevelOption updates only the zoom level, preserving other ini fields.
+func SetZoomLevelOption(level float64) error {
+	opts, err := LoadIniFileOptions()
+	if err != nil {
+		opts = &IniOptions{}
+	}
+	opts.ZoomLevel = level
+	return saveIniFileOptions(opts)
 }
 
 func (a *App) restoreWindowOptions(ctx context.Context) {

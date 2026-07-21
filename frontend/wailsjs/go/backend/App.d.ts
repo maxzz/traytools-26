@@ -4,6 +4,8 @@ import {options} from '../models';
 
 export function Dispatch(arg1:string,arg2:string,arg3:string):Promise<string>;
 
+export function GetZoomLevel():Promise<number>;
+
 export function Greet(arg1:string):Promise<string>;
 
 export function RequestExit():Promise<void>;
@@ -11,6 +13,8 @@ export function RequestExit():Promise<void>;
 export function SetDevToolsState(arg1:boolean):Promise<void>;
 
 export function SetTrayIcon(arg1:Array<number>):Promise<void>;
+
+export function SetZoomLevel(arg1:number):Promise<void>;
 
 export function SingleInstanceLock():Promise<options.SingleInstanceLock>;
 

@@ -1,9 +1,11 @@
 type BackendApp = {
     Dispatch: (group: string, command: string, payloadJSON: string) => Promise<string>;
+    GetZoomLevel: () => Promise<number>;
     Greet: (name: string) => Promise<string>;
     RequestExit: () => Promise<void>;
     SetDevToolsState: (open: boolean) => Promise<void>;
     SetTrayIcon: (icon: number[]) => Promise<void>;
+    SetZoomLevel: (level: number) => Promise<void>;
     ToggleDevTools: () => Promise<void>;
 };
 

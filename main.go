@@ -2,12 +2,14 @@ package main
 
 import (
 	"embed"
+	"math"
 	"os"
 	"runtime"
 	"traytools-26-go/backend"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
 )
 
 //go:embed all:frontend/dist
@@ -50,8 +52,21 @@ func main() {
 
 	// Create application with options
 	openInspector := false
+	zoomFactor := 1.0
 	if err == nil && opts != nil {
 		openInspector = opts.DevTools
+		if opts.ZoomLevel != 0 {
+			zoomFactor = math.Pow(1.2, opts.ZoomLevel)
+		}
+	}
+
+	winOpts := &windows.Options{
+		// Native page zoom (Chrome-style), applied by the WebView2 engine.
+		// User wheel/keyboard zoom is disabled so the in-app zoom controls
+		// remain the single source of truth for the displayed percentage;
+		// the buttons drive it at runtime via App.SetZoomLevel.
+		IsZoomControlEnabled: false,
+		ZoomFactor:           zoomFactor,
 	}
 
 	err = wails.Run(&options.App{
@@ -73,6 +88,7 @@ func main() {
 		Debug: options.Debug{
 			OpenInspectorOnStartup: openInspector,
 		},
+		Windows: winOpts,
 		Bind: []interface{}{
 			app,
 		},

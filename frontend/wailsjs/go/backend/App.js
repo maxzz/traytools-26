@@ -6,6 +6,10 @@ export function Dispatch(arg1, arg2, arg3) {
   return window['go']['backend']['App']['Dispatch'](arg1, arg2, arg3);
 }
 
+export function GetZoomLevel() {
+  return window['go']['backend']['App']['GetZoomLevel']();
+}
+
 export function Greet(arg1) {
   return window['go']['backend']['App']['Greet'](arg1);
 }
@@ -20,6 +24,10 @@ export function SetDevToolsState(arg1) {
 
 export function SetTrayIcon(arg1) {
   return window['go']['backend']['App']['SetTrayIcon'](arg1);
+}
+
+export function SetZoomLevel(arg1) {
+  return window['go']['backend']['App']['SetZoomLevel'](arg1);
 }
 
 export function SingleInstanceLock() {
