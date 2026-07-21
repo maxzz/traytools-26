@@ -2,13 +2,14 @@ import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
-import { isProcessGroupHandle } from "@/bridge";
+import { isProcessGroupHandle, processGroupId } from "@/bridge";
 import { appSettings } from "@/store/1-ui-settings";
 import {
     windowTreeStore,
     loadSelectionInfo,
     maybeHighlightSelectedWindow,
 } from "./a-windows-tree-calls";
+import { recordProcessSelection } from "./a-process-history";
 import {
     selectedHandleAtom,
     treeFilterAtom,
@@ -38,6 +39,10 @@ export function WindowTreeView() {
         if (handle && isProcessGroupHandle(handle)) {
             // Process folders have no on-screen rectangle to highlight.
             void loadSelectionInfo(handle);
+            const pid = processGroupId(handle);
+            if (pid != null) {
+                recordProcessSelection(pid);
+            }
             return;
         }
         if (autoHighlight) {

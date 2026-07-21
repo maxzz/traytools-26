@@ -8,7 +8,8 @@ import { Button } from "@/ui/shadcn/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { appBus, isProcessGroupHandle, processGroupHandle, type ProcessInfo, type RectInfo, type WindowInfo, type WindowNode } from "@/bridge";
-import { jumpToProcessInTree, windowTreeStore } from "./a-windows-tree-calls";
+import { windowTreeStore } from "./a-windows-tree-calls";
+import { selectProcessInTree } from "./a-process-history";
 import { filteredTreeAtom, propsTabAtom, selectedHandleAtom, type PropsTab } from "./s-windows-tree-state";
 
 export function WindowProps() {
@@ -150,7 +151,7 @@ function ParentProcessId({ processId, canJump }: { processId: number; canJump: b
             type="button"
             className="text-left text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80"
             title="Jump to parent process in the tree"
-            onClick={() => jumpToProcessInTree(processId)}
+            onClick={() => selectProcessInTree(processId)}
         >
             {label}
         </button>

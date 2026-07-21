@@ -11,6 +11,7 @@ import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { useFilter } from "./2-2-use-filter";
+import { ProcessHistoryNav } from "./1-1-process-history-nav";
 import { windowTreeStore, refreshWindowTree, maybeHighlightSelectedWindow, hideWindowHighlight } from "./a-windows-tree-calls";
 import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, groupByProcessAtom, showProcessIdsAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 
@@ -51,6 +52,7 @@ export function WindowTreeToolbar() {
                         </Button>
                     </div>
 
+                    <ProcessHistoryNav />
                     <AutoHighlightToggle />
                     <CollapseToTopLevelButton />
                     <TreeOptionsPopover />

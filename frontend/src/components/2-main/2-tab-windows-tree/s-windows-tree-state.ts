@@ -26,6 +26,26 @@ export const groupByProcessAtom = atomWithStorage("wt.groupByProcess", false);
 // Show process IDs next to process-name folders when grouping is on.
 export const showProcessIdsAtom = atomWithStorage("wt.showProcessIds", true);
 
+/** One entry in the session-only process selection history (back/forward). */
+export type ProcessHistoryEntry = {
+    processId: number;
+    processName: string;
+};
+
+export type ProcessHistoryState = {
+    entries: ProcessHistoryEntry[];
+    /** Current position in entries; -1 when empty. */
+    index: number;
+};
+
+export const PROCESS_HISTORY_MAX = 50;
+
+// Session-only: survives group-mode toggles, cleared when the app restarts.
+export const processHistoryAtom = atom<ProcessHistoryState>({
+    entries: [],
+    index: -1,
+});
+
 // Flash notice when highlight hits empty or off-screen bounds.
 // `handle` keeps the badge on the row that triggered it; `token` forces a
 // fresh animation on every select/reselect.
