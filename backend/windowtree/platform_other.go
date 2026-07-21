@@ -98,3 +98,32 @@ func platformGetWindowInfo(handle string) (WindowInfo, error) {
 		Integrity:    "medium",
 	}, nil
 }
+
+func platformGetProcessInfo(pid uint32) (ProcessInfo, error) {
+	switch pid {
+	case 1234:
+		return ProcessInfo{
+			Valid:       true,
+			ProcessID:   1234,
+			ProcessName: "demo.exe",
+			ProcessPath: "/usr/bin/demo",
+			CommandLine: "/usr/bin/demo --sample",
+			Bits:        64,
+			UserName:    "DEMO\\user",
+			Integrity:   "medium",
+		}, nil
+	case 5678:
+		return ProcessInfo{
+			Valid:       true,
+			ProcessID:   5678,
+			ProcessName: "other.exe",
+			ProcessPath: "/usr/bin/other",
+			CommandLine: "/usr/bin/other -v",
+			Bits:        64,
+			UserName:    "DEMO\\user",
+			Integrity:   "medium",
+		}, nil
+	default:
+		return ProcessInfo{Valid: true, ProcessID: pid, Integrity: "undetected"}, nil
+	}
+}

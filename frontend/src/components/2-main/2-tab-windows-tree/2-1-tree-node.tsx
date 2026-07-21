@@ -21,7 +21,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
     const isProcessGroup = isProcessGroupHandle(node.handle);
     const children = node.children ?? [];
     const hasChildren = children.length > 0;
-    const isSelected = !isRoot && !isProcessGroup && selectedHandle === node.handle;
+    const isSelected = !isRoot && selectedHandle === node.handle;
 
     return (
         <TreeNode nodeId={node.handle} level={level} isLast={isLast} parentPath={parentPath}>
@@ -95,8 +95,19 @@ function BoundsNoticeAnimation({ kind }: { kind: BoundsNoticeKind; }) {
 }
 
 function nodeLabel(node: WindowNode, isRoot: boolean, isProcessGroup: boolean, showHandles: boolean) {
-    if (isRoot || isProcessGroup) {
+    if (isRoot) {
         return <span className="font-condensed">{node.title}</span>;
+    }
+    if (isProcessGroup) {
+        const named = (node.processName ?? "").trim() !== "";
+        return (
+            <span className="font-condensed">
+                {named ? node.processName : `PID ${node.processId}`}
+                {named && (
+                    <span className="ml-1 font-mono text-[0.65rem] text-muted-foreground/60">{node.processId}</span>
+                )}
+            </span>
+        );
     }
     const cls = node.className || "(no class)";
     const text = node.title ? ` "${node.title}"` : "";

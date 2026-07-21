@@ -1,17 +1,23 @@
 import { type PropsWithChildren, type ReactNode } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
+import { FolderOpen } from "lucide-react";
 import { classNames } from "@/utils/classnames";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
+import { Button } from "@/ui/shadcn/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
-import { type RectInfo, type WindowInfo } from "@/bridge";
+import { appBus, isProcessGroupHandle, type ProcessInfo, type RectInfo, type WindowInfo } from "@/bridge";
 import { windowTreeStore } from "./a-windows-tree-calls";
-import { propsTabAtom, type PropsTab } from "./s-windows-tree-state";
+import { propsTabAtom, selectedHandleAtom, type PropsTab } from "./s-windows-tree-state";
 
 export function WindowProps() {
     const snap = useSnapshot(windowTreeStore);
+    const selectedHandle = useAtomValue(selectedHandleAtom);
     const [tab, setTab] = useAtom(propsTabAtom);
     const info = snap.info as WindowInfo | null;
+    const processInfo = snap.processInfo as ProcessInfo | null;
+    const processSelected = !!selectedHandle && isProcessGroupHandle(selectedHandle);
+
     // Map legacy Class/Styles tab ids (and the new id) onto Window Extra.
     const storedTab = tab as string;
     const activeTab: PropsTab =
@@ -26,24 +32,109 @@ export function WindowProps() {
             </div>
 
             {snap.infoError
-                ? <div className="p-3 text-xs text-destructive">Failed to load window info: {snap.infoError}</div>
-                : !info || !info.valid
-                    ? <div className="p-3 text-xs text-muted-foreground">{snap.infoLoading ? "Loading..." : "Select a window in the tree to view its properties."}</div>
-                    : (
-                        <Tabs value={activeTab} onValueChange={(v) => setTab(v as PropsTab)} className="flex-1 p-2 min-h-0 flex flex-col gap-2">
-                            <TabsList>
-                                <TabsTrigger value="general">General</TabsTrigger>
-                                <TabsTrigger value="windowExtra">Window Extra</TabsTrigger>
-                            </TabsList>
-
-                            <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
-                                <TabsContent value="general"><Tab_General info={info} /></TabsContent>
-                                <TabsContent value="windowExtra"><Tab_WindowExtra info={info} /></TabsContent>
-                            </ScrollArea>
-                        </Tabs>
+                ? (
+                    <div className="p-3 text-xs text-destructive">
+                        Failed to load {processSelected ? "process" : "window"} info: {snap.infoError}
+                    </div>
+                )
+                : processSelected
+                    ? (
+                        !processInfo || !processInfo.valid
+                            ? (
+                                <div className="p-3 text-xs text-muted-foreground">
+                                    {snap.infoLoading ? "Loading..." : "Select a process in the tree to view its properties."}
+                                </div>
+                            )
+                            : (
+                                <ScrollArea className="flex-1 min-h-0 p-2" fixedWidth parentContentWidth>
+                                    <Tab_Process info={processInfo} />
+                                </ScrollArea>
+                            )
                     )
+                    : !info || !info.valid
+                        ? (
+                            <div className="p-3 text-xs text-muted-foreground">
+                                {snap.infoLoading ? "Loading..." : "Select a window in the tree to view its properties."}
+                            </div>
+                        )
+                        : (
+                            <Tabs value={activeTab} onValueChange={(v) => setTab(v as PropsTab)} className="flex-1 p-2 min-h-0 flex flex-col gap-2">
+                                <TabsList>
+                                    <TabsTrigger value="general">General</TabsTrigger>
+                                    <TabsTrigger value="windowExtra">Window Extra</TabsTrigger>
+                                </TabsList>
+
+                                <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
+                                    <TabsContent value="general"><Tab_General info={info} /></TabsContent>
+                                    <TabsContent value="windowExtra"><Tab_WindowExtra info={info} /></TabsContent>
+                                </ScrollArea>
+                            </Tabs>
+                        )
             }
         </div>
+    );
+}
+
+function Tab_Process({ info }: { info: ProcessInfo; }) {
+    const name = (info.processName ?? "").trim();
+    const identifiedByPid = name === "";
+
+    return (
+        <div className="space-y-3">
+            <Section title="Process">
+                {identifiedByPid
+                    ? (
+                        <Row label="Identity">
+                            <span>
+                                Process ID <Mono>{info.processId}</Mono>
+                                <span className="text-muted-foreground"> — identified by PID (image name unavailable)</span>
+                            </span>
+                        </Row>
+                    )
+                    : (
+                        <>
+                            <Row label="Name">{name}</Row>
+                            <Row label="Process ID">
+                                <Mono>{hex8(info.processId)}</Mono>  (<Mono>{info.processId}</Mono>)
+                            </Row>
+                        </>
+                    )}
+
+                <Row label="Path">
+                    <PathWithReveal path={info.processPath} />
+                </Row>
+                <Row label="Command line">
+                    {info.commandLine
+                        ? <span className="whitespace-pre-wrap break-all">{info.commandLine}</span>
+                        : <span className="text-muted-foreground/60">N/A</span>}
+                </Row>
+                <Row label="Bits">{info.bits ? `${info.bits}-bit` : <span className="text-muted-foreground/60">N/A</span>}</Row>
+                <Row label="Integrity">{integrityLabel(info.integrity)}</Row>
+                <Row label="User">{info.userName || <span className="text-muted-foreground/60">N/A</span>}</Row>
+            </Section>
+        </div>
+    );
+}
+
+function PathWithReveal({ path }: { path: string; }) {
+    if (!path) {
+        return <span className="text-muted-foreground/60">N/A</span>;
+    }
+    return (
+        <span className="inline-flex items-start gap-1.5 min-w-0">
+            <span className="break-all">{path}</span>
+            <Button
+                type="button"
+                size="icon-xs"
+                variant="outline"
+                className="size-5 shrink-0 rounded"
+                title="Open folder in File Explorer and highlight this file"
+                aria-label="Reveal in File Explorer"
+                onClick={() => void appBus.revealInExplorer(path)}
+            >
+                <FolderOpen className="size-3 text-muted-foreground" />
+            </Button>
+        </span>
     );
 }
 
@@ -69,7 +160,9 @@ function Tab_General({ info }: { info: WindowInfo; }) {
                 <Row label="Process ID"><Mono>{hex8(info.processId)}</Mono>  (<Mono>{info.processId}</Mono>)</Row>
                 <Row label="Thread ID"><Mono>{hex8(info.threadId)}</Mono>  (<Mono>{info.threadId}</Mono>)</Row>
                 <Row label="Name">{info.processName || <span className="text-muted-foreground/60">N/A</span>}</Row>
-                <Row label="Path">{info.processPath || <span className="text-muted-foreground/60">N/A</span>}</Row>
+                <Row label="Path">
+                    <PathWithReveal path={info.processPath} />
+                </Row>
                 <Row label="Bits">{info.bits ? `${info.bits}-bit` : <span className="text-muted-foreground/60">N/A</span>}</Row>
                 <Row label="User">{info.userName || <span className="text-muted-foreground/60">N/A</span>}</Row>
                 <Row label="Integrity">{integrityLabel(info.integrity)}</Row>
@@ -116,7 +209,7 @@ function StyleList({ title, hexValue, names }: { title: string; hexValue: number
     );
 }
 
-function integrityLabel(level: WindowInfo["integrity"]): ReactNode {
+function integrityLabel(level: WindowInfo["integrity"] | ProcessInfo["integrity"]): ReactNode {
     switch (level) {
         case "high": return "High";
         case "medium": return "Medium";

@@ -6,7 +6,7 @@ import { isProcessGroupHandle } from "@/bridge";
 import { appSettings } from "@/store/1-ui-settings";
 import {
     windowTreeStore,
-    loadWindowInfo,
+    loadSelectionInfo,
     maybeHighlightSelectedWindow,
 } from "./a-windows-tree-calls";
 import {
@@ -34,16 +34,16 @@ export function WindowTreeView() {
 
     const onSelectionChange = (ids: string[]) => {
         const handle = ids.length > 0 ? ids[0] : null;
-        // Process-group folders are not real windows.
+        setSelected(handle);
         if (handle && isProcessGroupHandle(handle)) {
-            setSelected(null);
+            // Process folders have no on-screen rectangle to highlight.
+            void loadSelectionInfo(handle);
             return;
         }
-        setSelected(handle);
         if (autoHighlight) {
             void maybeHighlightSelectedWindow(handle);
         } else {
-            void loadWindowInfo(handle);
+            void loadSelectionInfo(handle);
         }
     };
 

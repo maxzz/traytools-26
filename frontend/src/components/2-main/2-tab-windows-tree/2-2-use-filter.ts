@@ -97,40 +97,45 @@ function filterNode(node: WindowNode, needle: string, hideInvisible: boolean, co
 }
 
 /**
- * Regroup the root's direct children under synthetic process-name folders.
- * Process folders appear in first-seen order; windows within each folder keep
- * the original Go enumeration order. Nested child trees are left untouched.
+ * Regroup the root's direct children under one folder per process (PID).
+ * Folders are labeled with the process image name when known, otherwise
+ * "PID <id>". Order: first-seen PID in the Go enumeration; windows within
+ * each folder keep that same order. Nested child trees are left untouched.
  */
 function groupTopLevelByProcessName(root: WindowNode): WindowNode {
     const top = root.children ?? [];
-    type Group = { label: string; windows: WindowNode[]; };
-    const groups = new Map<string, Group>();
-    const order: string[] = [];
+    type Group = { processId: number; processName: string; label: string; windows: WindowNode[]; };
+    const groups = new Map<number, Group>();
+    const order: number[] = [];
 
     for (const win of top) {
-        const name = (win.processName ?? "").trim();
-        const key = name !== "" ? name.toLowerCase() : `pid:${win.processId}`;
-        const label = name !== "" ? name : `PID ${win.processId}`;
-        let group = groups.get(key);
+        const processId = win.processId;
+        let group = groups.get(processId);
         if (!group) {
-            group = { label, windows: [] };
-            groups.set(key, group);
-            order.push(key);
+            const processName = (win.processName ?? "").trim();
+            group = {
+                processId,
+                processName,
+                label: processName !== "" ? processName : `PID ${processId}`,
+                windows: [],
+            };
+            groups.set(processId, group);
+            order.push(processId);
         }
         group.windows.push(win);
     }
 
     return {
         ...root,
-        children: order.map((key) => {
-            const group = groups.get(key)!;
+        children: order.map((processId) => {
+            const group = groups.get(processId)!;
             return {
-                handle: `proc:${key}`,
+                handle: `proc:${processId}`,
                 className: "",
                 title: group.label,
-                processId: 0,
+                processId: group.processId,
                 threadId: 0,
-                processName: group.label,
+                processName: group.processName,
                 style: 0,
                 exStyle: 0,
                 visible: true,

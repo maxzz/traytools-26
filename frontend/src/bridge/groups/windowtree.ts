@@ -24,6 +24,28 @@ export function isProcessGroupHandle(handle: string): boolean {
     return handle.startsWith("proc:");
 }
 
+/** Parse PID from a `proc:<pid>` handle; null when not a process-group id. */
+export function processGroupId(handle: string): number | null {
+    if (!isProcessGroupHandle(handle)) {
+        return null;
+    }
+    const n = Number(handle.slice("proc:".length));
+    return Number.isFinite(n) && n > 0 ? Math.trunc(n) : null;
+}
+
+export interface ProcessInfo {
+    valid: boolean;
+    processId: number;
+    processName: string;
+    processPath: string;
+    commandLine: string;
+    /** 32 or 64 when known; 0 when the process could not be queried. */
+    bits: number;
+    /** DOMAIN\User for the process token owner. */
+    userName: string;
+    integrity: IntegrityLevel;
+}
+
 export interface WindowTree {
     root: WindowNode;
     count: number;
@@ -106,6 +128,8 @@ export interface ActiveWindowsInfo {
  * 
  * - getTree returns the whole desktop window tree; 
  * - getWindowInfo returns the detailed properties for one window on demand.
+ * - getProcessInfo returns path / cmdline / bits / user / integrity for a PID
+ *   (used when a process-group folder is selected).
  * - getActiveWindows returns a single snapshot of the local input state
  *   (foreground / active / focus / capture windows) for the Active Monitor tab,
  *   which polls it periodically.
@@ -113,5 +137,6 @@ export interface ActiveWindowsInfo {
 export const windowTreeBus = {
     getTree: () => dispatch<WindowTree>(GROUP, "getTree"),
     getWindowInfo: (handle: string) => dispatch<WindowInfo>(GROUP, "getWindowInfo", { handle }),
+    getProcessInfo: (processId: number) => dispatch<ProcessInfo>(GROUP, "getProcessInfo", { processId }),
     getActiveWindows: () => dispatch<ActiveWindowsInfo>(GROUP, "getActiveWindows"),
 };

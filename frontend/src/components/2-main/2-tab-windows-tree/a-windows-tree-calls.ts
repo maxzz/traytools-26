@@ -1,6 +1,15 @@
 import { proxy, snapshot } from "valtio";
 import { getDefaultStore } from "jotai";
-import { highlightBus, windowTreeBus, isProcessGroupHandle, type WindowNode, type WindowInfo, type RectInfo } from "@/bridge";
+import {
+    highlightBus,
+    windowTreeBus,
+    isProcessGroupHandle,
+    processGroupId,
+    type WindowNode,
+    type WindowInfo,
+    type ProcessInfo,
+    type RectInfo,
+} from "@/bridge";
 import { isBackendAvailable } from "@/wails/is-wails";
 import { appSettings } from "@/store/1-ui-settings";
 import { boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
@@ -17,6 +26,7 @@ interface WindowTreeState {
     error: string | null;
 
     info: WindowInfo | null;
+    processInfo: ProcessInfo | null;
     infoLoading: boolean;
     infoError: string | null;
 }
@@ -28,6 +38,7 @@ export const windowTreeStore = proxy<WindowTreeState>({
     error: null,
 
     info: null,
+    processInfo: null,
     infoLoading: false,
     infoError: null,
 });
@@ -131,19 +142,57 @@ export async function ensureWindowTreeLoaded(): Promise<void> {
     }
 }
 
+/** Load window or process details for the current tree selection. */
+export async function loadSelectionInfo(handle: string | null): Promise<void> {
+    if (!handle || handle === "root") {
+        windowTreeStore.info = null;
+        windowTreeStore.processInfo = null;
+        windowTreeStore.infoError = null;
+        return;
+    }
+    if (isProcessGroupHandle(handle)) {
+        const pid = processGroupId(handle);
+        if (pid == null) {
+            windowTreeStore.info = null;
+            windowTreeStore.processInfo = null;
+            windowTreeStore.infoError = null;
+            return;
+        }
+        await loadProcessInfo(pid);
+        return;
+    }
+    await loadWindowInfo(handle);
+}
+
 export async function loadWindowInfo(handle: string | null): Promise<void> {
     if (!handle || handle === "root" || isProcessGroupHandle(handle)) {
         windowTreeStore.info = null;
+        windowTreeStore.processInfo = null;
         windowTreeStore.infoError = null;
         return;
     }
     windowTreeStore.infoLoading = true;
     windowTreeStore.infoError = null;
+    windowTreeStore.processInfo = null;
     try {
         windowTreeStore.info = await windowTreeBus.getWindowInfo(handle);
     } catch (e) {
         windowTreeStore.infoError = String(e);
         windowTreeStore.info = null;
+    } finally {
+        windowTreeStore.infoLoading = false;
+    }
+}
+
+export async function loadProcessInfo(processId: number): Promise<void> {
+    windowTreeStore.infoLoading = true;
+    windowTreeStore.infoError = null;
+    windowTreeStore.info = null;
+    try {
+        windowTreeStore.processInfo = await windowTreeBus.getProcessInfo(processId);
+    } catch (e) {
+        windowTreeStore.infoError = String(e);
+        windowTreeStore.processInfo = null;
     } finally {
         windowTreeStore.infoLoading = false;
     }
@@ -224,7 +273,7 @@ export async function maybeHighlightSelectedWindow(handle: string | null): Promi
 
     const requestId = ++highlightRequestId;
 
-    await loadWindowInfo(handle);
+    await loadSelectionInfo(handle);
     if (requestId !== highlightRequestId) {
         return;
     }

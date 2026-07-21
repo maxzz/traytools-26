@@ -32,6 +32,17 @@ func (m *Manager) Register(b *bus.Bus) {
 		}
 		return platformGetWindowInfo(req.Handle)
 	})
+	b.Register(Group, "getProcessInfo", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			ProcessID uint32 `json:"processId"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		return platformGetProcessInfo(req.ProcessID)
+	})
 	b.Register(Group, "getActiveWindows", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return platformGetActiveWindows()
 	})

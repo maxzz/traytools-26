@@ -28,6 +28,24 @@ type WindowTree struct {
 	Count int        `json:"count"`
 }
 
+// ProcessInfo is the detailed per-process payload returned by getProcessInfo
+// when a process-group folder is selected in the windows tree.
+type ProcessInfo struct {
+	Valid       bool   `json:"valid"`
+	ProcessID   uint32 `json:"processId"`
+	ProcessName string `json:"processName"`
+	ProcessPath string `json:"processPath"`
+	// CommandLine is the process PEB command line when readable; empty when
+	// access is denied or the process has exited.
+	CommandLine string `json:"commandLine"`
+	// Bits is 32 or 64 when known, 0 when the process could not be queried.
+	Bits int `json:"bits"`
+	// UserName is DOMAIN\User for the process token owner when readable.
+	UserName string `json:"userName"`
+	// Integrity is high / medium / mediumplus / low / undetected.
+	Integrity string `json:"integrity"`
+}
+
 // MonitorWindow describes one of the windows reported by the active-window
 // monitor (foreground / active / focus / capture). Valid distinguishes a real
 // window from the "no window" (handle 0) and "invalid window" cases, mirroring
