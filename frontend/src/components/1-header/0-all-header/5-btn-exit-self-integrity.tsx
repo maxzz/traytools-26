@@ -35,7 +35,7 @@ export function BadgeSelfIntegrity() {
     return (
         <button
             type="button"
-            className="rounded-full outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+            className="focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 outline-hidden rounded-full"
             disabled={isElevated === null}
             onClick={() => {
                 if (isElevated === null) {

@@ -114,7 +114,7 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
 
                 {showGlobalBtn && (<>
                     <Button
-                        className={classNames("w-8 h-7 border border-border rounded-l-none active:translate-y-0!", isGlobal && "bg-muted dark:bg-muted-foreground/20")}
+                        className={classNames("w-8 h-7 active:translate-y-0! border border-border rounded-l-none", isGlobal && "bg-muted dark:bg-muted-foreground/20")}
                         size="icon-xs"
                         variant="ghost"
                         disabled={!value}

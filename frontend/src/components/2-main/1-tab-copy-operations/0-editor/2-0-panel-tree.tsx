@@ -11,7 +11,7 @@ import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 
 /** Same focus/unfocus selection look as the Windows tab (kibo-ui-tree). */
 const ROW_SELECTED = cn(
-    "bg-tree-select text-tree-select-foreground",
+    "text-tree-select-foreground bg-tree-select",
     "group-focus-within/tree:bg-tree-select-focused group-focus-within/tree:text-tree-select-focused-foreground",
     "group-focus-within/tree:ring-1 group-focus-within/tree:ring-inset group-focus-within/tree:ring-tree-select-border",
     "group-focus-within/tree:font-medium",
@@ -147,7 +147,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
             >
                 <div
                     className={cn(
-                        "group relative mx-0 px-1 h-5 select-none flex items-center gap-1 cursor-pointer font-medium rounded-none",
+                        "group relative mx-0 px-1 h-5 font-medium rounded-none select-none flex items-center gap-1 cursor-pointer",
                         !selected && "hover:bg-accent/50",
                         selected && ROW_SELECTED,
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
@@ -246,7 +246,7 @@ function GroupRow({
 
                 <div
                     className={cn(
-                        "group relative px-1 h-5 select-none flex items-center gap-1 cursor-pointer rounded-none",
+                        "group relative px-1 h-5 rounded-none select-none flex items-center gap-1 cursor-pointer",
                         !selected && "hover:bg-accent/50",
                         selected && ROW_SELECTED,
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
@@ -280,7 +280,7 @@ function GroupRow({
                         type="button"
                         variant="ghost"
                         size="icon-xs"
-                        className="opacity-0 group-hover:opacity-100 shrink-0"
+                        className="shrink-0 opacity-0 group-hover:opacity-100"
                         title="Copy this group"
                         onClick={(e) => {
                             e.stopPropagation();
@@ -346,7 +346,7 @@ function ItemRow({
 
             <div
                 className={cn(
-                    "group relative px-1 h-5 select-none flex items-center gap-1 cursor-pointer rounded-none",
+                    "group relative px-1 h-5 rounded-none select-none flex items-center gap-1 cursor-pointer",
                     !selected && "hover:bg-accent/50",
                     selected && ROW_SELECTED,
                     isDragging && "opacity-40",
@@ -368,7 +368,7 @@ function ItemRow({
                     type="button"
                     variant="ghost"
                     size="icon-xs"
-                    className="opacity-0 group-hover:opacity-100 shrink-0"
+                    className="shrink-0 opacity-0 group-hover:opacity-100"
                     title="Copy this file"
                     onClick={(e) => {
                         e.stopPropagation();

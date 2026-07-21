@@ -30,9 +30,9 @@ export function WindowTreeToolbar() {
                         <RefreshCw className={classNames("size-3 text-muted-foreground", loading && "animate-spin")} />
                     </Button>
 
-                    <div className="relative flex-1 min-w-40">
+                    <div className="flex-1 relative min-w-40">
                         <Input
-                            className="h-6 pr-7 text-xs rounded"
+                            className="pr-7 h-6 text-xs rounded"
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             placeholder="Filter by class or title..."
@@ -67,7 +67,7 @@ function AutoHighlightToggle() {
     const selectedHandle = useAtomValue(selectedHandleAtom);
 
     return (
-        <Label className="shrink-0 ml-4 text-xs font-normal text-muted-foreground cursor-pointer gap-0" title="Highlight the selected window on screen">
+        <Label className="shrink-0 ml-4 text-xs font-normal text-muted-foreground gap-0 cursor-pointer" title="Highlight the selected window on screen">
             <span className="-mr-0.5 pb-0.5 whitespace-nowrap">
                 Auto-highlight:
             </span>
@@ -193,7 +193,7 @@ function TreeOptionsPopover() {
                             <input
                                 type="color"
                                 title="Highlight border color"
-                                className="h-6 w-8 cursor-pointer rounded border border-border bg-transparent p-0"
+                                className="p-0 h-6 w-8 bg-transparent border border-border rounded cursor-pointer"
                                 value={normalizeHexColor(windowHighlight.borderColor)}
                                 onChange={(e) => {
                                     appSettings.windowHighlight.borderColor = normalizeHexColor(e.target.value);
@@ -236,7 +236,7 @@ function OptionNumber({ label, title, value, min, max, onChange, }: { label: str
             <span>{label}</span>
             <Input
                 type="number"
-                className="h-6 w-10 px-1.5 text-xs tabular-nums"
+                className="px-1.5 h-6 w-10 text-xs tabular-nums"
                 min={min}
                 max={max}
                 value={value}

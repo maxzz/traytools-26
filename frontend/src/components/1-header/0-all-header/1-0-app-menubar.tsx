@@ -37,6 +37,7 @@ export function AppMenubar() {
                                 Settings...
                                 <MenubarShortcut>Ctrl+,</MenubarShortcut>
                             </MenubarItem>
+                            <ZoomControls />
                         </MenubarSubContent>
                     </MenubarSub>
 
@@ -56,9 +57,6 @@ export function AppMenubar() {
                 <MenubarContent>
                     <PageViewSelector />
 
-                    <MenubarSeparator />
-
-                    <ZoomControls />
 
                     <MenubarSeparator />
 

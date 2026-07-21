@@ -189,7 +189,7 @@ export function PathInput({
                 ref={dropRef}
                 style={DROP_TARGET_STYLE}
                 className={cn(
-                    "flex items-center gap-1 rounded-md transition-shadow",
+                    "transition-shadow rounded-md flex items-center gap-1",
                     dragOver && "ring-2 ring-sky-500 ring-offset-1",
                 )}
                 onDragOver={onDragOver}
@@ -197,7 +197,7 @@ export function PathInput({
                 onDrop={onDrop}
             >
                 <Input
-                    className="h-7 flex-1"
+                    className="flex-1 h-7"
                     style={DROP_TARGET_STYLE}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}

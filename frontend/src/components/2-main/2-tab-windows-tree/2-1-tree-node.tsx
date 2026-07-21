@@ -82,7 +82,7 @@ function BoundsNoticeAnimation({ kind }: { kind: BoundsNoticeKind; }) {
         <AnimatePresence>
             {visible && (
                 <motion.div
-                    className="ml-1 shrink-0 px-2 pb-0.5 text-[0.6rem] text-white bg-red-500 rounded"
+                    className="shrink-0 ml-1 px-2 pb-0.5 text-[0.6rem] text-white bg-red-500 rounded"
                     initial={{ opacity: 0, scale: 0.92 }}
                     animate={{ opacity: [0, 1, 1, 0], scale: [0.92, 1.06, 1.0, 0.98] }}
                     transition={{ duration: 1.55, times: [0, 0.2, 0.45, 1], ease: "easeOut" }}

@@ -48,7 +48,7 @@ export function CopyStatusDialog() {
                 )}
 
                 <ScrollArea className="max-h-72">
-                    <div className="flex flex-col gap-1 pr-2">
+                    <div className="pr-2 flex flex-col gap-1">
                         {state.rows.map((row, i) => (
                             <StatusRow key={i} row={row} />
                         ))}
@@ -68,9 +68,9 @@ export function CopyStatusDialog() {
 function StatusRow({ row }: { row: CopyProgressRow; }) {
     const name = itemLabel({ sourceFile: row.sourceFile });
     return (
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-center text-sm py-1 border-b border-border/60 last:border-0">
+        <div className="py-1 text-sm last:border-0 border-b border-border/60 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-center">
             <span className="truncate" title={row.sourceFile}>{name}</span>
-            <span className="truncate text-muted-foreground" title={row.destFolder}>{row.destFolder || "—"}</span>
+            <span className="text-muted-foreground truncate" title={row.destFolder}>{row.destFolder || "—"}</span>
             <StatusBadge row={row} />
         </div>
     );
@@ -79,7 +79,7 @@ function StatusRow({ row }: { row: CopyProgressRow; }) {
 function StatusBadge({ row }: { row: CopyProgressRow; }) {
     if (row.status === "pending") {
         return (
-            <span className="inline-flex items-center gap-1 text-muted-foreground min-w-20 justify-end">
+            <span className="min-w-20 text-muted-foreground inline-flex items-center gap-1 justify-end">
                 <Loader2 className="size-3.5 animate-spin" />
                 pending
             </span>
@@ -87,7 +87,7 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
     }
     if (row.status === "skipped") {
         return (
-            <span className="inline-flex items-center gap-1 text-muted-foreground min-w-20 justify-end">
+            <span className="min-w-20 text-muted-foreground inline-flex items-center gap-1 justify-end">
                 <Minus className="size-3.5" />
                 skipped
             </span>
@@ -95,7 +95,7 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
     }
     if (row.status === "copied") {
         return (
-            <span className={cn("inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 min-w-20 justify-end")}>
+            <span className={cn("min-w-20 text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1 justify-end")}>
                 <Check className="size-3.5" />
                 copied
             </span>
@@ -103,7 +103,7 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
     }
 
     return (
-        <span className="inline-flex items-center gap-1 text-destructive min-w-20 justify-end">
+        <span className="min-w-20 text-destructive inline-flex items-center gap-1 justify-end">
             failed
             <TooltipProvider>
                 <Tooltip>

@@ -66,7 +66,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
         >
             <button
                 type="button"
-                className="shrink-0 rounded outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                className="shrink-0 focus-visible:ring-1 focus-visible:ring-ring outline-hidden rounded"
                 onClick={() => { appSettings.showDpAgentToolbar = !appSettings.showDpAgentToolbar; }}
                 title={toggleTitle}
                 aria-label={toggleTitle}

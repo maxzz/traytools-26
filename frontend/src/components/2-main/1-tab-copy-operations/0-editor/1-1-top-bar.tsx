@@ -17,7 +17,7 @@ import {
 export function TopBar() {
     return (
         <div className="bg-app-background/10">
-            <div className="mx-1 h-9 px-2 py-1.5 bg-background border rounded flex items-center gap-2">
+            <div className="mx-1 px-2 py-1.5 h-9 bg-background border rounded flex items-center gap-2">
                 <StatusMessage />
 
                 <div className="ml-auto flex items-center gap-2">
@@ -40,7 +40,7 @@ function StatusMessage() {
                     <button
                         type="button"
                         className={cn(
-                            "size-5 rounded-full border inline-flex items-center justify-center",
+                            "size-5 border rounded-full inline-flex items-center justify-center",
                             error
                                 ? "text-destructive border-destructive/70 bg-destructive/15"
                                 : "text-muted-foreground border-border bg-muted",
@@ -78,7 +78,7 @@ function ChangedBadge() {
     }
 
     return (
-        <span className="px-1.5 text-red-500 dark:text-orange-500 bg-orange-500/30 border border-red-500/70 rounded-full flex items-center justify-center">
+        <span className="px-1.5 text-red-500 bg-orange-500/30 dark:text-orange-500 border border-red-500/70 rounded-full flex items-center justify-center">
             Changed
         </span>
     );

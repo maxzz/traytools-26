@@ -48,7 +48,7 @@ export function WindowProps() {
                                 </div>
                             )
                             : (
-                                <ScrollArea className="flex-1 min-h-0 p-2" fixedWidth parentContentWidth>
+                                <ScrollArea className="flex-1 p-2 min-h-0" fixedWidth parentContentWidth>
                                     <Tab_Process info={processInfo} />
                                 </ScrollArea>
                             )
@@ -179,9 +179,9 @@ function PathWithReveal({ path }: { path: string; }) {
     }
     const folder = parentDir(path);
     return (
-        <span className="inline-flex items-start gap-1.5 min-w-0">
+        <span className="min-w-0 inline-flex items-start gap-1.5">
             <span className="break-all">{path}</span>
-            <span className="inline-flex shrink-0 items-center gap-0.5">
+            <span className="shrink-0 inline-flex items-center gap-0.5">
                 <Button
                     type="button"
                     size="icon-xs"
@@ -350,7 +350,7 @@ function Row({ label, children }: { label: string; children: ReactNode; }) {
 }
 
 function Mono({ children, className }: PropsWithChildren<{ className?: string; }>) {
-    return <span className={classNames("text-[0.65rem] font-mono text-foreground/80", className)}>{children}</span>;
+    return <span className={classNames("font-mono text-[0.65rem] text-foreground/80", className)}>{children}</span>;
 }
 
 function hex8(n: number): string {
