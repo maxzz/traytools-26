@@ -17,9 +17,12 @@ import { sendUnloadHookNotification } from "@/components/1-header/3-send-unload-
 import { syncToolsHotkeys, toolsHotkeysStore } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/2-tools-hotkeys";
 import { matchesHotkey, parseHotkey } from "@/ui/local-ui/9-hotkey";
 import { notice } from "@/ui/local-ui/7-toaster";
+import { toggleDevTools } from "@/wails/tray-backend";
+import { isBackendAvailable } from "@/wails/is-wails";
 
 export function AllDialogs() {
     return (<>
+        <DevToolsShortcut />
         <SettingsDialogShortcut />
         <UnloadHookHotkeyShortcut />
         <ToolsHotkeysShortcut />
@@ -32,6 +35,40 @@ export function AllDialogs() {
         <LoginDialog />
         <SettingsDialog />
     </>);
+}
+
+/**
+ * Close helper for Ctrl+Shift+F12 / Ctrl+Shift+I.
+ * Opening is handled natively by Wails/WebView2 — do not preventDefault, or
+ * the native open path is blocked.
+ */
+function DevToolsShortcut() {
+    useEffect(
+        () => {
+            if (!isBackendAvailable()) {
+                return;
+            }
+
+            function handleKeyDown(event: KeyboardEvent) {
+                const ctrlOrCmd = event.ctrlKey || event.metaKey;
+                if (!ctrlOrCmd || !event.shiftKey) {
+                    return;
+                }
+                if (event.code !== "F12" && event.code !== "KeyI") {
+                    return;
+                }
+
+                toggleDevTools().catch(console.error);
+            }
+
+            const controller = new AbortController();
+            window.addEventListener("keydown", handleKeyDown, { signal: controller.signal });
+            return () => controller.abort();
+        },
+        [],
+    );
+
+    return null;
 }
 
 function SettingsDialogShortcut() {

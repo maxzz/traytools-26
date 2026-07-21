@@ -235,15 +235,14 @@ func (a *App) SetDevToolsState(open bool) {
 	a.saveDevToolsState(open)
 }
 
-// ToggleDevTools flips DevTools visibility and persists the new state to the ini file.
+// ToggleDevTools lets Ctrl+Shift+F12 / Ctrl+Shift+I also *close* DevTools.
+// WebView2 / Wails only open the inspector via the native accelerator, so when
+// it is already open we close the app-owned DevTools window with WM_CLOSE.
+// Persisted state is captured authoritatively in saveWindowOptions.
 func (a *App) ToggleDevTools() {
 	if a.platformIsDevToolsOpen() {
 		a.platformCloseDevTools()
-		a.SetDevToolsState(false)
-		return
 	}
-
-	a.SetDevToolsState(true)
 }
 
 func (a *App) saveDevToolsState(open bool) {

@@ -106,14 +106,14 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 	}
 
 	// 2. DevTools & ShowMenu state.
-	// Keep the last known DevTools flag here: scanning via EnumWindows during
-	// BeforeClose runs on the UI thread and can delay title-bar close.
+	// Query the OS for DevTools visibility: this captures the real state no
+	// matter how DevTools were closed (X button, F12 inside DevTools, native
+	// Wails hotkey, etc.), which the frontend toggle cannot always observe.
 	var showMenu bool
 	var runElevated bool
 	var quitOnClose bool
 	var unloadHookHotkey string
 	var unloadHookHotkeyGlobal bool
-	var devTools bool
 
 	existing, err := LoadIniFileOptions()
 	if err == nil && existing != nil {
@@ -122,12 +122,11 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 		quitOnClose = existing.QuitOnClose
 		unloadHookHotkey = existing.UnloadHookHotkey
 		unloadHookHotkeyGlobal = existing.UnloadHookHotkeyGlobal
-		devTools = existing.DevTools
 	}
 
 	opts := &IniOptions{
 		Bounds:                 bounds,
-		DevTools:               devTools,
+		DevTools:               a.platformIsDevToolsOpen(),
 		ShowMenu:               showMenu,
 		RunElevated:            runElevated,
 		QuitOnClose:            quitOnClose,
