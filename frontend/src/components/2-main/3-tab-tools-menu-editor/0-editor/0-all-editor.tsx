@@ -33,7 +33,7 @@ export function Page_ToolsMenuEditor() {
             <ResizablePanelGroup className="bg-card" orientation="horizontal" defaultLayout={mainLayout as Layout} onLayoutChanged={(layout) => savePanelLayout(PANEL_GROUPS.toolsEditorMain, layout)}>
                 <ResizablePanel id="tree" minSize={22}>
                     <div className="relative size-full min-h-0">
-                        <TreeViewMenu className="absolute top-1 right-1 z-10" />
+                        <TreeViewMenu className="absolute top-1 right-2.5 z-10" />
                         <Panel_Tree />
                     </div>
                 </ResizablePanel>
