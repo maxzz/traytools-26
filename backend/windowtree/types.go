@@ -33,8 +33,11 @@ type WindowTree struct {
 type ProcessInfo struct {
 	Valid       bool   `json:"valid"`
 	ProcessID   uint32 `json:"processId"`
-	ProcessName string `json:"processName"`
-	ProcessPath string `json:"processPath"`
+	// ParentProcessID is the creating process PID when known; 0 if unavailable
+	// (or the parent has exited / was never recorded).
+	ParentProcessID uint32 `json:"parentProcessId"`
+	ProcessName     string `json:"processName"`
+	ProcessPath     string `json:"processPath"`
 	// CommandLine is the process PEB command line when readable; empty when
 	// access is denied or the process has exited.
 	CommandLine string `json:"commandLine"`

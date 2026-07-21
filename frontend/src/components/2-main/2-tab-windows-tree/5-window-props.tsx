@@ -7,9 +7,9 @@ import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
 import { notice } from "@/ui/local-ui/7-toaster";
-import { appBus, isProcessGroupHandle, type ProcessInfo, type RectInfo, type WindowInfo } from "@/bridge";
-import { windowTreeStore } from "./a-windows-tree-calls";
-import { propsTabAtom, selectedHandleAtom, type PropsTab } from "./s-windows-tree-state";
+import { appBus, isProcessGroupHandle, processGroupHandle, type ProcessInfo, type RectInfo, type WindowInfo, type WindowNode } from "@/bridge";
+import { jumpToProcessInTree, windowTreeStore } from "./a-windows-tree-calls";
+import { filteredTreeAtom, propsTabAtom, selectedHandleAtom, type PropsTab } from "./s-windows-tree-state";
 
 export function WindowProps() {
     const snap = useSnapshot(windowTreeStore);
@@ -79,6 +79,9 @@ export function WindowProps() {
 function Tab_Process({ info }: { info: ProcessInfo; }) {
     const name = (info.processName ?? "").trim();
     const identifiedByPid = name === "";
+    const { tree } = useAtomValue(filteredTreeAtom);
+    const parentId = Number(info.parentProcessId) || 0;
+    const parentInTree = parentId > 0 && treeHasProcess(tree, parentId);
 
     return (
         <div className="space-y-3">
@@ -101,6 +104,17 @@ function Tab_Process({ info }: { info: ProcessInfo; }) {
                         </>
                     )}
 
+                <Row label="Parent PID">
+                    {parentId > 0
+                        ? (
+                            <ParentProcessId
+                                processId={parentId}
+                                canJump={parentInTree}
+                            />
+                        )
+                        : <span className="text-muted-foreground/60">N/A</span>}
+                </Row>
+
                 <Row label="Path">
                     <PathWithReveal path={info.processPath} />
                 </Row>
@@ -115,6 +129,46 @@ function Tab_Process({ info }: { info: ProcessInfo; }) {
             </Section>
         </div>
     );
+}
+
+function ParentProcessId({ processId, canJump }: { processId: number; canJump: boolean; }) {
+    const label = (
+        <>
+            <Mono>{hex8(processId)}</Mono>  (<Mono>{processId}</Mono>)
+        </>
+    );
+    if (!canJump) {
+        return (
+            <span title="Parent process is not present in the window tree">
+                {label}
+            </span>
+        );
+    }
+    return (
+        <button
+            type="button"
+            className="text-left underline-offset-2 hover:underline text-foreground"
+            title="Jump to parent process in the tree"
+            onClick={() => jumpToProcessInTree(processId)}
+        >
+            {label}
+        </button>
+    );
+}
+
+function treeHasProcess(node: WindowNode | null | undefined, processId: number): boolean {
+    if (!node) {
+        return false;
+    }
+    if (node.handle === processGroupHandle(processId)) {
+        return true;
+    }
+    for (const child of node.children ?? []) {
+        if (treeHasProcess(child, processId)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function PathWithReveal({ path }: { path: string; }) {

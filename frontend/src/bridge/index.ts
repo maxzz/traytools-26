@@ -27,7 +27,7 @@ export type {
     CopyItemStatusEvent,
     CopyJobDoneEvent,
 } from "./groups/copyops";
-export { windowTreeBus, isProcessGroupHandle, processGroupId } from "./groups/windowtree";
+export { windowTreeBus, isProcessGroupHandle, processGroupId, processGroupHandle } from "./groups/windowtree";
 export type { WindowNode, WindowTree, WindowInfo, ProcessInfo, RectInfo, RelatedWindow, MonitorWindow, ActiveWindowsInfo } from "./groups/windowtree";
 export { highlightBus } from "./groups/highlight";
 export type { HighlightBounds, HighlightRectOptions, BoundsClassification, BoundsNoticeKind } from "./groups/highlight";

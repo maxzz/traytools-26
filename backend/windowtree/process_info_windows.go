@@ -3,6 +3,7 @@
 package windowtree
 
 import (
+	"syscall"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -22,6 +23,7 @@ func platformGetProcessInfo(pid uint32) (ProcessInfo, error) {
 	info.UserName = proc.userName
 	info.Integrity = proc.integrity
 	info.CommandLine = processCommandLine(pid)
+	info.ParentProcessID = parentProcessID(pid)
 
 	// Valid when we could open the process or at least resolve a path/name.
 	info.Valid = info.ProcessPath != "" || info.ProcessName != "" || info.Bits != 0 || info.UserName != "" || info.CommandLine != ""
@@ -31,6 +33,51 @@ func platformGetProcessInfo(pid uint32) (ProcessInfo, error) {
 		info.Valid = true
 	}
 	return info, nil
+}
+
+// parentProcessID returns the parent PID via ProcessBasicInformation, with a
+// Toolhelp snapshot fallback when the process cannot be opened.
+func parentProcessID(pid uint32) uint32 {
+	if pid == 0 {
+		return 0
+	}
+	h, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, pid)
+	if err == nil {
+		defer windows.CloseHandle(h)
+		var pbi windows.PROCESS_BASIC_INFORMATION
+		if err := windows.NtQueryInformationProcess(h, windows.ProcessBasicInformation, unsafe.Pointer(&pbi), uint32(unsafe.Sizeof(pbi)), nil); err == nil {
+			ppid := uint32(pbi.InheritedFromUniqueProcessId)
+			if ppid != 0 && ppid != pid {
+				return ppid
+			}
+		}
+	}
+	return parentProcessIDToolhelp(pid)
+}
+
+func parentProcessIDToolhelp(pid uint32) uint32 {
+	snapshot, err := syscall.CreateToolhelp32Snapshot(syscall.TH32CS_SNAPPROCESS, 0)
+	if err != nil {
+		return 0
+	}
+	defer syscall.CloseHandle(snapshot)
+
+	var entry syscall.ProcessEntry32
+	entry.Size = uint32(unsafe.Sizeof(entry))
+	if err := syscall.Process32First(snapshot, &entry); err != nil {
+		return 0
+	}
+	for {
+		if entry.ProcessID == pid {
+			if entry.ParentProcessID != 0 && entry.ParentProcessID != pid {
+				return entry.ParentProcessID
+			}
+			return 0
+		}
+		if err := syscall.Process32Next(snapshot, &entry); err != nil {
+			return 0
+		}
+	}
 }
 
 // processCommandLine reads the target process PEB command line via

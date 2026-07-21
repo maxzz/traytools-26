@@ -5,6 +5,7 @@ import {
     windowTreeBus,
     isProcessGroupHandle,
     processGroupId,
+    processGroupHandle,
     type WindowNode,
     type WindowInfo,
     type ProcessInfo,
@@ -12,7 +13,14 @@ import {
 } from "@/bridge";
 import { isBackendAvailable } from "@/wails/is-wails";
 import { appSettings } from "@/store/1-ui-settings";
-import { boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
+import { notice } from "@/ui/local-ui/7-toaster";
+import {
+    boundsNoticeFlashAtom,
+    filteredTreeAtom,
+    selectedHandleAtom,
+    treeExpandRevisionAtom,
+    type BoundsNoticeKind,
+} from "./s-windows-tree-state";
 
 // Live, mutable window-tree data lives in Valtio (mirroring the trace manager
 // split): the fetched tree snapshot and the detailed info for the currently
@@ -367,4 +375,64 @@ export async function maybeHighlightSelectedWindow(handle: string | null): Promi
 
 export async function hideWindowHighlight(): Promise<void> {
     await highlightBus.hide();
+}
+
+/** Select a process-group row in the tree, load its props, and scroll it into view. */
+export function jumpToProcessInTree(processId: number): void {
+    if (!processId) {
+        return;
+    }
+    const handle = processGroupHandle(processId);
+    const store = getDefaultStore();
+    const { tree } = store.get(filteredTreeAtom);
+    if (!treeHasHandle(tree, handle)) {
+        notice.warning(`Process ${processId} is not in the window tree.`);
+        return;
+    }
+
+    store.set(selectedHandleAtom, handle);
+    void loadSelectionInfo(handle);
+
+    const tryScroll = (): boolean => scrollTreeNodeIntoView(handle);
+    queueMicrotask(() => {
+        if (tryScroll()) {
+            return;
+        }
+        // Root (or ancestors) may be collapsed — remount with root expanded.
+        store.set(filteredTreeAtom, (prev) => ({
+            ...prev,
+            expandIds: prev.expandIds.includes("root") ? prev.expandIds : ["root", ...prev.expandIds],
+        }));
+        store.set(treeExpandRevisionAtom, (n) => n + 1);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                tryScroll();
+            });
+        });
+    });
+}
+
+function treeHasHandle(node: WindowNode | null, handle: string): boolean {
+    if (!node) {
+        return false;
+    }
+    if (node.handle === handle) {
+        return true;
+    }
+    for (const child of node.children ?? []) {
+        if (treeHasHandle(child, handle)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function scrollTreeNodeIntoView(handle: string): boolean {
+    const el = document.querySelector(`[data-tree-node-id="${CSS.escape(handle)}"]`);
+    if (!(el instanceof HTMLElement)) {
+        return false;
+    }
+    el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    (el.closest("[data-slot=tree-view]") as HTMLElement | null)?.focus();
+    return true;
 }

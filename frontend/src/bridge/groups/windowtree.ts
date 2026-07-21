@@ -36,6 +36,8 @@ export function processGroupId(handle: string): number | null {
 export interface ProcessInfo {
     valid: boolean;
     processId: number;
+    /** Creating process PID when known; 0 if unavailable. */
+    parentProcessId: number;
     processName: string;
     processPath: string;
     commandLine: string;
@@ -44,6 +46,11 @@ export interface ProcessInfo {
     /** DOMAIN\User for the process token owner. */
     userName: string;
     integrity: IntegrityLevel;
+}
+
+/** Tree node id for a process-group folder. */
+export function processGroupHandle(processId: number): string {
+    return `proc:${processId}`;
 }
 
 export interface WindowTree {

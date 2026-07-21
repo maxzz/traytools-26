@@ -25,7 +25,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
 
     return (
         <TreeNode nodeId={node.handle} level={level} isLast={isLast} parentPath={parentPath}>
-            <TreeNodeTrigger hasChildren={hasChildren}>
+            <TreeNodeTrigger hasChildren={hasChildren} data-tree-node-id={node.handle}>
                 <TreeExpander hasChildren={hasChildren} />
                 <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot, isProcessGroup)} />
                 <TreeLabel className={cn("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
