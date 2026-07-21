@@ -222,6 +222,8 @@ export async function loadProcessInfo(processId: number, requestId = ++selection
     windowTreeStore.infoLoading = true;
     windowTreeStore.infoError = null;
     windowTreeStore.info = null;
+    // Keep the previous processInfo until the new payload arrives so back/forward
+    // does not flash an empty "Loading..." props pane.
     try {
         const processInfo = await windowTreeBus.getProcessInfo(processId);
         if (requestId !== selectionRequestId) {
@@ -390,27 +392,27 @@ export function jumpToProcessInTree(processId: number): void {
         return;
     }
 
-    store.set(selectedHandleAtom, handle);
-    void loadSelectionInfo(handle);
+    const applySelectionAndScroll = () => {
+        // Select + start smooth scroll in the same turn (before paint) so the
+        // highlight does not appear off-screen and then jump.
+        store.set(selectedHandleAtom, handle);
+        scrollTreeNodeIntoView(handle);
+        void loadSelectionInfo(handle);
+    };
 
-    // Wait for paint so the row exists and layout is current, then center it.
+    if (findTreeNodeEl(handle)) {
+        applySelectionAndScroll();
+        return;
+    }
+
+    // Root may be collapsed — remount with root expanded, then apply after paint.
+    store.set(filteredTreeAtom, (prev) => ({
+        ...prev,
+        expandIds: prev.expandIds.includes("root") ? prev.expandIds : ["root", ...prev.expandIds],
+    }));
+    store.set(treeExpandRevisionAtom, (n) => n + 1);
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            if (scrollTreeNodeIntoView(handle)) {
-                return;
-            }
-            // Root may be collapsed — remount with root expanded, then retry.
-            store.set(filteredTreeAtom, (prev) => ({
-                ...prev,
-                expandIds: prev.expandIds.includes("root") ? prev.expandIds : ["root", ...prev.expandIds],
-            }));
-            store.set(treeExpandRevisionAtom, (n) => n + 1);
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    scrollTreeNodeIntoView(handle);
-                });
-            });
-        });
+        requestAnimationFrame(applySelectionAndScroll);
     });
 }
 
@@ -470,11 +472,17 @@ function scrollTreeNodeIntoView(handle: string): boolean {
         const elRect = el.getBoundingClientRect();
         const vpRect = viewport.getBoundingClientRect();
         const delta = (elRect.top + elRect.height / 2) - (vpRect.top + vpRect.height / 2);
+        if (Math.abs(delta) < 2) {
+            return true;
+        }
         const top = Math.max(0, viewport.scrollTop + delta);
-        // Assign scrollTop directly — more reliable than smooth scrollTo in WebView2.
-        viewport.scrollTop = top;
+        try {
+            viewport.scrollTo({ top, behavior: "smooth" });
+        } catch {
+            viewport.scrollTop = top;
+        }
     } else {
-        el.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" });
+        el.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
     }
 
     return true;

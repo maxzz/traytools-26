@@ -1,5 +1,5 @@
 "use client";
-import { type ComponentProps, type HTMLAttributes, type ReactNode, type RefObject, createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, } from "react";
+import { type ComponentProps, type HTMLAttributes, type ReactNode, type RefObject, createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, } from "react";
 import { cn } from "@/utils/classnames";
 import { ChevronRight, File, Folder, FolderOpen } from "lucide-react"; //source https://www.kibo-ui.com/components/tree //demo https://www.shadcnblocks.com/component/tree/tree-expanded-1
 import { AnimatePresence, motion } from "motion/react";
@@ -167,7 +167,9 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
     const selectedIdsRef = useRef(currentSelectedIds);
     selectedIdsRef.current = currentSelectedIds;
 
-    useEffect(
+    // Sync before paint so controlled selection does not flash the previous
+    // highlight for a frame (noticeable during process back/forward nav).
+    useLayoutEffect(
         () => {
             if (selectedIds === undefined) {
                 return;
