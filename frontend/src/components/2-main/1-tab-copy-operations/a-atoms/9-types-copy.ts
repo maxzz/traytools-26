@@ -43,6 +43,11 @@ export type CopyEditorStore = {
 
 // ---------------------------------------------------------------------------
 // Stable runtime ids
+//
+// The synthetic "Groups" root has its own uid (not part of the JSON tree). On
+// reload the counter resets to 0 while a cached rootUid like "c1" may remain,
+// so the next newUid() for a group/item would collide with the root and make
+// two rows appear selected. Seed from existing ids and reject duplicates.
 
 let uidCounter = 0;
 
@@ -51,18 +56,47 @@ function newUid(): string {
     return `c${uidCounter}`;
 }
 
+function seedUidCounterFrom(uids: Iterable<string>): void {
+    for (const uid of uids) {
+        const m = /^c(\d+)$/.exec(uid);
+        if (m) {
+            uidCounter = Math.max(uidCounter, Number(m[1]));
+        }
+    }
+}
+
 export function ensureUids(config: CopyConfig, rootUidHolder: { rootUid: string; }): void {
+    const existing: string[] = [];
+    if (rootUidHolder.rootUid) {
+        existing.push(rootUidHolder.rootUid);
+    }
+    for (const group of config.groups) {
+        if (group.uid) {
+            existing.push(group.uid);
+        }
+        for (const item of group.items) {
+            if (item.uid) {
+                existing.push(item.uid);
+            }
+        }
+    }
+    seedUidCounterFrom(existing);
+
     if (!rootUidHolder.rootUid) {
         rootUidHolder.rootUid = newUid();
     }
+
+    const used = new Set<string>([rootUidHolder.rootUid]);
     for (const group of config.groups) {
-        if (!group.uid) {
+        if (!group.uid || used.has(group.uid)) {
             group.uid = newUid();
         }
+        used.add(group.uid);
         for (const item of group.items) {
-            if (!item.uid) {
+            if (!item.uid || used.has(item.uid)) {
                 item.uid = newUid();
             }
+            used.add(item.uid);
         }
     }
 }
