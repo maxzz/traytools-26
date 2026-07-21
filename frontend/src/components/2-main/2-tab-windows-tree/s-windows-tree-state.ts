@@ -23,6 +23,9 @@ export const hideInvisibleAtom = atomWithStorage("wt.hideInvisible", false);
 // Group top-level windows under synthetic process-name folders.
 export const groupByProcessAtom = atomWithStorage("wt.groupByProcess", false);
 
+// Show process IDs next to process-name folders when grouping is on.
+export const showProcessIdsAtom = atomWithStorage("wt.showProcessIds", true);
+
 // Flash notice when highlight hits empty or off-screen bounds.
 // `handle` keeps the badge on the row that triggered it; `token` forces a
 // fresh animation on every select/reselect.

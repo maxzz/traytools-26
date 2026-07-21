@@ -141,13 +141,14 @@ function ParentProcessId({ processId, canJump }: { processId: number; canJump: b
         return (
             <span title="Parent process is not present in the window tree">
                 {label}
+                <span className="ml-1 text-muted-foreground">(not in tree)</span>
             </span>
         );
     }
     return (
         <button
             type="button"
-            className="text-left underline-offset-2 hover:underline text-foreground"
+            className="text-left text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80"
             title="Jump to parent process in the tree"
             onClick={() => jumpToProcessInTree(processId)}
         >

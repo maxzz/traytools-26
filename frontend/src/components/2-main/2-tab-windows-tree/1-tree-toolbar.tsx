@@ -12,7 +12,7 @@ import { Switch } from "@/ui/shadcn/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { useFilter } from "./2-2-use-filter";
 import { windowTreeStore, refreshWindowTree, maybeHighlightSelectedWindow, hideWindowHighlight } from "./a-windows-tree-calls";
-import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, groupByProcessAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
+import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, groupByProcessAtom, showProcessIdsAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 
 export function WindowTreeToolbar() {
     const { loading } = useSnapshot(windowTreeStore);
@@ -118,6 +118,7 @@ function TreeOptionsPopover() {
     const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
     const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
     const [groupByProcess, setGroupByProcess] = useAtom(groupByProcessAtom);
+    const [showProcessIds, setShowProcessIds] = useAtom(showProcessIdsAtom);
     const displayed = useAtomValue(displayedCountAtom);
 
     return (
@@ -150,6 +151,15 @@ function TreeOptionsPopover() {
                     <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                         <Checkbox checked={groupByProcess} onCheckedChange={(v) => setGroupByProcess(v === true)} />
                         Group windows by process name
+                    </label>
+
+                    <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer" title="Show process IDs next to process-name folders when grouping is on">
+                        <Checkbox
+                            checked={showProcessIds}
+                            onCheckedChange={(v) => setShowProcessIds(v === true)}
+                            disabled={!groupByProcess}
+                        />
+                        Show process IDs
                     </label>
                 </div>
 

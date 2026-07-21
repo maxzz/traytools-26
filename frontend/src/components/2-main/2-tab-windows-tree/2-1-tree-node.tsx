@@ -5,7 +5,7 @@ import { type WindowNode, isProcessGroupHandle } from "@/bridge";
 import { cn } from "@/utils";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
 import { AppWindow, Square, Layers, Folder } from "lucide-react";
-import { showHandlesAtom, selectedHandleAtom, boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
+import { showHandlesAtom, showProcessIdsAtom, selectedHandleAtom, boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
 
 interface WindowTreeNodeProps {
     node: WindowNode;
@@ -16,6 +16,7 @@ interface WindowTreeNodeProps {
 
 export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNodeProps) {
     const showHandles = useAtomValue(showHandlesAtom);
+    const showProcessIds = useAtomValue(showProcessIdsAtom);
     const selectedHandle = useAtomValue(selectedHandleAtom);
     const isRoot = node.handle === "root";
     const isProcessGroup = isProcessGroupHandle(node.handle);
@@ -29,7 +30,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
                 <TreeExpander hasChildren={hasChildren} />
                 <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot, isProcessGroup)} />
                 <TreeLabel className={cn("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
-                    {nodeLabel(node, isRoot, isProcessGroup, showHandles)}
+                    {nodeLabel(node, isRoot, isProcessGroup, showHandles, showProcessIds)}
                 </TreeLabel>
                 {isSelected && <BoundsNoticeFlashBadge handle={node.handle} />}
             </TreeNodeTrigger>
@@ -94,7 +95,7 @@ function BoundsNoticeAnimation({ kind }: { kind: BoundsNoticeKind; }) {
     );
 }
 
-function nodeLabel(node: WindowNode, isRoot: boolean, isProcessGroup: boolean, showHandles: boolean) {
+function nodeLabel(node: WindowNode, isRoot: boolean, isProcessGroup: boolean, showHandles: boolean, showProcessIds: boolean) {
     if (isRoot) {
         return <span className="font-condensed">{node.title}</span>;
     }
@@ -103,7 +104,7 @@ function nodeLabel(node: WindowNode, isRoot: boolean, isProcessGroup: boolean, s
         return (
             <span className="font-condensed">
                 {named ? node.processName : `PID ${node.processId}`}
-                {named && (
+                {named && showProcessIds && (
                     <span className="ml-1 font-mono text-[0.65rem] text-muted-foreground/60">{node.processId}</span>
                 )}
             </span>
