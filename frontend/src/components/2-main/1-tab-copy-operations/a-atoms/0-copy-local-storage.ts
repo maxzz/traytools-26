@@ -4,19 +4,33 @@ import { notice } from "@/ui/local-ui/7-toaster";
 import {
     type CopyConfig,
     type CopyEditorStore,
+    type CopySelectionPath,
     type CopySource,
     ensureUids,
-    findByUid,
+    parseCopySelectionPath,
+    selectionPathFromUid,
+    uidFromSelectionPath,
 } from "./9-types-copy";
 import { buildCopyFileText, parseCopyJson, syncDirty } from "./6-json-serialize-dirty";
 import { DEFAULT_COPY_CONFIG } from "./8-default-config";
 
 export const STORAGE_ID = "traytools-26__copy__v1.0";
 
+type CopyCache = {
+    config: CopyConfig;
+    rootUid: string;
+    selectedPath: CopySelectionPath | null;
+};
+
 const cached = readCache();
 const initialConfig = cached?.config ?? cloneConfig(DEFAULT_COPY_CONFIG);
 const rootHolder = { rootUid: cached?.rootUid ?? "" };
 ensureUids(initialConfig, rootHolder);
+const initialSelectedUid = uidFromSelectionPath(
+    initialConfig,
+    rootHolder.rootUid,
+    cached?.selectedPath ?? { kind: "root" },
+);
 
 export const copyEditorStore = proxy<CopyEditorStore>({
     config: initialConfig,
@@ -28,11 +42,11 @@ export const copyEditorStore = proxy<CopyEditorStore>({
     dirty: true,
     status: "",
     error: "",
-    selectedUid: rootHolder.rootUid,
+    selectedUid: initialSelectedUid,
 });
 
 subscribe(copyEditorStore, () => {
-    writeCache(copyEditorStore.config, copyEditorStore.rootUid);
+    writeCache(copyEditorStore.config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
     syncDirty(copyEditorStore);
 });
 
@@ -40,15 +54,23 @@ export function cloneConfig(config: CopyConfig): CopyConfig {
     return structuredClone(config);
 }
 
-export function readCache(): { config: CopyConfig; rootUid: string; } | null {
+export function readCache(): CopyCache | null {
     try {
         const stored = localStorage.getItem(STORAGE_ID);
         if (!stored) {
             return null;
         }
-        const parsed = JSON.parse(stored) as { config?: CopyConfig; rootUid?: string; };
+        const parsed = JSON.parse(stored) as {
+            config?: CopyConfig;
+            rootUid?: string;
+            selectedPath?: unknown;
+        };
         if (parsed?.config && Array.isArray(parsed.config.groups)) {
-            return { config: parsed.config, rootUid: parsed.rootUid ?? "" };
+            return {
+                config: parsed.config,
+                rootUid: parsed.rootUid ?? "",
+                selectedPath: parseCopySelectionPath(parsed.selectedPath),
+            };
         }
     } catch (e) {
         console.error("Failed to read cached copy config", e);
@@ -56,9 +78,10 @@ export function readCache(): { config: CopyConfig; rootUid: string; } | null {
     return null;
 }
 
-export function writeCache(config: CopyConfig, rootUid: string) {
+export function writeCache(config: CopyConfig, rootUid: string, selectedUid: string | null = copyEditorStore.selectedUid) {
     try {
-        localStorage.setItem(STORAGE_ID, JSON.stringify({ config, rootUid }));
+        const selectedPath = selectionPathFromUid(config, rootUid, selectedUid);
+        localStorage.setItem(STORAGE_ID, JSON.stringify({ config, rootUid, selectedPath }));
     } catch (e) {
         console.error("Failed to cache copy config", e);
     }
@@ -72,7 +95,7 @@ export async function CopyConfig_Load(): Promise<void> {
             try {
                 const config = parseCopyJson(raw.content);
                 CopyConfig_Set(config, "file", raw.path, true);
-                writeCache(config, copyEditorStore.rootUid);
+                writeCache(config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
                 copyEditorStore.status = `Loaded from ${raw.path}`;
                 return;
             } catch (e) {
@@ -99,6 +122,13 @@ export async function CopyConfig_Load(): Promise<void> {
 }
 
 function CopyConfig_Set(config: CopyConfig, source: CopySource, path = "", fileExists = source === "file") {
+    // Capture selection as an index path before ensureUids reassigns runtime uids.
+    const pathToRestore = selectionPathFromUid(
+        copyEditorStore.config,
+        copyEditorStore.rootUid,
+        copyEditorStore.selectedUid,
+    );
+
     const holder = { rootUid: copyEditorStore.rootUid };
     ensureUids(config, holder);
     copyEditorStore.rootUid = holder.rootUid;
@@ -109,15 +139,7 @@ function CopyConfig_Set(config: CopyConfig, source: CopySource, path = "", fileE
     copyEditorStore.baseline = buildCopyFileText(config);
     copyEditorStore.dirty = !fileExists;
     copyEditorStore.error = "";
-
-    if (copyEditorStore.selectedUid) {
-        if (
-            copyEditorStore.selectedUid !== copyEditorStore.rootUid
-            && !findByUid(config, copyEditorStore.selectedUid)
-        ) {
-            copyEditorStore.selectedUid = copyEditorStore.rootUid;
-        }
-    }
+    copyEditorStore.selectedUid = uidFromSelectionPath(config, holder.rootUid, pathToRestore);
 }
 
 export async function CopyConfig_Save(): Promise<void> {
@@ -131,7 +153,7 @@ export async function CopyConfig_Save(): Promise<void> {
         copyEditorStore.dirty = false;
         copyEditorStore.error = "";
         copyEditorStore.status = `Saved to ${copyEditorStore.path}`;
-        writeCache(copyEditorStore.config, copyEditorStore.rootUid);
+        writeCache(copyEditorStore.config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
     } catch (e) {
         copyEditorStore.error = `Failed to save copy.json: ${String(e)}`;
     }
@@ -181,7 +203,7 @@ export async function CopyConfig_Import(): Promise<void> {
         copyEditorStore.baseline = buildCopyFileText(config);
         copyEditorStore.dirty = false;
         copyEditorStore.status = `Imported from ${pick.path}`;
-        writeCache(config, copyEditorStore.rootUid);
+        writeCache(config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
     } catch (e) {
         copyEditorStore.error = `Failed to import: ${String(e)}`;
     }

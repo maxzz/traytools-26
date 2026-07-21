@@ -161,3 +161,67 @@ export function findByUid(root: ToolMenuItem, uid: string): NodeLocation | null 
     }
     return null;
 }
+
+// ---------------------------------------------------------------------------
+// Selection path (survives uid reassignment across elevation restarts)
+//
+// Runtime uids are regenerated when loading from tools.json, so selection must
+// be persisted as a stable index path ([] = root, null = nothing selected).
+
+export type ToolsSelectionPath = number[] | null;
+
+export function selectionPathFromUid(root: ToolMenuItem, uid: string | null | undefined): ToolsSelectionPath {
+    if (!uid) {
+        return null;
+    }
+    if (uid === root.uid) {
+        return [];
+    }
+    function walk(node: ToolMenuItem, path: number[]): number[] | null {
+        const children = node.menuItems;
+        if (!children) {
+            return null;
+        }
+        for (let index = 0; index < children.length; index++) {
+            const child = children[index];
+            const next = [...path, index];
+            if (child.uid === uid) {
+                return next;
+            }
+            const found = walk(child, next);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+    return walk(root, []);
+}
+
+export function uidFromSelectionPath(root: ToolMenuItem, path: ToolsSelectionPath | undefined): string | null {
+    if (path == null) {
+        return null;
+    }
+    if (path.length === 0) {
+        return root.uid ?? null;
+    }
+    let node: ToolMenuItem = root;
+    for (const index of path) {
+        const children = node.menuItems;
+        if (!children || index < 0 || index >= children.length) {
+            return null;
+        }
+        node = children[index];
+    }
+    return node.uid ?? null;
+}
+
+export function parseToolsSelectionPath(value: unknown): ToolsSelectionPath | undefined {
+    if (value === null) {
+        return null;
+    }
+    if (!Array.isArray(value) || !value.every((n) => Number.isInteger(n) && n >= 0)) {
+        return undefined;
+    }
+    return value as number[];
+}

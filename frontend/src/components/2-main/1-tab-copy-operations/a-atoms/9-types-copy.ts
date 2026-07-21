@@ -150,6 +150,71 @@ export function findByUid(config: CopyConfig, uid: string): CopyLocation | null 
     return null;
 }
 
+// ---------------------------------------------------------------------------
+// Selection path (survives uid reassignment across elevation restarts)
+//
+// Runtime uids are regenerated when loading from copy.json, so selection must
+// be persisted as a stable index path and remapped after ensureUids.
+
+export type CopySelectionPath =
+    | { kind: "root"; }
+    | { kind: "group"; groupIndex: number; }
+    | { kind: "item"; groupIndex: number; itemIndex: number; };
+
+export function selectionPathFromUid(
+    config: CopyConfig,
+    rootUid: string,
+    uid: string | null | undefined,
+): CopySelectionPath {
+    if (!uid || uid === rootUid) {
+        return { kind: "root" };
+    }
+    const loc = findByUid(config, uid);
+    if (!loc) {
+        return { kind: "root" };
+    }
+    if (loc.kind === "group") {
+        return { kind: "group", groupIndex: loc.index };
+    }
+    return { kind: "item", groupIndex: loc.groupIndex, itemIndex: loc.index };
+}
+
+export function uidFromSelectionPath(
+    config: CopyConfig,
+    rootUid: string,
+    path: CopySelectionPath | null | undefined,
+): string {
+    if (!path || path.kind === "root") {
+        return rootUid;
+    }
+    if (path.kind === "group") {
+        return config.groups[path.groupIndex]?.uid ?? rootUid;
+    }
+    const group = config.groups[path.groupIndex];
+    return group?.items[path.itemIndex]?.uid ?? rootUid;
+}
+
+export function parseCopySelectionPath(value: unknown): CopySelectionPath | null {
+    if (!value || typeof value !== "object") {
+        return null;
+    }
+    const path = value as Partial<CopySelectionPath>;
+    if (path.kind === "root") {
+        return { kind: "root" };
+    }
+    if (path.kind === "group" && Number.isInteger(path.groupIndex) && path.groupIndex! >= 0) {
+        return { kind: "group", groupIndex: path.groupIndex! };
+    }
+    if (
+        path.kind === "item"
+        && Number.isInteger(path.groupIndex) && path.groupIndex! >= 0
+        && Number.isInteger(path.itemIndex) && path.itemIndex! >= 0
+    ) {
+        return { kind: "item", groupIndex: path.groupIndex!, itemIndex: path.itemIndex! };
+    }
+    return null;
+}
+
 export function itemLabel(item: Pick<CopyOpItem, "sourceFile">): string {
     const src = item.sourceFile.trim();
     if (!src) {
