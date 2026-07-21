@@ -18,8 +18,8 @@ import {
     subscribeCopyProgress,
     type CopyProgressRow,
     type CopyProgressState,
-} from "@/components/2-main/5-tab-copy-operations/a-atoms/2-run-copy";
-import { itemLabel } from "@/components/2-main/5-tab-copy-operations/a-atoms/9-types-copy";
+} from "../a-atoms/2-run-copy";
+import { itemLabel } from "../a-atoms/9-types-copy";
 
 export function CopyStatusDialog() {
     const [state, setState] = useState<CopyProgressState>(getCopyProgress);

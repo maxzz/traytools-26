@@ -1,18 +1,18 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { RefreshCw, Settings, X } from "lucide-react";
 import { classNames } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
+import { RefreshCw, Settings, X } from "lucide-react";
+import { IconCollapse } from "@/ui/icons/normal";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
-import { IconCollapse } from "@/ui/icons/normal";
-import { windowTreeStore, refreshWindowTree, maybeHighlightSelectedWindow, hideWindowHighlight } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
-import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 import { useFilter } from "./2-2-use-filter";
+import { windowTreeStore, refreshWindowTree, maybeHighlightSelectedWindow, hideWindowHighlight } from "./a-windows-tree-calls";
+import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 
 export function WindowTreeToolbar() {
     const { loading } = useSnapshot(windowTreeStore);

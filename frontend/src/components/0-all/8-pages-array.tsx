@@ -3,11 +3,11 @@ import { type ComponentType } from "react";
 // import { PageTestTabA } from "../2-main/xyz-demos/01-page-a/0-page-a-all";
 // import { PageTestTabB } from "../2-main/xyz-demos/02-page-b/0-page-b-all";
 import { PageWelcome } from "../2-main/8-tab-welcome/0-all-welcome";
-import { Page_TraceBits } from "../2-main/2-tab-trace-bits/0-all-trace-bits";
-import { Page_WindowsTree } from "../2-main/1-tab-windows-tree/0-all-windows-page";
-import { Page_ToolsMenuEditor } from "../2-main/3-tab-tools-menu-editor/0-editor/0-all-editor";
+import { Page_TraceBits } from "../2-main/7-1-tab-trace-bits/0-all-trace-bits";
+import { Page_WindowsTree } from "../2-main/2-tab-windows-tree/0-all-windows-page";
+import { Page_ToolsMenuEditor } from "../2-main/7-2-tab-tools-menu-editor/0-editor/0-all-editor";
 import { Page_ActiveMonitor } from "../2-main/4-tab-active-monitor/0-all-active-monitor";
-import { Page_CopyOperations } from "../2-main/5-tab-copy-operations/0-editor/0-all-editor";
+import { Page_CopyOperations } from "../2-main/1-tab-copy-operations/0-editor/0-all-editor";
 
 // Pages definitions.
 

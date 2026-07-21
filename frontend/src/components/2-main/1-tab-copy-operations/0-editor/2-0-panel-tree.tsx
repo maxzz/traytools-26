@@ -4,10 +4,10 @@ import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { itemLabel, type CopyOpItem } from "@/components/2-main/5-tab-copy-operations/a-atoms/9-types-copy";
-import { type DropPosition, moveNode } from "@/components/2-main/5-tab-copy-operations/a-atoms/1-copy-editor-atoms";
-import { copyEditorStore } from "@/components/2-main/5-tab-copy-operations/a-atoms/0-copy-local-storage";
-import { runCopyGroup, runCopyItem } from "@/components/2-main/5-tab-copy-operations/a-atoms/2-run-copy";
+import { itemLabel, type CopyOpItem } from "../a-atoms/9-types-copy";
+import { type DropPosition, moveNode } from "../a-atoms/1-copy-editor-atoms";
+import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
+import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 
 /** Same focus/unfocus selection look as the Windows tab (kibo-ui-tree). */
 const ROW_SELECTED = cn(
@@ -439,7 +439,7 @@ const INDENT = 16;
 function DragAndDropTargetLine({ style }: { style: React.CSSProperties; }) {
     return (
         <div className="absolute right-1 h-0.5 bg-sky-500 rounded-full pointer-events-none z-10" style={style}>
-            <div className="absolute top-[-3px] size-2 bg-sky-500 rounded-full -left-1" />
+            <div className="absolute -top-0.75 size-2 bg-sky-500 rounded-full -left-1" />
         </div>
     );
 }

@@ -5,9 +5,9 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-rea
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/9-types-menu";
-import { type DropPosition, moveNode } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/1-menu-editor-atoms";
-import { toolsEditorStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
+import { type ToolMenuItem, isRegistryPath, nodeKind } from "../a-atoms/9-types-menu";
+import { type DropPosition, moveNode } from "../a-atoms/1-menu-editor-atoms";
+import { toolsEditorStore } from "../a-atoms/0-menu-local-storage";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {
@@ -258,7 +258,7 @@ const INDENT = 16;
 function DragAndDropTargetLine({ style }: { style: React.CSSProperties; }) {
     return (
         <div className="absolute right-1 h-0.5 bg-sky-500 rounded-full pointer-events-none z-10" style={style}>
-            <div className="absolute top-[-3px] size-2 bg-sky-500 rounded-full -left-1" />
+            <div className="absolute -top-0.75 size-2 bg-sky-500 rounded-full -left-1" />
         </div>
     );
 }

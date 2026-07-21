@@ -5,10 +5,10 @@ import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { Button } from "@/ui/shadcn/button";
-import { type CopyGroup, type CopyOpItem } from "@/components/2-main/5-tab-copy-operations/a-atoms/9-types-copy";
-import { patchSelectedGroup, patchSelectedItem } from "@/components/2-main/5-tab-copy-operations/a-atoms/use-selected-node";
-import { copyEditorStore } from "@/components/2-main/5-tab-copy-operations/a-atoms/0-copy-local-storage";
-import { runCopyGroup, runCopyItem } from "@/components/2-main/5-tab-copy-operations/a-atoms/2-run-copy";
+import { type CopyGroup, type CopyOpItem } from "../a-atoms/9-types-copy";
+import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
+import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
+import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 import { PathInput } from "./path-input";
 
 export function PropsFor_Root() {

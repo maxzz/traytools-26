@@ -10,7 +10,7 @@ import {
     ToolsConfig_Load,
     ToolsConfig_ResetToDefaults,
     ToolsConfig_RevealInExplorer,
-} from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
+} from "../a-atoms/0-menu-local-storage";
 
 export function TopBar() {
     return (

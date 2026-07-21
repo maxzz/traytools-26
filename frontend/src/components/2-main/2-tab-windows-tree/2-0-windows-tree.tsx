@@ -7,7 +7,7 @@ import {
     windowTreeStore,
     loadWindowInfo,
     maybeHighlightSelectedWindow,
-} from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+} from "./a-windows-tree-calls";
 import {
     selectedHandleAtom,
     treeFilterAtom,

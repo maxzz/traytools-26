@@ -4,7 +4,7 @@ import { useSnapshot } from "valtio";
 import { appBus } from "@/bridge";
 import { getValidMainTab, TOPMENU_VIEW_PAGES } from "@/components/0-all/8-pages-array";
 import { appSettings } from "@/store/1-ui-settings";
-import { refreshWindowTree } from "@/components/2-main/1-tab-windows-tree/a-windows-tree-calls";
+import { refreshWindowTree } from "@/components/2-main/2-tab-windows-tree/a-windows-tree-calls";
 import { isOpenSettingsDialogAtom, settingsUnloadHookHotkeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { formatHotkey } from "@/ui/local-ui/9-hotkey";
 import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";

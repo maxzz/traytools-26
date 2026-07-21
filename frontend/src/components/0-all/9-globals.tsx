@@ -14,7 +14,7 @@ import {
     settingsUnloadHookHotkeyAtom,
 } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { sendUnloadHookNotification } from "@/components/1-header/3-send-unload-msg-notice/3-2-unload-hook-action";
-import { syncToolsHotkeys, toolsHotkeysStore } from "@/components/2-main/3-tab-tools-menu-editor/a-atoms/2-tools-hotkeys";
+import { syncToolsHotkeys, toolsHotkeysStore } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/2-tools-hotkeys";
 import { matchesHotkey, parseHotkey } from "@/ui/local-ui/9-hotkey";
 import { notice } from "@/ui/local-ui/7-toaster";
 

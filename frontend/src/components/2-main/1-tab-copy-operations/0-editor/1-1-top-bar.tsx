@@ -12,7 +12,7 @@ import {
     CopyConfig_Load,
     CopyConfig_ResetToDefaults,
     CopyConfig_RevealInExplorer,
-} from "@/components/2-main/5-tab-copy-operations/a-atoms/0-copy-local-storage";
+} from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
 
 export function TopBar() {
     return (
