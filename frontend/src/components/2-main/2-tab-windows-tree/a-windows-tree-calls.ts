@@ -393,20 +393,22 @@ export function jumpToProcessInTree(processId: number): void {
     store.set(selectedHandleAtom, handle);
     void loadSelectionInfo(handle);
 
-    const tryScroll = (): boolean => scrollTreeNodeIntoView(handle);
-    queueMicrotask(() => {
-        if (tryScroll()) {
-            return;
-        }
-        // Root (or ancestors) may be collapsed — remount with root expanded.
-        store.set(filteredTreeAtom, (prev) => ({
-            ...prev,
-            expandIds: prev.expandIds.includes("root") ? prev.expandIds : ["root", ...prev.expandIds],
-        }));
-        store.set(treeExpandRevisionAtom, (n) => n + 1);
+    // Wait for paint so the row exists and layout is current, then center it.
+    requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+            if (scrollTreeNodeIntoView(handle)) {
+                return;
+            }
+            // Root may be collapsed — remount with root expanded, then retry.
+            store.set(filteredTreeAtom, (prev) => ({
+                ...prev,
+                expandIds: prev.expandIds.includes("root") ? prev.expandIds : ["root", ...prev.expandIds],
+            }));
+            store.set(treeExpandRevisionAtom, (n) => n + 1);
             requestAnimationFrame(() => {
-                tryScroll();
+                requestAnimationFrame(() => {
+                    scrollTreeNodeIntoView(handle);
+                });
             });
         });
     });
@@ -427,12 +429,53 @@ function treeHasHandle(node: WindowNode | null, handle: string): boolean {
     return false;
 }
 
+function findTreeNodeEl(handle: string): HTMLElement | null {
+    // Avoid CSS.escape on values like "proc:1234" inside quoted attribute
+    // selectors — match by attribute equality instead.
+    for (const node of document.querySelectorAll("[data-tree-node-id]")) {
+        if (node instanceof HTMLElement && node.getAttribute("data-tree-node-id") === handle) {
+            return node;
+        }
+    }
+    return null;
+}
+
+function findTreeScrollViewport(el: HTMLElement): HTMLElement | null {
+    const marked = el.closest("[data-windows-tree-scroll]");
+    if (marked instanceof HTMLElement) {
+        return marked;
+    }
+    let parent: HTMLElement | null = el.parentElement;
+    while (parent) {
+        const { overflowY } = getComputedStyle(parent);
+        if (
+            (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay")
+            && parent.scrollHeight > parent.clientHeight + 1
+        ) {
+            return parent;
+        }
+        parent = parent.parentElement;
+    }
+    return null;
+}
+
 function scrollTreeNodeIntoView(handle: string): boolean {
-    const el = document.querySelector(`[data-tree-node-id="${CSS.escape(handle)}"]`);
-    if (!(el instanceof HTMLElement)) {
+    const el = findTreeNodeEl(handle);
+    if (!el) {
         return false;
     }
-    el.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    (el.closest("[data-slot=tree-view]") as HTMLElement | null)?.focus();
+
+    const viewport = findTreeScrollViewport(el);
+    if (viewport) {
+        const elRect = el.getBoundingClientRect();
+        const vpRect = viewport.getBoundingClientRect();
+        const delta = (elRect.top + elRect.height / 2) - (vpRect.top + vpRect.height / 2);
+        const top = Math.max(0, viewport.scrollTop + delta);
+        // Assign scrollTop directly — more reliable than smooth scrollTo in WebView2.
+        viewport.scrollTop = top;
+    } else {
+        el.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" });
+    }
+
     return true;
 }

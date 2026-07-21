@@ -1,3 +1,4 @@
+import { type HTMLAttributes } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
@@ -19,6 +20,10 @@ import {
     treeExpandRevisionAtom,
 } from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
+
+const treeScrollViewportProps = {
+    "data-windows-tree-scroll": "",
+} as HTMLAttributes<HTMLDivElement>;
 
 export function WindowTreeView() {
     const { count, loading, error } = useSnapshot(windowTreeStore);
@@ -67,7 +72,12 @@ export function WindowTreeView() {
     return (
         <div className="relative size-full min-h-0">
             <div className="absolute inset-0 px-0.5">
-                <ScrollArea className="size-full" fixedWidth parentContentWidth>
+                <ScrollArea
+                    className="size-full"
+                    fixedWidth
+                    parentContentWidth
+                    viewportProps={treeScrollViewportProps}
+                >
                     {error
                         ? (
                             <div className="p-3 text-xs text-destructive">
