@@ -9,7 +9,7 @@ import { type CopyGroup, type CopyOpItem } from "../a-atoms/9-types-copy";
 import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
-import { PathInput } from "./path-input";
+import { PathInput } from "./3-2-path-input";
 
 export function PropsFor_Root() {
     return (

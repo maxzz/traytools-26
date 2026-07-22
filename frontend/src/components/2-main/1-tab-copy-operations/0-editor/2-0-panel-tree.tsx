@@ -4,18 +4,10 @@ import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { itemLabel, type CopyOpItem } from "../a-atoms/9-types-copy";
+import { type CopyOpItem, itemLabel } from "../a-atoms/9-types-copy";
 import { type DropPosition, moveNode } from "../a-atoms/1-copy-editor-atoms";
-import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
-
-/** Same focus/unfocus selection look as the Windows tab (kibo-ui-tree). */
-const ROW_SELECTED = cn(
-    "text-tree-select-foreground bg-tree-select",
-    "group-focus-within/tree:bg-tree-select-focused group-focus-within/tree:text-tree-select-focused-foreground",
-    "group-focus-within/tree:ring-1 group-focus-within/tree:ring-inset group-focus-within/tree:ring-tree-select-border",
-    "group-focus-within/tree:font-medium",
-);
+import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 
 type SnapGroup = {
     readonly name: string;
@@ -28,27 +20,6 @@ type SnapItem = {
     readonly destFolder: string;
     readonly uid?: string;
 };
-
-type DndState = {
-    dragUid: string | null;
-    dropUid: string | null;
-    dropPos: DropPosition | null;
-    onDragStart: (e: DragEvent, uid: string) => void;
-    onDragOver: (e: DragEvent, uid: string, isGroup: boolean, isRoot: boolean) => void;
-    onDrop: (e: DragEvent, uid: string) => void;
-    onDragEnd: () => void;
-    onDragLeaveRow: (uid: string) => void;
-};
-
-const DndContext = createContext<DndState | null>(null);
-
-function useDnd(): DndState {
-    const ctx = useContext(DndContext);
-    if (!ctx) {
-        throw new Error("Tree rows must be rendered inside Panel_Tree");
-    }
-    return ctx;
-}
 
 export function Panel_Tree() {
     const snap = useSnapshot(copyEditorStore);
@@ -204,24 +175,12 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
     );
 }
 
-function GroupRow({
-    group,
-    depth,
-    isLast,
-    ancestors,
-    onActivate,
-}: {
-    group: SnapGroup;
-    depth: number;
-    isLast: boolean;
-    ancestors: boolean[];
-    onActivate: () => void;
-}) {
-    const snap = useSnapshot(copyEditorStore);
+function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: SnapGroup; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
+    const { selectedUid } = useSnapshot(copyEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
     const uid = group.uid ?? "";
-    const selected = snap.selectedUid === uid;
+    const selected = selectedUid === uid;
     const isDragging = dnd.dragUid === uid;
     const isDropTarget = dnd.dropUid === uid;
     const showBefore = isDropTarget && dnd.dropPos === "before";
@@ -260,28 +219,30 @@ function GroupRow({
                     }}
                 >
                     <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren />
+
                     <button
-                        type="button"
                         className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center"
-                        title={collapsed ? "Expand" : "Collapse"}
                         onClick={(e) => {
                             e.stopPropagation();
                             setCollapsed((v) => !v);
                         }}
+                        title={collapsed ? "Expand" : "Collapse"}
+                        type="button"
                     >
                         {collapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
                     </button>
+
                     {collapsed
                         ? <Folder className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
+
                     <span className="min-w-0 flex-1 relative truncate">{group.name || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+
                     <Button
-                        type="button"
+                        className="absolute right-1 top-1/2 size-4.5 rounded z-10 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-background"
                         variant="ghost"
                         size="icon-xs"
-                        className="absolute right-0.5 top-1/2 z-10 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-inherit"
-                        title="Copy this group"
                         onClick={(e) => {
                             e.stopPropagation();
                             const g = copyEditorStore.config.groups.find((row) => row.uid === uid);
@@ -289,39 +250,31 @@ function GroupRow({
                                 runCopyGroup(g);
                             }
                         }}
+                        title="Copy this group"
+                        type="button"
                     >
                         <Copy className="size-3" />
                     </Button>
                 </div>
             </div>
 
-            {!collapsed && group.items.map((item, index) => (
-                <ItemRow
-                    key={item.uid}
-                    item={item}
-                    depth={depth + 1}
-                    isLast={index === group.items.length - 1}
-                    ancestors={childAncestors}
-                    onActivate={onActivate}
-                />
-            ))}
+            {!collapsed && group.items.map(
+                (item, index) => (
+                    <ItemRow
+                        key={item.uid}
+                        item={item}
+                        depth={depth + 1}
+                        isLast={index === group.items.length - 1}
+                        ancestors={childAncestors}
+                        onActivate={onActivate}
+                    />
+                )
+            )}
         </div>
     );
 }
 
-function ItemRow({
-    item,
-    depth,
-    isLast,
-    ancestors,
-    onActivate,
-}: {
-    item: SnapItem;
-    depth: number;
-    isLast: boolean;
-    ancestors: boolean[];
-    onActivate: () => void;
-}) {
+function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapItem; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
     const snap = useSnapshot(copyEditorStore);
     const dnd = useDnd();
     const uid = item.uid ?? "";
@@ -359,18 +312,20 @@ function ItemRow({
                 }}
             >
                 <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={false} />
+
                 {/* Match expander slot width so the horizontal tick reaches the icon. */}
                 <span className="shrink-0 relative w-4 h-4" />
+
                 <FileIcon className="shrink-0 relative size-3.5 text-foreground/70" />
+
                 <span className="min-w-0 flex-1 relative truncate" title={label}>
                     {label}
                 </span>
+
                 <Button
-                    type="button"
+                    className="absolute right-1 top-1/2 size-4.5 rounded z-10 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-background"
                     variant="ghost"
                     size="icon-xs"
-                    className="absolute right-0.5 top-1/2 z-10 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-inherit"
-                    title="Copy this file"
                     onClick={(e) => {
                         e.stopPropagation();
                         const loc = copyEditorStore.config.groups
@@ -380,6 +335,8 @@ function ItemRow({
                             runCopyItem(loc.it);
                         }
                     }}
+                    title="Copy this file"
+                    type="button"
                 >
                     <Copy className="size-3" />
                 </Button>
@@ -387,6 +344,14 @@ function ItemRow({
         </div>
     );
 }
+
+/** Same focus/unfocus selection look as the Windows tab (kibo-ui-tree). */
+const ROW_SELECTED = cn(
+    "text-tree-select-foreground bg-tree-select",
+    "group-focus-within/tree:bg-tree-select-focused group-focus-within/tree:text-tree-select-focused-foreground",
+    "group-focus-within/tree:ring-1 group-focus-within/tree:ring-inset group-focus-within/tree:ring-tree-select-border",
+    "group-focus-within/tree:font-medium",
+);
 
 /** Gap between the horizontal tick and the expander (parents) or icon (leaves). */
 const TREE_LINE_CONTENT_GAP = 4;
@@ -407,8 +372,8 @@ function TreeGuides({ depth, isLast, ancestors, hasChildren }: { depth: number; 
     return (
         <div className="absolute inset-y-0 left-0 pointer-events-none">
             {/* ancestors[i] describes the ancestor at depth i+1 (root has no guide column). */}
-            {ancestors.map((cont, a) =>
-                cont ? (
+            {ancestors.map(
+                (cont, a) => cont ? (
                     <div key={a} className="absolute inset-y-0 border-l border-foreground/40" style={{ left: guideX(a + 1) }} />
                 ) : null
             )}
@@ -421,11 +386,7 @@ function TreeGuides({ depth, isLast, ancestors, hasChildren }: { depth: number; 
 
             <div
                 className="absolute top-1/2 border-t border-foreground/40"
-                style={{
-                    left: x,
-                    width: Math.max(0, tickWidth),
-                    transform: "translateY(-1px)",
-                }}
+                style={{ left: x, width: Math.max(0, tickWidth), transform: "translateY(-1px)", }}
             />
         </div>
     );
@@ -436,6 +397,29 @@ function guideX(depth: number): number {
 }
 
 const INDENT = 16;
+
+// Drag and drop state management
+
+type DndState = {
+    dragUid: string | null;
+    dropUid: string | null;
+    dropPos: DropPosition | null;
+    onDragStart: (e: DragEvent, uid: string) => void;
+    onDragOver: (e: DragEvent, uid: string, isGroup: boolean, isRoot: boolean) => void;
+    onDrop: (e: DragEvent, uid: string) => void;
+    onDragEnd: () => void;
+    onDragLeaveRow: (uid: string) => void;
+};
+
+const DndContext = createContext<DndState | null>(null);
+
+function useDnd(): DndState {
+    const ctx = useContext(DndContext);
+    if (!ctx) {
+        throw new Error("Tree rows must be rendered inside Panel_Tree");
+    }
+    return ctx;
+}
 
 function DragAndDropTargetLine({ style }: { style: React.CSSProperties; }) {
     return (

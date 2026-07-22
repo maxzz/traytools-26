@@ -14,7 +14,7 @@ import {
     CopyConfig_RevealInExplorer,
 } from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
 
-export function TopBar() {
+export function CopyOperationsToolbar() {
     return (
         <div className="bg-app-background/10">
             <div className="mx-1 px-2 py-1.5 h-9 bg-background border rounded flex items-center gap-2">

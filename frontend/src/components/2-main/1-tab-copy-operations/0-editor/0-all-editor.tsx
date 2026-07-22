@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 import { useSnapshot } from "valtio";
-import { type Layout } from "react-resizable-panels";
 import { appSettings } from "@/store/1-ui-settings";
+import { type Layout } from "react-resizable-panels";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
-import { CopyConfig_Load } from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
 import { Panel_Tree } from "./2-0-panel-tree";
 import { Panel_Props } from "./3-0-panel-props";
-import { TopBar } from "./1-1-top-bar";
+import { CopyOperationsToolbar } from "./1-1-ops-toolbar";
 import { TreeViewMenu } from "./2-1-tree-menu";
 import { CopyReportPanel } from "./4-copy-report-panel";
-import { initCopyPathDropListener } from "./path-input";
+import { initCopyPathDropListener } from "./3-2-path-input";
+import { CopyConfig_Load } from "../a-atoms/0-copy-local-storage";
 
 export function Page_CopyOperations() {
     const { panelSizes } = useSnapshot(appSettings);
@@ -26,7 +26,7 @@ export function Page_CopyOperations() {
 
     return (
         <div className="flex-1 size-full min-h-0 overflow-hidden grid grid-rows-[auto_1fr] gap-0.5">
-            <TopBar />
+            <CopyOperationsToolbar />
 
             <ResizablePanelGroup
                 className="bg-card"

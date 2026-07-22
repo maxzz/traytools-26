@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from "react";
-import { FolderOpen, FileIcon } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
+import { FolderOpen, FileIcon } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Button } from "@/ui/shadcn/button";
 import { copyOpsBus } from "@/bridge";
-import { OnFileDrop, OnFileDropOff } from "../../../../../wailsjs/runtime/runtime";
+import { OnFileDrop, OnFileDropOff } from "@/../wailsjs/runtime/runtime";
 
 type PathKind = "file" | "folder";
 
