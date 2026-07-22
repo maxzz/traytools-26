@@ -1,6 +1,6 @@
 //go:build windows
 
-package hotkeys
+package winhotkeys
 
 import (
 	"fmt"
@@ -92,7 +92,7 @@ var (
 	handler     Handler
 	desired     = map[int]*Chord{}
 	active      = map[int]*Chord{} // chords we successfully registered (avoids false conflicts)
-	toolOwned   = map[int]bool{}  // RegisterHotKey ids owned by the Tools menu
+	toolOwned   = map[int]bool{}   // RegisterHotKey ids owned by the Tools menu
 	pendingDone chan map[int]string
 )
 

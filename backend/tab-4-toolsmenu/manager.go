@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"traytools-26-go/backend/bus"
-	"traytools-26-go/backend/hotkeys"
+	"traytools-26-go/backend/winhotkeys"
 )
 
 // Group is the bus group name shared with the frontend bridge.
@@ -168,7 +168,7 @@ func buildView(n MenuNode, baseDir string, commands map[int]resolvedCommand, nex
 	}
 }
 
-// SyncHotkeys reloads tools.json, registers global tool hotkeys, and returns
+// SyncHotkeys reloads tools.json, registers global tool winhotkeys, and returns
 // local bindings plus any registration conflicts. Safe to call at startup and
 // after the editor Apply action.
 func (m *Manager) SyncHotkeys() HotkeySyncResponse {
@@ -188,12 +188,12 @@ func (m *Manager) SyncHotkeys() HotkeySyncResponse {
 	// Stable order so duplicate-chord conflict winners are deterministic.
 	sort.Slice(global, func(i, j int) bool { return global[i].ID < global[j].ID })
 
-	want := map[int]*hotkeys.Chord{}
+	want := map[int]*winhotkeys.Chord{}
 	meta := map[int]HotkeyBinding{}
 	var conflicts []HotkeyConflict
 
 	for _, b := range global {
-		chord, err := hotkeys.Parse(b.HotKey)
+		chord, err := winhotkeys.Parse(b.HotKey)
 		if err != nil {
 			conflicts = append(conflicts, HotkeyConflict{
 				ID: b.ID, Name: b.Name, HotKey: b.HotKey, Error: err.Error(),
@@ -203,12 +203,12 @@ func (m *Manager) SyncHotkeys() HotkeySyncResponse {
 		if chord == nil {
 			continue
 		}
-		hkID := hotkeys.ToolHotkeyID(b.ID)
+		hkID := winhotkeys.ToolHotkeyID(b.ID)
 		want[hkID] = chord
 		meta[hkID] = b
 	}
 
-	for id, msg := range hotkeys.ReplaceTools(want) {
+	for id, msg := range winhotkeys.ReplaceTools(want) {
 		if id < 0 {
 			conflicts = append(conflicts, HotkeyConflict{Error: msg})
 			continue

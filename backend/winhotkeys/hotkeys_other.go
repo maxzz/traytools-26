@@ -1,6 +1,6 @@
 //go:build !windows
 
-package hotkeys
+package winhotkeys
 
 import "fmt"
 
