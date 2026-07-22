@@ -10,7 +10,7 @@ import (
 	"time"
 	"unsafe"
 
-	"traytools-26-go/backend/dphook"
+	"traytools-26-go/backend/dpunhook"
 	"traytools-26-go/backend/winlaunch"
 
 	"golang.org/x/sys/windows"
@@ -84,7 +84,7 @@ func platformStop() error {
 	// Give the agent a moment to exit before broadcasting unhook, matching
 	// the legacy OnAppAgentStop Sleep(200) + forceunloadhook sequence.
 	time.Sleep(200 * time.Millisecond)
-	return dphook.ForceUnload()
+	return dpunhook.ForceUnload()
 }
 
 // Implementaion

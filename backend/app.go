@@ -10,12 +10,12 @@ import (
 	"traytools-26-go/backend/bus"
 	"traytools-26-go/backend/copyops"
 	"traytools-26-go/backend/dpagent"
-	"traytools-26-go/backend/dphook"
+	"traytools-26-go/backend/dpunhook"
 	"traytools-26-go/backend/highlight"
 	"traytools-26-go/backend/toolsmenu"
 	"traytools-26-go/backend/tracemanager"
-	"traytools-26-go/backend/winlaunch"
 	"traytools-26-go/backend/windowtree"
+	"traytools-26-go/backend/winlaunch"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -162,7 +162,7 @@ func (a *App) registerHandlers() {
 		return nil, nil
 	})
 	a.bus.Register("app", "sendUnloadHookNotification", func(ctx context.Context, payload json.RawMessage) (any, error) {
-		return nil, dphook.ForceUnload()
+		return nil, dpunhook.ForceUnload()
 	})
 }
 
