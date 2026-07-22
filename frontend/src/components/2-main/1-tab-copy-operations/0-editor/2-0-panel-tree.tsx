@@ -113,7 +113,7 @@ export function Panel_Tree() {
 
     return (
         <div className="min-h-0 h-full flex flex-col">
-            <ScrollArea className="flex-1 min-h-0">
+            <ScrollArea className="flex-1 min-h-0" fixedWidth parentContentWidth>
                 <DndContext.Provider value={dnd}>
                     <div
                         ref={treeRef}
@@ -174,7 +174,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                         ? <Folder className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
-                    <span className="flex-1 relative truncate">Groups</span>
+                    <span className="min-w-0 flex-1 relative truncate">Groups</span>
                 </div>
             </div>
 
@@ -275,7 +275,7 @@ function GroupRow({
                         ? <Folder className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
-                    <span className="flex-1 relative truncate">{group.name || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                    <span className="min-w-0 flex-1 relative truncate">{group.name || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
                     <Button
                         type="button"
                         variant="ghost"
@@ -330,6 +330,7 @@ function ItemRow({
     const isDropTarget = dnd.dropUid === uid;
     const showBefore = isDropTarget && dnd.dropPos === "before";
     const showAfter = isDropTarget && dnd.dropPos === "after";
+    const label = itemLabel(item as CopyOpItem);
 
     return (
         <div
@@ -361,8 +362,8 @@ function ItemRow({
                 {/* Match expander slot width so the horizontal tick reaches the icon. */}
                 <span className="shrink-0 relative w-4 h-4" />
                 <FileIcon className="shrink-0 relative size-3.5 text-foreground/70" />
-                <span className="flex-1 relative truncate">
-                    {itemLabel(item as CopyOpItem)}
+                <span className="min-w-0 flex-1 relative truncate" title={label}>
+                    {label}
                 </span>
                 <Button
                     type="button"
