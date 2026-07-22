@@ -1,81 +1,72 @@
 import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
 import { useSnapshot } from "valtio";
-import { AlertCircle, Check, Loader2, Minus } from "lucide-react";
+import { AlertCircle, Check, Loader2 } from "lucide-react";
+import { IconTrash24 } from "@/ui/icons/normal";
 import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { clearCopyReportMessages, copyReportStore, type CopyJobReport, type CopyProgressRow } from "../a-atoms/2-run-copy";
+import { type CopyJobReport, type CopyProgressRow, clearCopyReportMessages, copyReportStore } from "../a-atoms/2-run-copy";
 import { itemLabel } from "../a-atoms/9-types-copy";
 
-const NEAR_BOTTOM_PX = 48;
-
-function formatJobTime(startedAt: number): string {
-    return new Date(startedAt).toLocaleTimeString(undefined, {
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-    });
-}
-
 export function CopyReportPanel() {
-    const snap = useSnapshot(copyReportStore);
+    const { jobs } = useSnapshot(copyReportStore);
     const viewportRef = useRef<HTMLDivElement>(null);
     const stickToBottomRef = useRef(true);
-    const anyRunning = snap.jobs.some((job) => job.running);
-    const hasJobs = snap.jobs.length > 0;
+    const anyRunning = jobs.some((job) => job.running);
+    const hasJobs = jobs.length > 0;
 
-    useEffect(() => {
-        const el = viewportRef.current;
-        if (!el) {
-            return;
-        }
-        const onScroll = () => {
-            stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= NEAR_BOTTOM_PX;
-        };
-        el.addEventListener("scroll", onScroll, { passive: true });
-        return () => el.removeEventListener("scroll", onScroll);
-    }, [hasJobs]);
+    useEffect(
+        () => {
+            const el = viewportRef.current;
+            if (!el) {
+                return;
+            }
+            const onScroll = () => {
+                stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= NEAR_BOTTOM_PX;
+            };
+            el.addEventListener("scroll", onScroll, { passive: true });
+            return () => el.removeEventListener("scroll", onScroll);
+        },
+        [hasJobs]);
 
-    useLayoutEffect(() => {
-        const el = viewportRef.current;
-        if (!el || !stickToBottomRef.current) {
-            return;
+    useLayoutEffect(
+        () => {
+            const el = viewportRef.current;
+            if (!el || !stickToBottomRef.current) {
+                return;
+            }
+            el.scrollTop = el.scrollHeight;
         }
-        el.scrollTop = el.scrollHeight;
-    });
+    );
 
     return (
-        <div className="size-full min-h-0 flex flex-col">
-            <div className="px-2 py-1.5 border-b flex items-center gap-2 shrink-0">
-                <span className="text-xs font-semibold truncate">
-                    Copy report
-                </span>
-
-                <Button
-                    type="button"
-                    size="xs"
-                    variant="outline"
-                    className="ml-auto"
-                    disabled={anyRunning || !hasJobs}
-                    onClick={clearCopyReportMessages}
-                >
-                    Clear All Messages
-                </Button>
-            </div>
+        <div className="relative size-full min-h-0 flex flex-col">
+            <Button
+                className="absolute top-1 right-1 z-10"
+                onClick={clearCopyReportMessages}
+                title="Clear all messages"
+                type="button"
+                size="xs"
+                variant="ghost"
+                disabled={anyRunning || !hasJobs}
+            >
+                <IconTrash24 className="size-3.5" />
+            </Button>
 
             <ScrollArea2 ref={viewportRef} className="flex-1 min-h-0">
                 {!hasJobs
                     ? (
                         <div className="p-3 text-xs text-muted-foreground">
-                            Copy results will appear here.
                         </div>
                     )
                     : (
                         <div className="p-2 space-y-3 text-sm">
-                            {snap.jobs.map((job) => (
-                                <JobGroup key={job.uid} job={job as CopyJobReport} />
-                            ))}
+                            {jobs.map(
+                                (job) => (
+                                    <JobGroup key={job.uid} job={job as CopyJobReport} />
+                                )
+                            )}
                         </div>
                     )}
             </ScrollArea2>
@@ -90,9 +81,11 @@ function JobGroup({ job }: { job: CopyJobReport; }) {
                 <span className="font-semibold tabular-nums">
                     {formatJobTime(job.startedAt)}
                 </span>
+
                 <span className="text-muted-foreground truncate" title={job.label}>
                     {job.label}
                 </span>
+
                 {job.running && (
                     <span className="text-muted-foreground inline-flex items-center gap-1 shrink-0">
                         <Loader2 className="size-3 animate-spin" />
@@ -105,12 +98,14 @@ function JobGroup({ job }: { job: CopyJobReport; }) {
                 <p className="text-xs text-destructive">{job.setupError}</p>
             )}
 
-            <div className="pr-1 text-xs grid grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-0.5">
-                {job.rows.map((row, i) => (
-                    <Fragment key={i}>
-                        <ReportRow row={row} />
-                    </Fragment>
-                ))}
+            <div className="pr-1 text-xs grid grid-cols-[auto_minmax(0,auto)_minmax(0,1fr)] items-center gap-x-2 gap-y-0.5">
+                {job.rows.map(
+                    (row, i) => (
+                        <Fragment key={i}>
+                            <ReportRow row={row} />
+                        </Fragment>
+                    )
+                )}
             </div>
         </section>
     );
@@ -119,22 +114,24 @@ function JobGroup({ job }: { job: CopyJobReport; }) {
 function ReportRow({ row }: { row: CopyProgressRow; }) {
     const name = itemLabel({ sourceFile: row.sourceFile });
     return (<>
+        <OperationStatus row={row} />
+
         <span className="truncate" title={row.sourceFile}>
             {name}
         </span>
+
         <span className="text-muted-foreground truncate" title={row.destFolder}>
-            {row.destFolder || "—"}
+            {row.destFolder || "No destination folder"}
         </span>
-        <StatusBadge row={row} />
     </>);
 }
 
-function StatusBadge({ row }: { row: CopyProgressRow; }) {
+function OperationStatus({ row }: { row: CopyProgressRow; }) {
     if (row.status === "pending") {
         return (
             <span className="min-w-20 text-muted-foreground inline-flex items-center gap-1 justify-end">
-                <Loader2 className="size-3.5 animate-spin" />
                 pending
+                <Loader2 className="size-3.5 animate-spin" />
             </span>
         );
     }
@@ -142,8 +139,8 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
     if (row.status === "skipped") {
         return (
             <span className="min-w-20 text-muted-foreground inline-flex items-center gap-1 justify-end">
-                <Minus className="size-3.5" />
                 skipped
+                <div className="size-3.5"></div>
             </span>
         );
     }
@@ -151,8 +148,8 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
     if (row.status === "copied") {
         return (
             <span className={cn("min-w-20 text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1 justify-end")}>
-                <Check className="size-3.5" />
                 copied
+                <Check className="size-3.5" />
             </span>
         );
     }
@@ -175,4 +172,14 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
             </TooltipProvider>
         </span>
     );
+}
+
+const NEAR_BOTTOM_PX = 48;
+
+function formatJobTime(startedAt: number): string {
+    return new Date(startedAt).toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+    });
 }
