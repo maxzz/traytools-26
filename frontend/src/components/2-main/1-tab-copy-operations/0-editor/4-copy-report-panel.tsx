@@ -64,7 +64,7 @@ export function CopyReportPanel() {
                         <div className="p-2 space-y-3 text-sm">
                             {jobs.map(
                                 (job) => (
-                                    <JobGroup key={job.uid} job={job as CopyJobReport} />
+                                    <JobGroupHeader key={job.uid} job={job as CopyJobReport} />
                                 )
                             )}
                         </div>
@@ -74,7 +74,7 @@ export function CopyReportPanel() {
     );
 }
 
-function JobGroup({ job }: { job: CopyJobReport; }) {
+function JobGroupHeader({ job }: { job: CopyJobReport; }) {
     return (
         <section className="space-y-1.5">
             <header className="flex items-baseline gap-2 text-xs">
@@ -129,7 +129,7 @@ function ReportRow({ row }: { row: CopyProgressRow; }) {
 function OperationStatus({ row }: { row: CopyProgressRow; }) {
     if (row.status === "pending") {
         return (
-            <span className="min-w-20 text-muted-foreground inline-flex items-center gap-1 justify-end">
+            <span className="min-w-20 text-sky-600 dark:text-sky-400 inline-flex items-center gap-1 justify-end">
                 pending
                 <Loader2 className="size-3.5 animate-spin" />
             </span>
@@ -138,7 +138,7 @@ function OperationStatus({ row }: { row: CopyProgressRow; }) {
 
     if (row.status === "skipped") {
         return (
-            <span className="min-w-20 text-muted-foreground inline-flex items-center gap-1 justify-end">
+            <span className="min-w-20 text-orange-500/75 dark:text-yellow-400/50 inline-flex items-center gap-1 justify-end">
                 skipped
                 <div className="size-3.5"></div>
             </span>

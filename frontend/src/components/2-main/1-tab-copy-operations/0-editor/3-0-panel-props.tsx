@@ -9,7 +9,7 @@ export function Panel_Props() {
     return (
         <div className="min-h-0 h-full flex flex-col">
             <ScrollArea className="flex-1 min-h-0" fullHeight>
-                <div className="p-3 h-full flex flex-col gap-3">
+                <div className="p-3 h-full flex flex-col gap-2">
                     {!selected
                         ? <NoSelectionView />
                         : selected.kind === "root"
