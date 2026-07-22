@@ -1,18 +1,11 @@
 import { proxy, subscribe } from "valtio";
 import { appBus, copyOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
-import {
-    type CopyConfig,
-    type CopyEditorStore,
-    type CopySelectionPath,
-    type CopySource,
-    ensureUids,
-    parseCopySelectionPath,
-    selectionPathFromUid,
-    uidFromSelectionPath,
-} from "./9-types-copy";
+import { type CopyConfig, type CopyEditorStore, type CopySelectionPath, type CopySource, ensureUids, parseCopySelectionPath, selectionPathFromUid, uidFromSelectionPath } from "./9-types-copy";
 import { buildCopyFileText, parseCopyJson, syncDirty } from "./6-json-serialize-dirty";
 import { DEFAULT_COPY_CONFIG } from "./8-default-config";
+
+// Store
 
 export const STORAGE_ID = "traytools-26__copy__v1.0";
 
@@ -50,6 +43,8 @@ subscribe(copyEditorStore, () => {
     syncDirty(copyEditorStore);
 });
 
+// Cache functions
+
 export function cloneConfig(config: CopyConfig): CopyConfig {
     return structuredClone(config);
 }
@@ -86,6 +81,8 @@ export function writeCache(config: CopyConfig, rootUid: string, selectedUid: str
         console.error("Failed to cache copy config", e);
     }
 }
+
+// Config functions
 
 export async function CopyConfig_Load(): Promise<void> {
     try {

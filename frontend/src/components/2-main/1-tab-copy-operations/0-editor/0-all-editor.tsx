@@ -9,7 +9,7 @@ import { Panel_Tree } from "./2-0-panel-tree";
 import { Panel_Props } from "./3-0-panel-props";
 import { TopBar } from "./1-1-top-bar";
 import { TreeViewMenu } from "./2-1-tree-menu";
-import { CopyStatusDialog } from "./4-copy-status-dialog";
+import { CopyReportDialog } from "./4-copy-report-dialog";
 import { initCopyPathDropListener } from "./path-input";
 
 export function Page_CopyOperations() {
@@ -42,7 +42,7 @@ export function Page_CopyOperations() {
                 </ResizablePanel>
             </ResizablePanelGroup>
 
-            <CopyStatusDialog />
+            <CopyReportDialog />
         </div>
     );
 }

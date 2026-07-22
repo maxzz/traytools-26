@@ -1,12 +1,4 @@
-import {
-    type AddCopyKind,
-    type CopyConfig,
-    type CopyGroup,
-    type CopyOpItem,
-    createGroup,
-    createItem,
-    findByUid,
-} from "./9-types-copy";
+import { type AddCopyKind, type CopyConfig, type CopyGroup, type CopyOpItem, createGroup, createItem, findByUid } from "./9-types-copy";
 import { copyEditorStore } from "./0-copy-local-storage";
 
 export function isRootUid(uid: string | null | undefined): boolean {

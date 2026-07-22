@@ -1,45 +1,27 @@
 import { useEffect, useState } from "react";
+import { cn } from "@/utils/classnames";
 import { AlertCircle, Check, Loader2, Minus } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/ui/shadcn/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { cn } from "@/utils/classnames";
-import {
-    closeCopyProgress,
-    getCopyProgress,
-    subscribeCopyProgress,
-    type CopyProgressRow,
-    type CopyProgressState,
-} from "../a-atoms/2-run-copy";
+import { type CopyProgressRow, type CopyProgressState, closeCopyProgress, getCopyProgress, subscribeCopyProgress } from "../a-atoms/2-run-copy";
 import { itemLabel } from "../a-atoms/9-types-copy";
 
-export function CopyStatusDialog() {
+export function CopyReportDialog() {
     const [state, setState] = useState<CopyProgressState>(getCopyProgress);
 
     useEffect(() => subscribeCopyProgress(setState), []);
 
     return (
-        <Dialog
-            open={state.open}
-            onOpenChange={(open) => {
-                if (!open) {
-                    closeCopyProgress();
-                }
-            }}
-        >
+        <Dialog open={state.open} onOpenChange={(open) => { if (!open) { closeCopyProgress(); } }}>
             <DialogContent className="max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>Copy status</DialogTitle>
+                    <DialogTitle>
+                        Copy report
+                    </DialogTitle>
                     <DialogDescription>
-                        {state.running ? "Copy in progress…" : "Copy finished."}
+                        {state.running ? "Copy in progress…" : "Copy completed."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -49,9 +31,11 @@ export function CopyStatusDialog() {
 
                 <ScrollArea className="max-h-72">
                     <div className="pr-2 flex flex-col gap-1">
-                        {state.rows.map((row, i) => (
-                            <StatusRow key={i} row={row} />
-                        ))}
+                        {state.rows.map(
+                            (row, i) => (
+                                <ReportRow key={i} row={row} />
+                            )
+                        )}
                     </div>
                 </ScrollArea>
 
@@ -65,7 +49,7 @@ export function CopyStatusDialog() {
     );
 }
 
-function StatusRow({ row }: { row: CopyProgressRow; }) {
+function ReportRow({ row }: { row: CopyProgressRow; }) {
     const name = itemLabel({ sourceFile: row.sourceFile });
     return (
         <div className="py-1 text-sm last:border-0 border-b border-border/60 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-center">
@@ -85,6 +69,7 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
             </span>
         );
     }
+
     if (row.status === "skipped") {
         return (
             <span className="min-w-20 text-muted-foreground inline-flex items-center gap-1 justify-end">
@@ -93,6 +78,7 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
             </span>
         );
     }
+
     if (row.status === "copied") {
         return (
             <span className={cn("min-w-20 text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1 justify-end")}>
@@ -112,6 +98,7 @@ function StatusBadge({ row }: { row: CopyProgressRow; }) {
                             <AlertCircle className="size-3.5" />
                         </button>
                     </TooltipTrigger>
+
                     <TooltipContent side="left" className="max-w-80">
                         {row.error || "Unknown error"}
                     </TooltipContent>
