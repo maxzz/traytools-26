@@ -14,6 +14,7 @@ import (
 	"traytools-26-go/backend/highlight"
 	"traytools-26-go/backend/toolsmenu"
 	"traytools-26-go/backend/tracemanager"
+	"traytools-26-go/backend/winlaunch"
 	"traytools-26-go/backend/windowtree"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -126,7 +127,7 @@ func (a *App) registerHandlers() {
 		return nil, RequestUnelevatedRestart()
 	})
 	a.bus.Register("settings", "isElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
-		return IsElevated(), nil
+		return winlaunch.IsElevated(), nil
 	})
 	a.bus.Register("settings", "getQuitOnClose", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return GetQuitOnCloseOption(), nil

@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"traytools-26-go/backend/winlaunch"
 )
 
 // EnsureElevatedIfRequested relaunches the current executable with UAC elevation
@@ -21,12 +23,12 @@ func EnsureElevatedIfRequested() {
 		return
 	}
 
-	if IsElevated() {
+	if winlaunch.IsElevated() {
 		return
 	}
 
 	releaseInstanceMutex()
-	if err := RelaunchElevated(); err != nil {
+	if err := winlaunch.RelaunchElevated(); err != nil {
 		log.Printf("elevation: failed to relaunch elevated: %v", err)
 		_ = acquireInstanceMutex()
 		return
@@ -38,12 +40,12 @@ func EnsureElevatedIfRequested() {
 // RequestElevationRestart relaunches the current executable elevated and exits
 // the current process. No-op when already elevated.
 func RequestElevationRestart() error {
-	if IsElevated() {
+	if winlaunch.IsElevated() {
 		return nil
 	}
 
 	releaseInstanceMutex()
-	if err := RelaunchElevated(); err != nil {
+	if err := winlaunch.RelaunchElevated(); err != nil {
 		_ = acquireInstanceMutex()
 		return err
 	}
@@ -56,12 +58,12 @@ func RequestElevationRestart() error {
 // RequestUnelevatedRestart relaunches the current executable at normal
 // (medium) integrity and exits. No-op when not elevated.
 func RequestUnelevatedRestart() error {
-	if !IsElevated() {
+	if !winlaunch.IsElevated() {
 		return nil
 	}
 
 	releaseInstanceMutex()
-	if err := RelaunchUnelevated(); err != nil {
+	if err := winlaunch.RelaunchUnelevated(); err != nil {
 		_ = acquireInstanceMutex()
 		return err
 	}

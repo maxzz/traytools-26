@@ -1,6 +1,6 @@
 //go:build windows
 
-package backend
+package winlaunch
 
 import (
 	"fmt"
@@ -9,8 +9,6 @@ import (
 	"strings"
 	"syscall"
 	"unsafe"
-
-	"traytools-26-go/backend/winlaunch"
 
 	"golang.org/x/sys/windows"
 )
@@ -49,7 +47,7 @@ func RelaunchUnelevated() error {
 	if len(os.Args) > 1 {
 		args = strings.Join(os.Args[1:], " ")
 	}
-	return winlaunch.CreateProcessAsExplorerChild(exe, args, exeDir)
+	return CreateProcessAsExplorerChild(exe, args, exeDir)
 }
 
 func shellExecuteSelf(verbStr string) error {
