@@ -101,7 +101,7 @@ func (a *App) registerHandlers() {
 				return nil, err
 			}
 		}
-		return nil, RevealInExplorer(req.Path)
+		return nil, winlaunch.RevealInExplorer(req.Path)
 	})
 	a.bus.Register("settings", "getRunElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return GetRunElevatedOption(), nil

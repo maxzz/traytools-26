@@ -1,6 +1,6 @@
 //go:build windows
 
-package backend
+package winlaunch
 
 import (
 	"fmt"
@@ -10,11 +10,6 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/windows"
-)
-
-var (
-	shell32Reveal       = windows.NewLazySystemDLL("shell32.dll")
-	shellExecuteRevealW = shell32Reveal.NewProc("ShellExecuteW")
 )
 
 // RevealInExplorer opens File Explorer with path selected (highlighted).
@@ -48,7 +43,7 @@ func RevealInExplorer(path string) error {
 		return err
 	}
 
-	ret, _, callErr := shellExecuteRevealW.Call(
+	ret, _, callErr := shellExecuteW.Call(
 		0,
 		uintptr(unsafe.Pointer(verb)),
 		uintptr(unsafe.Pointer(file)),
