@@ -121,7 +121,7 @@ function Tab_Process({ info }: { info: ProcessInfo; }) {
                 </Row>
                 <Row label="Command line">
                     {info.commandLine
-                        ? <span className="whitespace-pre-wrap break-all">{info.commandLine}</span>
+                        ? <span title={info.commandLine}>{info.commandLine}</span>
                         : <span className="text-muted-foreground/60">N/A</span>}
                 </Row>
                 <Row label="Bits">{info.bits ? `${info.bits}-bit` : <span className="text-muted-foreground/60">N/A</span>}</Row>
@@ -179,8 +179,8 @@ function PathWithReveal({ path }: { path: string; }) {
     }
     const folder = parentDir(path);
     return (
-        <span className="min-w-0 inline-flex items-start gap-1.5">
-            <span className="break-all">{path}</span>
+        <span className="min-w-0 w-full inline-flex items-center gap-1.5">
+            <span className="min-w-0 flex-1 truncate" title={path}>{path}</span>
             <span className="shrink-0 inline-flex items-center gap-0.5">
                 <Button
                     type="button"
@@ -244,7 +244,7 @@ function Tab_General({ info }: { info: WindowInfo; }) {
         <div className="space-y-3">
             <Section title="Window">
                 <Row label="Caption">{info.caption || <span className="text-muted-foreground/60">(empty)</span>}</Row>
-                <Row label="Class">{info.className}{info.unicode ? "  (unicode)" : ""}</Row>
+                <Row label="Class">{info.className + (info.unicode ? "  (unicode)" : "")}</Row>
                 <Row label="Handle"><Mono>{info.handle}</Mono></Row>
                 <Row label="Style"> <Mono>{hex8(info.style)}</Mono> {"  "}({info.visible ? "visible" : "hidden"}, {info.enabled ? "enabled" : "disabled"})</Row>
                 <Row label="ExStyle"><Mono>{hex8(info.exStyle)}</Mono></Row>
@@ -336,16 +336,17 @@ function Section({ title, children, grid = true }: PropsWithChildren<{ title: st
 
 function Grid({ children }: PropsWithChildren) {
     return (
-        <div className="text-xs font-condensed grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 items-start">
+        <div className="text-xs font-condensed grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 items-center">
             {children}
         </div>
     );
 }
 
 function Row({ label, children }: { label: string; children: ReactNode; }) {
+    const title = typeof children === "string" ? children : undefined;
     return (<>
-        <span className="text-muted-foreground">{label}</span>
-        <span className="break-all">{children}</span>
+        <span className="text-muted-foreground shrink-0">{label}</span>
+        <span className="min-w-0 truncate" title={title}>{children}</span>
     </>);
 }
 
