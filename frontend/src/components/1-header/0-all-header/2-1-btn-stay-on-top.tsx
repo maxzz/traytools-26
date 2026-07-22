@@ -1,14 +1,15 @@
 import { useAtom } from "jotai";
-import { settingsStayOnTopAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
-import { Button } from "@/ui/shadcn/button";
+import { classNames } from "@/utils/classnames";
 import { IconPictureInPicture } from "@/ui/icons/normal";
+import { Button } from "@/ui/shadcn/button";
+import { settingsStayOnTopAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 
 export function ButtonStayOnTop() {
     const [stayOnTop, setStayOnTop] = useAtom(settingsStayOnTopAtom);
 
     return (
         <Button
-            className="size-6 rounded"
+            className={classNames("size-6 rounded", stayOnTop ? "text-current" : "text-foreground/75")}
             variant="ghost"
             size="icon"
             onClick={() => setStayOnTop(!stayOnTop)}

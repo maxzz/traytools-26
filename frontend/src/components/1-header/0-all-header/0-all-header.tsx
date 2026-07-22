@@ -25,9 +25,9 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-1">
-                {!showMainTabs && <ButtonHome />}
                 <ButtonStayOnTop />
                 <ButtonSettings />
+                {!showMainTabs && <ButtonHome />}
                 {showThemeToggle && <ButtonThemeToggle />}
                 <DpAgentToolbar className="ml-1" />
                 <ButtonExit />

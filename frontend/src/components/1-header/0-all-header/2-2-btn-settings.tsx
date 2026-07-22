@@ -8,14 +8,14 @@ export function ButtonSettings() {
 
     return (
         <Button
-            className="size-6 rounded"
+            className="size-6 rounded text-foreground/75"
             variant="ghost"
             size="icon"
             onClick={() => openSettingsDialog(true)}
             title="Settings"
             type="button"
         >
-            <IconSliders className="size-3.5 stroke-1!" />
+            <IconSliders className="size-3.5 stroke-1.5!" />
         </Button>
     );
 }
