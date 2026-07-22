@@ -3,7 +3,7 @@ import { Copy } from "lucide-react";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
-import { Switch } from "@/ui/shadcn/switch";
+import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Button } from "@/ui/shadcn/button";
 import { type CopyGroup, type CopyOpItem } from "../a-atoms/9-types-copy";
 import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
@@ -48,7 +48,7 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
             />
         </LabelAndField>
 
-        <CopyRunFlagSwitches flags={group} onPatch={patchSelectedGroup} />
+        <CopyRunFlags flags={group} onPatch={patchSelectedGroup} />
     </>);
 }
 
@@ -88,15 +88,15 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
             onChange={(path) => patchSelectedItem((it) => { it.destFolder = path; })}
         />
 
-        <CopyRunFlagSwitches flags={item} onPatch={patchSelectedItem} />
+        <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
     </>);
 }
 
 type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated">;
 
-function CopyRunFlagSwitches({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: (target: CopyRunFlags) => void) => void; }) {
+function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: (target: CopyRunFlags) => void) => void; }) {
     return (
-        <div className="flex gap-x-2">
+        <div className="flex items-center gap-x-4">
             <FlagSwitch
                 label="Stop DpAgent before copy"
                 hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
@@ -116,9 +116,9 @@ function CopyRunFlagSwitches({ flags, onPatch, }: { flags: CopyRunFlags; onPatch
 
 function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
-        <Label className="-mr-1 font-normal cursor-pointer flex items-center justify-between gap-0" title={hint}>
+        <Label className="font-normal cursor-pointer flex items-center gap-1.5" title={hint}>
+            <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
             {label}
-            <Switch className="scale-65" checked={checked} onCheckedChange={onCheckedChange} />
         </Label>
     );
 }
