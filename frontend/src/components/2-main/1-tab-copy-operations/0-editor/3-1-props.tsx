@@ -48,21 +48,7 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
             />
         </LabelAndField>
 
-        <div className="flex gap-x-2">
-            <FlagSwitch
-                label="Stop DpAgent before copy"
-                hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
-                checked={!!group.stopDpAgent}
-                onCheckedChange={(v) => patchSelectedGroup((g) => { g.stopDpAgent = v; })}
-            />
-
-            <FlagSwitch
-                label="Require elevated privileges"
-                hint="Use when destinations include protected folders such as Program Files."
-                checked={!!group.requireElevated}
-                onCheckedChange={(v) => patchSelectedGroup((g) => { g.requireElevated = v; })}
-            />
-        </div>
+        <CopyRunFlagSwitches flags={group} onPatch={patchSelectedGroup} />
     </>);
 }
 
@@ -102,22 +88,30 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
             onChange={(path) => patchSelectedItem((it) => { it.destFolder = path; })}
         />
 
+        <CopyRunFlagSwitches flags={item} onPatch={patchSelectedItem} />
+    </>);
+}
+
+type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated">;
+
+function CopyRunFlagSwitches({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: (target: CopyRunFlags) => void) => void; }) {
+    return (
         <div className="flex gap-x-2">
             <FlagSwitch
                 label="Stop DpAgent before copy"
                 hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
-                checked={!!item.stopDpAgent}
-                onCheckedChange={(v) => patchSelectedItem((it) => { it.stopDpAgent = v; })}
+                checked={!!flags.stopDpAgent}
+                onCheckedChange={(v) => onPatch((t) => { t.stopDpAgent = v; })}
             />
 
             <FlagSwitch
                 label="Require elevated privileges"
                 hint="Use when destinations include protected folders such as Program Files."
-                checked={!!item.requireElevated}
-                onCheckedChange={(v) => patchSelectedItem((it) => { it.requireElevated = v; })}
+                checked={!!flags.requireElevated}
+                onCheckedChange={(v) => onPatch((t) => { t.requireElevated = v; })}
             />
         </div>
-    </>);
+    );
 }
 
 function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
