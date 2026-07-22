@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"traytools-26-go/backend/devtools"
+	"traytools-26-go/backend/winapp"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -219,11 +220,11 @@ func (a *App) restoreWindowOptions(ctx context.Context) {
 
 	// Apply geometry while still hidden (StartHidden), then show. Size uses
 	// Wails DIP APIs; position uses absolute virtual-screen coords (see
-	// setWindowPositionAbsolute) so shortcut vs direct .exe launch does not
+	// SetWindowPositionAbsolute) so shortcut vs direct .exe launch does not
 	// depend on which monitor Windows initially assigned the window.
 	if bounds != nil {
 		runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
-		setWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
+		winapp.SetWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
 	}
 
 	runtime.WindowShow(ctx)
@@ -231,7 +232,7 @@ func (a *App) restoreWindowOptions(ctx context.Context) {
 	if runtime.WindowIsMaximised(ctx) {
 		runtime.WindowUnmaximise(ctx)
 		if bounds != nil {
-			setWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
+			winapp.SetWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
 			runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
 		}
 	}

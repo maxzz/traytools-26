@@ -1,6 +1,6 @@
 //go:build !windows
 
-package backend
+package winapp
 
 import (
 	"context"
@@ -8,6 +8,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-func setWindowPositionAbsolute(ctx context.Context, x, y int) {
+func SetWindowPositionAbsolute(ctx context.Context, x, y int) {
 	runtime.WindowSetPosition(ctx, x, y)
 }

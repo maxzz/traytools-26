@@ -1,6 +1,6 @@
 //go:build windows
 
-package backend
+package winapp
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// setWindowPositionAbsolute places the window at absolute virtual-screen
+// SetWindowPositionAbsolute places the window at absolute virtual-screen
 // coordinates.
 //
 // Wails on Windows is asymmetric:
@@ -20,7 +20,7 @@ import (
 // the window relative to whichever monitor Windows initially chose — often
 // the monitor under the cursor when launching from a shortcut. Probing the
 // work-area origin first cancels that offset.
-func setWindowPositionAbsolute(ctx context.Context, x, y int) {
+func SetWindowPositionAbsolute(ctx context.Context, x, y int) {
 	runtime.WindowSetPosition(ctx, 0, 0)
 	ox, oy := runtime.WindowGetPosition(ctx)
 	runtime.WindowSetPosition(ctx, x-ox, y-oy)

@@ -15,6 +15,7 @@ import (
 	windowtree "traytools-26-go/backend/tab-2-windowtree"
 	tracemanager "traytools-26-go/backend/tab-3-tracemanager"
 	toolsmenu "traytools-26-go/backend/tab-4-toolsmenu"
+	"traytools-26-go/backend/winapp"
 	"traytools-26-go/backend/winhighlight"
 	"traytools-26-go/backend/winlaunch"
 
@@ -252,7 +253,7 @@ func (a *App) ToggleDevTools() {
 // WebView2 using its native page zoom, and persists it for the next launch.
 // This is the runtime counterpart to the windows.ZoomFactor startup option.
 func (a *App) SetZoomLevel(level float64) {
-	setWebviewZoom(a.ctx, math.Pow(1.2, level))
+	winapp.SetWebviewZoom(a.ctx, math.Pow(1.2, level))
 	_ = SetZoomLevelOption(level)
 }
 

@@ -1,6 +1,6 @@
 //go:build windows
 
-package backend
+package winapp
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/wailsapp/go-webview2/pkg/edge"
 )
 
-// setWebviewZoom applies the native WebView2 page-zoom factor (the same zoom the
+// SetWebviewZoom applies the native WebView2 page-zoom factor (the same zoom the
 // Chromium engine uses for Ctrl+/- in a browser, which correctly scales the
 // whole page including viewport units).
 //
@@ -23,7 +23,7 @@ import (
 //
 // This relies on Wails internals (verified against wails v2.12.0 /
 // go-webview2 v1.0.22) and may need revisiting on a dependency upgrade.
-func setWebviewZoom(ctx context.Context, factor float64) {
+func SetWebviewZoom(ctx context.Context, factor float64) {
 	if ctx == nil {
 		return
 	}
