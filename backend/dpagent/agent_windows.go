@@ -10,7 +10,6 @@ import (
 	"time"
 	"unsafe"
 
-	"traytools-26-go/backend/dpunhook"
 	"traytools-26-go/backend/winlaunch"
 
 	"golang.org/x/sys/windows"
@@ -18,11 +17,15 @@ import (
 )
 
 var (
-	user32            = windows.NewLazySystemDLL("user32.dll")
-	procFindWindowW   = user32.NewProc("FindWindowW")
-	procPostMessageW  = user32.NewProc("PostMessageW")
-	shell32           = windows.NewLazySystemDLL("shell32.dll")
-	procShellExecuteW = shell32.NewProc("ShellExecuteW")
+	user32                      = windows.NewLazySystemDLL("user32.dll")
+	procFindWindowW             = user32.NewProc("FindWindowW")
+	procPostMessageW            = user32.NewProc("PostMessageW")
+	procRegisterWindowMessageW  = user32.NewProc("RegisterWindowMessageW")
+	procBroadcastSystemMessageW = user32.NewProc("BroadcastSystemMessageW")
+	procEnumWindows             = user32.NewProc("EnumWindows")
+	procGetWindowTextW          = user32.NewProc("GetWindowTextW")
+	shell32                     = windows.NewLazySystemDLL("shell32.dll")
+	procShellExecuteW           = shell32.NewProc("ShellExecuteW")
 )
 
 func platformGetStatus() (Status, error) {
@@ -84,7 +87,7 @@ func platformStop() error {
 	// Give the agent a moment to exit before broadcasting unhook, matching
 	// the legacy OnAppAgentStop Sleep(200) + forceunloadhook sequence.
 	time.Sleep(200 * time.Millisecond)
-	return dpunhook.ForceUnload()
+	return ForceUnload()
 }
 
 // Implementaion

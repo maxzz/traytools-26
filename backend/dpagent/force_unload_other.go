@@ -1,6 +1,6 @@
 //go:build !windows
 
-package dpunhook
+package dpagent
 
 import "fmt"
 

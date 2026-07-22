@@ -1,6 +1,6 @@
 //go:build windows
 
-package dpunhook
+package dpagent
 
 import (
 	"fmt"
@@ -18,14 +18,6 @@ const (
 
 	bsmApplications = 0x00000008
 	bsmAllDesktops  = 0x00000010
-)
-
-var (
-	user32                      = windows.NewLazySystemDLL("user32.dll")
-	procRegisterWindowMessageW  = user32.NewProc("RegisterWindowMessageW")
-	procBroadcastSystemMessageW = user32.NewProc("BroadcastSystemMessageW")
-	procEnumWindows             = user32.NewProc("EnumWindows")
-	procGetWindowTextW          = user32.NewProc("GetWindowTextW")
 )
 
 // ForceUnload broadcasts the DigitalPersona "unhookotshook" registered window

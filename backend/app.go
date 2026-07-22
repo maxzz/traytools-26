@@ -9,7 +9,6 @@ import (
 
 	"traytools-26-go/backend/bus"
 	"traytools-26-go/backend/dpagent"
-	"traytools-26-go/backend/dpunhook"
 	copyops "traytools-26-go/backend/tab-1-copyops"
 	windowtree "traytools-26-go/backend/tab-2-windowtree"
 	tracemanager "traytools-26-go/backend/tab-3-tracemanager"
@@ -163,7 +162,7 @@ func (a *App) registerHandlers() {
 		return nil, nil
 	})
 	a.bus.Register("app", "sendUnloadHookNotification", func(ctx context.Context, payload json.RawMessage) (any, error) {
-		return nil, dpunhook.ForceUnload()
+		return nil, dpagent.ForceUnload()
 	})
 }
 
