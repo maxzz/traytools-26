@@ -4,6 +4,7 @@ import { AppMenubar } from "./1-0-app-menubar";
 import { MainTabs } from "./1-2-main-tabs";
 import { UnloadHookNotice } from "../3-send-unload-msg-notice/3-0-notice-unload-hook";
 import { DpAgentToolbar } from "../4-dpagent-toolbar";
+import { ButtonHome } from "./2-0-btn-home";
 import { ButtonStayOnTop } from "./2-1-btn-stay-on-top";
 import { ButtonSettings } from "./2-2-btn-settings";
 import { ButtonThemeToggle } from "./2-3-btn-theme-toggle";
@@ -24,6 +25,7 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-1">
+                {!showMainTabs && <ButtonHome />}
                 <ButtonStayOnTop />
                 <ButtonSettings />
                 {showThemeToggle && <ButtonThemeToggle />}

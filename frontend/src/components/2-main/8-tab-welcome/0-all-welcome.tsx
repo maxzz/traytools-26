@@ -28,7 +28,7 @@ function PagesList() {
             {WELCOME_VIEW_PAGES.map(
                 ({ id, label }) => (
                     <button
-                        className="text-xs text-primary hover:text-primary underline-offset-4 hover:underline cursor-pointer"
+                        className="text-[0.65rem] text-primary hover:text-primary underline-offset-4 hover:underline cursor-pointer"
                         onClick={() => { appSettings.mainTab = id; }}
                         type="button"
                         key={id}
