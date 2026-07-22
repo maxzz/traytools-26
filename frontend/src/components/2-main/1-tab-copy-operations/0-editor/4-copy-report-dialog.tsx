@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { cn } from "@/utils/classnames";
 import { AlertCircle, Check, Loader2, Minus } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
@@ -34,10 +34,12 @@ export function CopyReportDialog() {
                     )}
 
                     <ScrollArea className="max-h-72">
-                        <div className="pr-2 text-sm flex flex-col gap-1">
+                        <div className="pr-2 text-sm grid grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] items-center gap-1">
                             {state.rows.map(
                                 (row, i) => (
-                                    <ReportRow key={i} row={row} />
+                                    <Fragment key={i}>
+                                        <ReportRow row={row} />
+                                    </Fragment>
                                 )
                             )}
                         </div>
@@ -56,13 +58,15 @@ export function CopyReportDialog() {
 
 function ReportRow({ row }: { row: CopyProgressRow; }) {
     const name = itemLabel({ sourceFile: row.sourceFile });
-    return (
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
-            <span className="truncate" title={row.sourceFile}>{name}</span>
-            <span className="text-muted-foreground truncate" title={row.destFolder}>{row.destFolder || "—"}</span>
-            <StatusBadge row={row} />
-        </div>
-    );
+    return (<>
+        <span className="truncate" title={row.sourceFile}>
+            {name}
+        </span>
+        <span className="text-muted-foreground truncate" title={row.destFolder}>
+            {row.destFolder || "—"}
+        </span>
+        <StatusBadge row={row} />
+    </>);
 }
 
 function StatusBadge({ row }: { row: CopyProgressRow; }) {
