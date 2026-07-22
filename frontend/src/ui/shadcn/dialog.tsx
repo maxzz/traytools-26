@@ -1,5 +1,5 @@
 "use client";
-import { type ComponentProps } from "react"; // 05.08.26, 04.06.26
+import { type ComponentProps } from "react"; // 05.08.26, 04.06.26, 21.07.26
 import { cn } from "@/utils/classnames";
 import { XIcon } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
@@ -112,18 +112,23 @@ type DialogContentProps = ComponentProps<typeof DialogPrimitive.Content> & {
     withScroll?: boolean; // by default DialogContent has no scroll for popups
     hiddenTitle?: string; // If headenTitle is not provided, then parent component should provide own Prim.Title (same for aria-describedby)
     overlayClasses?: string;
+    noExitAnimation?: boolean;
 };
 
 const preventClose = (e: Event) => e.preventDefault();
+const noExitAnimationClasses = "data-closed:animate-none";
 
-export function DialogContent({ className, children, noClose, modal, onPointerDownOutside, withScroll, hiddenTitle, ...rest }: DialogContentProps) {
+export function DialogContent({ className, children, noClose, modal, onPointerDownOutside, withScroll, hiddenTitle, overlayClasses: overlayClassName, noExitAnimation, ...rest }: DialogContentProps) {
     return (
         <DialogPortal>
-            <DialogOverlay />
-            {withScroll ? <DialogOverlayWithScroll className={overlayClasses} /> : <DialogOverlay className={overlayClasses} />}
+            <DialogOverlay className={cn(noExitAnimation && noExitAnimationClasses, overlayClassName)} />
+            {withScroll
+                ? <DialogOverlayWithScroll className={cn(overlayClasses, noExitAnimation && noExitAnimationClasses, overlayClassName)} />
+                : <DialogOverlay className={cn(overlayClasses, noExitAnimation && noExitAnimationClasses, overlayClassName)} />
+            }
 
             <DialogPrimitive.Content
-                className={cn(DialogContentClasses, className)}
+                className={cn(DialogContentClasses, noExitAnimation && noExitAnimationClasses, className)}
                 onPointerDownOutside={modal ? preventClose : onPointerDownOutside}
                 data-slot="dialog-content"
                 {...rest}

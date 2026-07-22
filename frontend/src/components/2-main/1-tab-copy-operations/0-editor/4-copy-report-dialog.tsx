@@ -15,7 +15,7 @@ export function CopyReportDialog() {
 
     return (
         <Dialog open={state.open} onOpenChange={(open) => { if (!open) { closeCopyProgress(); } }}>
-            <DialogContent className="p-0 max-w-xl">
+            <DialogContent className="p-0 max-w-xl" noExitAnimation>
                 <DialogHeader className="p-4 pb-0 gap-0">
                     <DialogTitle>
                         Copy report
