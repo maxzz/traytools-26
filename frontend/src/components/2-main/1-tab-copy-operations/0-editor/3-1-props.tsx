@@ -102,25 +102,27 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
             onChange={(path) => patchSelectedItem((it) => { it.destFolder = path; })}
         />
 
-        <FlagSwitch
-            label="Stop DpAgent before copy"
-            hint="Stop DpAgent (if running) before this single copy."
-            checked={!!item.stopDpAgent}
-            onCheckedChange={(v) => patchSelectedItem((it) => { it.stopDpAgent = v; })}
-        />
+        <div className="flex gap-x-2">
+            <FlagSwitch
+                label="Stop DpAgent before copy"
+                hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
+                checked={!!item.stopDpAgent}
+                onCheckedChange={(v) => patchSelectedItem((it) => { it.stopDpAgent = v; })}
+            />
 
-        <FlagSwitch
-            label="Require elevated privileges"
-            hint="Use when the destination is a protected system folder."
-            checked={!!item.requireElevated}
-            onCheckedChange={(v) => patchSelectedItem((it) => { it.requireElevated = v; })}
-        />
+            <FlagSwitch
+                label="Require elevated privileges"
+                hint="Use when destinations include protected folders such as Program Files."
+                checked={!!item.requireElevated}
+                onCheckedChange={(v) => patchSelectedItem((it) => { it.requireElevated = v; })}
+            />
+        </div>
     </>);
 }
 
 function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
-        <Label className="-mr-1 font-normal cursor-pointer flex items-center justify-between gap-1" title={hint}>
+        <Label className="-mr-1 font-normal cursor-pointer flex items-center justify-between gap-0" title={hint}>
             {label}
             <Switch className="scale-65" checked={checked} onCheckedChange={onCheckedChange} />
         </Label>
