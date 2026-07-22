@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"unsafe"
 
+	"traytools-26-go/backend/winlaunch"
+
 	"golang.org/x/sys/windows"
 )
 
@@ -43,83 +45,11 @@ func RelaunchUnelevated() error {
 		return shellExecuteSelf("open")
 	}
 
-	return createProcessWithExplorerParent(exe, exeDir)
-}
-
-func createProcessWithExplorerParent(exe, exeDir string) error {
-	shellHWND := windows.GetShellWindow()
-	if shellHWND == 0 {
-		return fmt.Errorf("GetShellWindow returned 0 (is Explorer running?)")
-	}
-
-	var pid uint32
-	if _, err := windows.GetWindowThreadProcessId(shellHWND, &pid); err != nil {
-		return fmt.Errorf("GetWindowThreadProcessId: %w", err)
-	}
-	if pid == 0 {
-		return fmt.Errorf("shell window has no process id")
-	}
-
-	parent, err := windows.OpenProcess(windows.PROCESS_CREATE_PROCESS, false, pid)
-	if err != nil {
-		return fmt.Errorf("OpenProcess(explorer): %w", err)
-	}
-	defer windows.CloseHandle(parent)
-
-	attrList, err := windows.NewProcThreadAttributeList(1)
-	if err != nil {
-		return err
-	}
-	defer attrList.Delete()
-
-	// Update stores the pointer; parent must remain live until CreateProcess returns.
-	if err := attrList.Update(
-		windows.PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,
-		unsafe.Pointer(&parent),
-		unsafe.Sizeof(parent),
-	); err != nil {
-		return fmt.Errorf("UpdateProcThreadAttribute: %w", err)
-	}
-
-	cmd := `"` + exe + `"`
+	args := ""
 	if len(os.Args) > 1 {
-		cmd += " " + strings.Join(os.Args[1:], " ")
+		args = strings.Join(os.Args[1:], " ")
 	}
-	cmdLine, err := windows.UTF16PtrFromString(cmd)
-	if err != nil {
-		return err
-	}
-	dirPtr, err := windows.UTF16PtrFromString(exeDir)
-	if err != nil {
-		return err
-	}
-
-	var si windows.StartupInfoEx
-	si.Cb = uint32(unsafe.Sizeof(si))
-	si.ProcThreadAttributeList = attrList.List()
-	si.StartupInfo.Flags = windows.STARTF_USESHOWWINDOW
-	// Do not use SW_SHOWDEFAULT: it can inherit a shortcut's minimized/maximized
-	// Run state into the relaunched process.
-	si.StartupInfo.ShowWindow = uint16(windows.SW_SHOWNORMAL)
-
-	var pi windows.ProcessInformation
-	if err := windows.CreateProcess(
-		nil,
-		cmdLine,
-		nil,
-		nil,
-		false,
-		windows.CREATE_UNICODE_ENVIRONMENT|windows.EXTENDED_STARTUPINFO_PRESENT,
-		nil,
-		dirPtr,
-		&si.StartupInfo,
-		&pi,
-	); err != nil {
-		return fmt.Errorf("CreateProcess (explorer parent): %w", err)
-	}
-	windows.CloseHandle(pi.Thread)
-	windows.CloseHandle(pi.Process)
-	return nil
+	return winlaunch.CreateProcessAsExplorerChild(exe, args, exeDir)
 }
 
 func shellExecuteSelf(verbStr string) error {

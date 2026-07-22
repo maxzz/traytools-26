@@ -42,7 +42,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
         try {
             await startAgent(settings.startDpAgentHigh);
         } catch (e) {
-            notice.error(`DPAgent start failed:\n ${String(e)}`);
+            notice.error(String(e) || "DPAgent start failed");
         }
     }
 

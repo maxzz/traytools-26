@@ -11,6 +11,7 @@ import (
 	"unsafe"
 
 	"traytools-26-go/backend/dphook"
+	"traytools-26-go/backend/winlaunch"
 
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
@@ -50,11 +51,26 @@ func platformStart(asHigh bool) error {
 		return fmt.Errorf("DPAgent.exe not found at %q: %w", path, err)
 	}
 
-	verb := "open"
 	if asHigh {
-		verb = "runas"
+		return shellExecute("runas", path)
 	}
-	return shellExecute(verb, path)
+
+	// ShellExecute("open") inherits our integrity. When TrayTools is elevated
+	// but "Start DPAgent elevated" is off, launch under Explorer so the agent
+	// starts at medium integrity regardless of our status.
+	if processIsElevated() {
+		return winlaunch.CreateProcessAsExplorerChild(path, "", filepath.Dir(path))
+	}
+	return shellExecute("open", path)
+}
+
+func processIsElevated() bool {
+	var token windows.Token
+	if err := windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY, &token); err != nil {
+		return false
+	}
+	defer token.Close()
+	return token.IsElevated()
 }
 
 func platformStop() error {
