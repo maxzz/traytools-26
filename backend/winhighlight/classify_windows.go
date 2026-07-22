@@ -1,6 +1,6 @@
 //go:build windows
 
-package highlight
+package winhighlight
 
 const (
 	smXVirtualScreen  = 76

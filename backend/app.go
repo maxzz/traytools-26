@@ -8,14 +8,14 @@ import (
 	"sync"
 
 	"traytools-26-go/backend/bus"
-	"traytools-26-go/backend/copyops"
 	"traytools-26-go/backend/devtools"
 	"traytools-26-go/backend/dpagent"
 	"traytools-26-go/backend/dpunhook"
-	"traytools-26-go/backend/highlight"
-	"traytools-26-go/backend/toolsmenu"
-	"traytools-26-go/backend/tracemanager"
-	"traytools-26-go/backend/windowtree"
+	copyops "traytools-26-go/backend/tab-1-copyops"
+	windowtree "traytools-26-go/backend/tab-2-windowtree"
+	tracemanager "traytools-26-go/backend/tab-3-tracemanager"
+	toolsmenu "traytools-26-go/backend/tab-4-toolsmenu"
+	"traytools-26-go/backend/winhighlight"
 	"traytools-26-go/backend/winlaunch"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -29,7 +29,7 @@ type App struct {
 	tools         *toolsmenu.Manager
 	windows       *windowtree.Manager
 	dpagent       *dpagent.Manager
-	highlight     *highlight.Manager
+	highlight     *winhighlight.Manager
 	copyops       *copyops.Manager
 	quitRequested bool
 	trayIcon      []byte
@@ -46,7 +46,7 @@ func NewApp() *App {
 		tools:     toolsmenu.New(),
 		windows:   windowtree.New(),
 		dpagent:   dpagent.New(),
-		highlight: highlight.New(),
+		highlight: winhighlight.New(),
 		copyops:   copyops.New(),
 	}
 	a.registerHandlers()

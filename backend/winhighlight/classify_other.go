@@ -1,6 +1,6 @@
 //go:build !windows
 
-package highlight
+package winhighlight
 
 func platformClassifyBounds(r BoundsRect) BoundsClassification {
 	if r.Right <= r.Left || r.Bottom <= r.Top {

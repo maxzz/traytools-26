@@ -1,4 +1,4 @@
-package highlight
+package winhighlight
 
 // Bus group shared with the frontend bridge (groups/highlight.ts).
 const Group = "highlight"
