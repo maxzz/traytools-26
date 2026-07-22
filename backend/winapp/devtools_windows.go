@@ -1,6 +1,6 @@
 //go:build windows
 
-package devtools
+package winapp
 
 import (
 	"os"
@@ -9,15 +9,15 @@ import (
 	"unsafe"
 )
 
-// IsOpen reports whether an app-owned Chromium DevTools window is visible.
-func IsOpen() bool {
+// IsDevToolsOpen reports whether an app-owned Chromium DevTools window is visible.
+func IsDevToolsOpen() bool {
 	return len(findDevToolsWindows()) > 0
 }
 
-// Close finds any top-level window whose class is Chrome_WidgetWin_1 (the
-// class used by Chromium/WebView2 windows) and whose title contains
+// CloseDevTools finds any top-level window whose class is Chrome_WidgetWin_1
+// (the class used by Chromium/WebView2 windows) and whose title contains
 // "DevTools", then sends it WM_CLOSE.
-func Close() {
+func CloseDevTools() {
 	user32 := syscall.NewLazyDLL("user32.dll")
 	postMessageW := user32.NewProc("PostMessageW")
 

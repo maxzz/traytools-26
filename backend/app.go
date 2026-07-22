@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"traytools-26-go/backend/bus"
-	"traytools-26-go/backend/devtools"
 	"traytools-26-go/backend/dpagent"
 	"traytools-26-go/backend/dpunhook"
 	copyops "traytools-26-go/backend/tab-1-copyops"
@@ -244,8 +243,8 @@ func (a *App) SetDevToolsState(open bool) {
 // it is already open we close the app-owned DevTools window with WM_CLOSE.
 // Persisted state is captured authoritatively in saveWindowOptions.
 func (a *App) ToggleDevTools() {
-	if devtools.IsOpen() {
-		devtools.Close()
+	if winapp.IsDevToolsOpen() {
+		winapp.CloseDevTools()
 	}
 }
 
