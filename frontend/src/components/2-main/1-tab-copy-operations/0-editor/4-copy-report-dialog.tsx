@@ -15,31 +15,36 @@ export function CopyReportDialog() {
 
     return (
         <Dialog open={state.open} onOpenChange={(open) => { if (!open) { closeCopyProgress(); } }}>
-            <DialogContent className="max-w-xl">
-                <DialogHeader>
+            <DialogContent className="p-0 max-w-xl">
+                <DialogHeader className="p-4 pb-0 gap-0">
                     <DialogTitle>
                         Copy report
                     </DialogTitle>
                     <DialogDescription>
-                        {state.running ? "Copy in progress…" : "Copy completed."}
+                        {state.running
+                            ? "Copy in progress…"
+                            : <span className="text-[0.65rem] text-emerald-600 dark:text-emerald-400">Copy completed.</span>
+                        }
                     </DialogDescription>
                 </DialogHeader>
 
-                {state.setupError && (
-                    <p className="text-sm text-destructive">{state.setupError}</p>
-                )}
+                <div className="px-4">
+                    {state.setupError && (
+                        <p className="text-sm text-destructive">{state.setupError}</p>
+                    )}
 
-                <ScrollArea className="max-h-72">
-                    <div className="pr-2 flex flex-col gap-1">
-                        {state.rows.map(
-                            (row, i) => (
-                                <ReportRow key={i} row={row} />
-                            )
-                        )}
-                    </div>
-                </ScrollArea>
+                    <ScrollArea className="max-h-72">
+                        <div className="pr-2 text-sm flex flex-col gap-1">
+                            {state.rows.map(
+                                (row, i) => (
+                                    <ReportRow key={i} row={row} />
+                                )
+                            )}
+                        </div>
+                    </ScrollArea>
+                </div>
 
-                <DialogFooter>
+                <DialogFooter className="m-0 py-2">
                     <Button type="button" variant="outline" disabled={state.running} onClick={closeCopyProgress}>
                         Close
                     </Button>
@@ -52,7 +57,7 @@ export function CopyReportDialog() {
 function ReportRow({ row }: { row: CopyProgressRow; }) {
     const name = itemLabel({ sourceFile: row.sourceFile });
     return (
-        <div className="py-1 text-sm last:border-0 border-b border-border/60 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-center">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
             <span className="truncate" title={row.sourceFile}>{name}</span>
             <span className="text-muted-foreground truncate" title={row.destFolder}>{row.destFolder || "—"}</span>
             <StatusBadge row={row} />
