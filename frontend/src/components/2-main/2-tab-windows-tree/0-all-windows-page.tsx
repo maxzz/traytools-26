@@ -7,7 +7,7 @@ import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ensureWindowTreeLoaded } from "@/components/2-main/2-tab-windows-tree/a-windows-tree-calls";
 import { WindowTreeView } from "./2-0-windows-tree";
 import { WindowProps } from "./5-window-props";
-import { WindowTreeToolbar } from "./1-tree-toolbar";
+import { WindowTreeToolbar } from "./1-0-windows-toolbar";
 
 // Windows Tree tab. A port of the legacy "User32 spy" window: a resizable
 // [ window tree | properties ] split. The tree enumerates every top-level

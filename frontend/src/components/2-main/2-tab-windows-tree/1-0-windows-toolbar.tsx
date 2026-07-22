@@ -116,7 +116,6 @@ function CollapseToTopLevelButton() {
 
 function TreeOptionsPopover() {
     const { count } = useSnapshot(windowTreeStore);
-    const { windowHighlight } = useSnapshot(appSettings);
     const [showHandles, setShowHandles] = useAtom(showHandlesAtom);
     const [hideInvisible, setHideInvisible] = useAtom(hideInvisibleAtom);
     const [groupByProcess, setGroupByProcess] = useAtom(groupByProcessAtom);
@@ -133,7 +132,7 @@ function TreeOptionsPopover() {
 
             <PopoverContent align="end" className="w-auto min-w-56">
 
-                <div className="mx-auto text-xs font-semibold">
+                <div className="mx-auto text-xs font-semibold select-none">
                     Tree options
                 </div>
 
@@ -142,7 +141,7 @@ function TreeOptionsPopover() {
                 <div className="py-1 flex flex-col gap-2">
                     <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
                         <Checkbox checked={showHandles} onCheckedChange={(v) => setShowHandles(v === true)} />
-                        Show winsow handles
+                        Show window handles
                     </label>
 
                     <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer">
@@ -167,62 +166,70 @@ function TreeOptionsPopover() {
 
                 <Separator />
 
-                <div className="flex flex-col">
-                    <div className="pb-1 text-xs font-semibold">
-                        Highlight Window Rectangle
-                    </div>
-                    <div className="pb-1 flex items-center gap-1">
-                        Blink:
-                        <OptionNumber
-                            label="count"
-                            title="Number of highlight blinks (1-10)"
-                            value={windowHighlight.blinkCount}
-                            min={1}
-                            max={10}
-                            onChange={(v) => { appSettings.windowHighlight.blinkCount = v; }}
-                        />
-                        <OptionNumber
-                            label="border"
-                            title="Highlight border width in pixels (1-20)"
-                            value={windowHighlight.borderWidth}
-                            min={1}
-                            max={20}
-                            onChange={(v) => { appSettings.windowHighlight.borderWidth = v; }}
-                        />
-                        <label className="text-xs select-none flex items-center justify-between gap-2" title="Highlight border color">
-                            <input
-                                type="color"
-                                title="Highlight border color"
-                                className="p-0 h-6 w-8 bg-transparent border border-border rounded cursor-pointer"
-                                value={normalizeHexColor(windowHighlight.borderColor)}
-                                onChange={(e) => {
-                                    appSettings.windowHighlight.borderColor = normalizeHexColor(e.target.value);
-                                }}
-                            />
-                        </label>
-                    </div>
-
-                    <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer" title="Show empty bounds / off-screen notice on the tree row">
-                        <Checkbox
-                            checked={windowHighlight.showBoundsNotice}
-                            onCheckedChange={(v) => { appSettings.windowHighlight.showBoundsNotice = v === true; }}
-                        />
-                        Show inline empty bounds notice
-                    </label>
-                </div>
+                <Block_HighlightOptions />
 
                 <Separator />
 
-                <div className="text-muted-foreground grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
-                    <span>Total windows</span>
+                <div className="text-muted-foreground grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 cursor-default">
+                    <span title="Total number of windows">Total windows</span>
                     <span className="tabular-nums text-[11px]">{count}</span>
 
-                    <span>Displayed</span>
+                    <span title="Number of windows displayed depends on Hide Invisible Windows option">Displayed</span>
                     <span className="tabular-nums text-[11px]">{displayed}</span>
                 </div>
 
             </PopoverContent>
         </Popover>
+    );
+}
+
+function Block_HighlightOptions() {
+    const { windowHighlight } = useSnapshot(appSettings);
+
+    return (
+        <div className="flex flex-col select-none">
+            <div className="pb-1 text-xs font-semibold">
+                Highlight Window Rectangle
+            </div>
+            <div className="pb-1 flex items-center gap-1">
+                Blink:
+                <OptionNumber
+                    label="count"
+                    title="Number of highlight blinks (1-10)"
+                    value={windowHighlight.blinkCount}
+                    min={1}
+                    max={10}
+                    onChange={(v) => { appSettings.windowHighlight.blinkCount = v; }}
+                />
+                <OptionNumber
+                    label="border"
+                    title="Highlight border width in pixels (1-20)"
+                    value={windowHighlight.borderWidth}
+                    min={1}
+                    max={20}
+                    onChange={(v) => { appSettings.windowHighlight.borderWidth = v; }}
+                />
+                <label className="text-xs select-none flex items-center justify-between gap-2" title="Highlight border color">
+                    <input
+                        type="color"
+                        title="Highlight border color"
+                        className="p-0 h-6 w-8 bg-transparent border border-border rounded cursor-pointer"
+                        value={normalizeHexColor(windowHighlight.borderColor)}
+                        onChange={(e) => {
+                            appSettings.windowHighlight.borderColor = normalizeHexColor(e.target.value);
+                        }}
+                    />
+                </label>
+            </div>
+
+            <label className="text-xs select-none flex items-center gap-1.5 cursor-pointer" title="Show empty bounds / off-screen notice on the tree row">
+                <Checkbox
+                    checked={windowHighlight.showBoundsNotice}
+                    onCheckedChange={(v) => { appSettings.windowHighlight.showBoundsNotice = v === true; }}
+                />
+                Show inline empty bounds notice
+            </label>
+        </div>
     );
 }
 
