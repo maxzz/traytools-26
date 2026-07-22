@@ -280,7 +280,7 @@ function GroupRow({
                         type="button"
                         variant="ghost"
                         size="icon-xs"
-                        className="shrink-0 opacity-0 group-hover:opacity-100"
+                        className="absolute right-0.5 top-1/2 z-10 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-inherit"
                         title="Copy this group"
                         onClick={(e) => {
                             e.stopPropagation();
@@ -369,7 +369,7 @@ function ItemRow({
                     type="button"
                     variant="ghost"
                     size="icon-xs"
-                    className="shrink-0 opacity-0 group-hover:opacity-100"
+                    className="absolute right-0.5 top-1/2 z-10 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-inherit"
                     title="Copy this file"
                     onClick={(e) => {
                         e.stopPropagation();
