@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"traytools-26-go/backend/devtools"
+
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -130,7 +132,7 @@ func (a *App) saveWindowOptions(ctx context.Context) {
 
 	opts := &IniOptions{
 		Bounds:                 bounds,
-		DevTools:               a.platformIsDevToolsOpen(),
+		DevTools:               devtools.IsOpen(),
 		ShowMenu:               showMenu,
 		RunElevated:            runElevated,
 		QuitOnClose:            quitOnClose,
