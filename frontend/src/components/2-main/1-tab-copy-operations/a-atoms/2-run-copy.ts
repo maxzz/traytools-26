@@ -1,9 +1,10 @@
+import { proxy } from "valtio";
 import { getDefaultStore } from "jotai";
 import { copyOpsBus, onWailsEvent, COPY_OPS_EVENTS, settingsBus, type CopyItemStatusEvent, type CopyJobDoneEvent } from "@/bridge";
 import { confirmElevationRestartMessages } from "@/components/4-dialogs/8-1-confirmation/8-confirmation-ui-messages";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
-import { type CopyGroup, type CopyOpItem } from "./9-types-copy";
+import { type CopyGroup, type CopyOpItem, itemLabel } from "./9-types-copy";
 import { copyEditorStore } from "./0-copy-local-storage";
 
 export type CopyProgressRow = {
@@ -13,48 +14,42 @@ export type CopyProgressRow = {
     error?: string;
 };
 
-export type CopyProgressState = {
-    open: boolean;
-    running: boolean;
+export type CopyJobReport = {
+    /** Local identity for this UI job (stable for the session). */
+    uid: string;
+    /** Backend job id once known. */
     jobId: string | null;
+    startedAt: number;
+    label: string;
+    running: boolean;
     setupError: string;
     rows: CopyProgressRow[];
 };
 
-type ProgressListener = (state: CopyProgressState) => void;
-
-let progressState: CopyProgressState = {
-    open: false,
-    running: false,
-    jobId: null,
-    setupError: "",
-    rows: [],
+type CopyReportStore = {
+    jobs: CopyJobReport[];
 };
 
-const listeners = new Set<ProgressListener>();
+let jobUidCounter = 0;
 
-export function getCopyProgress(): CopyProgressState {
-    return progressState;
+function newJobUid(): string {
+    jobUidCounter += 1;
+    return `job-${jobUidCounter}`;
 }
 
-export function subscribeCopyProgress(listener: ProgressListener): () => void {
-    listeners.add(listener);
-    listener(progressState);
-    return () => { listeners.delete(listener); };
-}
+export const copyReportStore = proxy<CopyReportStore>({
+    jobs: [],
+});
 
-function setProgress(next: CopyProgressState) {
-    progressState = next;
-    for (const listener of listeners) {
-        listener(progressState);
-    }
-}
-
-export function closeCopyProgress() {
-    if (progressState.running) {
+export function clearCopyReportMessages(): void {
+    if (copyReportStore.jobs.some((job) => job.running)) {
         return;
     }
-    setProgress({ open: false, running: false, jobId: null, setupError: "", rows: [] });
+    copyReportStore.jobs = [];
+}
+
+function findJob(uid: string): CopyJobReport | undefined {
+    return copyReportStore.jobs.find((job) => job.uid === uid);
 }
 
 async function ensureElevatedOrPrompt(requireElevated: boolean): Promise<boolean> {
@@ -85,7 +80,11 @@ async function ensureElevatedOrPrompt(requireElevated: boolean): Promise<boolean
     return false;
 }
 
-function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: boolean): void {
+function removeJob(uid: string): void {
+    copyReportStore.jobs = copyReportStore.jobs.filter((job) => job.uid !== uid);
+}
+
+function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: boolean, label: string): void {
     void (async () => {
         if (items.length === 0) {
             copyEditorStore.status = "Nothing to copy";
@@ -102,6 +101,18 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
             status: "pending",
         }));
 
+        const uid = newJobUid();
+        const job: CopyJobReport = {
+            uid,
+            jobId: null,
+            startedAt: Date.now(),
+            label,
+            running: true,
+            setupError: "",
+            rows,
+        };
+        copyReportStore.jobs.push(job);
+
         // Subscribe before starting the job so early EventsEmit cannot be missed.
         let jobId: string | null = null;
         let finished = false;
@@ -113,16 +124,20 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
             if (!jobId) {
                 jobId = ev.jobId;
             }
-            const nextRows = [...progressState.rows];
-            if (nextRows[ev.index]) {
-                nextRows[ev.index] = {
+            const live = findJob(uid);
+            if (!live) {
+                return;
+            }
+            if (live.rows[ev.index]) {
+                live.rows[ev.index] = {
                     sourceFile: ev.sourceFile,
                     destFolder: ev.destFolder,
                     status: ev.status,
                     error: ev.error,
                 };
             }
-            setProgress({ ...progressState, jobId, rows: nextRows, open: true, running: !finished });
+            live.jobId = jobId;
+            live.running = !finished;
         });
 
         const unsubDone = onWailsEvent<CopyJobDoneEvent>(COPY_OPS_EVENTS.jobDone, (ev) => {
@@ -133,25 +148,21 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
             finished = true;
             unsubStatus();
             unsubDone();
-            let nextRows = progressState.rows;
+            const live = findJob(uid);
+            if (!live) {
+                return;
+            }
             if (ev.error) {
-                nextRows = progressState.rows.map((row) =>
+                live.rows = live.rows.map((row) =>
                     row.status === "pending"
                         ? { ...row, status: "failed" as const, error: ev.error }
                         : row,
                 );
+                live.setupError = ev.error;
             }
-            setProgress({
-                ...progressState,
-                jobId,
-                rows: nextRows,
-                running: false,
-                open: true,
-                setupError: ev.error ?? "",
-            });
+            live.jobId = jobId;
+            live.running = false;
         });
-
-        setProgress({ open: true, running: true, jobId: null, setupError: "", rows });
 
         try {
             const res = await copyOpsBus.copyBatch({
@@ -166,7 +177,7 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
             if (res.needsElevation) {
                 unsubStatus();
                 unsubDone();
-                setProgress({ open: false, running: false, jobId: null, setupError: "", rows: [] });
+                removeJob(uid);
                 await ensureElevatedOrPrompt(true);
                 return;
             }
@@ -174,40 +185,38 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
             if (res.error && !res.jobId) {
                 unsubStatus();
                 unsubDone();
-                setProgress({
-                    open: true,
-                    running: false,
-                    jobId: null,
-                    setupError: res.error,
-                    rows,
-                });
+                const live = findJob(uid);
+                if (live) {
+                    live.running = false;
+                    live.setupError = res.error;
+                }
                 return;
             }
 
             jobId = res.jobId;
-            if (!finished) {
-                setProgress({ ...progressState, jobId, open: true, running: true });
+            const live = findJob(uid);
+            if (live && !finished) {
+                live.jobId = jobId;
+                live.running = true;
             }
         } catch (e) {
             unsubStatus();
             unsubDone();
-            setProgress({
-                open: true,
-                running: false,
-                jobId: null,
-                setupError: String(e),
-                rows,
-            });
+            const live = findJob(uid);
+            if (live) {
+                live.running = false;
+                live.setupError = String(e);
+            }
         }
     })();
 }
 
 /** Copy all items in a group using the group's flags. */
 export function runCopyGroup(group: CopyGroup): void {
-    runBatch(group.items, !!group.stopDpAgent, !!group.requireElevated);
+    runBatch(group.items, !!group.stopDpAgent, !!group.requireElevated, group.name || "Group");
 }
 
 /** Copy a single item using the item's own flags. */
 export function runCopyItem(item: CopyOpItem): void {
-    runBatch([item], !!item.stopDpAgent, !!item.requireElevated);
+    runBatch([item], !!item.stopDpAgent, !!item.requireElevated, itemLabel(item));
 }
