@@ -1,13 +1,17 @@
+import { useEffect } from "react";
+import { useSnapshot } from "valtio";
+import { motion, useAnimate } from "motion/react";
 import appIcon from "@/assets/icons/1x/asset-9.png";
 import { envBuildVersion, envModifiedDate } from "@/utils";
 import { appSettings } from "@/store/1-ui-settings";
 import { WELCOME_VIEW_PAGES } from "@/components/0-all/8-pages-array";
+import { welcomeLogoPulse } from "./s-logo-pulse";
 
 export function PageWelcome() {
     return (
         <div className="flex-1 p-6 min-h-0 flex items-center justify-center">
             <div className="max-w-lg w-full text-center flex flex-col items-center gap-1">
-                <img src={appIcon} alt="" className="size-24 drop-shadow-lg" />
+                <WelcomeLogo />
 
                 <div className="flex flex-col gap-1">
                     Welcome to traytools!
@@ -38,5 +42,32 @@ function PagesList() {
                 )
             )}
         </nav>
+    );
+}
+
+function WelcomeLogo() {
+    const [scope, animate] = useAnimate();
+    const { tick } = useSnapshot(welcomeLogoPulse);
+
+    useEffect(() => {
+        if (tick === 0) {
+            return;
+        }
+
+        // Anticipation pause → rapid squash → hold → exaggerated pop back to rest.
+        void animate([
+            [scope.current, { scale: 0.55 }, { delay: 0.14, duration: 0.1, ease: [0.55, 0, 1, 1] }],
+            [scope.current, { scale: 1.14 }, { delay: 0.18, duration: 0.12, ease: [0, 0, 0.2, 1] }],
+            [scope.current, { scale: 1 }, { duration: 0.08, ease: "easeOut" }],
+        ]);
+    }, [tick, animate]);
+
+    return (
+        <motion.img
+            ref={scope}
+            src={appIcon}
+            alt=""
+            className="size-24 drop-shadow-lg"
+        />
     );
 }
