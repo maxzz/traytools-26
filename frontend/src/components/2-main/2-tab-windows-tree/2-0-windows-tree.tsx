@@ -1,24 +1,13 @@
 import { type HTMLAttributes } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
+import { appSettings } from "@/store/1-ui-settings";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TreeProvider, TreeView } from "@/ui/shadcn/kibo-ui-tree";
 import { isProcessGroupHandle, processGroupId } from "@/bridge";
-import { appSettings } from "@/store/1-ui-settings";
-import {
-    windowTreeStore,
-    loadSelectionInfo,
-    maybeHighlightSelectedWindow,
-} from "./a-windows-tree-calls";
+import { windowTreeStore, loadSelectionInfo, maybeHighlightSelectedWindow } from "./a-windows-tree-calls";
 import { recordProcessSelection } from "./a-process-history";
-import {
-    selectedHandleAtom,
-    treeFilterAtom,
-    hideInvisibleAtom,
-    groupByProcessAtom,
-    filteredTreeAtom,
-    treeExpandRevisionAtom,
-} from "./s-windows-tree-state";
+import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom, groupByProcessAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
 
 const treeScrollViewportProps = {

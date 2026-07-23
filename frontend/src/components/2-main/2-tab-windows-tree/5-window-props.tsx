@@ -195,7 +195,7 @@ function PathWithReveal({ path }: { path: string; }) {
                         });
                     }}
                 >
-                    <FolderOpen className="size-3 text-muted-foreground" />
+                    <FolderOpen className="size-3 stroke-[1.5px] text-muted-foreground" />
                 </Button>
                 <Button
                     type="button"
@@ -207,7 +207,7 @@ function PathWithReveal({ path }: { path: string; }) {
                     disabled={!folder}
                     onClick={() => void copyFolderPath(folder)}
                 >
-                    <Copy className="size-3 text-muted-foreground" />
+                    <Copy className="size-3 stroke-[1.5px] text-muted-foreground" />
                 </Button>
             </span>
         </span>

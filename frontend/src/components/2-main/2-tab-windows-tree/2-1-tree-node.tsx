@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
+import { classNames } from "@/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { type WindowNode, isProcessGroupHandle } from "@/bridge";
-import { cn } from "@/utils";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
 import { AppWindow, Square, Layers, Folder } from "lucide-react";
 import { showHandlesAtom, showProcessIdsAtom, selectedHandleAtom, boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
@@ -29,7 +29,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
             <TreeNodeTrigger hasChildren={hasChildren} data-tree-node-id={node.handle}>
                 <TreeExpander hasChildren={hasChildren} />
                 <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot, isProcessGroup)} />
-                <TreeLabel className={cn("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
+                <TreeLabel className={classNames("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
                     {nodeLabel(node, isRoot, isProcessGroup, showHandles, showProcessIds)}
                 </TreeLabel>
                 {isSelected && <BoundsNoticeFlashBadge handle={node.handle} />}
@@ -73,16 +73,16 @@ function BoundsNoticeAnimation({ kind }: { kind: BoundsNoticeKind; }) {
             const timeout = setTimeout(() => setVisible(false), 1600);
             return () => clearTimeout(timeout);
         },
-        []
-    );
+        []);
 
     const label = kind === "offscreen" ? "off-screen" : "empty bounds";
+    const labelClasses = kind === "offscreen" ? "text-white bg-sky-500" : "text-white bg-red-500";
 
     return (
         <AnimatePresence>
             {visible && (
                 <motion.div
-                    className="shrink-0 ml-1 px-2 pb-0.5 text-[0.6rem] text-white bg-red-500 rounded"
+                    className={classNames("shrink-0 ml-1 px-2 pb-0.5 text-[0.6rem] rounded", labelClasses)}
                     initial={{ opacity: 0, scale: 0.92 }}
                     animate={{ opacity: [0, 1, 1, 0], scale: [0.92, 1.06, 1.0, 0.98] }}
                     transition={{ duration: 1.55, times: [0, 0.2, 0.45, 1], ease: "easeOut" }}

@@ -110,21 +110,11 @@ function pathFromDataTransfer(dt: DataTransfer): string | null {
     return null;
 }
 
-export function PathInput({
-    kind,
-    value,
-    onChange,
-    label,
-}: {
-    kind: PathKind;
-    value: string;
-    onChange: (path: string) => void;
-    label: string;
-}) {
+export function PathInput({ kind, value, onChange, label }: { kind: PathKind; value: string; onChange: (path: string) => void; label: string; }) {
     const [dragOver, setDragOver] = useState(false);
     const dropRef = useRef<HTMLDivElement>(null);
-    const onChangeRef = useRef(onChange);
-    const kindRef = useRef(kind);
+    const onChangeRef = useRef<typeof onChange>(onChange);
+    const kindRef = useRef<typeof kind>(kind);
     onChangeRef.current = onChange;
     kindRef.current = kind;
 
@@ -188,10 +178,7 @@ export function PathInput({
             <div
                 ref={dropRef}
                 style={DROP_TARGET_STYLE}
-                className={cn(
-                    "transition-shadow rounded-md flex items-center gap-1",
-                    dragOver && "ring-2 ring-sky-500 ring-offset-1",
-                )}
+                className={cn("transition-shadow rounded-md flex items-center gap-1", dragOver && "ring-2 ring-sky-500 ring-offset-1",)}
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
@@ -205,7 +192,7 @@ export function PathInput({
                     {...turnOffAutoComplete}
                 />
                 <Button type="button" variant="outline" size="icon-xs" title={`Browse ${kind}`} onClick={browse}>
-                    <Icon className="size-3.5" />
+                    <Icon className="size-3.5 stroke-[1.5px]" />
                 </Button>
             </div>
         </div>
