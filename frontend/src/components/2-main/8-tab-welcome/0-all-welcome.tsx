@@ -49,18 +49,24 @@ function WelcomeLogo() {
     const [scope, animate] = useAnimate();
     const { tick } = useSnapshot(welcomeLogoPulse);
 
-    useEffect(() => {
-        if (tick === 0) {
-            return;
-        }
+    useEffect(
+        () => {
+            if (tick === 0) {
+                return;
+            }
 
-        // Anticipation pause → rapid squash → hold → exaggerated pop back to rest.
-        void animate([
-            [scope.current, { scale: 0.55 }, { delay: 0.14, duration: 0.1, ease: [0.55, 0, 1, 1] }],
-            [scope.current, { scale: 1.14 }, { delay: 0.18, duration: 0.12, ease: [0, 0, 0.2, 1] }],
-            [scope.current, { scale: 1 }, { duration: 0.08, ease: "easeOut" }],
-        ]);
-    }, [tick, animate]);
+            // Anticipation pause → rapid squash → hold → exaggerated pop back to rest.
+            void animate([
+                [scope.current, { scaleX: -1 }, { duration: 0.01, ease: [0.55, 0, 1, 1] }],
+                [scope.current, { scale: 0.2 }, { duration: 0.1, ease: [0.55, 0, 1, 1] }],
+                [scope.current, { scale: 2.14 }, { delay: 0.18, duration: 0.12, ease: [0, 0, 0.2, 1] }],
+                [scope.current, { scale: 1 }, { duration: 0.08, ease: "easeIn" }],
+                [scope.current, { scaleX: 1 }, { delay: 1.4, duration: 0.01, ease: [0.55, 0, 1, 1] }],
+                [scope.current, { scaleX: -1 }, { duration: 0.01, ease: [0.55, 0, 1, 1] }],
+                [scope.current, { scaleX: 1 }, { duration: 0.01, ease: [0.55, 0, 1, 1] }],
+            ]);
+        },
+        [tick, animate]);
 
     return (
         <motion.img
