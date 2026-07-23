@@ -32,8 +32,12 @@ func (a *App) onTrayReady() {
 	systray.AddSeparator()
 	mExit := systray.AddMenuItem("Exit", "Quit the application")
 
+	// Window show/toggle must not run synchronously inside the systray
+	// wndProc (or while TrackPopupMenu is still on the stack). Calling
+	// Wails WindowShow there steals foreground mid-menu and breaks later
+	// tray clicks — same reason RequestExit dispatches Quit on a goroutine.
 	mShow.Click(func() {
-		a.showWindow()
+		go a.showWindow()
 	})
 	mExit.Click(func() {
 		a.RequestExit()
@@ -42,7 +46,7 @@ func (a *App) onTrayReady() {
 	// Left-click toggles the window (hide if open, show if hidden);
 	// right-click opens the tray menu.
 	systray.SetOnClick(func(menu systray.IMenu) {
-		a.toggleWindow()
+		go a.toggleWindow()
 	})
 	systray.SetOnRClick(func(menu systray.IMenu) {
 		menu.ShowMenu()
