@@ -15,6 +15,9 @@ var (
 	trayExitCh   chan struct{}
 	trayQuitOnce sync.Once
 
+	// Show/Hide menu item; title is refreshed on each right-click.
+	trayShowHideItem *systray.MenuItem
+
 	// Cached energye/systray owner HWND (class "SystrayClass") for this process.
 	systrayOwnerHWND windows.HWND
 
@@ -37,7 +40,8 @@ func (a *App) onTrayReady() {
 	systray.SetTitle("Tray Tools")
 	systray.SetTooltip("Tray Tools")
 
-	mShow := systray.AddMenuItem("Show", "Show the window")
+	// Window starts visible; label is corrected again just before each popup.
+	trayShowHideItem = systray.AddMenuItem("Hide", "Hide the window")
 	systray.AddSeparator()
 	mExit := systray.AddMenuItem("Exit", "Quit the application")
 
@@ -45,8 +49,8 @@ func (a *App) onTrayReady() {
 	// wndProc (or while TrackPopupMenu is still on the stack). Calling
 	// Wails WindowShow there steals foreground mid-menu and breaks later
 	// tray clicks — same reason RequestExit dispatches Quit on a goroutine.
-	mShow.Click(func() {
-		go a.showWindow()
+	trayShowHideItem.Click(func() {
+		go a.toggleWindow()
 	})
 	mExit.Click(func() {
 		a.RequestExit()
@@ -58,6 +62,7 @@ func (a *App) onTrayReady() {
 		go a.toggleWindow()
 	})
 	systray.SetOnRClick(func(menu systray.IMenu) {
+		a.syncTrayShowHideLabel()
 		_ = menu.ShowMenu()
 		// energye/systray omits the Microsoft KB 135788 follow-up. Without
 		// PostMessage(WM_NULL) after TrackPopupMenu, the next tray menu
@@ -65,6 +70,25 @@ func (a *App) onTrayReady() {
 		// forked copy of the library.
 		postSystrayMenuTaskSwitch()
 	})
+}
+
+// syncTrayShowHideLabel sets the tray item to "Hide" or "Show" from the
+// current windowVisible flag. Called on the systray thread before the menu
+// is shown so Win32 menu APIs stay on the owning thread.
+func (a *App) syncTrayShowHideLabel() {
+	if trayShowHideItem == nil {
+		return
+	}
+	a.windowMu.Lock()
+	visible := a.windowVisible
+	a.windowMu.Unlock()
+	if visible {
+		trayShowHideItem.SetTitle("Hide")
+		trayShowHideItem.SetTooltip("Hide the window")
+	} else {
+		trayShowHideItem.SetTitle("Show")
+		trayShowHideItem.SetTooltip("Show the window")
+	}
 }
 
 func onTrayExit() {
