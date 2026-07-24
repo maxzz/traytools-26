@@ -151,9 +151,9 @@ function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string;
 
 function LabelAndField({ label, children }: { label: string; children: ReactNode; }) {
     return (
-        <div className="flex flex-col gap-1">
-            <Label className="text-xs">{label}</Label>
+        <Label className="mt-1 text-xs font-normal text-muted-foreground whitespace-nowrap flex flex-col items-start gap-1">
+            {label}
             {children}
-        </div>
+        </Label>
     );
 }
