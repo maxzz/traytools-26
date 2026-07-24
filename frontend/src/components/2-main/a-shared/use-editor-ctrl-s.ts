@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /** Brief toolbar feedback after Ctrl+S ("saved" / "no changes to save"). */
-export function useSaveNotice(durationMs = 2500) {
+export function useSaveNotice(durationMs = 2500): { message: string; show(next: string): void; } {
     const [message, setMessage] = useState("");
     const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -11,8 +11,7 @@ export function useSaveNotice(durationMs = 2500) {
                 clearTimeout(timerRef.current);
             }
         },
-        [],
-    );
+        []);
 
     return {
         message,
@@ -45,9 +44,9 @@ export function useCtrlSSave(onSave: () => void | Promise<void>) {
                 void onSaveRef.current();
             }
 
-            window.addEventListener("keydown", handleKeyDown);
-            return () => window.removeEventListener("keydown", handleKeyDown);
+            const controller = new AbortController();
+            window.addEventListener("keydown", handleKeyDown, { signal: controller.signal });
+            return () => controller.abort();
         },
-        [],
-    );
+        []);
 }
