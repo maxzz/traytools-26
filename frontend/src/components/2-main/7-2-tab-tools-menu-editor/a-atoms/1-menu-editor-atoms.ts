@@ -1,3 +1,4 @@
+import { nextNumberedName } from "../../a-shared/numbered-name";
 import { type AddNodeKind, type ToolMenuItem, cloneMenuNode, createNode, findByUid } from "./9-types-menu";
 import { toolsEditorStore } from "./0-menu-local-storage";
 
@@ -136,6 +137,7 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
     const cloned = cloneMenuNode(drag.node);
 
     if (targetUid === root.uid) {
+        uniquifyMenuName(cloned, root.menuItems ?? []);
         (root.menuItems ??= []).push(cloned);
         toolsEditorStore.selectedUid = cloned.uid!;
         return true;
@@ -147,12 +149,25 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
     }
 
     if (position === "inside") {
+        uniquifyMenuName(cloned, target.node.menuItems ?? []);
         (target.node.menuItems ??= []).push(cloned);
     } else {
+        uniquifyMenuName(cloned, target.siblings);
         const insertAt = position === "before" ? target.index : target.index + 1;
         target.siblings.splice(insertAt, 0, cloned);
     }
 
     toolsEditorStore.selectedUid = cloned.uid!;
     return true;
+}
+
+function uniquifyMenuName(node: ToolMenuItem, siblings: ToolMenuItem[]): void {
+    // Separators share "-" by design; leave them alone.
+    if (node.menuName === "-") {
+        return;
+    }
+    node.menuName = nextNumberedName(
+        node.menuName || "New",
+        siblings.map((s) => s.menuName),
+    );
 }

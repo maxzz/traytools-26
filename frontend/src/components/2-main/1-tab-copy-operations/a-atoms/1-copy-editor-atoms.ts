@@ -1,4 +1,5 @@
-import { type AddCopyKind, type CopyConfig, type CopyGroup, type CopyOpItem, cloneGroup, cloneItem, createGroup, createItem, findByUid } from "./9-types-copy";
+import { nextNumberedName } from "../../a-shared/numbered-name";
+import { type AddCopyKind, type CopyConfig, type CopyGroup, type CopyOpItem, cloneGroup, cloneItem, createGroup, createItem, findByUid, itemLabel } from "./9-types-copy";
 import { copyEditorStore } from "./0-copy-local-storage";
 
 export function isRootUid(uid: string | null | undefined): boolean {
@@ -210,6 +211,7 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
         }
         if (drag.kind === "group") {
             const cloned = cloneGroup(drag.group);
+            uniquifyGroupName(cloned, config.groups);
             config.groups.push(cloned);
             copyEditorStore.selectedUid = cloned.uid!;
             return true;
@@ -220,7 +222,9 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
             g.items = [cloned];
             config.groups.push(g);
         } else {
-            config.groups[config.groups.length - 1].items.push(cloned);
+            const dest = config.groups[config.groups.length - 1];
+            uniquifyItemName(cloned, dest.items);
+            dest.items.push(cloned);
         }
         copyEditorStore.selectedUid = cloned.uid!;
         return true;
@@ -233,6 +237,7 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
 
     if (drag.kind === "group") {
         const cloned = cloneGroup(drag.group);
+        uniquifyGroupName(cloned, config.groups);
         if (target.kind === "item") {
             const gi = config.groups.findIndex((g) => g.uid === target.group.uid);
             if (gi < 0) {
@@ -256,6 +261,7 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
 
     const cloned = cloneItem(drag.item);
     if (target.kind === "group") {
+        uniquifyItemName(cloned, target.group.items);
         if (position === "before") {
             target.group.items.unshift(cloned);
         } else {
@@ -265,8 +271,17 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
         return true;
     }
 
+    uniquifyItemName(cloned, target.group.items);
     const insertAt = position === "before" ? target.index : target.index + 1;
     target.group.items.splice(insertAt, 0, cloned);
     copyEditorStore.selectedUid = cloned.uid!;
     return true;
+}
+
+function uniquifyGroupName(group: CopyGroup, siblings: CopyGroup[]): void {
+    group.name = nextNumberedName(group.name || "New Group", siblings.map((g) => g.name));
+}
+
+function uniquifyItemName(item: CopyOpItem, siblings: CopyOpItem[]): void {
+    item.name = nextNumberedName(itemLabel(item), siblings.map(itemLabel));
 }
