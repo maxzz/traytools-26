@@ -20,6 +20,10 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+// EventQuitRequested is emitted when the user tries to quit. The frontend
+// checks for unsaved tab data, prompts if needed, then calls confirmExit.
+const EventQuitRequested = "app:quitRequested"
+
 // App struct
 type App struct {
 	ctx           context.Context
@@ -35,6 +39,9 @@ type App struct {
 
 	windowMu      sync.Mutex
 	windowVisible bool
+
+	quitPromptMu   sync.Mutex
+	quitPromptOpen bool
 }
 
 // NewApp creates a new App application struct
@@ -78,6 +85,14 @@ func (a *App) Startup(ctx context.Context) {
 func (a *App) registerHandlers() {
 	a.bus.Register("app", "exit", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		a.RequestExit()
+		return nil, nil
+	})
+	a.bus.Register("app", "confirmExit", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		a.ConfirmExit()
+		return nil, nil
+	})
+	a.bus.Register("app", "cancelQuitPrompt", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		a.CancelQuitPrompt()
 		return nil, nil
 	})
 	a.bus.Register("app", "show", func(ctx context.Context, payload json.RawMessage) (any, error) {
@@ -187,22 +202,54 @@ func (a *App) Dispatch(group string, command string, payloadJSON string) (string
 	return string(out), nil
 }
 
-// RequestExit flags an intentional shutdown and asks Wails to quit. The
-// BeforeClose hook then allows the close instead of hiding to the tray.
+// RequestExit asks the frontend to confirm quit (unsaved tabs). The frontend
+// calls ConfirmExit to finish shutdown, or CancelQuitPrompt to abort.
 //
-// Quit runs on a goroutine so a tray-menu Exit click can return to the
-// systray message loop immediately. Tray teardown happens in Shutdown —
-// never while handling the title-bar WM_CLOSE on the UI thread.
+// Work runs on a goroutine so a tray-menu Exit click can return to the
+// systray message loop immediately.
 func (a *App) RequestExit() {
+	a.quitPromptMu.Lock()
+	if a.quitRequested || a.quitPromptOpen {
+		a.quitPromptMu.Unlock()
+		return
+	}
+	a.quitPromptOpen = true
+	a.quitPromptMu.Unlock()
+
+	go func() {
+		if a.ctx == nil {
+			return
+		}
+		// Ensure the window is visible so the confirmation dialog can be seen
+		// when Exit is chosen from the tray while the app is hidden.
+		a.showWindow()
+		runtime.EventsEmit(a.ctx, EventQuitRequested, nil)
+	}()
+}
+
+// ConfirmExit proceeds with shutdown after the frontend has handled unsaved data.
+func (a *App) ConfirmExit() {
+	a.quitPromptMu.Lock()
+	a.quitPromptOpen = false
 	if a.quitRequested {
+		a.quitPromptMu.Unlock()
 		return
 	}
 	a.quitRequested = true
+	a.quitPromptMu.Unlock()
+
 	go func() {
 		if a.ctx != nil {
 			runtime.Quit(a.ctx)
 		}
 	}()
+}
+
+// CancelQuitPrompt clears the in-flight quit prompt so Exit can be tried again.
+func (a *App) CancelQuitPrompt() {
+	a.quitPromptMu.Lock()
+	a.quitPromptOpen = false
+	a.quitPromptMu.Unlock()
 }
 
 // DomReady is called after front-end resources have been loaded
@@ -215,18 +262,22 @@ func (a *App) DomReady(ctx context.Context) {
 // Returning true will cause the application to continue, false will continue shutdown as normal.
 //
 // This app behaves as a background utility by default: unless an explicit exit
-// was requested (via the frontend menu or the tray), or quitOnClose is enabled
-// in settings, closing the window only hides it to the system tray.
+// was confirmed (via ConfirmExit after the frontend prompt), closing the window
+// only hides it to the system tray. When quitOnClose is enabled, the close
+// button triggers the same frontend confirmation as File → Exit / tray Exit.
 //
 // Do not call stopTray here: BeforeClose runs on the UI thread during WM_CLOSE.
 // Blocking on systray teardown freezes the message pump (slow close) and, if the
 // wait times out, can leave the systray goroutine alive so the process never
 // exits. Tray cleanup belongs in Shutdown.
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
-	if a.quitRequested || GetQuitOnCloseOption() {
+	if a.quitRequested {
 		a.saveWindowOptions(ctx)
-		a.quitRequested = true
 		return false
+	}
+	if GetQuitOnCloseOption() {
+		a.RequestExit()
+		return true
 	}
 	a.hideWindow()
 	return true

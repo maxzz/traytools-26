@@ -31,5 +31,5 @@ export { windowTreeBus, isProcessGroupHandle, processGroupId, processGroupHandle
 export type { WindowNode, WindowTree, WindowInfo, ProcessInfo, RectInfo, RelatedWindow, MonitorWindow, ActiveWindowsInfo } from "./groups/windowtree";
 export { highlightBus } from "./groups/highlight";
 export type { HighlightBounds, HighlightRectOptions, BoundsClassification, BoundsNoticeKind } from "./groups/highlight";
-export { onWailsEvent, TRACE_EVENTS, HOTKEY_EVENTS, COPY_OPS_EVENTS } from "./wails-events";
+export { onWailsEvent, TRACE_EVENTS, HOTKEY_EVENTS, COPY_OPS_EVENTS, APP_EVENTS } from "./wails-events";
 export type { UnloadHookHotkeyOptions } from "./groups/settings";

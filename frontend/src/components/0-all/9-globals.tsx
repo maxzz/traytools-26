@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { HOTKEY_EVENTS, onWailsEvent, toolsBus } from "@/bridge";
+import { APP_EVENTS, HOTKEY_EVENTS, onWailsEvent, toolsBus } from "@/bridge";
 import { ConfirmationDialog } from "@/components/4-dialogs/8-1-confirmation/0-confirmation-dialog";
+import { UnsavedQuitDialog } from "@/components/4-dialogs/8-1-confirmation/1-unsaved-quit-dialog";
 import { LoginDialog } from "@/components/4-dialogs/8-2-login/0-login-dialog";
 import { SettingsDialog } from "@/components/4-dialogs/8-3-settings/0-settings-dialog";
+import { handleQuitRequested } from "./a-quit-unsaved";
 import {
     AppIsElevatedSync,
     isOpenSettingsDialogAtom,
@@ -35,10 +37,35 @@ export function AllDialogs() {
         <SettingsQuitOnCloseSync />
         <SettingsUnloadHookHotkeySync />
 
+        <QuitRequestedListener />
         <ConfirmationDialog />
+        <UnsavedQuitDialog />
         <LoginDialog />
         <SettingsDialog />
     </>);
+}
+
+/** Backend Exit / quitOnClose → prompt for unsaved tabs, then confirmExit. */
+function QuitRequestedListener() {
+    useEffect(
+        () => {
+            if (!isBackendAvailable()) {
+                return;
+            }
+            let busy = false;
+            return onWailsEvent(APP_EVENTS.quitRequested, () => {
+                if (busy) {
+                    return;
+                }
+                busy = true;
+                handleQuitRequested()
+                    .catch(console.error)
+                    .finally(() => { busy = false; });
+            });
+        },
+        [],
+    );
+    return null;
 }
 
 /**

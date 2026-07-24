@@ -30,3 +30,9 @@ export const COPY_OPS_EVENTS = {
     itemStatus: "copyops:itemStatus",
     jobDone: "copyops:jobDone",
 } as const;
+
+/** Event names emitted by backend/app.go for application lifecycle. */
+export const APP_EVENTS = {
+    /** User requested quit; frontend confirms after checking unsaved tabs. */
+    quitRequested: "app:quitRequested",
+} as const;
