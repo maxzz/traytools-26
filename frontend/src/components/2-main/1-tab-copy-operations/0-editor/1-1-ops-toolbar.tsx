@@ -94,9 +94,15 @@ function ActionsMenu() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => CopyConfig_Load()} title="Reload from copy.json">
-                    Reload
+                <DropdownMenuItem onSelect={() => CopyConfig_Apply()} title="Save copy.json">
+                    Save
                 </DropdownMenuItem>
+
+                <DropdownMenuItem onSelect={() => void CopyConfig_RevealInExplorer()} title="Show copy.json in File Explorer">
+                    Reveal in File Explorer
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
 
                 <DropdownMenuItem onSelect={() => CopyConfig_Import()} title="Import JSON file">
                     Import…
@@ -106,19 +112,16 @@ function ActionsMenu() {
                     Export…
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={() => void CopyConfig_RevealInExplorer()} title="Show copy.json in File Explorer">
-                    Reveal in File Explorer
-                </DropdownMenuItem>
-
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onSelect={() => CopyConfig_ResetToDefaults()} title="Restore defaults">
-                    Reset
+                <DropdownMenuItem onSelect={() => CopyConfig_Load()} title="Reload from copy.json">
+                    Reload
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={() => CopyConfig_Apply()} title="Save copy.json">
-                    Apply
+                <DropdownMenuItem onSelect={() => CopyConfig_ResetToDefaults()} title="Restore defaults">
+                    Restore defaults
                 </DropdownMenuItem>
+
             </DropdownMenuContent>
         </DropdownMenu>
     );
