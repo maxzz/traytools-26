@@ -9,7 +9,9 @@ export type SelectedCopyNode =
     | { kind: "item"; uid: string; item: CopyOpItem; group: CopyGroup; };
 
 export function useSelectedNode(): SelectedCopyNode | null {
-    const snap = useSnapshot(copyEditorStore);
+    // sync: true — controlled inputs (group/operation name, paths) keep caret position.
+    // Without it, Valtio batches the update into a later microtask and React resets the caret.
+    const snap = useSnapshot(copyEditorStore, { sync: true });
     const uid = snap.selectedUid;
     if (!uid) {
         return null;
