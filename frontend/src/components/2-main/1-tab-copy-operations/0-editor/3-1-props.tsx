@@ -5,11 +5,11 @@ import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Button } from "@/ui/shadcn/button";
+import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { type CopyGroup, type CopyOpItem, sourceFileBaseName } from "../a-atoms/9-types-copy";
 import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
-import { PathInput } from "./3-2-path-input";
 
 export function PropsFor_Root() {
     return (

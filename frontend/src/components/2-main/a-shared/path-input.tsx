@@ -115,12 +115,14 @@ export function PathInput({
     value,
     onChange,
     label,
+    placeholder,
     showReveal = false,
 }: {
     kind: PathKind;
     value: string;
     onChange: (path: string) => void;
     label: string;
+    placeholder?: string;
     /** Show a "Reveal in File Explorer" button (disabled when the path is empty). */
     showReveal?: boolean;
 }) {
@@ -207,6 +209,8 @@ export function PathInput({
     };
 
     const Icon = kind === "file" ? FileIcon : FolderOpen;
+    const resolvedPlaceholder = placeholder
+        ?? (kind === "file" ? "C:\\path\\to\\file" : "C:\\path\\to\\folder");
 
     return (
         <div className="flex flex-col gap-1">
@@ -223,14 +227,14 @@ export function PathInput({
                     style={DROP_TARGET_STYLE}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    placeholder={kind === "file" ? "C:\\path\\to\\file" : "C:\\path\\to\\folder"}
+                    placeholder={resolvedPlaceholder}
                     {...turnOffAutoComplete}
                 />
 
                 <InputGroupAddon align="inline-end" className="gap-0.5 pr-1">
                     <InputGroupButton
                         size="icon-xs"
-                        title={`Select ${kind} for operation`}
+                        title={`Select ${kind}`}
                         onClick={browse}
                         tabIndex={-1}
                     >
@@ -255,20 +259,11 @@ export function PathInput({
     );
 }
 
-/** Call once when the Copy Operations page mounts so the listener is ready early. */
-export function initCopyPathDropListener() {
+/** Call once when a page with PathInput mounts so the drop listener is ready early. */
+export function initPathDropListener() {
     // Do not read window.wails.flags.enableWailsDragAndDrop here: the Wails JS
     // runtime defaults it to false, and Go flips it to true only after
     // navigationCompleted (ExecJS). That races with React mount / Vite HMR and
     // produces a false warning even when main.go has EnableFileDrop: true.
-    /*
-    const flags = (window as unknown as { wails?: { flags?: { enableWailsDragAndDrop?: boolean; }; }; }).wails?.flags;
-    if (flags && !flags.enableWailsDragAndDrop) {
-        console.warn(
-            "[copy-ops] window.wails.flags.enableWailsDragAndDrop is false. "
-            + "Restart the app after a full rebuild so EnableFileDrop takes effect.",
-        );
-    }
-    */
     ensureDropListener();
 }

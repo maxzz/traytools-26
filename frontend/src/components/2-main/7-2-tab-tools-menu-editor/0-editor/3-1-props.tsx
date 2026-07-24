@@ -12,6 +12,7 @@ import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { HotkeyInput, formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
+import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 
@@ -170,16 +171,29 @@ function Field_Cmd_RunElevated({ node }: NodeProps) {
 }
 
 function Field_Cmd_Reg_Path({ node }: NodeProps) {
+    if (node.cmdWhat === "reg") {
+        return (
+            <LabelAndField label="Registry key">
+                <Input
+                    className="h-7"
+                    value={node.cmdLine ?? ""}
+                    placeholder="HKLM\\SOFTWARE\\..."
+                    onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
+                    {...turnOffAutoComplete}
+                />
+            </LabelAndField>
+        );
+    }
+
     return (
-        <LabelAndField label={node.cmdWhat === "reg" ? "Registry key" : "Command / path / URL"}>
-            <Input
-                className="h-7"
-                value={node.cmdLine ?? ""}
-                placeholder={node.cmdWhat === "reg" ? "HKLM\\SOFTWARE\\..." : "notepad.exe or https://..."}
-                onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
-                {...turnOffAutoComplete}
-            />
-        </LabelAndField>
+        <PathInput
+            kind="file"
+            label="Command / path / URL"
+            value={node.cmdLine ?? ""}
+            placeholder="notepad.exe or https://..."
+            onChange={(path) => patchSelectedNode((n) => { n.cmdLine = path; })}
+            showReveal
+        />
     );
 }
 
