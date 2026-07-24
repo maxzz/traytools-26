@@ -151,22 +151,21 @@ function ActionsMenu() {
 
                 <DropdownMenuSeparator />
 
+                <DropdownMenuItem onSelect={() => CopyConfig_Load({ notify: true })} title="Reload from copy.json">
+                    Reload
+                </DropdownMenuItem>
+
+
+                <DropdownMenuItem onSelect={() => CopyConfig_CreateNew()} title="Start a new configuration (local storage until Save)">
+                    Create new…
+                </DropdownMenuItem>
+
                 <DropdownMenuItem onSelect={() => CopyConfig_Import()} title="Import JSON file">
                     Import…
                 </DropdownMenuItem>
 
                 <DropdownMenuItem onSelect={() => CopyConfig_Export()} title="Export as JSON">
                     Export…
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem onSelect={() => CopyConfig_Load({ notify: true })} title="Reload from copy.json">
-                    Reload
-                </DropdownMenuItem>
-
-                <DropdownMenuItem onSelect={() => CopyConfig_CreateNew()} title="Start a new configuration (local storage until Save)">
-                    Create new…
                 </DropdownMenuItem>
 
             </DropdownMenuContent>
