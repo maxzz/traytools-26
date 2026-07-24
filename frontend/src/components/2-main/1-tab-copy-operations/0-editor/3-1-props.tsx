@@ -95,37 +95,6 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
     </>);
 }
 
-function OperationNameField({ item }: { item: CopyOpItem; }) {
-    const baseName = sourceFileBaseName(item.sourceFile);
-
-    return (
-        <LabelAndField label="Operation name">
-            <Input
-                className="h-7"
-                value={item.name ?? baseName}
-                onChange={(e) => {
-                    const next = e.target.value;
-                    patchSelectedItem((it) => {
-                        const base = sourceFileBaseName(it.sourceFile);
-                        if (next === base) {
-                            delete it.name;
-                        } else {
-                            it.name = next;
-                        }
-                    });
-                }}
-                onBlur={() => {
-                    if (!item.name?.trim()) {
-                        patchSelectedItem((it) => { delete it.name; });
-                    }
-                }}
-                placeholder={baseName || "Operation name"}
-                {...turnOffAutoComplete}
-            />
-        </LabelAndField>
-    );
-}
-
 type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated">;
 
 function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: (target: CopyRunFlags) => void) => void; }) {
@@ -154,6 +123,37 @@ function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string;
             <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
             {label}
         </Label>
+    );
+}
+
+function OperationNameField({ item }: { item: CopyOpItem; }) {
+    const baseName = sourceFileBaseName(item.sourceFile);
+
+    return (
+        <LabelAndField label="Operation name">
+            <Input
+                className="h-7"
+                value={item.name ?? baseName}
+                onChange={(e) => {
+                    const next = e.target.value;
+                    patchSelectedItem((it) => {
+                        const base = sourceFileBaseName(it.sourceFile);
+                        if (next === base) {
+                            delete it.name;
+                        } else {
+                            it.name = next;
+                        }
+                    });
+                }}
+                onBlur={() => {
+                    if (!item.name?.trim()) {
+                        patchSelectedItem((it) => { delete it.name; });
+                    }
+                }}
+                placeholder={baseName || "Operation name"}
+                {...turnOffAutoComplete}
+            />
+        </LabelAndField>
     );
 }
 
