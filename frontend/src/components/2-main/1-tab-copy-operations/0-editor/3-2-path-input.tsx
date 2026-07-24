@@ -164,8 +164,16 @@ export function PathInput({
         if (!canReveal) {
             return;
         }
-        void appBus.revealInExplorer(trimmed).catch((e) => {
-            notice.error(`Failed to reveal in File Explorer:<br/>${String(e)}`);
+        // Files: select/highlight in the parent. Folders: open the folder itself.
+        const open = kind === "folder"
+            ? appBus.openInExplorer(trimmed)
+            : appBus.revealInExplorer(trimmed);
+        void open.catch((e) => {
+            notice.error(
+                kind === "folder"
+                    ? `Failed to open folder in File Explorer:<br/>${String(e)}`
+                    : `Failed to reveal in File Explorer:<br/>${String(e)}`,
+            );
         });
     };
 

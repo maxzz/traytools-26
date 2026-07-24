@@ -13,6 +13,8 @@ const GROUP = "app";
  * - hide hides the application;
  * - toggle toggles the application;
  * - revealInExplorer opens File Explorer with the given path highlighted;
+ * - openInExplorer opens File Explorer navigated into the folder (or the
+ *   parent folder when path is a file);
  * - sendUnloadHookNotification broadcasts the DigitalPersona unhook message
  *   (View → Send unload hook notification).
  */
@@ -24,5 +26,6 @@ export const appBus = {
     hide: () => dispatch(GROUP, "hide"),
     toggle: () => dispatch(GROUP, "toggle"),
     revealInExplorer: (path: string) => dispatch(GROUP, "revealInExplorer", { path }),
+    openInExplorer: (path: string) => dispatch(GROUP, "openInExplorer", { path }),
     sendUnloadHookNotification: () => dispatch(GROUP, "sendUnloadHookNotification"),
 };

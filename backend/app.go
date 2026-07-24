@@ -118,6 +118,17 @@ func (a *App) registerHandlers() {
 		}
 		return nil, winlaunch.RevealInExplorer(req.Path)
 	})
+	a.bus.Register("app", "openInExplorer", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			Path string `json:"path"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		return nil, winlaunch.OpenInExplorer(req.Path)
+	})
 	a.bus.Register("settings", "getRunElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return GetRunElevatedOption(), nil
 	})
