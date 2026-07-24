@@ -134,6 +134,18 @@ export function createNode(kind: AddNodeKind): ToolMenuItem {
     }
 }
 
+/** Deep-clone a menu node (and nested menuItems) with fresh runtime uids. */
+export function cloneMenuNode(node: ToolMenuItem): ToolMenuItem {
+    const clone = structuredClone(node);
+    reassignUids(clone);
+    return clone;
+}
+
+function reassignUids(node: ToolMenuItem): void {
+    node.uid = newUid();
+    node.menuItems?.forEach(reassignUids);
+}
+
 // ---------------------------------------------------------------------------
 // Tree navigation helpers
 

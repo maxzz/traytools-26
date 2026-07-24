@@ -1,4 +1,4 @@
-import { type AddNodeKind, type ToolMenuItem, createNode, findByUid } from "./9-types-menu";
+import { type AddNodeKind, type ToolMenuItem, cloneMenuNode, createNode, findByUid } from "./9-types-menu";
 import { toolsEditorStore } from "./0-menu-local-storage";
 
 // ---------------------------------------------------------------------------
@@ -117,5 +117,42 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         after.siblings.splice(insertAt, 0, drag.node);
     }
 
+    return true;
+}
+
+/** Insert a clone of dragUid relative to targetUid (same placement rules as moveNode). */
+export function copyNode(dragUid: string, targetUid: string, position: DropPosition): boolean {
+    const root = toolsEditorStore.config.menu;
+
+    if (dragUid === root.uid) {
+        return false;
+    }
+
+    const drag = findByUid(root, dragUid);
+    if (!drag) {
+        return false;
+    }
+
+    const cloned = cloneMenuNode(drag.node);
+
+    if (targetUid === root.uid) {
+        (root.menuItems ??= []).push(cloned);
+        toolsEditorStore.selectedUid = cloned.uid!;
+        return true;
+    }
+
+    const target = findByUid(root, targetUid);
+    if (!target) {
+        return false;
+    }
+
+    if (position === "inside") {
+        (target.node.menuItems ??= []).push(cloned);
+    } else {
+        const insertAt = position === "before" ? target.index : target.index + 1;
+        target.siblings.splice(insertAt, 0, cloned);
+    }
+
+    toolsEditorStore.selectedUid = cloned.uid!;
     return true;
 }

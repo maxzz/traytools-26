@@ -6,7 +6,7 @@ import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "../a-atoms/9-types-menu";
-import { type DropPosition, moveNode } from "../a-atoms/1-menu-editor-atoms";
+import { type DropPosition, copyNode, moveNode } from "../a-atoms/1-menu-editor-atoms";
 import { toolsEditorStore } from "../a-atoms/0-menu-local-storage";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
@@ -59,12 +59,12 @@ export function Panel_Tree() {
             dropPos,
             onDragStart: (e, uid) => {
                 setDragUid(uid);
-                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.effectAllowed = "copyMove";
                 e.dataTransfer.setData("text/plain", uid);
             },
             onDragOver: (e, uid, isSubmenu, isRoot) => {
                 e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
+                e.dataTransfer.dropEffect = (e.ctrlKey || e.metaKey) ? "copy" : "move";
                 const rect = e.currentTarget.getBoundingClientRect();
                 const offset = (e.clientY - rect.top) / rect.height;
                 let pos: DropPosition;
@@ -83,7 +83,11 @@ export function Panel_Tree() {
                 e.preventDefault();
                 const src = e.dataTransfer.getData("text/plain") || dragUid;
                 if (src && dropPos) {
-                    moveNode(src, uid, dropPos);
+                    if (e.ctrlKey || e.metaKey) {
+                        copyNode(src, uid, dropPos);
+                    } else {
+                        moveNode(src, uid, dropPos);
+                    }
                 }
                 setDragUid(null);
                 setDropUid(null);

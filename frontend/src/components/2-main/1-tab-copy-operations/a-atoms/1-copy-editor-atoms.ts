@@ -1,4 +1,4 @@
-import { type AddCopyKind, type CopyConfig, type CopyGroup, type CopyOpItem, createGroup, createItem, findByUid } from "./9-types-copy";
+import { type AddCopyKind, type CopyConfig, type CopyGroup, type CopyOpItem, cloneGroup, cloneItem, createGroup, createItem, findByUid } from "./9-types-copy";
 import { copyEditorStore } from "./0-copy-local-storage";
 
 export function isRootUid(uid: string | null | undefined): boolean {
@@ -189,5 +189,84 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
     }
     const insertAt = position === "before" ? after.index : after.index + 1;
     after.group.items.splice(insertAt, 0, moved);
+    return true;
+}
+
+/** Insert a clone of dragUid relative to targetUid (same placement rules as moveNode). */
+export function copyNode(dragUid: string, targetUid: string, position: DropPosition): boolean {
+    if (isRootUid(dragUid)) {
+        return false;
+    }
+
+    const config = copyEditorStore.config;
+    const drag = findByUid(config, dragUid);
+    if (!drag) {
+        return false;
+    }
+
+    if (isRootUid(targetUid)) {
+        if (position !== "inside" && position !== "after" && position !== "before") {
+            return false;
+        }
+        if (drag.kind === "group") {
+            const cloned = cloneGroup(drag.group);
+            config.groups.push(cloned);
+            copyEditorStore.selectedUid = cloned.uid!;
+            return true;
+        }
+        const cloned = cloneItem(drag.item);
+        if (config.groups.length === 0) {
+            const g = createGroup();
+            g.items = [cloned];
+            config.groups.push(g);
+        } else {
+            config.groups[config.groups.length - 1].items.push(cloned);
+        }
+        copyEditorStore.selectedUid = cloned.uid!;
+        return true;
+    }
+
+    const target = findByUid(config, targetUid);
+    if (!target) {
+        return false;
+    }
+
+    if (drag.kind === "group") {
+        const cloned = cloneGroup(drag.group);
+        if (target.kind === "item") {
+            const gi = config.groups.findIndex((g) => g.uid === target.group.uid);
+            if (gi < 0) {
+                return false;
+            }
+            const insertAt = position === "after" ? gi + 1 : gi;
+            config.groups.splice(insertAt, 0, cloned);
+            copyEditorStore.selectedUid = cloned.uid!;
+            return true;
+        }
+        const gi = config.groups.findIndex((g) => g.uid === targetUid);
+        if (gi < 0) {
+            return false;
+        }
+        // Cannot nest groups — "inside" places the clone after the target group.
+        const insertAt = position === "before" ? gi : gi + 1;
+        config.groups.splice(insertAt, 0, cloned);
+        copyEditorStore.selectedUid = cloned.uid!;
+        return true;
+    }
+
+    const cloned = cloneItem(drag.item);
+    if (target.kind === "group") {
+        if (position === "before") {
+            target.group.items.unshift(cloned);
+        } else {
+            target.group.items.push(cloned);
+        }
+        copyEditorStore.selectedUid = cloned.uid!;
+        return true;
+    }
+
+    const insertAt = position === "before" ? target.index : target.index + 1;
+    target.group.items.splice(insertAt, 0, cloned);
+    copyEditorStore.selectedUid = cloned.uid!;
     return true;
 }
