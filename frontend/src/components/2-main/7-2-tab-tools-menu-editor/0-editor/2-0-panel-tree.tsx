@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type DragEvent } from "react";
+import { createContext, useContext, useMemo, useRef, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-react";
@@ -51,6 +51,8 @@ export function Panel_Tree() {
     const [dragUid, setDragUid] = useState<string | null>(null);
     const [dropUid, setDropUid] = useState<string | null>(null);
     const [dropPos, setDropPos] = useState<DropPosition | null>(null);
+    // drop.ctrlKey is unreliable in WebView2; remember intent from dragover.
+    const wantCopyRef = useRef(false);
 
     const dnd = useMemo<DndState>(
         () => ({
@@ -59,12 +61,15 @@ export function Panel_Tree() {
             dropPos,
             onDragStart: (e, uid) => {
                 setDragUid(uid);
+                wantCopyRef.current = false;
                 e.dataTransfer.effectAllowed = "copyMove";
                 e.dataTransfer.setData("text/plain", uid);
             },
             onDragOver: (e, uid, isSubmenu, isRoot) => {
                 e.preventDefault();
-                e.dataTransfer.dropEffect = (e.ctrlKey || e.metaKey) ? "copy" : "move";
+                const wantCopy = e.ctrlKey || e.metaKey;
+                wantCopyRef.current = wantCopy;
+                e.dataTransfer.dropEffect = wantCopy ? "copy" : "move";
                 const rect = e.currentTarget.getBoundingClientRect();
                 const offset = (e.clientY - rect.top) / rect.height;
                 let pos: DropPosition;
@@ -82,18 +87,25 @@ export function Panel_Tree() {
             onDrop: (e, uid) => {
                 e.preventDefault();
                 const src = e.dataTransfer.getData("text/plain") || dragUid;
+                const isCopy =
+                    wantCopyRef.current
+                    || e.dataTransfer.dropEffect === "copy"
+                    || e.ctrlKey
+                    || e.metaKey;
                 if (src && dropPos) {
-                    if (e.ctrlKey || e.metaKey) {
+                    if (isCopy) {
                         copyNode(src, uid, dropPos);
                     } else {
                         moveNode(src, uid, dropPos);
                     }
                 }
+                wantCopyRef.current = false;
                 setDragUid(null);
                 setDropUid(null);
                 setDropPos(null);
             },
             onDragEnd: () => {
+                wantCopyRef.current = false;
                 setDragUid(null);
                 setDropUid(null);
                 setDropPos(null);
