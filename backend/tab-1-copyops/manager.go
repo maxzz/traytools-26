@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 
 	"traytools-26-go/backend/bus"
@@ -52,10 +53,26 @@ func (m *Manager) Register(b *bus.Bus) {
 		return SaveResponse{Path: path}, nil
 	})
 	b.Register(Group, "pickFile", func(ctx context.Context, payload json.RawMessage) (any, error) {
-		return m.pickFile()
+		var req struct {
+			InitialPath string `json:"initialPath"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		return m.pickFile(req.InitialPath)
 	})
 	b.Register(Group, "pickFolder", func(ctx context.Context, payload json.RawMessage) (any, error) {
-		return m.pickFolder()
+		var req struct {
+			InitialPath string `json:"initialPath"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		return m.pickFolder(req.InitialPath)
 	})
 	b.Register(Group, "exportPath", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		var req struct {
@@ -136,13 +153,21 @@ func (m *Manager) getRaw() RawResponse {
 	return RawResponse{Found: found, Path: path, Content: content}
 }
 
-func (m *Manager) pickFile() (PickResponse, error) {
+func (m *Manager) pickFile(initialPath string) (PickResponse, error) {
 	if m.ctx == nil {
 		return PickResponse{}, fmt.Errorf("copyops: not started")
 	}
-	path, err := runtime.OpenFileDialog(m.ctx, runtime.OpenDialogOptions{
+	dir, name := dialogDefaultsForFile(initialPath)
+	opts := runtime.OpenDialogOptions{
 		Title: "Select source file",
-	})
+	}
+	if dir != "" {
+		opts.DefaultDirectory = dir
+	}
+	if name != "" {
+		opts.DefaultFilename = name
+	}
+	path, err := runtime.OpenFileDialog(m.ctx, opts)
 	if err != nil {
 		return PickResponse{}, err
 	}
@@ -152,13 +177,17 @@ func (m *Manager) pickFile() (PickResponse, error) {
 	return PickResponse{Path: path}, nil
 }
 
-func (m *Manager) pickFolder() (PickResponse, error) {
+func (m *Manager) pickFolder(initialPath string) (PickResponse, error) {
 	if m.ctx == nil {
 		return PickResponse{}, fmt.Errorf("copyops: not started")
 	}
-	path, err := runtime.OpenDirectoryDialog(m.ctx, runtime.OpenDialogOptions{
+	opts := runtime.OpenDialogOptions{
 		Title: "Select destination folder",
-	})
+	}
+	if dir := dialogDefaultsForFolder(initialPath); dir != "" {
+		opts.DefaultDirectory = dir
+	}
+	path, err := runtime.OpenDirectoryDialog(m.ctx, opts)
 	if err != nil {
 		return PickResponse{}, err
 	}
@@ -166,6 +195,45 @@ func (m *Manager) pickFolder() (PickResponse, error) {
 		return PickResponse{Canceled: true}, nil
 	}
 	return PickResponse{Path: path}, nil
+}
+
+// dialogDefaultsForFile returns DefaultDirectory / DefaultFilename for an open-file
+// dialog. Directory is set only when it exists so Wails does not reject the options.
+func dialogDefaultsForFile(path string) (dir, filename string) {
+	path = filepath.Clean(strings.TrimSpace(path))
+	if path == "" || path == "." {
+		return "", ""
+	}
+	info, err := os.Stat(path)
+	if err == nil {
+		if info.IsDir() {
+			return path, ""
+		}
+		return filepath.Dir(path), filepath.Base(path)
+	}
+	// File missing: still open at the parent folder when that exists.
+	parent := filepath.Dir(path)
+	if parent == "" || parent == "." {
+		return "", ""
+	}
+	if fi, err := os.Stat(parent); err == nil && fi.IsDir() {
+		return parent, filepath.Base(path)
+	}
+	return "", ""
+}
+
+// dialogDefaultsForFolder returns DefaultDirectory for an open-folder dialog when
+// the path itself exists as a directory; otherwise leave empty (last-used folder).
+func dialogDefaultsForFolder(path string) string {
+	path = filepath.Clean(strings.TrimSpace(path))
+	if path == "" || path == "." {
+		return ""
+	}
+	info, err := os.Stat(path)
+	if err != nil || !info.IsDir() {
+		return ""
+	}
+	return path
 }
 
 func (m *Manager) importPath() (PickResponse, error) {

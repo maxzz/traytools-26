@@ -147,7 +147,10 @@ export function PathInput({
 
     const browse = async () => {
         try {
-            const res = kind === "file" ? await copyOpsBus.pickFile() : await copyOpsBus.pickFolder();
+            const initial = value.trim();
+            const res = kind === "file"
+                ? await copyOpsBus.pickFile(initial || undefined)
+                : await copyOpsBus.pickFolder(initial || undefined);
             if (!res.canceled && res.path) {
                 onChange(res.path);
             }
@@ -211,10 +214,7 @@ export function PathInput({
             <InputGroup
                 ref={dropRef}
                 style={DROP_TARGET_STYLE}
-                className={cn(
-                    "h-7 rounded-sm shadow-none transition-shadow",
-                    dragOver && "ring-2 ring-sky-500 ring-offset-1",
-                )}
+                className={cn("h-7 rounded-sm shadow-none transition-shadow", dragOver && "ring-2 ring-sky-500 ring-offset-1")}
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}

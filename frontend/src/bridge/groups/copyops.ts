@@ -66,8 +66,10 @@ export type NormalizeDropPathResponse = {
 export const copyOpsBus = {
     getRaw: () => dispatch<CopyOpsRawResponse>(GROUP, "getRaw"),
     save: (content: string) => dispatch<CopyOpsSaveResponse>(GROUP, "save", { content }),
-    pickFile: () => dispatch<CopyOpsPickResponse>(GROUP, "pickFile"),
-    pickFolder: () => dispatch<CopyOpsPickResponse>(GROUP, "pickFolder"),
+    pickFile: (initialPath?: string) =>
+        dispatch<CopyOpsPickResponse>(GROUP, "pickFile", initialPath ? { initialPath } : undefined),
+    pickFolder: (initialPath?: string) =>
+        dispatch<CopyOpsPickResponse>(GROUP, "pickFolder", initialPath ? { initialPath } : undefined),
     importPath: () => dispatch<CopyOpsPickResponse>(GROUP, "importPath"),
     exportPath: (defaultFilename = "copy.json") =>
         dispatch<CopyOpsPickResponse>(GROUP, "exportPath", { defaultFilename }),
