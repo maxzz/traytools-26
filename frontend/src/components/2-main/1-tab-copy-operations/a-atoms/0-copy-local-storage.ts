@@ -84,7 +84,8 @@ export function writeCache(config: CopyConfig, rootUid: string, selectedUid: str
 
 // Config functions
 
-export async function CopyConfig_Load(): Promise<void> {
+export async function CopyConfig_Load(options?: { notify?: boolean; }): Promise<void> {
+    const notify = options?.notify === true;
     try {
         const raw = await copyOpsBus.getRaw();
 
@@ -93,10 +94,14 @@ export async function CopyConfig_Load(): Promise<void> {
                 const config = parseCopyJson(raw.content);
                 CopyConfig_Set(config, "file", raw.path, true);
                 writeCache(config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
-                copyEditorStore.status = `Loaded from ${raw.path}`;
+                if (notify) {
+                    notice.success(`Loaded from<br/>${raw.path}`);
+                }
                 return;
             } catch (e) {
-                copyEditorStore.error = `Invalid copy.json: ${String(e)}`;
+                const msg = `Invalid copy.json: ${String(e)}`;
+                copyEditorStore.error = msg;
+                notice.error(msg);
             }
         }
 
@@ -104,17 +109,25 @@ export async function CopyConfig_Load(): Promise<void> {
         if (cached) {
             CopyConfig_Set(cached.config, "storage", raw?.path ?? "", false);
             if (!copyEditorStore.error) {
-                copyEditorStore.status = "File not found — using saved copy";
+                copyEditorStore.status = "";
+                if (notify) {
+                    notice.warning("File not found — using saved copy");
+                }
             }
             return;
         }
 
         CopyConfig_Set(cloneConfig(DEFAULT_COPY_CONFIG), "default", raw?.path ?? "", false);
         if (!copyEditorStore.error) {
-            copyEditorStore.status = "No copy.json — showing defaults";
+            copyEditorStore.status = "";
+            if (notify) {
+                notice.info("No copy.json — showing defaults");
+            }
         }
     } catch (e) {
-        copyEditorStore.error = `Failed to load copy operations: ${String(e)}`;
+        const msg = `Failed to load copy operations: ${String(e)}`;
+        copyEditorStore.error = msg;
+        notice.error(msg);
     }
 }
 
@@ -149,18 +162,18 @@ export async function CopyConfig_Save(): Promise<void> {
         copyEditorStore.fileExists = true;
         copyEditorStore.dirty = false;
         copyEditorStore.error = "";
-        copyEditorStore.status = `Saved to ${copyEditorStore.path}`;
+        copyEditorStore.status = "";
         writeCache(copyEditorStore.config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
+        notice.success(`Saved to<br/>${copyEditorStore.path}`);
     } catch (e) {
-        copyEditorStore.error = `Failed to save copy.json: ${String(e)}`;
+        const msg = `Failed to save copy.json: ${String(e)}`;
+        copyEditorStore.error = msg;
+        notice.error(msg);
     }
 }
 
 export async function CopyConfig_Apply(): Promise<void> {
     await CopyConfig_Save();
-    if (!copyEditorStore.error) {
-        copyEditorStore.status = `Applied — saved to ${copyEditorStore.path}`;
-    }
 }
 
 export function CopyConfig_ResetToDefaults() {
@@ -171,7 +184,9 @@ export function CopyConfig_ResetToDefaults() {
     copyEditorStore.config = config;
     copyEditorStore.source = "default";
     syncDirty(copyEditorStore);
-    copyEditorStore.status = "Reset to default copy operations";
+    copyEditorStore.status = "";
+    copyEditorStore.error = "";
+    notice.info("Reset to default copy operations");
 }
 
 /** Open File Explorer with copy.json selected, or warn if it was never saved. */
@@ -199,10 +214,13 @@ export async function CopyConfig_Import(): Promise<void> {
         CopyConfig_Set(config, "import", pick.path, false);
         copyEditorStore.baseline = buildCopyFileText(config);
         copyEditorStore.dirty = false;
-        copyEditorStore.status = `Imported from ${pick.path}`;
+        copyEditorStore.status = "";
         writeCache(config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
+        notice.success(`Imported from<br/>${pick.path}`);
     } catch (e) {
-        copyEditorStore.error = `Failed to import: ${String(e)}`;
+        const msg = `Failed to import: ${String(e)}`;
+        copyEditorStore.error = msg;
+        notice.error(msg);
     }
 }
 
@@ -215,9 +233,12 @@ export async function CopyConfig_Export(): Promise<void> {
         }
         const text = buildCopyFileText(copyEditorStore.config);
         await copyOpsBus.writeTextFile(pick.path, text);
-        copyEditorStore.status = `Exported to ${pick.path}`;
+        copyEditorStore.status = "";
         copyEditorStore.error = "";
+        notice.success(`Exported to<br/>${pick.path}`);
     } catch (e) {
-        copyEditorStore.error = `Failed to export: ${String(e)}`;
+        const msg = `Failed to export: ${String(e)}`;
+        copyEditorStore.error = msg;
+        notice.error(msg);
     }
 }

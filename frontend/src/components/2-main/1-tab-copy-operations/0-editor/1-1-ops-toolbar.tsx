@@ -13,12 +13,13 @@ import {
     CopyConfig_ResetToDefaults,
     CopyConfig_RevealInExplorer,
 } from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
+import { sourceFileBaseName } from "@/components/2-main/1-tab-copy-operations/a-atoms/9-types-copy";
 
 export function CopyOperationsToolbar() {
     return (
         <div className="bg-app-background/10">
             <div className="mx-1 px-2 py-1.5 h-9 bg-background border rounded flex items-center gap-2">
-                <StatusMessage />
+                <CurrentFileInfo />
 
                 <div className="ml-auto flex items-center gap-2">
                     <ChangedBadge />
@@ -29,44 +30,49 @@ export function CopyOperationsToolbar() {
     );
 }
 
-function StatusMessage() {
-    const { status, error, path } = useSnapshot(copyEditorStore);
-    const message = error || status;
+function CurrentFileInfo() {
+    const { error, path } = useSnapshot(copyEditorStore);
+    const shortName = path ? sourceFileBaseName(path) : "";
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <button
-                        type="button"
-                        className={cn(
-                            "size-5 border rounded-full inline-flex items-center justify-center",
-                            error
-                                ? "text-destructive border-destructive/70 bg-destructive/15"
-                                : "text-muted-foreground border-border bg-muted",
-                        )}
-                        aria-label="Status"
-                    >
-                        {error
-                            ? <AlertTriangle className="size-3" />
-                            : <Info className="size-3" />
-                        }
-                    </button>
-                </TooltipTrigger>
-
-                <TooltipContent side="bottom" className="max-w-80">
-                    <div className="flex flex-col gap-1">
-                        {message && <p>{message}</p>}
-                        <p>
-                            {path
-                                ? `File: ${path}`
-                                : "Edit copy operations and create copy.json"
+        <div className="min-w-0 flex items-center gap-2">
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <button
+                            type="button"
+                            className={cn(
+                                "size-5 shrink-0 border rounded-full inline-flex items-center justify-center",
+                                error
+                                    ? "text-destructive border-destructive/70 bg-destructive/15"
+                                    : "text-muted-foreground border-border bg-muted",
+                            )}
+                            aria-label={path ? `Working file: ${path}` : "No file loaded"}
+                        >
+                            {error
+                                ? <AlertTriangle className="size-3" />
+                                : <Info className="size-3" />
                             }
-                        </p>
-                    </div>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                        </button>
+                    </TooltipTrigger>
+
+                    <TooltipContent side="bottom" className="max-w-80">
+                        <div className="flex flex-col gap-1">
+                            {error && <p>{error}</p>}
+                            <p>
+                                {path || "Edit copy operations and create copy.json"}
+                            </p>
+                        </div>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+
+            {shortName && (
+                <span className="text-xs text-muted-foreground truncate" title={path}>
+                    {shortName}
+                </span>
+            )}
+        </div>
     );
 }
 
@@ -114,7 +120,7 @@ function ActionsMenu() {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onSelect={() => CopyConfig_Load()} title="Reload from copy.json">
+                <DropdownMenuItem onSelect={() => CopyConfig_Load({ notify: true })} title="Reload from copy.json">
                     Reload
                 </DropdownMenuItem>
 

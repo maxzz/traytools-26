@@ -4,6 +4,7 @@ import { copyOpsBus, onWailsEvent, COPY_OPS_EVENTS, settingsBus, type CopyItemSt
 import { confirmElevationRestartMessages } from "@/components/4-dialogs/8-1-confirmation/8-confirmation-ui-messages";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { type CopyGroup, type CopyOpItem, itemLabel } from "./9-types-copy";
 import { copyEditorStore } from "./0-copy-local-storage";
 
@@ -87,7 +88,7 @@ function removeJob(uid: string): void {
 function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: boolean, label: string): void {
     void (async () => {
         if (items.length === 0) {
-            copyEditorStore.status = "Nothing to copy";
+            notice.warning("Nothing to copy");
             return;
         }
 
