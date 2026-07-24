@@ -1,7 +1,11 @@
-import { type CopyConfig, type CopyEditorStore, type CopyGroup, type CopyOpItem } from "./9-types-copy";
+import { type CopyConfig, type CopyEditorStore, type CopyGroup, type CopyOpItem, sourceFileBaseName } from "./9-types-copy";
 
 export function buildCopyFileText(config: CopyConfig): string {
     return normalizeFileText(JSON.stringify(config, jsonReplacer, 4));
+}
+
+function isCopyOpItem(obj: CopyGroup | CopyOpItem): obj is CopyOpItem {
+    return "sourceFile" in obj;
 }
 
 function jsonReplacer(this: CopyGroup | CopyOpItem, key: string, value: unknown): unknown {
@@ -10,6 +14,14 @@ function jsonReplacer(this: CopyGroup | CopyOpItem, key: string, value: unknown)
     }
     if (key === "stopDpAgent" || key === "requireElevated") {
         return value === true ? true : undefined;
+    }
+    // Item operation names are optional: persist only when customized.
+    if (key === "name" && isCopyOpItem(this)) {
+        const custom = typeof value === "string" ? value.trim() : "";
+        if (!custom || custom === sourceFileBaseName(this.sourceFile)) {
+            return undefined;
+        }
+        return custom;
     }
     if (key === "sourceFile" || key === "destFolder" || key === "name") {
         return typeof value === "string" ? value : value;
@@ -61,6 +73,12 @@ export function parseCopyJson(text: string): CopyConfig {
             }
             item.sourceFile = typeof item.sourceFile === "string" ? item.sourceFile : "";
             item.destFolder = typeof item.destFolder === "string" ? item.destFolder : "";
+            const name = typeof item.name === "string" ? item.name.trim() : "";
+            if (name && name !== sourceFileBaseName(item.sourceFile)) {
+                item.name = name;
+            } else {
+                delete item.name;
+            }
         }
     }
     return config;

@@ -18,6 +18,7 @@ type SnapGroup = {
 type SnapItem = {
     readonly sourceFile: string;
     readonly destFolder: string;
+    readonly name?: string;
     readonly uid?: string;
 };
 

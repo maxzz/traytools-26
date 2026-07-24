@@ -4,6 +4,8 @@
 export type CopyOpItem = {
     sourceFile: string;
     destFolder: string;
+    /** Display name; omitted from copy.json when empty or equal to the source basename. */
+    name?: string;
     stopDpAgent?: boolean;
     requireElevated?: boolean;
     // Runtime-only identity for selection / DnD; stripped on serialize.
@@ -215,11 +217,19 @@ export function parseCopySelectionPath(value: unknown): CopySelectionPath | null
     return null;
 }
 
-export function itemLabel(item: Pick<CopyOpItem, "sourceFile">): string {
-    const src = item.sourceFile.trim();
+export function sourceFileBaseName(sourceFile: string): string {
+    const src = sourceFile.trim();
     if (!src) {
-        return "(no source)";
+        return "";
     }
     const parts = src.replace(/\//g, "\\").split("\\");
     return parts[parts.length - 1] || src;
+}
+
+export function itemLabel(item: Pick<CopyOpItem, "sourceFile" | "name">): string {
+    const custom = item.name?.trim();
+    if (custom) {
+        return custom;
+    }
+    return sourceFileBaseName(item.sourceFile) || "(no source)";
 }

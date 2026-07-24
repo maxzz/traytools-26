@@ -5,7 +5,7 @@ import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Button } from "@/ui/shadcn/button";
-import { type CopyGroup, type CopyOpItem } from "../a-atoms/9-types-copy";
+import { type CopyGroup, type CopyOpItem, sourceFileBaseName } from "../a-atoms/9-types-copy";
 import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
@@ -89,6 +89,31 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
         />
 
         <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
+
+        <LabelAndField label="Operation name">
+            <Input
+                className="h-7"
+                value={item.name ?? sourceFileBaseName(item.sourceFile)}
+                onChange={(e) => {
+                    const next = e.target.value;
+                    patchSelectedItem((it) => {
+                        const base = sourceFileBaseName(it.sourceFile);
+                        if (next === base) {
+                            delete it.name;
+                        } else {
+                            it.name = next;
+                        }
+                    });
+                }}
+                onBlur={() => {
+                    if (!item.name?.trim()) {
+                        patchSelectedItem((it) => { delete it.name; });
+                    }
+                }}
+                placeholder={sourceFileBaseName(item.sourceFile) || "Operation name"}
+                {...turnOffAutoComplete}
+            />
+        </LabelAndField>
     </>);
 }
 
