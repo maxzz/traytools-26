@@ -111,7 +111,7 @@ export function createGroup(): CopyGroup {
     return {
         uid: newUid(),
         name: "New Group",
-        items: [],
+        items: [createItem()],
         stopDpAgent: false,
         requireElevated: false,
         renameLocked: false,

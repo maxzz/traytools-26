@@ -57,7 +57,7 @@ export function addNode(kind: AddCopyKind): void {
 function ensureGroupThenPush(config: CopyConfig, item: CopyOpItem): void {
     if (config.groups.length === 0) {
         const group = createGroup();
-        group.items.push(item);
+        group.items = [item];
         config.groups.push(group);
         return;
     }
@@ -116,7 +116,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         const [moved] = drag.group.items.splice(drag.index, 1);
         if (config.groups.length === 0) {
             const g = createGroup();
-            g.items.push(moved);
+            g.items = [moved];
             config.groups.push(g);
         } else {
             config.groups[config.groups.length - 1].items.push(moved);
