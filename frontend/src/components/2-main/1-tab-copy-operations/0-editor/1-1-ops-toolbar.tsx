@@ -4,14 +4,30 @@ import { AlertTriangle, Info, Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
 import { copyEditorStore, CopyConfig_Apply, CopyConfig_CreateNew, CopyConfig_Export, CopyConfig_Import, CopyConfig_Load, CopyConfig_RevealInExplorer } from "../a-atoms/0-copy-local-storage";
 import { sourceFileBaseName } from "../a-atoms/9-types-copy";
 
 export function CopyOperationsToolbar() {
+    const saveNotice = useSaveNotice();
+
+    useCtrlSSave(
+        async () => {
+            if (!copyEditorStore.dirty) {
+                saveNotice.show("no changes to save");
+                return;
+            }
+            await CopyConfig_Apply();
+            if (!copyEditorStore.dirty && !copyEditorStore.error) {
+                saveNotice.show("saved");
+            }
+        },
+    );
+
     return (
         <div className="bg-app-background/10">
             <div className="mx-1 px-2 py-1.5 h-9 bg-background border rounded flex items-center gap-2">
-                <CurrentFileInfo />
+                <CurrentFileInfo saveNotice={saveNotice.message} />
 
                 <div className="ml-auto flex items-center gap-2">
                     <ChangedBadge />
@@ -22,7 +38,7 @@ export function CopyOperationsToolbar() {
     );
 }
 
-function CurrentFileInfo() {
+function CurrentFileInfo({ saveNotice }: { saveNotice: string; }) {
     const snap = useSnapshot(copyEditorStore);
     const { error } = snap;
     const working = workingFileCaption(snap);
@@ -61,6 +77,19 @@ function CurrentFileInfo() {
             <span className="text-xs text-muted-foreground truncate" title={working.detail}>
                 {working.label}
             </span>
+
+            {saveNotice && (
+                <span
+                    className={cn(
+                        "text-xs shrink-0",
+                        saveNotice === "saved"
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-muted-foreground",
+                    )}
+                >
+                    {saveNotice}
+                </span>
+            )}
         </div>
     );
 }

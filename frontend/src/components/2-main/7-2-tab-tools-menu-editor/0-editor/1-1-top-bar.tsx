@@ -4,6 +4,7 @@ import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
 import {
     toolsEditorStore,
     ToolsConfig_Apply,
@@ -13,10 +14,25 @@ import {
 } from "../a-atoms/0-menu-local-storage";
 
 export function TopBar() {
+    const saveNotice = useSaveNotice();
+
+    useCtrlSSave(
+        async () => {
+            if (!toolsEditorStore.dirty) {
+                saveNotice.show("no changes to save");
+                return;
+            }
+            await ToolsConfig_Apply();
+            if (!toolsEditorStore.dirty && !toolsEditorStore.error) {
+                saveNotice.show("saved");
+            }
+        },
+    );
+
     return (
         <div className="bg-app-background/10">
             <div className="mx-1 px-2 py-1.5 h-9 bg-background border rounded flex items-center gap-2">
-                <StatusMessage />
+                <StatusMessage saveNotice={saveNotice.message} />
 
                 <div className="ml-auto flex items-center gap-2">
                     <DirtyStatusBadge />
@@ -27,44 +43,62 @@ export function TopBar() {
     );
 }
 
-function StatusMessage() {
-    const { status, error, path } = useSnapshot(toolsEditorStore);
+function StatusMessage({ saveNotice }: { saveNotice: string; }) {
+    const { status, error, path, fileExists } = useSnapshot(toolsEditorStore);
     const message = error || status;
+    const fileLabel = path
+        ? path.replace(/\//g, "\\").split("\\").pop() || path
+        : (fileExists ? "tools.json" : "Local storage");
+    const fileDetail = path || "Edit the Tools menu and create tools.json";
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <button
-                        type="button"
-                        className={cn(
-                            "size-5 border rounded-full inline-flex items-center justify-center",
-                            error
-                                ? "text-destructive border-destructive/70 bg-destructive/15"
-                                : "text-muted-foreground border-border bg-muted",
-                        )}
-                        aria-label="Status"
-                    >
-                        {error
-                            ? <AlertTriangle className="size-3" />
-                            : <Info className="size-3" />
-                        }
-                    </button>
-                </TooltipTrigger>
-
-                <TooltipContent side="bottom" className="max-w-80">
-                    <div className="flex flex-col gap-1">
-                        {message && <p>{message}</p>}
-                        <p>
-                            {path
-                                ? `File: ${path}`
-                                : "Edit the Tools menu and create tools.json"
+        <div className="min-w-0 flex items-center gap-2">
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <button
+                            type="button"
+                            className={cn(
+                                "size-5 shrink-0 border rounded-full inline-flex items-center justify-center",
+                                error
+                                    ? "text-destructive border-destructive/70 bg-destructive/15"
+                                    : "text-muted-foreground border-border bg-muted",
+                            )}
+                            aria-label="Status"
+                        >
+                            {error
+                                ? <AlertTriangle className="size-3" />
+                                : <Info className="size-3" />
                             }
-                        </p>
-                    </div>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                        </button>
+                    </TooltipTrigger>
+
+                    <TooltipContent side="bottom" className="max-w-80">
+                        <div className="flex flex-col gap-1">
+                            {message && <p>{message}</p>}
+                            <p>{fileDetail}</p>
+                        </div>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+
+            <span className="text-xs text-muted-foreground truncate" title={fileDetail}>
+                {fileLabel}
+            </span>
+
+            {saveNotice && (
+                <span
+                    className={cn(
+                        "text-xs shrink-0",
+                        saveNotice === "saved"
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-muted-foreground",
+                    )}
+                >
+                    {saveNotice}
+                </span>
+            )}
+        </div>
     );
 }
 
