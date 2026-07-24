@@ -158,10 +158,14 @@ function OperationNameField({ item }: { item: CopyOpItem; }) {
 }
 
 function LabelAndField({ label, children }: { label: string; children: ReactNode; }) {
+    // Keep Label and Input as siblings — Label's select-none must not wrap the input
+    // or caret placement breaks when typing at the start of the value.
     return (
-        <Label className="mt-1 text-xs font-normal text-muted-foreground whitespace-nowrap flex flex-col items-start gap-1">
-            {label}
+        <div className="mt-1 flex flex-col items-start gap-1">
+            <Label className="text-xs font-normal text-muted-foreground whitespace-nowrap">
+                {label}
+            </Label>
             {children}
-        </Label>
+        </div>
     );
 }
