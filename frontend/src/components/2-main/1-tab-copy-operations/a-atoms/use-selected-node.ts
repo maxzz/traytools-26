@@ -11,18 +11,20 @@ export type SelectedCopyNode =
 export function useSelectedNode(): SelectedCopyNode | null {
     // sync: true — controlled inputs (group/operation name, paths) keep caret position.
     // Without it, Valtio batches the update into a later microtask and React resets the caret.
-    const snap = useSnapshot(copyEditorStore, { sync: true });
-    const uid = snap.selectedUid;
+    const { selectedUid, config } = useSnapshot(copyEditorStore, { sync: true });
+    const uid = selectedUid;
     if (!uid) {
         return null;
     }
+
     if (isRootUid(uid)) {
         return { kind: "root", uid };
     }
-    const loc = findByUid(snap.config as unknown as typeof copyEditorStore.config, uid);
+    const loc = findByUid(config as unknown as typeof copyEditorStore.config, uid);
     if (!loc) {
         return null;
     }
+
     if (loc.kind === "group") {
         return { kind: "group", uid, group: loc.group as CopyGroup };
     }
@@ -38,6 +40,7 @@ export function patchSelectedGroup(fn: (group: CopyGroup) => void) {
     if (!uid || isRootUid(uid)) {
         return;
     }
+    
     const loc = findByUid(copyEditorStore.config, uid);
     if (loc?.kind === "group") {
         fn(loc.group);
