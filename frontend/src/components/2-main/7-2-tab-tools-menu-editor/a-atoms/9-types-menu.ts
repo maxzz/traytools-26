@@ -136,7 +136,8 @@ export function createNode(kind: AddNodeKind): ToolMenuItem {
 
 /** Deep-clone a menu node (and nested menuItems) with fresh runtime uids. */
 export function cloneMenuNode(node: ToolMenuItem): ToolMenuItem {
-    const clone = structuredClone(node);
+    // JSON round-trip: structuredClone cannot clone valtio proxies.
+    const clone = JSON.parse(JSON.stringify(node)) as ToolMenuItem;
     reassignUids(clone);
     return clone;
 }

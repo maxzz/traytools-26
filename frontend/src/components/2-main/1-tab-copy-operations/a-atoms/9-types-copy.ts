@@ -131,15 +131,17 @@ export function createItem(): CopyOpItem {
 
 /** Deep-clone a group (and its items) with fresh runtime uids. */
 export function cloneGroup(group: CopyGroup): CopyGroup {
-    const clone = structuredClone(group);
+    // JSON round-trip: structuredClone cannot clone valtio proxies.
+    const clone = JSON.parse(JSON.stringify(group)) as CopyGroup;
     clone.uid = newUid();
-    clone.items = clone.items.map(cloneItem);
+    clone.items = (clone.items ?? []).map(cloneItem);
     return clone;
 }
 
 /** Deep-clone a copy item with a fresh runtime uid. */
 export function cloneItem(item: CopyOpItem): CopyOpItem {
-    const clone = structuredClone(item);
+    // JSON round-trip: structuredClone cannot clone valtio proxies.
+    const clone = JSON.parse(JSON.stringify(item)) as CopyOpItem;
     clone.uid = newUid();
     return clone;
 }
