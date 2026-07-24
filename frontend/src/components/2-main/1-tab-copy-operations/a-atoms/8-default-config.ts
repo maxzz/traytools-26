@@ -6,12 +6,14 @@ export const DEFAULT_COPY_CONFIG: CopyConfig = {
             name: "Example",
             stopDpAgent: true,
             requireElevated: false,
+            renameLocked: false,
             items: [
                 {
                     sourceFile: "",
                     destFolder: "",
                     stopDpAgent: false,
                     requireElevated: false,
+                    renameLocked: false,
                 },
             ],
         },

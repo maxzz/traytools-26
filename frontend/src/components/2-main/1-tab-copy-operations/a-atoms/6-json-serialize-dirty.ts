@@ -12,7 +12,7 @@ function jsonReplacer(this: CopyGroup | CopyOpItem, key: string, value: unknown)
     if (key === "uid") {
         return undefined;
     }
-    if (key === "stopDpAgent" || key === "requireElevated") {
+    if (key === "stopDpAgent" || key === "requireElevated" || key === "renameLocked") {
         return value === true ? true : undefined;
     }
     // Item operation names are optional: persist only when customized.

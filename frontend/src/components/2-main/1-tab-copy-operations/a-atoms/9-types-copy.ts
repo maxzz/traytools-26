@@ -8,6 +8,8 @@ export type CopyOpItem = {
     name?: string;
     stopDpAgent?: boolean;
     requireElevated?: boolean;
+    /** On Access Denied, rename locked dest to name_locked_N.ext and retry. */
+    renameLocked?: boolean;
     // Runtime-only identity for selection / DnD; stripped on serialize.
     uid?: string;
 };
@@ -16,6 +18,8 @@ export type CopyGroup = {
     name: string;
     stopDpAgent?: boolean;
     requireElevated?: boolean;
+    /** On Access Denied, rename locked dest to name_locked_N.ext and retry. */
+    renameLocked?: boolean;
     items: CopyOpItem[];
     uid?: string;
 };
@@ -104,7 +108,14 @@ export function ensureUids(config: CopyConfig, rootUidHolder: { rootUid: string;
 }
 
 export function createGroup(): CopyGroup {
-    return { uid: newUid(), name: "New Group", items: [], stopDpAgent: false, requireElevated: false };
+    return {
+        uid: newUid(),
+        name: "New Group",
+        items: [],
+        stopDpAgent: false,
+        requireElevated: false,
+        renameLocked: false,
+    };
 }
 
 export function createItem(): CopyOpItem {
@@ -114,6 +125,7 @@ export function createItem(): CopyOpItem {
         destFolder: "",
         stopDpAgent: false,
         requireElevated: false,
+        renameLocked: false,
     };
 }
 

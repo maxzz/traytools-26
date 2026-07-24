@@ -11,8 +11,10 @@ import { copyEditorStore } from "./0-copy-local-storage";
 export type CopyProgressRow = {
     sourceFile: string;
     destFolder: string;
-    status: "pending" | "skipped" | "copied" | "failed";
+    status: "pending" | "skipped" | "copied" | "failed" | "renamed";
     error?: string;
+    /** Basename (or path) the locked destination was renamed to. */
+    lockedRenamedTo?: string;
 };
 
 export type CopyJobReport = {
@@ -85,7 +87,13 @@ function removeJob(uid: string): void {
     copyReportStore.jobs = copyReportStore.jobs.filter((job) => job.uid !== uid);
 }
 
-function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: boolean, label: string): void {
+function runBatch(
+    items: CopyOpItem[],
+    stopDpAgent: boolean,
+    requireElevated: boolean,
+    renameLocked: boolean,
+    label: string,
+): void {
     void (async () => {
         if (items.length === 0) {
             notice.warning("Nothing to copy");
@@ -130,11 +138,14 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
                 return;
             }
             if (live.rows[ev.index]) {
+                const prev = live.rows[ev.index];
                 live.rows[ev.index] = {
                     sourceFile: ev.sourceFile,
                     destFolder: ev.destFolder,
                     status: ev.status,
                     error: ev.error,
+                    // Keep rename info across the follow-up copied/failed event.
+                    lockedRenamedTo: ev.lockedRenamedTo ?? prev.lockedRenamedTo,
                 };
             }
             live.jobId = jobId;
@@ -155,7 +166,7 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
             }
             if (ev.error) {
                 live.rows = live.rows.map((row) =>
-                    row.status === "pending"
+                    row.status === "pending" || row.status === "renamed"
                         ? { ...row, status: "failed" as const, error: ev.error }
                         : row,
                 );
@@ -169,6 +180,7 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
             const res = await copyOpsBus.copyBatch({
                 stopDpAgent,
                 requireElevated,
+                renameLocked,
                 items: items.map((item) => ({
                     sourceFile: item.sourceFile,
                     destFolder: item.destFolder,
@@ -214,10 +226,22 @@ function runBatch(items: CopyOpItem[], stopDpAgent: boolean, requireElevated: bo
 
 /** Copy all items in a group using the group's flags. */
 export function runCopyGroup(group: CopyGroup): void {
-    runBatch(group.items, !!group.stopDpAgent, !!group.requireElevated, group.name || "Group");
+    runBatch(
+        group.items,
+        !!group.stopDpAgent,
+        !!group.requireElevated,
+        !!group.renameLocked,
+        group.name || "Group",
+    );
 }
 
 /** Copy a single item using the item's own flags. */
 export function runCopyItem(item: CopyOpItem): void {
-    runBatch([item], !!item.stopDpAgent, !!item.requireElevated, itemLabel(item));
+    runBatch(
+        [item],
+        !!item.stopDpAgent,
+        !!item.requireElevated,
+        !!item.renameLocked,
+        itemLabel(item),
+    );
 }

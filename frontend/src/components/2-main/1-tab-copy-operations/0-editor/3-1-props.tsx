@@ -95,11 +95,11 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
     </>);
 }
 
-type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated">;
+type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated" | "renameLocked">;
 
 function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: (target: CopyRunFlags) => void) => void; }) {
     return (
-        <div className="flex items-center gap-x-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <FlagSwitch
                 label="Stop DpAgent before copy"
                 hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
@@ -112,6 +112,13 @@ function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: 
                 hint="Use when destinations include protected folders such as Program Files."
                 checked={!!flags.requireElevated}
                 onCheckedChange={(v) => onPatch((t) => { t.requireElevated = v; })}
+            />
+
+            <FlagSwitch
+                label="Rename locked destination"
+                hint="If copy fails with Access Denied, rename the locked destination to name_locked_N.ext and retry the copy."
+                checked={!!flags.renameLocked}
+                onCheckedChange={(v) => onPatch((t) => { t.renameLocked = v; })}
             />
         </div>
     );

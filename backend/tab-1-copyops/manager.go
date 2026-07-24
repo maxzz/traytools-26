@@ -232,22 +232,55 @@ func (m *Manager) runCopyBatch(jobID string, req CopyBatchRequest) {
 	}
 
 	for i, item := range req.Items {
-		status, err := copyOneFile(item.SourceFile, item.DestFolder)
-		ev := ItemStatusEvent{
-			JobID:      jobID,
-			Index:      i,
-			SourceFile: item.SourceFile,
-			DestFolder: item.DestFolder,
-			Status:     status,
-		}
+		m.copyOneItem(jobID, i, item, req.RenameLocked)
+	}
+
+	m.emitJobDone(jobID, "")
+}
+
+func (m *Manager) copyOneItem(jobID string, index int, item CopyItemSpec, renameLocked bool) {
+	base := ItemStatusEvent{
+		JobID:      jobID,
+		Index:      index,
+		SourceFile: item.SourceFile,
+		DestFolder: item.DestFolder,
+	}
+
+	status, err := copyOneFile(item.SourceFile, item.DestFolder)
+	if err == nil || !renameLocked || !isAccessDenied(err) {
+		ev := base
+		ev.Status = status
 		if err != nil {
 			ev.Status = StatusFailed
 			ev.Error = err.Error()
 		}
 		m.emitItemStatus(ev)
+		return
 	}
 
-	m.emitJobDone(jobID, "")
+	renamedTo, renameErr := renameLockedDestination(item.SourceFile, item.DestFolder)
+	if renameErr != nil {
+		ev := base
+		ev.Status = StatusFailed
+		ev.Error = fmt.Sprintf("%v (rename locked dest failed: %v)", err, renameErr)
+		m.emitItemStatus(ev)
+		return
+	}
+
+	renamedEv := base
+	renamedEv.Status = StatusRenamed
+	renamedEv.LockedRenamedTo = renamedTo
+	m.emitItemStatus(renamedEv)
+
+	status, err = copyOneFile(item.SourceFile, item.DestFolder)
+	final := base
+	final.LockedRenamedTo = renamedTo
+	final.Status = status
+	if err != nil {
+		final.Status = StatusFailed
+		final.Error = err.Error()
+	}
+	m.emitItemStatus(final)
 }
 
 func (m *Manager) emitItemStatus(ev ItemStatusEvent) {

@@ -7,7 +7,7 @@ import { Button } from "@/ui/shadcn/button";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { type CopyJobReport, type CopyProgressRow, clearCopyReportMessages, copyReportStore } from "../a-atoms/2-run-copy";
-import { itemLabel } from "../a-atoms/9-types-copy";
+import { itemLabel, sourceFileBaseName } from "../a-atoms/9-types-copy";
 
 export function CopyReportPanel() {
     const { jobs } = useSnapshot(copyReportStore);
@@ -113,6 +113,10 @@ function JobGroupHeader({ job }: { job: CopyJobReport; }) {
 
 function ReportRow({ row }: { row: CopyProgressRow; }) {
     const name = itemLabel({ sourceFile: row.sourceFile });
+    const lockedName = row.lockedRenamedTo ? sourceFileBaseName(row.lockedRenamedTo) : "";
+    const destTitle = lockedName
+        ? `${row.destFolder || "No destination folder"}\nLocked file renamed to ${lockedName}`
+        : (row.destFolder || "No destination folder");
     return (<>
         <OperationStatus row={row} />
 
@@ -120,8 +124,14 @@ function ReportRow({ row }: { row: CopyProgressRow; }) {
             {name}
         </span>
 
-        <span className="text-muted-foreground truncate" title={row.destFolder}>
+        <span className="text-muted-foreground truncate" title={destTitle}>
             {row.destFolder || "No destination folder"}
+            {lockedName && (
+                <span className="text-amber-600/90 dark:text-amber-400/80">
+                    {" · locked → "}
+                    {lockedName}
+                </span>
+            )}
         </span>
     </>);
 }
@@ -131,6 +141,15 @@ function OperationStatus({ row }: { row: CopyProgressRow; }) {
         return (
             <span className="min-w-20 text-sky-600 dark:text-sky-400 inline-flex items-center gap-1 justify-end">
                 pending
+                <Loader2 className="size-3.5 animate-spin" />
+            </span>
+        );
+    }
+
+    if (row.status === "renamed") {
+        return (
+            <span className="min-w-20 text-amber-600 dark:text-amber-400 inline-flex items-center gap-1 justify-end">
+                renamed
                 <Loader2 className="size-3.5 animate-spin" />
             </span>
         );

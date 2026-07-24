@@ -26,6 +26,7 @@ export type CopyBatchItem = {
 export type CopyBatchRequest = {
     stopDpAgent: boolean;
     requireElevated: boolean;
+    renameLocked: boolean;
     items: CopyBatchItem[];
 };
 
@@ -35,7 +36,7 @@ export type CopyBatchResponse = {
     error?: string;
 };
 
-export type CopyItemStatus = "pending" | "skipped" | "copied" | "failed";
+export type CopyItemStatus = "pending" | "skipped" | "copied" | "failed" | "renamed";
 
 export type CopyItemStatusEvent = {
     jobId: string;
@@ -44,6 +45,8 @@ export type CopyItemStatusEvent = {
     destFolder: string;
     status: Exclude<CopyItemStatus, "pending">;
     error?: string;
+    /** Basename (or path) the locked destination was renamed to. */
+    lockedRenamedTo?: string;
 };
 
 export type CopyJobDoneEvent = {
