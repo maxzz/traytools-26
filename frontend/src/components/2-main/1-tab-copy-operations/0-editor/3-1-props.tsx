@@ -99,8 +99,7 @@ function OperationNameField({ item }: { item: CopyOpItem; }) {
     const baseName = sourceFileBaseName(item.sourceFile);
 
     return (
-        <Label className="mt-1 text-xs font-normal text-muted-foreground whitespace-nowrap flex flex-col items-start gap-1">
-            Operation name
+        <LabelAndField label="Operation name">
             <Input
                 className="h-7"
                 value={item.name ?? baseName}
@@ -123,7 +122,7 @@ function OperationNameField({ item }: { item: CopyOpItem; }) {
                 placeholder={baseName || "Operation name"}
                 {...turnOffAutoComplete}
             />
-        </Label>
+        </LabelAndField>
     );
 }
 
