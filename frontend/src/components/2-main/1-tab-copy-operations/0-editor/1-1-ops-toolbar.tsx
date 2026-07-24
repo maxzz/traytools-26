@@ -1,19 +1,11 @@
 import { useSnapshot } from "valtio";
-import { AlertTriangle, Info, Menu } from "lucide-react";
 import { cn } from "@/utils/classnames";
+import { AlertTriangle, Info, Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import {
-    copyEditorStore,
-    CopyConfig_Apply,
-    CopyConfig_CreateNew,
-    CopyConfig_Export,
-    CopyConfig_Import,
-    CopyConfig_Load,
-    CopyConfig_RevealInExplorer,
-} from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
-import { sourceFileBaseName } from "@/components/2-main/1-tab-copy-operations/a-atoms/9-types-copy";
+import { copyEditorStore, CopyConfig_Apply, CopyConfig_CreateNew, CopyConfig_Export, CopyConfig_Import, CopyConfig_Load, CopyConfig_RevealInExplorer } from "../a-atoms/0-copy-local-storage";
+import { sourceFileBaseName } from "../a-atoms/9-types-copy";
 
 export function CopyOperationsToolbar() {
     return (
@@ -153,21 +145,17 @@ function ActionsMenu() {
 
             <DropdownMenuContent align="end">
                 <DropdownMenuItem
+                    title={canSave ? "Save copy.json" : "Nothing to save"}
                     disabled={!canSave}
                     onSelect={() => canSave && CopyConfig_Apply()}
-                    title={canSave ? "Save copy.json" : "Nothing to save"}
                 >
                     Save
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
+                    title={canReveal ? "Show working file in File Explorer" : "No file on disk yet — save copy.json first"}
                     disabled={!canReveal}
                     onSelect={() => canReveal && void CopyConfig_RevealInExplorer()}
-                    title={
-                        canReveal
-                            ? "Show working file in File Explorer"
-                            : "No file on disk yet — save copy.json first"
-                    }
                 >
                     Reveal in File Explorer
                 </DropdownMenuItem>
@@ -175,13 +163,9 @@ function ActionsMenu() {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
+                    title={alreadyNew ? "Already editing a new unsaved configuration" : "Start a new configuration (local storage until Save)"}
                     disabled={alreadyNew}
                     onSelect={() => !alreadyNew && CopyConfig_CreateNew()}
-                    title={
-                        alreadyNew
-                            ? "Already editing a new unsaved configuration"
-                            : "Start a new configuration (local storage until Save)"
-                    }
                 >
                     Create new…
                 </DropdownMenuItem>
@@ -197,13 +181,9 @@ function ActionsMenu() {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
+                    title={canReload ? "Reload from copy.json" : "No copy.json on disk yet — nothing to reload"}
                     disabled={!canReload}
                     onSelect={() => canReload && CopyConfig_Load({ notify: true })}
-                    title={
-                        canReload
-                            ? "Reload from copy.json"
-                            : "No copy.json on disk yet — nothing to reload"
-                    }
                 >
                     Reload
                 </DropdownMenuItem>
