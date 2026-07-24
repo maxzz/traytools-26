@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
 import { useSnapshot } from "valtio";
-import { AlertCircle, Check, Loader2 } from "lucide-react";
+import { AlertCircle, Check, Info, Loader2 } from "lucide-react";
 import { IconTrash24 } from "@/ui/icons/normal";
 import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
@@ -159,7 +159,19 @@ function OperationStatus({ row }: { row: CopyProgressRow; }) {
         return (
             <span className="min-w-20 text-orange-500/75 dark:text-yellow-400/50 inline-flex items-center gap-1 justify-end">
                 skipped
-                <div className="size-3.5"></div>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button type="button" className="inline-flex" aria-label="Skip reason">
+                                <Info className="size-3.5" />
+                            </button>
+                        </TooltipTrigger>
+
+                        <TooltipContent side="left" className="max-w-80">
+                            {row.error || SKIPPED_REASON}
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </span>
         );
     }
@@ -194,6 +206,9 @@ function OperationStatus({ row }: { row: CopyProgressRow; }) {
 }
 
 const NEAR_BOTTOM_PX = 48;
+
+const SKIPPED_REASON =
+    "Destination already exists with the same size and modification time as the source.";
 
 function formatJobTime(startedAt: number): string {
     return new Date(startedAt).toLocaleTimeString(undefined, {
