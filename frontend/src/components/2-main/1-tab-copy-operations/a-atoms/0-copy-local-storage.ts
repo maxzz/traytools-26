@@ -186,16 +186,18 @@ export function CopyConfig_CreateNew() {
     notice.info("Created new configuration — local storage only until saved");
 }
 
-/** Open File Explorer with copy.json selected, or warn if it was never saved. */
+/** Open File Explorer with the working file selected, or warn if nothing is on disk yet. */
 export async function CopyConfig_RevealInExplorer(): Promise<void> {
-    if (!copyEditorStore.fileExists || !copyEditorStore.path) {
-        notice.warning("copy.json has not been saved yet. Use Save to create it first.");
+    const { path, fileExists, source } = copyEditorStore;
+    const canReveal = Boolean(path) && (fileExists || source === "import");
+    if (!canReveal) {
+        notice.warning("No file on disk yet. Use Save to create copy.json first.");
         return;
     }
     try {
-        await appBus.revealInExplorer(copyEditorStore.path);
+        await appBus.revealInExplorer(path);
     } catch (e) {
-        notice.error(`Failed to reveal copy.json:<br/>${String(e)}`);
+        notice.error(`Failed to reveal file:<br/>${String(e)}`);
     }
 }
 

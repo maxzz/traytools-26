@@ -132,6 +132,17 @@ function ChangedBadge() {
 }
 
 function ActionsMenu() {
+    const { dirty, fileExists, path, source } = useSnapshot(copyEditorStore);
+
+    // New unsaved config (Create new) — local storage only, no disk file yet.
+    const alreadyNew = source === "default" && !fileExists;
+    // Save: dirty edits, or first persist when nothing is on disk yet (incl. import → managed file).
+    const canSave = dirty || !fileExists;
+    // Reveal: managed copy.json, or the imported source file.
+    const canReveal = Boolean(path) && (fileExists || source === "import");
+    // Reload: anything except a brand-new local-only config (may still hit disk / cache).
+    const canReload = !alreadyNew;
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -141,17 +152,37 @@ function ActionsMenu() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => CopyConfig_Apply()} title="Save copy.json">
+                <DropdownMenuItem
+                    disabled={!canSave}
+                    onSelect={() => canSave && CopyConfig_Apply()}
+                    title={canSave ? "Save copy.json" : "Nothing to save"}
+                >
                     Save
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={() => void CopyConfig_RevealInExplorer()} title="Show copy.json in File Explorer">
+                <DropdownMenuItem
+                    disabled={!canReveal}
+                    onSelect={() => canReveal && void CopyConfig_RevealInExplorer()}
+                    title={
+                        canReveal
+                            ? "Show working file in File Explorer"
+                            : "No file on disk yet — save copy.json first"
+                    }
+                >
                     Reveal in File Explorer
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onSelect={() => CopyConfig_CreateNew()} title="Start a new configuration (local storage until Save)">
+                <DropdownMenuItem
+                    disabled={alreadyNew}
+                    onSelect={() => !alreadyNew && CopyConfig_CreateNew()}
+                    title={
+                        alreadyNew
+                            ? "Already editing a new unsaved configuration"
+                            : "Start a new configuration (local storage until Save)"
+                    }
+                >
                     Create new…
                 </DropdownMenuItem>
 
@@ -165,7 +196,15 @@ function ActionsMenu() {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onSelect={() => CopyConfig_Load({ notify: true })} title="Reload from copy.json">
+                <DropdownMenuItem
+                    disabled={!canReload}
+                    onSelect={() => canReload && CopyConfig_Load({ notify: true })}
+                    title={
+                        canReload
+                            ? "Reload from copy.json"
+                            : "No copy.json on disk yet — nothing to reload"
+                    }
+                >
                     Reload
                 </DropdownMenuItem>
 
