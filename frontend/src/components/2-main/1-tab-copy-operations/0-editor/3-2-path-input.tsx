@@ -217,9 +217,11 @@ export function PathInput({
                     placeholder={kind === "file" ? "C:\\path\\to\\file" : "C:\\path\\to\\folder"}
                     {...turnOffAutoComplete}
                 />
-                <Button type="button" variant="outline" size="icon-xs" title={`Browse ${kind}`} onClick={browse}>
+
+                <Button type="button" variant="outline" size="icon-xs" title={`Open ${kind} for operation`} onClick={browse} tabIndex={-1}>
                     <Icon className="size-3.5 stroke-[1.5px]" />
                 </Button>
+
                 {showReveal && (
                     <Button
                         type="button"
@@ -229,6 +231,7 @@ export function PathInput({
                         aria-label="Reveal in File Explorer"
                         disabled={!canReveal}
                         onClick={reveal}
+                        tabIndex={-1}
                     >
                         <FolderOpen className="size-3.5 stroke-[1.5px]" />
                     </Button>
