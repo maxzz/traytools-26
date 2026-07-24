@@ -7,10 +7,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/s
 import {
     copyEditorStore,
     CopyConfig_Apply,
+    CopyConfig_CreateNew,
     CopyConfig_Export,
     CopyConfig_Import,
     CopyConfig_Load,
-    CopyConfig_ResetToDefaults,
     CopyConfig_RevealInExplorer,
 } from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
 import { sourceFileBaseName } from "@/components/2-main/1-tab-copy-operations/a-atoms/9-types-copy";
@@ -31,8 +31,9 @@ export function CopyOperationsToolbar() {
 }
 
 function CurrentFileInfo() {
-    const { error, path } = useSnapshot(copyEditorStore);
-    const shortName = path ? sourceFileBaseName(path) : "";
+    const snap = useSnapshot(copyEditorStore);
+    const { error } = snap;
+    const working = workingFileCaption(snap);
 
     return (
         <div className="min-w-0 flex items-center gap-2">
@@ -47,7 +48,7 @@ function CurrentFileInfo() {
                                     ? "text-destructive border-destructive/70 bg-destructive/15"
                                     : "text-muted-foreground border-border bg-muted",
                             )}
-                            aria-label={path ? `Working file: ${path}` : "No file loaded"}
+                            aria-label={working.aria}
                         >
                             {error
                                 ? <AlertTriangle className="size-3" />
@@ -59,21 +60,61 @@ function CurrentFileInfo() {
                     <TooltipContent side="bottom" className="max-w-80">
                         <div className="flex flex-col gap-1">
                             {error && <p>{error}</p>}
-                            <p>
-                                {path || "Edit copy operations and create copy.json"}
-                            </p>
+                            <p>{working.detail}</p>
                         </div>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
 
-            {shortName && (
-                <span className="text-xs text-muted-foreground truncate" title={path}>
-                    {shortName}
-                </span>
-            )}
+            <span className="text-xs text-muted-foreground truncate" title={working.detail}>
+                {working.label}
+            </span>
         </div>
     );
+}
+
+function workingFileCaption(snap: {
+    path: string;
+    source: string;
+    fileExists: boolean;
+}): { label: string; detail: string; aria: string; } {
+    const { path, source, fileExists } = snap;
+
+    if (source === "import" && path) {
+        const label = sourceFileBaseName(path);
+        return {
+            label,
+            detail: path,
+            aria: `Imported file: ${path}`,
+        };
+    }
+
+    if (fileExists && path) {
+        const label = sourceFileBaseName(path);
+        return {
+            label,
+            detail: path,
+            aria: `Working file: ${path}`,
+        };
+    }
+
+    if (source === "default") {
+        const detail = "New configuration — stored in local storage until you Save.";
+        return {
+            label: "New (local storage)",
+            detail,
+            aria: detail,
+        };
+    }
+
+    const detail = path
+        ? `No file on disk yet (expected ${path}). Stored in local storage until you Save.`
+        : "Stored in local storage until you Save.";
+    return {
+        label: "Local storage",
+        detail,
+        aria: detail,
+    };
 }
 
 function ChangedBadge() {
@@ -124,8 +165,8 @@ function ActionsMenu() {
                     Reload
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={() => CopyConfig_ResetToDefaults()} title="Restore defaults">
-                    Restore defaults
+                <DropdownMenuItem onSelect={() => CopyConfig_CreateNew()} title="Start a new configuration (local storage until Save)">
+                    Create new…
                 </DropdownMenuItem>
 
             </DropdownMenuContent>

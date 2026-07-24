@@ -176,23 +176,20 @@ export async function CopyConfig_Apply(): Promise<void> {
     await CopyConfig_Save();
 }
 
-export function CopyConfig_ResetToDefaults() {
+/** Start a new config from the default template; kept in local storage until Save. */
+export function CopyConfig_CreateNew() {
     const config = cloneConfig(DEFAULT_COPY_CONFIG);
-    const holder = { rootUid: copyEditorStore.rootUid };
-    ensureUids(config, holder);
-    copyEditorStore.rootUid = holder.rootUid;
-    copyEditorStore.config = config;
-    copyEditorStore.source = "default";
-    syncDirty(copyEditorStore);
+    CopyConfig_Set(config, "default", "", false);
+    copyEditorStore.selectedUid = copyEditorStore.rootUid;
     copyEditorStore.status = "";
-    copyEditorStore.error = "";
-    notice.info("Reset to default copy operations");
+    writeCache(config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
+    notice.info("Created new configuration — local storage only until saved");
 }
 
 /** Open File Explorer with copy.json selected, or warn if it was never saved. */
 export async function CopyConfig_RevealInExplorer(): Promise<void> {
     if (!copyEditorStore.fileExists || !copyEditorStore.path) {
-        notice.warning("copy.json has not been saved yet. Use Apply to create it first.");
+        notice.warning("copy.json has not been saved yet. Use Save to create it first.");
         return;
     }
     try {
