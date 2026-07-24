@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from "react";
 import { cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
-import { FolderOpen, FileIcon } from "lucide-react";
+import { FolderOpen, FileIcon, SquareArrowOutUpRight } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Button } from "@/ui/shadcn/button";
 import { appBus, copyOpsBus } from "@/bridge";
@@ -227,13 +227,17 @@ export function PathInput({
                         type="button"
                         variant="outline"
                         size="icon-xs"
-                        title={canReveal ? "Reveal in File Explorer" : "Enter a path first"}
-                        aria-label="Reveal in File Explorer"
+                        title={
+                            canReveal
+                                ? (kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer")
+                                : "Enter a path first"
+                        }
+                        aria-label={kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
                         disabled={!canReveal}
                         onClick={reveal}
                         tabIndex={-1}
                     >
-                        <FolderOpen className="size-3.5 stroke-[1.5px]" />
+                        <SquareArrowOutUpRight className="size-3.5 stroke-[1.5px]" />
                     </Button>
                 )}
             </div>

@@ -87,6 +87,7 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
             label="Destination folder"
             value={item.destFolder}
             onChange={(path) => patchSelectedItem((it) => { it.destFolder = path; })}
+            showReveal
         />
 
         <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
