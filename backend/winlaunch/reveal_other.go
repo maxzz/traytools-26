@@ -12,6 +12,7 @@ import (
 
 // RevealInExplorer opens the file's parent folder in the platform file manager.
 // Selection/highlight of the file itself is Windows-only (explorer /select).
+// Expands %VAR% macros and resolves bare names via PATH.
 func RevealInExplorer(path string) error {
 	abs, err := resolveExistingPath(path)
 	if err != nil {
@@ -27,6 +28,7 @@ func RevealInExplorer(path string) error {
 
 // OpenInExplorer opens the folder at path in the platform file manager.
 // If path is a file, opens its parent folder.
+// Expands %VAR% macros and resolves bare names via PATH.
 func OpenInExplorer(path string) error {
 	abs, err := resolveExistingPath(path)
 	if err != nil {
@@ -46,19 +48,4 @@ func OpenInExplorer(path string) error {
 	default:
 		return exec.Command("xdg-open", target).Start()
 	}
-}
-
-func resolveExistingPath(path string) (string, error) {
-	path = filepath.Clean(path)
-	if path == "" || path == "." {
-		return "", fmt.Errorf("empty path")
-	}
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		abs = path
-	}
-	if _, err := os.Stat(abs); err != nil {
-		return "", err
-	}
-	return abs, nil
 }

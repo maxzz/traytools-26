@@ -13,6 +13,7 @@ import (
 )
 
 // RevealInExplorer opens File Explorer with path selected (highlighted).
+// Expands %VAR% macros and resolves bare names (e.g. notepad.exe) via PATH.
 func RevealInExplorer(path string) error {
 	abs, err := resolveExistingPath(path)
 	if err != nil {
@@ -29,6 +30,7 @@ func RevealInExplorer(path string) error {
 
 // OpenInExplorer opens File Explorer navigated into the folder at path.
 // If path is a file, opens its parent folder (without selecting the file).
+// Expands %VAR% macros and resolves bare names via PATH.
 func OpenInExplorer(path string) error {
 	abs, err := resolveExistingPath(path)
 	if err != nil {
@@ -46,21 +48,6 @@ func OpenInExplorer(path string) error {
 		return fmt.Errorf("open: %w", err)
 	}
 	return nil
-}
-
-func resolveExistingPath(path string) (string, error) {
-	path = filepath.Clean(path)
-	if path == "" || path == "." {
-		return "", fmt.Errorf("empty path")
-	}
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		abs = path
-	}
-	if _, err := os.Stat(abs); err != nil {
-		return "", err
-	}
-	return abs, nil
 }
 
 func launchExplorer(params string) error {
