@@ -32,7 +32,7 @@ export const copyEditorStore = proxy<CopyEditorStore>({
     path: "",
     baseline: buildCopyFileText(initialConfig),
     fileExists: false,
-    dirty: true,
+    dirty: false,
     status: "",
     error: "",
     selectedUid: initialSelectedUid,
@@ -147,7 +147,7 @@ function CopyConfig_Set(config: CopyConfig, source: CopySource, path = "", fileE
     copyEditorStore.path = path;
     copyEditorStore.fileExists = fileExists;
     copyEditorStore.baseline = buildCopyFileText(config);
-    copyEditorStore.dirty = !fileExists;
+    copyEditorStore.dirty = false;
     copyEditorStore.error = "";
     copyEditorStore.selectedUid = uidFromSelectionPath(config, holder.rootUid, pathToRestore);
 }

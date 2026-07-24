@@ -79,12 +79,9 @@ export function syncDirty(store: ToolsEditorStore): void {
 }
 
 /**
- * Compare the live editor tree against the last loaded/saved baseline. When no
- * tools.json exists on disk yet, the editor is always considered modified.
+ * Compare the live editor tree against the last loaded/saved baseline.
+ * Missing tools.json alone does not count as dirty — only edits vs baseline do.
  */
 function computeDirty(store: ToolsEditorStore): boolean {
-    if (!store.fileExists) {
-        return true;
-    }
     return buildToolsFileText(store.config, store.rootComments) !== store.baseline;
 }

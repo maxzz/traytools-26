@@ -41,13 +41,8 @@ export function syncDirty(store: CopyEditorStore): void {
 }
 
 function computeDirty(store: CopyEditorStore): boolean {
-    // After Import, baseline is the imported text — Changed tracks edits vs that.
-    if (store.source === "import") {
-        return buildCopyFileText(store.config) !== store.baseline;
-    }
-    if (!store.fileExists) {
-        return true;
-    }
+    // Dirty means the live tree differs from the last load/save/import baseline —
+    // not merely that no copy.json exists on disk yet.
     return buildCopyFileText(store.config) !== store.baseline;
 }
 

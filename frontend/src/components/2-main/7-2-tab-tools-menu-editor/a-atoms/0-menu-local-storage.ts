@@ -40,7 +40,7 @@ export const toolsEditorStore = proxy<ToolsEditorStore>({
     baseline: buildToolsFileText(initialConfig, initialRootComments),
     rootComments: initialRootComments,
     fileExists: false,
-    dirty: true, // no on-disk file yet — unsaved until first save
+    dirty: false,
     status: "",
     error: "",
     selectedUid: initialSelectedUid,
@@ -169,7 +169,7 @@ function ToolsConfig_Set(
     toolsEditorStore.path = path;
     toolsEditorStore.fileExists = fileExists;
     toolsEditorStore.baseline = buildToolsFileText(config, toolsEditorStore.rootComments);
-    toolsEditorStore.dirty = !fileExists;
+    toolsEditorStore.dirty = false;
     toolsEditorStore.error = "";
     toolsEditorStore.selectedUid = uidFromSelectionPath(config.menu, pathToRestore);
 }
