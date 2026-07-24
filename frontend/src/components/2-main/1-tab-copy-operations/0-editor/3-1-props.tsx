@@ -91,10 +91,19 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
 
         <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
 
-        <LabelAndField label="Operation name">
+        <OperationNameField item={item} />
+    </>);
+}
+
+function OperationNameField({ item }: { item: CopyOpItem; }) {
+    const baseName = sourceFileBaseName(item.sourceFile);
+
+    return (
+        <Label className="mt-1 text-xs font-normal text-muted-foreground whitespace-nowrap flex flex-col items-start gap-1">
+            Operation name
             <Input
                 className="h-7"
-                value={item.name ?? sourceFileBaseName(item.sourceFile)}
+                value={item.name ?? baseName}
                 onChange={(e) => {
                     const next = e.target.value;
                     patchSelectedItem((it) => {
@@ -111,11 +120,11 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
                         patchSelectedItem((it) => { delete it.name; });
                     }
                 }}
-                placeholder={sourceFileBaseName(item.sourceFile) || "Operation name"}
+                placeholder={baseName || "Operation name"}
                 {...turnOffAutoComplete}
             />
-        </LabelAndField>
-    </>);
+        </Label>
+    );
 }
 
 type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated">;
