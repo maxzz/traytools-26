@@ -226,7 +226,7 @@ export function PathInput({
                     {...turnOffAutoComplete}
                 />
 
-                <Button type="button" variant="outline" size="icon-xs" title={`Open ${kind} for operation`} onClick={browse} tabIndex={-1}>
+                <Button type="button" variant="outline" size="icon-xs" title={`Select ${kind} for operation`} onClick={browse} tabIndex={-1}>
                     <Icon className="size-3.5 stroke-[1.5px]" />
                 </Button>
 
@@ -235,11 +235,7 @@ export function PathInput({
                         type="button"
                         variant="outline"
                         size="icon-xs"
-                        title={
-                            canReveal
-                                ? (kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer")
-                                : "Enter a path first"
-                        }
+                        title={!canReveal ? "Enter a path first" : kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
                         aria-label={kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
                         disabled={!canReveal}
                         onClick={reveal}
