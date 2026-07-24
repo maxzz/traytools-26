@@ -79,6 +79,7 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
             label="Source file"
             value={item.sourceFile}
             onChange={(path) => patchSelectedItem((it) => { it.sourceFile = path; })}
+            showReveal
         />
 
         <PathInput

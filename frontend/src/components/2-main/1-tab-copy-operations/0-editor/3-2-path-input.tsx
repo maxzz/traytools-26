@@ -4,7 +4,8 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { FolderOpen, FileIcon } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Button } from "@/ui/shadcn/button";
-import { copyOpsBus } from "@/bridge";
+import { appBus, copyOpsBus } from "@/bridge";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { OnFileDrop, OnFileDropOff } from "@/../wailsjs/runtime/runtime";
 
 type PathKind = "file" | "folder";
@@ -110,7 +111,20 @@ function pathFromDataTransfer(dt: DataTransfer): string | null {
     return null;
 }
 
-export function PathInput({ kind, value, onChange, label }: { kind: PathKind; value: string; onChange: (path: string) => void; label: string; }) {
+export function PathInput({
+    kind,
+    value,
+    onChange,
+    label,
+    showReveal = false,
+}: {
+    kind: PathKind;
+    value: string;
+    onChange: (path: string) => void;
+    label: string;
+    /** Show a "Reveal in File Explorer" button (disabled when the path is empty). */
+    showReveal?: boolean;
+}) {
     const [dragOver, setDragOver] = useState(false);
     const dropRef = useRef<HTMLDivElement>(null);
     const onChangeRef = useRef<typeof onChange>(onChange);
@@ -141,6 +155,18 @@ export function PathInput({ kind, value, onChange, label }: { kind: PathKind; va
         } catch (e) {
             console.error("Path browse failed", e);
         }
+    };
+
+    const trimmed = value.trim();
+    const canReveal = trimmed.length > 0;
+
+    const reveal = () => {
+        if (!canReveal) {
+            return;
+        }
+        void appBus.revealInExplorer(trimmed).catch((e) => {
+            notice.error(`Failed to reveal in File Explorer:<br/>${String(e)}`);
+        });
     };
 
     // Visual feedback + optional Chromium File.path. Never stopPropagation.
@@ -194,6 +220,19 @@ export function PathInput({ kind, value, onChange, label }: { kind: PathKind; va
                 <Button type="button" variant="outline" size="icon-xs" title={`Browse ${kind}`} onClick={browse}>
                     <Icon className="size-3.5 stroke-[1.5px]" />
                 </Button>
+                {showReveal && (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-xs"
+                        title={canReveal ? "Reveal in File Explorer" : "Enter a path first"}
+                        aria-label="Reveal in File Explorer"
+                        disabled={!canReveal}
+                        onClick={reveal}
+                    >
+                        <FolderOpen className="size-3.5 stroke-[1.5px]" />
+                    </Button>
+                )}
             </div>
         </div>
     );
