@@ -4,16 +4,10 @@ import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { type CopyOpItem, itemLabel } from "../a-atoms/9-types-copy";
+import { type CopyOpItem, findByUid, itemLabel } from "../a-atoms/9-types-copy";
 import { type DropPosition, copyNode, moveNode } from "../a-atoms/1-copy-editor-atoms";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
-
-type SnapGroup = {
-    readonly name: string;
-    readonly uid?: string;
-    readonly items: readonly SnapItem[];
-};
 
 type SnapItem = {
     readonly sourceFile: string;
@@ -21,6 +15,20 @@ type SnapItem = {
     readonly name?: string;
     readonly uid?: string;
 };
+
+/** Nested group in the tree snap: same shape recursively via `items`. */
+type SnapGroup = {
+    readonly name: string;
+    readonly uid?: string;
+    readonly items: readonly SnapNode[];
+};
+
+/** Child of a group: a copy item or a nested group. */
+type SnapNode = SnapItem | SnapGroup;
+
+function isSnapGroup(node: SnapNode): node is SnapGroup {
+    return Array.isArray((node as SnapGroup).items) && !("sourceFile" in node);
+}
 
 export function Panel_Tree() {
     const snap = useSnapshot(copyEditorStore);
@@ -205,6 +213,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
     const showInside = isDropTarget && dnd.dropPos === "inside";
     // ancestors[i] true ⇒ ancestor at level i has a following sibling (continue the vertical).
     const childAncestors = [...ancestors, !isLast];
+    const hasChildren = group.items.length > 0;
 
     return (
         <div>
@@ -235,7 +244,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         copyEditorStore.selectedUid = uid;
                     }}
                 >
-                    <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren />
+                    <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={hasChildren} />
 
                     <button
                         className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center"
@@ -262,9 +271,9 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         size="icon-xs"
                         onClick={(e) => {
                             e.stopPropagation();
-                            const g = copyEditorStore.config.groups.find((row) => row.uid === uid);
-                            if (g) {
-                                runCopyGroup(g);
+                            const loc = findByUid(copyEditorStore.config, uid);
+                            if (loc?.kind === "group") {
+                                runCopyGroup(loc.group);
                             }
                         }}
                         title="Copy this group"
@@ -276,16 +285,31 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
             </div>
 
             {!collapsed && group.items.map(
-                (item, index) => (
-                    <ItemRow
-                        key={item.uid}
-                        item={item}
-                        depth={depth + 1}
-                        isLast={index === group.items.length - 1}
-                        ancestors={childAncestors}
-                        onActivate={onActivate}
-                    />
-                )
+                (node, index) => {
+                    const childIsLast = index === group.items.length - 1;
+                    if (isSnapGroup(node)) {
+                        return (
+                            <GroupRow
+                                key={node.uid}
+                                group={node}
+                                depth={depth + 1}
+                                isLast={childIsLast}
+                                ancestors={childAncestors}
+                                onActivate={onActivate}
+                            />
+                        );
+                    }
+                    return (
+                        <ItemRow
+                            key={node.uid}
+                            item={node}
+                            depth={depth + 1}
+                            isLast={childIsLast}
+                            ancestors={childAncestors}
+                            onActivate={onActivate}
+                        />
+                    );
+                }
             )}
         </div>
     );
@@ -345,11 +369,9 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                     size="icon-xs"
                     onClick={(e) => {
                         e.stopPropagation();
-                        const loc = copyEditorStore.config.groups
-                            .flatMap((g) => g.items.map((it) => ({ it, g })))
-                            .find(({ it }) => it.uid === uid);
-                        if (loc) {
-                            runCopyItem(loc.it);
+                        const loc = findByUid(copyEditorStore.config, uid);
+                        if (loc?.kind === "item") {
+                            runCopyItem(loc.item);
                         }
                     }}
                     title="Copy this file"

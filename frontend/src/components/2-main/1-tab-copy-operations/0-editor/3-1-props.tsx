@@ -6,7 +6,7 @@ import { Label } from "@/ui/shadcn/label";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Button } from "@/ui/shadcn/button";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
-import { type CopyGroup, type CopyOpItem, sourceFileBaseName } from "../a-atoms/9-types-copy";
+import { type CopyGroup, type CopyOpItem, collectGroupItems, findByUid, sourceFileBaseName } from "../a-atoms/9-types-copy";
 import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
@@ -14,18 +14,19 @@ import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 export function PropsFor_Root() {
     return (
         <p className="text-muted-foreground">
-            Root of the copy operations tree. Add groups here. Groups and items can be reordered by drag-and-drop.
-            This node cannot be moved or deleted.
+            Root of the copy operations tree. Add groups here. Groups can contain copy items and nested groups
+            in one ordered list. Groups and items can be reordered by drag-and-drop. This node cannot be moved or deleted.
         </p>
     );
 }
 
 export function PropsFor_Group({ group }: { group: CopyGroup; }) {
+    const hasItems = collectGroupItems(group).length > 0;
     return (<>
         <div className="-my-2 self-end">
             <CopyActionButton
                 label="Copy group"
-                disabled={group.items.length === 0}
+                disabled={!hasItems}
                 onClick={() => copyLiveGroup(group.uid)}
             />
         </div>
@@ -44,12 +45,13 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
 }
 
 export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGroup; }) {
+    const parentHasItems = collectGroupItems(group).length > 0;
     return (<>
         <div className="-my-2 self-end flex items-center gap-2">
             <CopyActionButton
                 label="Copy parent group"
-                disabled={group.items.length === 0}
-                title="Copy all items in this item's parent group"
+                disabled={!parentHasItems}
+                title="Copy all items in this item's parent group (including nested groups)"
                 onClick={() => copyLiveGroup(group.uid)}
             />
             <CopyActionButton
@@ -90,9 +92,9 @@ function copyLiveGroup(uid?: string) {
     if (!uid) {
         return;
     }
-    const live = copyEditorStore.config.groups.find((g) => g.uid === uid);
-    if (live) {
-        runCopyGroup(live);
+    const loc = findByUid(copyEditorStore.config, uid);
+    if (loc?.kind === "group") {
+        runCopyGroup(loc.group);
     }
 }
 
@@ -100,12 +102,9 @@ function copyLiveItem(uid?: string) {
     if (!uid) {
         return;
     }
-    for (const g of copyEditorStore.config.groups) {
-        const live = g.items.find((it) => it.uid === uid);
-        if (live) {
-            runCopyItem(live);
-            return;
-        }
+    const loc = findByUid(copyEditorStore.config, uid);
+    if (loc?.kind === "item") {
+        runCopyItem(loc.item);
     }
 }
 

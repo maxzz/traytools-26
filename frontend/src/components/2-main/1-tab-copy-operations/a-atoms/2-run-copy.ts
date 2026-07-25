@@ -5,7 +5,7 @@ import { confirmElevationRestartMessages } from "@/components/4-dialogs/8-1-conf
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { notice } from "@/ui/local-ui/7-toaster";
-import { type CopyGroup, type CopyOpItem, itemLabel } from "./9-types-copy";
+import { type CopyGroup, type CopyOpItem, collectGroupItems, itemLabel } from "./9-types-copy";
 import { copyEditorStore } from "./0-copy-local-storage";
 
 export type CopyProgressRow = {
@@ -224,10 +224,10 @@ function runBatch(
     })();
 }
 
-/** Copy all items in a group using the group's flags. */
+/** Copy all items in a group (including nested groups) using the group's flags. */
 export function runCopyGroup(group: CopyGroup): void {
     runBatch(
-        group.items,
+        collectGroupItems(group),
         !!group.stopDpAgent,
         !!group.requireElevated,
         !!group.renameLocked,

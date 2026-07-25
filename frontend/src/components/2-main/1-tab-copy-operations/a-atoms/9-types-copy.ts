@@ -1,5 +1,6 @@
-// Editable model for copy.json. Groups are flat under a fixed "Groups" root;
-// each group holds copy-operation items (source file → destination folder).
+// Editable model for copy.json. Top-level groups sit under a fixed "Groups"
+// root. Each group's `items` is an ordered list of copy-operation items and/or
+// nested groups (source file → destination folder).
 
 export type CopyOpItem = {
     sourceFile: string;
@@ -20,9 +21,21 @@ export type CopyGroup = {
     requireElevated?: boolean;
     /** On Access Denied, rename locked dest to name_locked_N.ext and retry. */
     renameLocked?: boolean;
-    items: CopyOpItem[];
+    /** Ordered children: copy items and/or nested groups. */
+    items: CopyNode[];
     uid?: string;
 };
+
+/** A child of a group: either a copy item or a nested group. */
+export type CopyNode = CopyOpItem | CopyGroup;
+
+export function isCopyGroup(node: CopyNode): node is CopyGroup {
+    return Array.isArray((node as CopyGroup).items) && !("sourceFile" in node);
+}
+
+export function isCopyOpItem(node: CopyNode): node is CopyOpItem {
+    return "sourceFile" in node;
+}
 
 export type CopyConfig = {
     groups: CopyGroup[];
@@ -71,21 +84,35 @@ function seedUidCounterFrom(uids: Iterable<string>): void {
     }
 }
 
+function collectExistingUids(nodes: CopyNode[], into: string[]): void {
+    for (const node of nodes) {
+        if (node.uid) {
+            into.push(node.uid);
+        }
+        if (isCopyGroup(node)) {
+            collectExistingUids(node.items, into);
+        }
+    }
+}
+
+function assignUids(nodes: CopyNode[], used: Set<string>): void {
+    for (const node of nodes) {
+        if (!node.uid || used.has(node.uid)) {
+            node.uid = newUid();
+        }
+        used.add(node.uid);
+        if (isCopyGroup(node)) {
+            assignUids(node.items, used);
+        }
+    }
+}
+
 export function ensureUids(config: CopyConfig, rootUidHolder: { rootUid: string; }): void {
     const existing: string[] = [];
     if (rootUidHolder.rootUid) {
         existing.push(rootUidHolder.rootUid);
     }
-    for (const group of config.groups) {
-        if (group.uid) {
-            existing.push(group.uid);
-        }
-        for (const item of group.items) {
-            if (item.uid) {
-                existing.push(item.uid);
-            }
-        }
-    }
+    collectExistingUids(config.groups, existing);
     seedUidCounterFrom(existing);
 
     if (!rootUidHolder.rootUid) {
@@ -93,18 +120,7 @@ export function ensureUids(config: CopyConfig, rootUidHolder: { rootUid: string;
     }
 
     const used = new Set<string>([rootUidHolder.rootUid]);
-    for (const group of config.groups) {
-        if (!group.uid || used.has(group.uid)) {
-            group.uid = newUid();
-        }
-        used.add(group.uid);
-        for (const item of group.items) {
-            if (!item.uid || used.has(item.uid)) {
-                item.uid = newUid();
-            }
-            used.add(item.uid);
-        }
-    }
+    assignUids(config.groups, used);
 }
 
 export function createGroup(): CopyGroup {
@@ -129,13 +145,21 @@ export function createItem(): CopyOpItem {
     };
 }
 
-/** Deep-clone a group (and its items) with fresh runtime uids. */
+/** Deep-clone a group (and nested nodes) with fresh runtime uids. */
 export function cloneGroup(group: CopyGroup): CopyGroup {
     // JSON round-trip: structuredClone cannot clone valtio proxies.
     const clone = JSON.parse(JSON.stringify(group)) as CopyGroup;
-    clone.uid = newUid();
-    clone.items = (clone.items ?? []).map(cloneItem);
+    reassignNodeUids(clone);
     return clone;
+}
+
+function reassignNodeUids(node: CopyNode): void {
+    node.uid = newUid();
+    if (isCopyGroup(node)) {
+        for (const child of node.items ?? []) {
+            reassignNodeUids(child);
+        }
+    }
 }
 
 /** Deep-clone a copy item with a fresh runtime uid. */
@@ -146,35 +170,80 @@ export function cloneItem(item: CopyOpItem): CopyOpItem {
     return clone;
 }
 
+/** Flatten all copy items under a group, including nested groups (depth-first). */
+export function collectGroupItems(group: CopyGroup): CopyOpItem[] {
+    const out: CopyOpItem[] = [];
+    for (const node of group.items ?? []) {
+        if (isCopyOpItem(node)) {
+            out.push(node);
+        } else {
+            out.push(...collectGroupItems(node));
+        }
+    }
+    return out;
+}
+
+/** True when `maybeAncestor` is `group` or contains it somewhere below. */
+export function containsGroup(maybeAncestor: CopyGroup, group: CopyGroup): boolean {
+    if (maybeAncestor === group || (!!maybeAncestor.uid && maybeAncestor.uid === group.uid)) {
+        return true;
+    }
+    for (const node of maybeAncestor.items ?? []) {
+        if (isCopyGroup(node) && containsGroup(node, group)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // ---------------------------------------------------------------------------
 // Lookups
 
 export type GroupLocation = {
     kind: "group";
     group: CopyGroup;
+    /** Array that contains `group` (`config.groups` or a parent's `items`). */
+    siblings: CopyNode[];
     index: number;
+    /** Immediate parent group, or null when under the root. */
+    parent: CopyGroup | null;
 };
 
 export type ItemLocation = {
     kind: "item";
     item: CopyOpItem;
     group: CopyGroup;
-    groupIndex: number;
+    siblings: CopyNode[];
     index: number;
 };
 
 export type CopyLocation = GroupLocation | ItemLocation;
 
 export function findByUid(config: CopyConfig, uid: string): CopyLocation | null {
-    for (let groupIndex = 0; groupIndex < config.groups.length; groupIndex++) {
-        const group = config.groups[groupIndex];
-        if (group.uid === uid) {
-            return { kind: "group", group, index: groupIndex };
+    // Root list is CopyGroup[]; nested lists are CopyNode[]. Both are spliced via siblings.
+    return findInNodes(config.groups as CopyNode[], uid, null);
+}
+
+function findInNodes(
+    siblings: CopyNode[],
+    uid: string,
+    parent: CopyGroup | null,
+): CopyLocation | null {
+    for (let index = 0; index < siblings.length; index++) {
+        const node = siblings[index];
+        if (node.uid === uid) {
+            if (isCopyGroup(node)) {
+                return { kind: "group", group: node, siblings, index, parent };
+            }
+            if (!parent) {
+                return null;
+            }
+            return { kind: "item", item: node, group: parent, siblings, index };
         }
-        for (let index = 0; index < group.items.length; index++) {
-            const item = group.items[index];
-            if (item.uid === uid) {
-                return { kind: "item", item, group, groupIndex, index };
+        if (isCopyGroup(node)) {
+            const found = findInNodes(node.items, uid, node);
+            if (found) {
+                return found;
             }
         }
     }
@@ -186,11 +255,12 @@ export function findByUid(config: CopyConfig, uid: string): CopyLocation | null 
 //
 // Runtime uids are regenerated when loading from copy.json, so selection must
 // be persisted as a stable index path and remapped after ensureUids.
+// `path` walks `config.groups` then nested `items` arrays.
 
 export type CopySelectionPath =
     | { kind: "root"; }
-    | { kind: "group"; groupIndex: number; }
-    | { kind: "item"; groupIndex: number; itemIndex: number; };
+    | { kind: "group"; path: number[]; }
+    | { kind: "item"; path: number[]; };
 
 export function selectionPathFromUid(
     config: CopyConfig,
@@ -200,14 +270,44 @@ export function selectionPathFromUid(
     if (!uid || uid === rootUid) {
         return { kind: "root" };
     }
-    const loc = findByUid(config, uid);
-    if (!loc) {
-        return { kind: "root" };
+    return walkSelectionPath(config.groups, uid, []) ?? { kind: "root" };
+}
+
+function walkSelectionPath(
+    nodes: CopyNode[],
+    uid: string,
+    path: number[],
+): CopySelectionPath | null {
+    for (let index = 0; index < nodes.length; index++) {
+        const node = nodes[index];
+        const next = [...path, index];
+        if (node.uid === uid) {
+            return isCopyGroup(node)
+                ? { kind: "group", path: next }
+                : { kind: "item", path: next };
+        }
+        if (isCopyGroup(node)) {
+            const found = walkSelectionPath(node.items, uid, next);
+            if (found) {
+                return found;
+            }
+        }
     }
-    if (loc.kind === "group") {
-        return { kind: "group", groupIndex: loc.index };
+    return null;
+}
+
+function nodeAtPath(config: CopyConfig, path: number[]): CopyNode | undefined {
+    if (path.length === 0) {
+        return undefined;
     }
-    return { kind: "item", groupIndex: loc.groupIndex, itemIndex: loc.index };
+    let node: CopyNode | undefined = config.groups[path[0]];
+    for (let i = 1; i < path.length; i++) {
+        if (!node || !isCopyGroup(node)) {
+            return undefined;
+        }
+        node = node.items[path[i]];
+    }
+    return node;
 }
 
 export function uidFromSelectionPath(
@@ -218,30 +318,54 @@ export function uidFromSelectionPath(
     if (!path || path.kind === "root") {
         return rootUid;
     }
-    if (path.kind === "group") {
-        return config.groups[path.groupIndex]?.uid ?? rootUid;
+    const node = nodeAtPath(config, path.path);
+    if (!node) {
+        return rootUid;
     }
-    const group = config.groups[path.groupIndex];
-    return group?.items[path.itemIndex]?.uid ?? rootUid;
+    if (path.kind === "group") {
+        return isCopyGroup(node) ? (node.uid ?? rootUid) : rootUid;
+    }
+    return isCopyOpItem(node) ? (node.uid ?? rootUid) : rootUid;
 }
 
 export function parseCopySelectionPath(value: unknown): CopySelectionPath | null {
     if (!value || typeof value !== "object") {
         return null;
     }
-    const path = value as Partial<CopySelectionPath>;
+    const path = value as Partial<CopySelectionPath> & {
+        groupIndex?: number;
+        itemIndex?: number;
+        path?: number[];
+        groupPath?: number[];
+    };
     if (path.kind === "root") {
         return { kind: "root" };
     }
+
+    const indexPath = Array.isArray(path.path)
+        ? path.path
+        : Array.isArray(path.groupPath)
+            ? path.groupPath
+            : null;
+
+    if (
+        (path.kind === "group" || path.kind === "item")
+        && indexPath
+        && indexPath.every((n) => Number.isInteger(n) && n >= 0)
+    ) {
+        return { kind: path.kind, path: indexPath };
+    }
+
+    // Legacy flat format: { groupIndex } / { groupIndex, itemIndex }
     if (path.kind === "group" && Number.isInteger(path.groupIndex) && path.groupIndex! >= 0) {
-        return { kind: "group", groupIndex: path.groupIndex! };
+        return { kind: "group", path: [path.groupIndex!] };
     }
     if (
         path.kind === "item"
         && Number.isInteger(path.groupIndex) && path.groupIndex! >= 0
         && Number.isInteger(path.itemIndex) && path.itemIndex! >= 0
     ) {
-        return { kind: "item", groupIndex: path.groupIndex!, itemIndex: path.itemIndex! };
+        return { kind: "item", path: [path.groupIndex!, path.itemIndex!] };
     }
     return null;
 }

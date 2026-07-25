@@ -1,5 +1,20 @@
 import { nextNumberedName } from "../../a-shared/numbered-name";
-import { type AddCopyKind, type CopyConfig, type CopyGroup, type CopyOpItem, cloneGroup, cloneItem, createGroup, createItem, findByUid, itemLabel } from "./9-types-copy";
+import {
+    type AddCopyKind,
+    type CopyConfig,
+    type CopyGroup,
+    type CopyNode,
+    type CopyOpItem,
+    cloneGroup,
+    cloneItem,
+    containsGroup,
+    createGroup,
+    createItem,
+    findByUid,
+    isCopyGroup,
+    isCopyOpItem,
+    itemLabel,
+} from "./9-types-copy";
 import { copyEditorStore } from "./0-copy-local-storage";
 
 export function isRootUid(uid: string | null | undefined): boolean {
@@ -25,9 +40,11 @@ export function addNode(kind: AddCopyKind): void {
         if (selUid && !isRootUid(selUid)) {
             const loc = findByUid(config, selUid);
             if (loc?.kind === "group") {
-                config.groups.splice(loc.index + 1, 0, group);
+                // Nest inside the selected group.
+                loc.group.items.push(group);
             } else if (loc?.kind === "item") {
-                config.groups.splice(loc.groupIndex + 1, 0, group);
+                // Sibling after the selected item in the same parent list.
+                loc.siblings.splice(loc.index + 1, 0, group);
             } else {
                 config.groups.push(group);
             }
@@ -45,7 +62,7 @@ export function addNode(kind: AddCopyKind): void {
         if (loc?.kind === "group") {
             loc.group.items.push(item);
         } else if (loc?.kind === "item") {
-            loc.group.items.splice(loc.index + 1, 0, item);
+            loc.siblings.splice(loc.index + 1, 0, item);
         } else {
             ensureGroupThenPush(config, item);
         }
@@ -74,20 +91,21 @@ export function removeNode(uid: string): void {
         return;
     }
 
-    if (loc.kind === "group") {
-        copyEditorStore.config.groups.splice(loc.index, 1);
-        if (copyEditorStore.selectedUid === uid) {
-            const next = copyEditorStore.config.groups[loc.index] ?? copyEditorStore.config.groups[loc.index - 1];
-            copyEditorStore.selectedUid = next?.uid ?? copyEditorStore.rootUid;
-        }
+    loc.siblings.splice(loc.index, 1);
+    if (copyEditorStore.selectedUid !== uid) {
         return;
     }
 
-    loc.group.items.splice(loc.index, 1);
-    if (copyEditorStore.selectedUid === uid) {
-        const next = loc.group.items[loc.index] ?? loc.group.items[loc.index - 1] ?? loc.group;
+    const next = loc.siblings[loc.index] ?? loc.siblings[loc.index - 1];
+    if (next) {
         copyEditorStore.selectedUid = next.uid ?? null;
+        return;
     }
+    if (loc.kind === "group") {
+        copyEditorStore.selectedUid = loc.parent?.uid ?? copyEditorStore.rootUid;
+        return;
+    }
+    copyEditorStore.selectedUid = loc.group.uid ?? copyEditorStore.rootUid;
 }
 
 export type DropPosition = "before" | "after" | "inside";
@@ -103,18 +121,26 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         return false;
     }
 
-    // Dropping on root: groups append as groups; items need a group (append to last / create).
+    // Dropping on root: groups append at root; items need a group.
     if (isRootUid(targetUid)) {
         if (position !== "inside" && position !== "after" && position !== "before") {
             return false;
         }
         if (drag.kind === "group") {
-            const [moved] = config.groups.splice(drag.index, 1);
-            config.groups.push(moved);
+            if (drag.parent) {
+                // Nested group → promote to root.
+                const [moved] = drag.siblings.splice(drag.index, 1) as CopyGroup[];
+                config.groups.push(moved);
+            } else {
+                const [moved] = config.groups.splice(drag.index, 1);
+                config.groups.push(moved);
+            }
             return true;
         }
-        // Items cannot live at root — put into last group or create one.
-        const [moved] = drag.group.items.splice(drag.index, 1);
+        const [moved] = drag.siblings.splice(drag.index, 1);
+        if (!isCopyOpItem(moved)) {
+            return false;
+        }
         if (config.groups.length === 0) {
             const g = createGroup();
             g.items = [moved];
@@ -130,66 +156,79 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         return false;
     }
 
-    // Detach drag first.
     if (drag.kind === "group") {
-        if (target.kind === "item") {
-            // Groups cannot nest under items; treat as before/after the item's group.
-            const [moved] = config.groups.splice(drag.index, 1);
-            const after = findByUid(config, target.group.uid!);
-            if (!after || after.kind !== "group") {
-                config.groups.splice(drag.index, 0, moved);
-                return false;
-            }
-            // Re-find index after splice
-            const gi = config.groups.findIndex((g) => g.uid === target.group.uid);
-            const insertAt = position === "after" ? gi + 1 : gi;
-            config.groups.splice(insertAt, 0, moved);
-            return true;
-        }
-        // target is group
-        if (position === "inside") {
-            // Cannot nest groups — reorder after target instead.
-            const [moved] = config.groups.splice(drag.index, 1);
-            const gi = config.groups.findIndex((g) => g.uid === targetUid);
-            config.groups.splice(gi + 1, 0, moved);
-            return true;
-        }
-        const [moved] = config.groups.splice(drag.index, 1);
-        const gi = config.groups.findIndex((g) => g.uid === targetUid);
-        if (gi < 0) {
-            config.groups.splice(drag.index, 0, moved);
+        if (target.kind === "group" && containsGroup(drag.group, target.group)) {
             return false;
         }
-        const insertAt = position === "before" ? gi : gi + 1;
-        config.groups.splice(insertAt, 0, moved);
+        if (target.kind === "item" && containsGroup(drag.group, target.group)) {
+            return false;
+        }
+
+        const [moved] = drag.siblings.splice(drag.index, 1);
+        if (!isCopyGroup(moved)) {
+            return false;
+        }
+
+        if (target.kind === "group") {
+            if (position === "inside") {
+                target.group.items.push(moved);
+                return true;
+            }
+            const after = findByUid(config, targetUid);
+            if (!after || after.kind !== "group") {
+                drag.siblings.splice(drag.index, 0, moved);
+                return false;
+            }
+            // Root-level target: only groups may sit in config.groups.
+            if (!after.parent) {
+                const gi = config.groups.findIndex((g) => g.uid === targetUid);
+                if (gi < 0) {
+                    drag.siblings.splice(drag.index, 0, moved);
+                    return false;
+                }
+                const insertAt = position === "before" ? gi : gi + 1;
+                config.groups.splice(insertAt, 0, moved);
+                return true;
+            }
+            const insertAt = position === "before" ? after.index : after.index + 1;
+            after.siblings.splice(insertAt, 0, moved);
+            return true;
+        }
+
+        // target is item — place as sibling in the same list.
+        const after = findByUid(config, targetUid);
+        if (!after || after.kind !== "item") {
+            drag.siblings.splice(drag.index, 0, moved);
+            return false;
+        }
+        const insertAt = position === "after" ? after.index + 1 : after.index;
+        after.siblings.splice(insertAt, 0, moved);
         return true;
     }
 
     // drag is item
-    const [moved] = drag.group.items.splice(drag.index, 1);
-
-    if (target.kind === "group") {
-        if (position === "inside" || position === "after" || position === "before") {
-            // before/after a group while dragging an item → put inside that group
-            if (position === "inside") {
-                target.group.items.push(moved);
-            } else if (position === "before") {
-                target.group.items.unshift(moved);
-            } else {
-                target.group.items.push(moved);
-            }
-            return true;
-        }
+    const [moved] = drag.siblings.splice(drag.index, 1);
+    if (!isCopyOpItem(moved)) {
+        return false;
     }
 
-    // target is item
+    if (target.kind === "group") {
+        if (position === "before") {
+            target.group.items.unshift(moved);
+        } else {
+            // inside / after → append inside the group
+            target.group.items.push(moved);
+        }
+        return true;
+    }
+
     const after = findByUid(config, targetUid);
     if (!after || after.kind !== "item") {
-        drag.group.items.splice(drag.index, 0, moved);
+        drag.siblings.splice(drag.index, 0, moved);
         return false;
     }
     const insertAt = position === "before" ? after.index : after.index + 1;
-    after.group.items.splice(insertAt, 0, moved);
+    after.siblings.splice(insertAt, 0, moved);
     return true;
 }
 
@@ -237,24 +276,29 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
 
     if (drag.kind === "group") {
         const cloned = cloneGroup(drag.group);
-        uniquifyGroupName(cloned, config.groups);
-        if (target.kind === "item") {
-            const gi = config.groups.findIndex((g) => g.uid === target.group.uid);
-            if (gi < 0) {
-                return false;
+        if (target.kind === "group") {
+            if (position === "inside") {
+                uniquifyGroupName(cloned, target.group.items);
+                target.group.items.push(cloned);
+            } else if (!target.parent) {
+                uniquifyGroupName(cloned, config.groups);
+                const gi = config.groups.findIndex((g) => g.uid === targetUid);
+                if (gi < 0) {
+                    return false;
+                }
+                const insertAt = position === "before" ? gi : gi + 1;
+                config.groups.splice(insertAt, 0, cloned);
+            } else {
+                uniquifyGroupName(cloned, target.siblings);
+                const insertAt = position === "before" ? target.index : target.index + 1;
+                target.siblings.splice(insertAt, 0, cloned);
             }
-            const insertAt = position === "after" ? gi + 1 : gi;
-            config.groups.splice(insertAt, 0, cloned);
             copyEditorStore.selectedUid = cloned.uid!;
             return true;
         }
-        const gi = config.groups.findIndex((g) => g.uid === targetUid);
-        if (gi < 0) {
-            return false;
-        }
-        // Cannot nest groups — "inside" places the clone after the target group.
-        const insertAt = position === "before" ? gi : gi + 1;
-        config.groups.splice(insertAt, 0, cloned);
+        uniquifyGroupName(cloned, target.siblings);
+        const insertAt = position === "after" ? target.index + 1 : target.index;
+        target.siblings.splice(insertAt, 0, cloned);
         copyEditorStore.selectedUid = cloned.uid!;
         return true;
     }
@@ -271,17 +315,19 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
         return true;
     }
 
-    uniquifyItemName(cloned, target.group.items);
+    uniquifyItemName(cloned, target.siblings);
     const insertAt = position === "before" ? target.index : target.index + 1;
-    target.group.items.splice(insertAt, 0, cloned);
+    target.siblings.splice(insertAt, 0, cloned);
     copyEditorStore.selectedUid = cloned.uid!;
     return true;
 }
 
-function uniquifyGroupName(group: CopyGroup, siblings: CopyGroup[]): void {
-    group.name = nextNumberedName(group.name || "New Group", siblings.map((g) => g.name));
+function uniquifyGroupName(group: CopyGroup, siblings: CopyNode[]): void {
+    const names = siblings.filter(isCopyGroup).map((g) => g.name);
+    group.name = nextNumberedName(group.name || "New Group", names);
 }
 
-function uniquifyItemName(item: CopyOpItem, siblings: CopyOpItem[]): void {
-    item.name = nextNumberedName(itemLabel(item), siblings.map(itemLabel));
+function uniquifyItemName(item: CopyOpItem, siblings: CopyNode[]): void {
+    const names = siblings.filter(isCopyOpItem).map(itemLabel);
+    item.name = nextNumberedName(itemLabel(item), names);
 }

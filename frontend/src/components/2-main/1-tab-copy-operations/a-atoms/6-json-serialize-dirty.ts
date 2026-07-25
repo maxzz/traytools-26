@@ -1,11 +1,15 @@
-import { type CopyConfig, type CopyEditorStore, type CopyGroup, type CopyOpItem, sourceFileBaseName } from "./9-types-copy";
+import {
+    type CopyConfig,
+    type CopyEditorStore,
+    type CopyGroup,
+    type CopyNode,
+    type CopyOpItem,
+    isCopyOpItem,
+    sourceFileBaseName,
+} from "./9-types-copy";
 
 export function buildCopyFileText(config: CopyConfig): string {
     return normalizeFileText(JSON.stringify(config, jsonReplacer, 4));
-}
-
-function isCopyOpItem(obj: CopyGroup | CopyOpItem): obj is CopyOpItem {
-    return "sourceFile" in obj;
 }
 
 function jsonReplacer(this: CopyGroup | CopyOpItem, key: string, value: unknown): unknown {
@@ -16,9 +20,9 @@ function jsonReplacer(this: CopyGroup | CopyOpItem, key: string, value: unknown)
         return value === true ? true : undefined;
     }
     // Item operation names are optional: persist only when customized.
-    if (key === "name" && isCopyOpItem(this)) {
+    if (key === "name" && isCopyOpItem(this as CopyNode)) {
         const custom = typeof value === "string" ? value.trim() : "";
-        if (!custom || custom === sourceFileBaseName(this.sourceFile)) {
+        if (!custom || custom === sourceFileBaseName((this as CopyOpItem).sourceFile)) {
             return undefined;
         }
         return custom;
@@ -52,29 +56,61 @@ export function parseCopyJson(text: string): CopyConfig {
         throw new Error("Invalid copy.json: expected { groups: [...] }");
     }
     const config = parsed as CopyConfig;
-    for (const group of config.groups) {
-        if (!group || typeof group !== "object") {
-            throw new Error("Invalid copy.json: group must be an object");
-        }
-        if (typeof group.name !== "string") {
-            group.name = "Group";
-        }
-        if (!Array.isArray(group.items)) {
-            group.items = [];
-        }
-        for (const item of group.items) {
-            if (!item || typeof item !== "object") {
-                throw new Error("Invalid copy.json: item must be an object");
-            }
-            item.sourceFile = typeof item.sourceFile === "string" ? item.sourceFile : "";
-            item.destFolder = typeof item.destFolder === "string" ? item.destFolder : "";
-            const name = typeof item.name === "string" ? item.name.trim() : "";
-            if (name && name !== sourceFileBaseName(item.sourceFile)) {
-                item.name = name;
-            } else {
-                delete item.name;
-            }
+    config.groups = config.groups.map((group) => normalizeGroup(group));
+    return config;
+}
+
+function normalizeGroup(raw: unknown): CopyGroup {
+    if (!raw || typeof raw !== "object") {
+        throw new Error("Invalid copy.json: group must be an object");
+    }
+    const group = raw as CopyGroup & { groups?: unknown[]; };
+    if (typeof group.name !== "string") {
+        group.name = "Group";
+    }
+
+    const children: CopyNode[] = [];
+    if (Array.isArray(group.items)) {
+        for (const entry of group.items) {
+            children.push(normalizeNode(entry));
         }
     }
-    return config;
+    // Legacy / mistaken separate nested `groups` array → fold into `items`.
+    if (Array.isArray(group.groups)) {
+        for (const entry of group.groups) {
+            children.push(normalizeGroup(entry));
+        }
+        delete group.groups;
+    }
+    group.items = children;
+    return group;
+}
+
+function normalizeNode(raw: unknown): CopyNode {
+    if (!raw || typeof raw !== "object") {
+        throw new Error("Invalid copy.json: item must be an object");
+    }
+    const node = raw as CopyNode & { items?: unknown; sourceFile?: unknown; };
+    // Nested group: has items[] and is not a copy item.
+    if (Array.isArray(node.items) && !("sourceFile" in node)) {
+        return normalizeGroup(node);
+    }
+    return normalizeItem(node);
+}
+
+function normalizeItem(raw: object): CopyOpItem {
+    const item = raw as CopyOpItem;
+    item.sourceFile = typeof item.sourceFile === "string" ? item.sourceFile : "";
+    item.destFolder = typeof item.destFolder === "string" ? item.destFolder : "";
+    const name = typeof item.name === "string" ? item.name.trim() : "";
+    if (name && name !== sourceFileBaseName(item.sourceFile)) {
+        item.name = name;
+    } else {
+        delete item.name;
+    }
+    // Items must not carry a nested items array.
+    if ("items" in item) {
+        delete (item as { items?: unknown; }).items;
+    }
+    return item;
 }
