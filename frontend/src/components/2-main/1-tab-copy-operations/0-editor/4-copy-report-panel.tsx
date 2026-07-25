@@ -103,6 +103,21 @@ function JobGroupHeader({ job }: { job: CopyJobReport; }) {
                     (row, i) => (
                         <Fragment key={i}>
                             <ReportRow row={row} />
+                            {row.lockingProcesses?.map(
+                                (proc) => (
+                                    <Fragment key={`${proc.pid}-${proc.name}`}>
+                                        <span aria-hidden className="min-w-20" />
+                                        <span
+                                            className="col-span-2 text-muted-foreground truncate pl-1"
+                                            title={`${proc.name} (PID ${proc.pid})`}
+                                        >
+                                            {proc.name}
+                                            {" "}
+                                            <span className="tabular-nums">(PID {proc.pid})</span>
+                                        </span>
+                                    </Fragment>
+                                )
+                            )}
                         </Fragment>
                     )
                 )}
@@ -197,7 +212,21 @@ function OperationStatus({ row }: { row: CopyProgressRow; }) {
                     </TooltipTrigger>
 
                     <TooltipContent side="left" className="max-w-80">
-                        {row.error || "Unknown error"}
+                        <div className="space-y-1">
+                            <div>{row.error || "Unknown error"}</div>
+                            {row.lockingProcesses && row.lockingProcesses.length > 0 && (
+                                <div className="space-y-0.5">
+                                    <div className="text-muted-foreground">In use by:</div>
+                                    {row.lockingProcesses.map(
+                                        (proc) => (
+                                            <div key={`${proc.pid}-${proc.name}`} className="tabular-nums">
+                                                {proc.name} (PID {proc.pid})
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>

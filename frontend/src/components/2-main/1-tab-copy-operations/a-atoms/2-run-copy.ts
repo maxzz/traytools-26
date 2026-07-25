@@ -1,6 +1,6 @@
 import { proxy } from "valtio";
 import { getDefaultStore } from "jotai";
-import { copyOpsBus, onWailsEvent, COPY_OPS_EVENTS, settingsBus, type CopyItemStatusEvent, type CopyJobDoneEvent } from "@/bridge";
+import { copyOpsBus, onWailsEvent, COPY_OPS_EVENTS, settingsBus, type CopyItemStatusEvent, type CopyJobDoneEvent, type LockedProcess } from "@/bridge";
 import { confirmElevationRestartMessages } from "@/components/4-dialogs/8-1-confirmation/8-confirmation-ui-messages";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
@@ -15,6 +15,8 @@ export type CopyProgressRow = {
     error?: string;
     /** Basename (or path) the locked destination was renamed to. */
     lockedRenamedTo?: string;
+    /** Processes holding the file open (Access Denied / sharing violation). */
+    lockingProcesses?: LockedProcess[];
 };
 
 export type CopyJobReport = {
@@ -144,8 +146,11 @@ function runBatch(
                     destFolder: ev.destFolder,
                     status: ev.status,
                     error: ev.error,
-                    // Keep rename info across the follow-up copied/failed event.
+                    // Keep rename / lock-holder info across the follow-up copied/failed event.
                     lockedRenamedTo: ev.lockedRenamedTo ?? prev.lockedRenamedTo,
+                    lockingProcesses: ev.lockingProcesses?.length
+                        ? ev.lockingProcesses
+                        : prev.lockingProcesses,
                 };
             }
             live.jobId = jobId;

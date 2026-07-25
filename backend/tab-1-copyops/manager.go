@@ -307,6 +307,10 @@ func (m *Manager) runCopyBatch(jobID string, req CopyBatchRequest) {
 }
 
 func (m *Manager) copyOneItem(jobID string, index int, item CopyItemSpec, renameLocked bool) {
+	src := filepath.Clean(item.SourceFile)
+	dstDir := filepath.Clean(item.DestFolder)
+	destPath := filepath.Join(dstDir, filepath.Base(src))
+
 	base := ItemStatusEvent{
 		JobID:      jobID,
 		Index:      index,
@@ -321,16 +325,25 @@ func (m *Manager) copyOneItem(jobID string, index int, item CopyItemSpec, rename
 		if err != nil {
 			ev.Status = StatusFailed
 			ev.Error = err.Error()
+			if isAccessDenied(err) {
+				ev.LockingProcesses = lockingProcessesForAccessDenied(err, destPath)
+			}
 		}
 		m.emitItemStatus(ev)
 		return
 	}
+
+	procs := lockingProcessesForAccessDenied(err, destPath)
 
 	renamedTo, renameErr := renameLockedDestination(item.SourceFile, item.DestFolder)
 	if renameErr != nil {
 		ev := base
 		ev.Status = StatusFailed
 		ev.Error = fmt.Sprintf("%v (rename locked dest failed: %v)", err, renameErr)
+		ev.LockingProcesses = procs
+		if len(ev.LockingProcesses) == 0 && isAccessDenied(renameErr) {
+			ev.LockingProcesses = lockingProcessesForAccessDenied(renameErr, destPath)
+		}
 		m.emitItemStatus(ev)
 		return
 	}
@@ -338,15 +351,22 @@ func (m *Manager) copyOneItem(jobID string, index int, item CopyItemSpec, rename
 	renamedEv := base
 	renamedEv.Status = StatusRenamed
 	renamedEv.LockedRenamedTo = renamedTo
+	renamedEv.LockingProcesses = procs
 	m.emitItemStatus(renamedEv)
 
 	status, err = copyOneFile(item.SourceFile, item.DestFolder)
 	final := base
 	final.LockedRenamedTo = renamedTo
+	final.LockingProcesses = procs
 	final.Status = status
 	if err != nil {
 		final.Status = StatusFailed
 		final.Error = err.Error()
+		if isAccessDenied(err) {
+			if retryProcs := lockingProcessesForAccessDenied(err, destPath); len(retryProcs) > 0 {
+				final.LockingProcesses = retryProcs
+			}
+		}
 	}
 	m.emitItemStatus(final)
 }

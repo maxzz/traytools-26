@@ -38,6 +38,11 @@ export type CopyBatchResponse = {
 
 export type CopyItemStatus = "pending" | "skipped" | "copied" | "failed" | "renamed";
 
+export type LockedProcess = {
+    name: string;
+    pid: number;
+};
+
 export type CopyItemStatusEvent = {
     jobId: string;
     index: number;
@@ -47,6 +52,8 @@ export type CopyItemStatusEvent = {
     error?: string;
     /** Basename (or path) the locked destination was renamed to. */
     lockedRenamedTo?: string;
+    /** Processes holding the file when Access Denied / sharing violation occurs. */
+    lockingProcesses?: LockedProcess[];
 };
 
 export type CopyJobDoneEvent = {

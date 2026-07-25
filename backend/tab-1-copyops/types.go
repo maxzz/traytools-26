@@ -71,17 +71,26 @@ type CopyBatchResponse struct {
 	Error          string `json:"error,omitempty"`
 }
 
+// LockedProcess is a process holding a file open (from Restart Manager).
+type LockedProcess struct {
+	Name string `json:"name"`
+	PID  uint32 `json:"pid"`
+}
+
 // ItemStatusEvent is emitted once per item as the batch progresses.
 // When RenameLocked renames a locked destination, StatusRenamed is emitted
 // first (with LockedRenamedTo), then a final skipped|copied|failed event.
+// LockingProcesses is set when Access Denied / sharing violation occurs and
+// Restart Manager can identify holders of the path.
 type ItemStatusEvent struct {
-	JobID           string `json:"jobId"`
-	Index           int    `json:"index"`
-	SourceFile      string `json:"sourceFile"`
-	DestFolder      string `json:"destFolder"`
-	Status          string `json:"status"` // skipped | copied | failed | renamed
-	Error           string `json:"error,omitempty"`
-	LockedRenamedTo string `json:"lockedRenamedTo,omitempty"`
+	JobID            string          `json:"jobId"`
+	Index            int             `json:"index"`
+	SourceFile       string          `json:"sourceFile"`
+	DestFolder       string          `json:"destFolder"`
+	Status           string          `json:"status"` // skipped | copied | failed | renamed
+	Error            string          `json:"error,omitempty"`
+	LockedRenamedTo  string          `json:"lockedRenamedTo,omitempty"`
+	LockingProcesses []LockedProcess `json:"lockingProcesses,omitempty"`
 }
 
 // JobDoneEvent is emitted when a batch finishes (successfully or with setup failure).
