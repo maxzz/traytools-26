@@ -307,7 +307,7 @@ function Field_Comment({ node }: NodeProps) {
     return (
         <div className="-mt-1 flex flex-col gap-0.5">
             <Label
-                className="pl-1 text-[0.65rem] select-none inline-flex items-center gap-px cursor-pointer"
+                className="pl-1 text-[0.65rem] text-muted-foreground select-none inline-flex items-center gap-px cursor-pointer"
                 onClick={() => setOpen((v) => !v)}
             >
                 Comment
@@ -351,7 +351,7 @@ function LabelAndField({ label, labelHint, children, ...props }: { label: string
     return (
         <div className="flex flex-col gap-0.5" {...props}>
             <div className="inline-flex items-center gap-0.5">
-                <Label className="pl-1 text-[0.65rem]">{label}</Label>
+                <Label className="pl-1 text-[0.65rem] text-muted-foreground">{label}</Label>
                 {labelHint}
             </div>
             {children}

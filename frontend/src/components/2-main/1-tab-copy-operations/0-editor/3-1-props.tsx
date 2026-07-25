@@ -130,7 +130,7 @@ function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: 
 
 function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
-        <Label className="font-normal cursor-pointer flex items-center gap-1.5" title={hint}>
+        <Label className="text-[0.65rem] text-muted-foreground font-normal cursor-pointer flex items-center gap-1.5" title={hint}>
             <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
             {label}
         </Label>
@@ -143,7 +143,6 @@ function OperationNameField({ item }: { item: CopyOpItem; }) {
     return (
         <LabelAndField label="Operation name">
             <Input
-                className="h-7"
                 value={item.name ?? baseName}
                 onChange={(e) => {
                     const next = e.target.value;
@@ -172,11 +171,11 @@ function LabelAndField({ label, children }: { label: string; children: ReactNode
     // Keep Label and Input as siblings — Label's select-none must not wrap the input
     // or caret placement breaks when typing at the start of the value.
     return (
-        <div className="mt-1 flex flex-col items-start gap-1">
-            <Label className="text-xs font-normal text-muted-foreground whitespace-nowrap">
+        <Label className="text-xs font-normal whitespace-nowrap flex flex-col items-start gap-0.5">
+            <div className="mt-1 text-[0.65rem] text-muted-foreground whitespace-nowrap">
                 {label}
-            </Label>
+            </div>
             {children}
-        </div>
+        </Label >
     );
 }
