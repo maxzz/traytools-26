@@ -74,21 +74,24 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
             Copy file
         </Button>
 
-        <PathInput
-            kind="file"
-            label="Source file"
-            value={item.sourceFile}
-            onChange={(path) => patchSelectedItem((it) => { it.sourceFile = path; })}
-            showReveal
-        />
+        <LabelAndField label="Source file">
+            <PathInput
+                kind="file"
+                value={item.sourceFile}
+                onChange={(path) => patchSelectedItem((it) => { it.sourceFile = path; })}
+                showReveal
+            />
+        </LabelAndField>
 
-        <PathInput
-            kind="folder"
-            label="Destination folder"
-            value={item.destFolder}
-            onChange={(path) => patchSelectedItem((it) => { it.destFolder = path; })}
-            showReveal
-        />
+        <LabelAndField label="Destination folder">
+
+            <PathInput
+                kind="folder"
+                value={item.destFolder}
+                onChange={(path) => patchSelectedItem((it) => { it.destFolder = path; })}
+                showReveal
+            />
+        </LabelAndField>
 
         <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
 

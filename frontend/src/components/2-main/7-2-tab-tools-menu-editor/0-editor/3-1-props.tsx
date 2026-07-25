@@ -66,7 +66,7 @@ function PropsAs_CommandItem({ node }: NodeProps) {
         <Field_Comment node={node} />
 
         <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-            <Field_Cmd_Reg_Path node={node} />
+            <Field_Cmd_Path node={node} />
             <Field_Cmd_PathAbsOrRelative node={node} />
             <Field_Cmd_RunElevated node={node} />
         </div>
@@ -83,7 +83,7 @@ function PropsAs_RegistryItem({ node }: NodeProps) {
         <Field_Comment node={node} />
 
         <div className="grid grid-cols-[1fr_auto] gap-2">
-            <Field_Cmd_Reg_Path node={node} />
+            <Field_Reg_Path node={node} />
             <Field_Reg_Platform node={node} />
         </div>
     </>);
@@ -104,6 +104,8 @@ function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; 
         </LabelAndField>
     );
 }
+
+// Command fields
 
 function Field_Cmd_PathAbsOrRelative({ node }: NodeProps) {
     return (
@@ -170,30 +172,16 @@ function Field_Cmd_RunElevated({ node }: NodeProps) {
     );
 }
 
-function Field_Cmd_Reg_Path({ node }: NodeProps) {
-    if (node.cmdWhat === "reg") {
-        return (
-            <LabelAndField label="Registry key">
-                <Input
-                    className="h-7"
-                    value={node.cmdLine ?? ""}
-                    placeholder="HKLM\\SOFTWARE\\..."
-                    onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
-                    {...turnOffAutoComplete}
-                />
-            </LabelAndField>
-        );
-    }
-
+function Field_Cmd_Path({ node }: NodeProps) {
     return (
+        <LabelAndField label="Command / path / URL">
         <PathInput
-            kind="file"
-            label="Command / path / URL"
             value={node.cmdLine ?? ""}
-            placeholder="notepad.exe or https://..."
             onChange={(path) => patchSelectedNode((n) => { n.cmdLine = path; })}
+            kind="file"
             showReveal
         />
+        </LabelAndField>
     );
 }
 
@@ -207,6 +195,22 @@ function Field_Cmd_CliArgs({ node }: NodeProps) {
                     const v = e.target.value;
                     if (v) { n.cmdArgs = v; } else { delete n.cmdArgs; }
                 })}
+                {...turnOffAutoComplete}
+            />
+        </LabelAndField>
+    );
+}
+
+// Registry fields
+
+function Field_Reg_Path({ node }: NodeProps) {
+    return (
+        <LabelAndField label="Registry key">
+            <Input
+                className="h-7"
+                value={node.cmdLine ?? ""}
+                placeholder="HKLM\\SOFTWARE\\..."
+                onChange={(e) => patchSelectedNode((n) => { n.cmdLine = e.target.value; })}
                 {...turnOffAutoComplete}
             />
         </LabelAndField>
@@ -251,6 +255,8 @@ function Field_Reg_Platform({ node }: NodeProps) {
         </LabelAndField>
     );
 }
+
+// Common fields
 
 function Field_HotKey({ node }: NodeProps) {
     const chord = parseHotkey(node.hotKey);
@@ -336,6 +342,10 @@ function Field_Comment({ node }: NodeProps) {
         </div>
     );
 }
+
+{/* <div className="flex flex-col gap-1">
+<span className="text-xs text-muted-foreground">{label}</span> */}
+
 
 function LabelAndField({ label, labelHint, children, ...props }: { label: string; labelHint?: ReactNode; } & ComponentProps<"div">) {
     return (

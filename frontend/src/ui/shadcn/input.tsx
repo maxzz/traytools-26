@@ -8,7 +8,7 @@ export function Input({ className, type, ...props }: ComponentProps<"input">) {
 }
 
 const inputClasses = "\
-px-2.5 py-1 w-full min-w-0 h-8 \
+px-2.5 py-1 w-full min-w-0 h-7 \
 \
 text-xs \
 bg-transparent \
@@ -38,11 +38,11 @@ file:inline-flex \
 file:h-6 \
 file:border-0 \
 file:bg-transparent \
-file:text-sm \
+file:text-xs \
 file:font-medium \
 file:text-foreground \
 \
-rounded-sm \
+rounded \
 outline-none \
 border \
 border-input \

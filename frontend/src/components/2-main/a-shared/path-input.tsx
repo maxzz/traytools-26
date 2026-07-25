@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from "react";
-import { cn } from "@/utils/classnames";
+import { classNames } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { FolderOpen, FileIcon, SquareArrowOutUpRight } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
@@ -7,26 +7,13 @@ import { appBus, copyOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { OnFileDrop, OnFileDropOff } from "@/../wailsjs/runtime/runtime";
 
-export function PathInput({
-    kind,
-    value,
-    onChange,
-    label,
-    placeholder,
-    showReveal = false,
-}: {
-    kind: PathKind;
-    value: string;
-    onChange: (path: string) => void;
-    label: string;
-    placeholder?: string;
-    /** Show a "Reveal in File Explorer" button (disabled when the path is empty). */
-    showReveal?: boolean;
-}) {
+export function PathInput({ value, onChange, kind, showReveal, }: { value: string; onChange: (path: string) => void; kind: PathKind; showReveal?: boolean; }) {
+
     const [dragOver, setDragOver] = useState(false);
     const dropRef = useRef<HTMLDivElement>(null);
     const onChangeRef = useRef<typeof onChange>(onChange);
     const kindRef = useRef<typeof kind>(kind);
+
     onChangeRef.current = onChange;
     kindRef.current = kind;
 
@@ -98,55 +85,48 @@ export function PathInput({
     }
 
     const Icon = kind === "file" ? FileIcon : FolderOpen;
-    const resolvedPlaceholder = placeholder ?? (kind === "file" ? "C:\\path\\to\\file" : "C:\\path\\to\\folder");
 
     return (
-        <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">{label}</span>
-            <InputGroup
-                className={cn("h-7 rounded-sm shadow-none transition-shadow", dragOver && "ring-2 ring-sky-500 ring-offset-1")}
-                ref={dropRef}
+        <InputGroup
+            className={classNames(dragOver && "ring-1 ring-sky-500")}
+            ref={dropRef}
+            style={DROP_TARGET_STYLE}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+        >
+            <InputGroupInput
                 style={DROP_TARGET_STYLE}
-                onDragOver={onDragOver}
-                onDragLeave={onDragLeave}
-                onDrop={onDrop}
-            >
-                <InputGroupInput
-                    className="h-7"
-                    style={DROP_TARGET_STYLE}
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    placeholder={resolvedPlaceholder}
-                    {...turnOffAutoComplete}
-                />
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                {...turnOffAutoComplete}
+            />
 
-                <InputGroupAddon className="p-0 gap-0.5 pr-1" align="inline-end">
+            <InputGroupAddon className="p-0 gap-0.5 pr-1.5" align="inline-end">
+                <InputGroupButton
+                    className="-mr-1"
+                    size="icon-xs"
+                    title={`Select ${kind}`}
+                    onClick={browse}
+                    tabIndex={-1}
+                >
+                    <Icon className="size-3.5 stroke-[1.5px]" />
+                </InputGroupButton>
+
+                {showReveal && (
                     <InputGroupButton
-                        className="-mr-1"
                         size="icon-xs"
-                        title={`Select ${kind}`}
-                        onClick={browse}
+                        title={!canReveal ? "Enter a path first" : kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
+                        aria-label={kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
+                        disabled={!canReveal}
+                        onClick={reveal}
                         tabIndex={-1}
                     >
-                        <Icon className="size-3.5 stroke-[1.5px]" />
+                        <SquareArrowOutUpRight className="size-3.5 stroke-[1.5px]" />
                     </InputGroupButton>
-
-                    {showReveal && (
-                        <InputGroupButton
-                            className="mr-1"
-                            size="icon-xs"
-                            title={!canReveal ? "Enter a path first" : kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
-                            aria-label={kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
-                            disabled={!canReveal}
-                            onClick={reveal}
-                            tabIndex={-1}
-                        >
-                            <SquareArrowOutUpRight className="size-3.5 stroke-[1.5px]" />
-                        </InputGroupButton>
-                    )}
-                </InputGroupAddon>
-            </InputGroup>
-        </div>
+                )}
+            </InputGroupAddon>
+        </InputGroup>
     );
 }
 
