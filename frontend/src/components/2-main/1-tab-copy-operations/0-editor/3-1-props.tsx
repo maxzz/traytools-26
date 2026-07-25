@@ -6,7 +6,7 @@ import { Label } from "@/ui/shadcn/label";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Button } from "@/ui/shadcn/button";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
-import { type CopyGroup, type CopyOpItem, collectGroupItems, findByUid, sourceFileBaseName } from "../a-atoms/9-types-copy";
+import { type CopyGroup, type CopyOpItem, collectGroupItems, findByUid, findTopLevelGroup, sourceFileBaseName } from "../a-atoms/9-types-copy";
 import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
@@ -21,14 +21,41 @@ export function PropsFor_Root() {
 }
 
 export function PropsFor_Group({ group }: { group: CopyGroup; }) {
-    const hasItems = collectGroupItems(group).length > 0;
+    const loc = group.uid ? findByUid(copyEditorStore.config, group.uid) : null;
+    const isTopLevel = loc?.kind === "group" && loc.parent === null;
+    const parent = loc?.kind === "group" ? loc.parent : null;
+    const topLevel = group.uid ? findTopLevelGroup(copyEditorStore.config, group.uid) : null;
+    const selfHasItems = collectGroupItems(group).length > 0;
+    const parentHasItems = parent ? collectGroupItems(parent).length > 0 : false;
+    const topLevelHasItems = topLevel ? collectGroupItems(topLevel).length > 0 : false;
+
     return (<>
-        <div className="-my-2 self-end">
-            <CopyActionButton
-                label="Copy group"
-                disabled={!hasItems}
-                onClick={() => copyLiveGroup(group.uid)}
-            />
+        <div className="-my-2 self-end flex items-center gap-2">
+            {isTopLevel
+                ? (
+                    <CopyActionButton
+                        label="Copy group"
+                        disabled={!selfHasItems}
+                        onClick={() => copyLiveGroup(group.uid)}
+                    />
+                )
+                : (
+                    <>
+                        <CopyActionButton
+                            label="Copy parent group"
+                            disabled={!parentHasItems}
+                            title="Copy all items in this group's parent (including nested groups)"
+                            onClick={() => copyLiveGroup(parent?.uid)}
+                        />
+                        <CopyActionButton
+                            label="Copy top-level group"
+                            disabled={!topLevelHasItems}
+                            title="Copy all items in the root-level group that contains this group"
+                            onClick={() => copyLiveGroup(topLevel?.uid)}
+                        />
+                    </>
+                )
+            }
         </div>
 
         <LabelAndField label="Group name">
@@ -45,7 +72,10 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
 }
 
 export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGroup; }) {
+    const topLevel = item.uid ? findTopLevelGroup(copyEditorStore.config, item.uid) : null;
     const parentHasItems = collectGroupItems(group).length > 0;
+    const topLevelHasItems = topLevel ? collectGroupItems(topLevel).length > 0 : false;
+
     return (<>
         <div className="-my-2 self-end flex items-center gap-2">
             <CopyActionButton
@@ -53,6 +83,12 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
                 disabled={!parentHasItems}
                 title="Copy all items in this item's parent group (including nested groups)"
                 onClick={() => copyLiveGroup(group.uid)}
+            />
+            <CopyActionButton
+                label="Copy top-level group"
+                disabled={!topLevelHasItems}
+                title="Copy all items in the root-level group that contains this item"
+                onClick={() => copyLiveGroup(topLevel?.uid)}
             />
             <CopyActionButton
                 label="Copy file"

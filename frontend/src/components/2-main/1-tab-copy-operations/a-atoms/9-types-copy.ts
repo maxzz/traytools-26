@@ -224,6 +224,15 @@ export function findByUid(config: CopyConfig, uid: string): CopyLocation | null 
     return findInNodes(config.groups as CopyNode[], uid, null);
 }
 
+/** The root-level group that contains `uid`, or the group itself when it is top-level. */
+export function findTopLevelGroup(config: CopyConfig, uid: string): CopyGroup | null {
+    const path = walkSelectionPath(config.groups, uid, []);
+    if (!path || path.kind === "root" || path.path.length === 0) {
+        return null;
+    }
+    return config.groups[path.path[0]] ?? null;
+}
+
 function findInNodes(
     siblings: CopyNode[],
     uid: string,
