@@ -307,7 +307,7 @@ function Field_Comment({ node }: NodeProps) {
     return (
         <div className="-mt-1 flex flex-col gap-0.5">
             <Label
-                className="pl-1 text-[0.65rem] text-muted-foreground select-none inline-flex items-center gap-px cursor-pointer"
+                className="text-[0.65rem] text-muted-foreground select-none inline-flex items-center gap-px cursor-pointer"
                 onClick={() => setOpen((v) => !v)}
             >
                 Comment
@@ -329,7 +329,7 @@ function Field_Comment({ node }: NodeProps) {
                         transition={{ duration: 0.2, ease: "easeInOut" }}
                     >
                         <Textarea
-                            className="px-3 py-2 min-h-6 rounded-sm resize-none"
+                            className="px-3 resize-none"
                             value={node.comment ?? ""}
                             onChange={(e) => patchSelectedNode((n) => {
                                 const v = e.target.value;
@@ -351,7 +351,7 @@ function LabelAndField({ label, labelHint, children, ...props }: { label: string
     return (
         <div className="flex flex-col gap-0.5" {...props}>
             <div className="inline-flex items-center gap-0.5">
-                <Label className="pl-1 text-[0.65rem] text-muted-foreground">{label}</Label>
+                <Label className="text-[0.65rem] text-muted-foreground">{label}</Label>
                 {labelHint}
             </div>
             {children}

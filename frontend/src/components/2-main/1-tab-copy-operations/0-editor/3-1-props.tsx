@@ -83,6 +83,8 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
             />
         </LabelAndField>
 
+        <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
+
         <LabelAndField label="Destination folder">
 
             <PathInput
@@ -93,8 +95,6 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
             />
         </LabelAndField>
 
-        <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
-
         <OperationNameField item={item} />
     </>);
 }
@@ -103,7 +103,7 @@ type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated" | "renameL
 
 function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: (target: CopyRunFlags) => void) => void; }) {
     return (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
             <FlagSwitch
                 label="Stop DpAgent before copy"
                 hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
@@ -119,7 +119,7 @@ function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: 
             />
 
             <FlagSwitch
-                label="Rename locked destination"
+                label="Rename destination if locked"
                 hint="If copy fails with Access Denied, rename the locked destination to name_locked_N.ext and retry the copy."
                 checked={!!flags.renameLocked}
                 onCheckedChange={(v) => onPatch((t) => { t.renameLocked = v; })}
@@ -130,9 +130,9 @@ function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: 
 
 function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
-        <Label className="text-[0.65rem] text-muted-foreground font-normal cursor-pointer flex items-center gap-1.5" title={hint}>
+        <Label className="text-[0.65rem] text-muted-foreground font-normal cursor-pointer flex items-center gap-1" title={hint}>
             <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
-            {label}
+            <span className="mt-0.5">{label}</span>
         </Label>
     );
 }
@@ -172,7 +172,7 @@ function LabelAndField({ label, children }: { label: string; children: ReactNode
     // or caret placement breaks when typing at the start of the value.
     return (
         <Label className="text-xs font-normal whitespace-nowrap flex flex-col items-start gap-0.5">
-            <div className="mt-1 text-[0.65rem] text-muted-foreground whitespace-nowrap">
+            <div className="text-[0.65rem] text-muted-foreground whitespace-nowrap">
                 {label}
             </div>
             {children}
