@@ -7,12 +7,165 @@ import { appBus, copyOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { OnFileDrop, OnFileDropOff } from "@/../wailsjs/runtime/runtime";
 
+export function PathInput({
+    kind,
+    value,
+    onChange,
+    label,
+    placeholder,
+    showReveal = false,
+}: {
+    kind: PathKind;
+    value: string;
+    onChange: (path: string) => void;
+    label: string;
+    placeholder?: string;
+    /** Show a "Reveal in File Explorer" button (disabled when the path is empty). */
+    showReveal?: boolean;
+}) {
+    const [dragOver, setDragOver] = useState(false);
+    const dropRef = useRef<HTMLDivElement>(null);
+    const onChangeRef = useRef<typeof onChange>(onChange);
+    const kindRef = useRef<typeof kind>(kind);
+    onChangeRef.current = onChange;
+    kindRef.current = kind;
+
+    useEffect(
+        () => {
+            const el = dropRef.current;
+            if (!el) {
+                return;
+            }
+            return registerDropTarget({
+                el,
+                getKind: () => kindRef.current,
+                onPath: (path) => onChangeRef.current(path),
+            });
+        },
+        []);
+
+    async function browse() {
+        try {
+            const initial = value.trim();
+            const res = kind === "file" ? await copyOpsBus.pickFile(initial || undefined) : await copyOpsBus.pickFolder(initial || undefined);
+            if (!res.canceled && res.path) {
+                onChange(res.path);
+            }
+        } catch (e) {
+            console.error("Path browse failed", e);
+        }
+    }
+
+    const trimmed = value.trim();
+    const canReveal = trimmed.length > 0;
+
+    function reveal() {
+        if (!canReveal) {
+            return;
+        }
+        // Files: select/highlight in the parent. Folders: open the folder itself.
+        const open = kind === "folder" ? appBus.openInExplorer(trimmed) : appBus.revealInExplorer(trimmed);
+        void open.catch((e) => {
+            notice.error(`Failed to ${kind === "folder" ? "open" : "reveal"} in File Explorer:<br/>${String(e)}`);
+        });
+    }
+
+    // Visual feedback + optional Chromium File.path. Never stopPropagation.
+    function onDragOver(e: DragEvent) {
+        if (!e.dataTransfer.types.includes("Files")) {
+            return;
+        }
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        setDragOver(true);
+    }
+
+    function onDragLeave(e: DragEvent) {
+        const related = e.relatedTarget as Node | null;
+        if (related && dropRef.current?.contains(related)) {
+            return;
+        }
+        setDragOver(false);
+    }
+
+    function onDrop(e: DragEvent) {
+        setDragOver(false);
+        const path = pathFromDataTransfer(e.dataTransfer);
+        if (path) {
+            void applyDroppedPath(path, kind, onChange);
+        }
+        // Let the event bubble to Wails' window listener for WebView2 path resolution.
+    }
+
+    const Icon = kind === "file" ? FileIcon : FolderOpen;
+    const resolvedPlaceholder = placeholder ?? (kind === "file" ? "C:\\path\\to\\file" : "C:\\path\\to\\folder");
+
+    return (
+        <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">{label}</span>
+            <InputGroup
+                className={cn("h-7 rounded-sm shadow-none transition-shadow", dragOver && "ring-2 ring-sky-500 ring-offset-1")}
+                ref={dropRef}
+                style={DROP_TARGET_STYLE}
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
+            >
+                <InputGroupInput
+                    className="h-7"
+                    style={DROP_TARGET_STYLE}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder={resolvedPlaceholder}
+                    {...turnOffAutoComplete}
+                />
+
+                <InputGroupAddon className="p-0 gap-0.5 pr-1" align="inline-end">
+                    <InputGroupButton
+                        className="-mr-1"
+                        size="icon-xs"
+                        title={`Select ${kind}`}
+                        onClick={browse}
+                        tabIndex={-1}
+                    >
+                        <Icon className="size-3.5 stroke-[1.5px]" />
+                    </InputGroupButton>
+
+                    {showReveal && (
+                        <InputGroupButton
+                            className="mr-1"
+                            size="icon-xs"
+                            title={!canReveal ? "Enter a path first" : kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
+                            aria-label={kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
+                            disabled={!canReveal}
+                            onClick={reveal}
+                            tabIndex={-1}
+                        >
+                            <SquareArrowOutUpRight className="size-3.5 stroke-[1.5px]" />
+                        </InputGroupButton>
+                    )}
+                </InputGroupAddon>
+            </InputGroup>
+        </div>
+    );
+}
+
+/** Call once when a page with PathInput mounts so the drop listener is ready early. */
+export function initPathDropListener() {
+    // Do not read window.wails.flags.enableWailsDragAndDrop here: the Wails JS
+    // runtime defaults it to false, and Go flips it to true only after
+    // navigationCompleted (ExecJS). That races with React mount / Vite HMR and
+    // produces a false warning even when main.go has EnableFileDrop: true.
+    ensureDropListener();
+}
+
+// --------------------------------------------------------------------------
+// Drag-and-drop support
+
 type PathKind = "file" | "folder";
 
 /** Marker used by Wails drag-over styling. Value must match CSSDropValue ("drop"). */
-const DROP_TARGET_STYLE = {
-    ["--wails-drop-target" as string]: "drop",
-} as CSSProperties;
+const DROP_TARGET_STYLE: CSSProperties = { ["--wails-drop-target"]: "drop" };
 
 type DropTarget = {
     el: HTMLElement;
@@ -108,162 +261,4 @@ function pathFromDataTransfer(dt: DataTransfer): string | null {
         return text.replace(/^file:\/\/\/?/i, "").replace(/\//g, "\\");
     }
     return null;
-}
-
-export function PathInput({
-    kind,
-    value,
-    onChange,
-    label,
-    placeholder,
-    showReveal = false,
-}: {
-    kind: PathKind;
-    value: string;
-    onChange: (path: string) => void;
-    label: string;
-    placeholder?: string;
-    /** Show a "Reveal in File Explorer" button (disabled when the path is empty). */
-    showReveal?: boolean;
-}) {
-    const [dragOver, setDragOver] = useState(false);
-    const dropRef = useRef<HTMLDivElement>(null);
-    const onChangeRef = useRef<typeof onChange>(onChange);
-    const kindRef = useRef<typeof kind>(kind);
-    onChangeRef.current = onChange;
-    kindRef.current = kind;
-
-    useEffect(
-        () => {
-            const el = dropRef.current;
-            if (!el) {
-                return;
-            }
-            return registerDropTarget({
-                el,
-                getKind: () => kindRef.current,
-                onPath: (path) => onChangeRef.current(path),
-            });
-        },
-        []);
-
-    const browse = async () => {
-        try {
-            const initial = value.trim();
-            const res = kind === "file"
-                ? await copyOpsBus.pickFile(initial || undefined)
-                : await copyOpsBus.pickFolder(initial || undefined);
-            if (!res.canceled && res.path) {
-                onChange(res.path);
-            }
-        } catch (e) {
-            console.error("Path browse failed", e);
-        }
-    };
-
-    const trimmed = value.trim();
-    const canReveal = trimmed.length > 0;
-
-    const reveal = () => {
-        if (!canReveal) {
-            return;
-        }
-        // Files: select/highlight in the parent. Folders: open the folder itself.
-        const open = kind === "folder"
-            ? appBus.openInExplorer(trimmed)
-            : appBus.revealInExplorer(trimmed);
-        void open.catch((e) => {
-            notice.error(
-                kind === "folder"
-                    ? `Failed to open folder in File Explorer:<br/>${String(e)}`
-                    : `Failed to reveal in File Explorer:<br/>${String(e)}`,
-            );
-        });
-    };
-
-    // Visual feedback + optional Chromium File.path. Never stopPropagation.
-    const onDragOver = (e: DragEvent) => {
-        if (!e.dataTransfer.types.includes("Files")) {
-            return;
-        }
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "copy";
-        setDragOver(true);
-    };
-
-    const onDragLeave = (e: DragEvent) => {
-        const related = e.relatedTarget as Node | null;
-        if (related && dropRef.current?.contains(related)) {
-            return;
-        }
-        setDragOver(false);
-    };
-
-    const onDrop = (e: DragEvent) => {
-        setDragOver(false);
-        const path = pathFromDataTransfer(e.dataTransfer);
-        if (path) {
-            void applyDroppedPath(path, kind, onChange);
-        }
-        // Let the event bubble to Wails' window listener for WebView2 path resolution.
-    };
-
-    const Icon = kind === "file" ? FileIcon : FolderOpen;
-    const resolvedPlaceholder = placeholder
-        ?? (kind === "file" ? "C:\\path\\to\\file" : "C:\\path\\to\\folder");
-
-    return (
-        <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">{label}</span>
-            <InputGroup
-                ref={dropRef}
-                style={DROP_TARGET_STYLE}
-                className={cn("h-7 rounded-sm shadow-none transition-shadow", dragOver && "ring-2 ring-sky-500 ring-offset-1")}
-                onDragOver={onDragOver}
-                onDragLeave={onDragLeave}
-                onDrop={onDrop}
-            >
-                <InputGroupInput
-                    style={DROP_TARGET_STYLE}
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    placeholder={resolvedPlaceholder}
-                    {...turnOffAutoComplete}
-                />
-
-                <InputGroupAddon align="inline-end" className="gap-0.5 pr-1">
-                    <InputGroupButton
-                        size="icon-xs"
-                        title={`Select ${kind}`}
-                        onClick={browse}
-                        tabIndex={-1}
-                    >
-                        <Icon className="size-3.5 stroke-[1.5px]" />
-                    </InputGroupButton>
-
-                    {showReveal && (
-                        <InputGroupButton
-                            size="icon-xs"
-                            title={!canReveal ? "Enter a path first" : kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
-                            aria-label={kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
-                            disabled={!canReveal}
-                            onClick={reveal}
-                            tabIndex={-1}
-                        >
-                            <SquareArrowOutUpRight className="size-3.5 stroke-[1.5px]" />
-                        </InputGroupButton>
-                    )}
-                </InputGroupAddon>
-            </InputGroup>
-        </div>
-    );
-}
-
-/** Call once when a page with PathInput mounts so the drop listener is ready early. */
-export function initPathDropListener() {
-    // Do not read window.wails.flags.enableWailsDragAndDrop here: the Wails JS
-    // runtime defaults it to false, and Go flips it to true only after
-    // navigationCompleted (ExecJS). That races with React mount / Vite HMR and
-    // produces a false warning even when main.go has EnableFileDrop: true.
-    ensureDropListener();
 }

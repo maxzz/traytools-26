@@ -39,6 +39,6 @@ export function TreeViewMenu({className, ...rest}: ComponentProps<typeof Button>
 }
 
 const ADD_ITEMS: { kind: AddCopyKind; label: string; }[] = [
-    { kind: "group", label: "Add Group" },
     { kind: "item", label: "Add Copy Item" },
+    { kind: "group", label: "Add Group" },
 ];
