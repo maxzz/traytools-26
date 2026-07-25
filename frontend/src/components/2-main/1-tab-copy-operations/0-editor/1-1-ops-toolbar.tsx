@@ -2,7 +2,7 @@ import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
 import { AlertTriangle, Info, Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
 import { copyEditorStore, CopyConfig_Apply, CopyConfig_CreateNew, CopyConfig_Export, CopyConfig_Import, CopyConfig_Load, CopyConfig_RevealInExplorer } from "../a-atoms/0-copy-local-storage";
@@ -179,6 +179,7 @@ function ActionsMenu() {
                     onSelect={() => canSave && CopyConfig_Apply()}
                 >
                     Save
+                    <DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem

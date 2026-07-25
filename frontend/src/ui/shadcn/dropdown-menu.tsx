@@ -1,4 +1,4 @@
-import { type ComponentProps } from "react"; // 05.09.26
+import { type ComponentProps } from "react"; // 05.09.26, 07.25.26
 import { cn } from "@/utils/classnames";
 import { CheckIcon, ChevronRightIcon } from "lucide-react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
@@ -51,7 +51,7 @@ data-closed:animate-out \
 data-closed:fade-out-0 \
 data-closed:zoom-out-95 \
 \
-rounded-lg \
+rounded-sm \
 shadow-md \
 ring-1 \
 ring-foreground/10 \
@@ -90,8 +90,9 @@ data-disabled:opacity-50 \
 [&_svg]:shrink-0 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
-rounded-md \
+rounded \
 outline-hidden \
+text-nowrap \
 select-none \
 cursor-default \
 flex items-center gap-1.5";
@@ -127,7 +128,7 @@ data-disabled:opacity-50 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
 cursor-default \
-rounded-md \
+rounded \
 outline-hidden \
 select-none \
 flex items-center gap-1.5";
@@ -167,7 +168,7 @@ data-disabled:opacity-50 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
 cursor-default \
-rounded-md \
+rounded \
 outline-hidden \
 select-none \
 flex items-center gap-1.5";
@@ -181,7 +182,7 @@ export function DropdownMenuSeparator({ className, ...rest }: ComponentProps<typ
 }
 
 export function DropdownMenuShortcut({ className, ...rest }: ComponentProps<"span">) {
-    return <span data-slot="dropdown-menu-shortcut" className={cn("ml-auto text-xs tracking-widest text-muted-foreground group-focus/dropdown-menu-item:text-accent-foreground", className)} {...rest} />;
+    return <span data-slot="dropdown-menu-shortcut" className={cn("ml-auto text-[0.65rem] text-muted-foreground group-focus/dropdown-menu-item:text-accent-foreground border rounded-sm px-1 py-px", className)} {...rest} />;
 }
 
 export function DropdownMenuSub({ ...rest }: ComponentProps<typeof DropdownMenuPrimitive.Sub>) {
@@ -214,7 +215,7 @@ data-open:bg-accent \
 [&_svg]:shrink-0 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
-rounded-md \
+rounded \
 outline-hidden \
 cursor-default \
 select-none \
@@ -246,7 +247,7 @@ data-closed:zoom-out-95 \
 \
 shadow-lg \
 overflow-hidden \
-rounded-lg \
+rounded-sm \
 ring-1 \
 ring-foreground/10 \
 z-50";

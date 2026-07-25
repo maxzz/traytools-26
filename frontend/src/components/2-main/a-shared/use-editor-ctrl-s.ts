@@ -27,8 +27,17 @@ export function useSaveNotice(durationMs = 2500): { message: string; show(next: 
 
 /** While mounted (active tab), Ctrl/Cmd+S runs onSave and prevents the browser save dialog. */
 export function useCtrlSSave(onSave: () => void | Promise<void>) {
-    const onSaveRef = useRef(onSave);
-    onSaveRef.current = onSave;
+    useEditorCtrlKey("s", onSave);
+}
+
+/** While mounted (active tab), Ctrl/Cmd+N runs onAdd (e.g. Add Copy Item). */
+export function useCtrlNAdd(onAdd: () => void | Promise<void>) {
+    useEditorCtrlKey("n", onAdd);
+}
+
+function useEditorCtrlKey(key: "s" | "n", onAction: () => void | Promise<void>) {
+    const onActionRef = useRef(onAction);
+    onActionRef.current = onAction;
 
     useEffect(
         () => {
@@ -37,16 +46,17 @@ export function useCtrlSSave(onSave: () => void | Promise<void>) {
                 if (!ctrlOrCmd || event.altKey || event.shiftKey) {
                     return;
                 }
-                if (event.code !== "KeyS" && event.key.toLowerCase() !== "s") {
+                const code = key === "s" ? "KeyS" : "KeyN";
+                if (event.code !== code && event.key.toLowerCase() !== key) {
                     return;
                 }
                 event.preventDefault();
-                void onSaveRef.current();
+                void onActionRef.current();
             }
 
             const controller = new AbortController();
             window.addEventListener("keydown", handleKeyDown, { signal: controller.signal });
             return () => controller.abort();
         },
-        []);
+        [key]);
 }
