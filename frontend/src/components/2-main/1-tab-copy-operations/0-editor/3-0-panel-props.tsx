@@ -16,7 +16,7 @@ export function Panel_Props() {
                             ? <PropsFor_Root />
                             : selected.kind === "group"
                                 ? <PropsFor_Group group={selected.group} />
-                                : <PropsFor_Item item={selected.item} />
+                                : <PropsFor_Item item={selected.item} group={selected.group} />
                     }
                 </div>
             </ScrollArea>

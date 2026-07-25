@@ -22,11 +22,13 @@ export function PropsFor_Root() {
 
 export function PropsFor_Group({ group }: { group: CopyGroup; }) {
     return (<>
-        <CopyActionButton
-            label="Copy group"
-            disabled={group.items.length === 0}
-            onClick={() => copyLiveGroup(group.uid)}
-        />
+        <div className="-my-2 self-end">
+            <CopyActionButton
+                label="Copy group"
+                disabled={group.items.length === 0}
+                onClick={() => copyLiveGroup(group.uid)}
+            />
+        </div>
 
         <LabelAndField label="Group name">
             <Input
@@ -41,13 +43,21 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
     </>);
 }
 
-export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
+export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGroup; }) {
     return (<>
-        <CopyActionButton
-            label="Copy file"
-            disabled={!item.sourceFile.trim() || !item.destFolder.trim()}
-            onClick={() => copyLiveItem(item.uid)}
-        />
+        <div className="-my-2 self-end flex items-center gap-2">
+            <CopyActionButton
+                label="Copy parent group"
+                disabled={group.items.length === 0}
+                title="Copy all items in this item's parent group"
+                onClick={() => copyLiveGroup(group.uid)}
+            />
+            <CopyActionButton
+                label="Copy file"
+                disabled={!item.sourceFile.trim() || !item.destFolder.trim()}
+                onClick={() => copyLiveItem(item.uid)}
+            />
+        </div>
 
         <LabelAndField label="Source file">
             <PathInput
@@ -102,7 +112,7 @@ function copyLiveItem(uid?: string) {
 function CopyActionButton({ label, disabled, title, onClick }: { label: string; disabled: boolean; title?: string; onClick: () => void; }) {
     return (
         <Button
-            className="-my-2 self-end font-normal text-sky-800 dark:text-sky-400 bg-sky-200 dark:bg-sky-800/40 border-sky-500/60 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
+            className="font-normal text-sky-800 dark:text-sky-400 bg-sky-200 dark:bg-sky-800/40 border-sky-500/60 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
             variant="secondary"
             size="xs"
             disabled={disabled}
