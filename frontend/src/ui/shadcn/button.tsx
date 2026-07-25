@@ -1,4 +1,4 @@
-import { type ComponentProps } from "react";
+import { type ComponentProps } from "react"; // 07.25.2026
 import { type VariantProps, cva } from "class-variance-authority";
 import { cn } from "@/utils/classnames";
 import { Slot } from "radix-ui";
@@ -17,7 +17,7 @@ focus-visible:border-ring \
 focus-visible:ring-1 \
 focus-visible:ring-ring/50 \
 \
-active:not-aria-[haspopup]:translate-y-px \
+active:not-aria-[haspopup]:scale-95 \
 disabled:pointer-events-none \
 disabled:opacity-50 \
 \
@@ -32,6 +32,7 @@ dark:aria-invalid:ring-destructive/40 \
 [&_svg]:shrink-0 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
+cursor-pointer \
 rounded-sm \
 border border-transparent \
 bg-clip-padding \

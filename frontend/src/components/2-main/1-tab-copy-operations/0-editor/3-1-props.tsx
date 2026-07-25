@@ -22,22 +22,11 @@ export function PropsFor_Root() {
 
 export function PropsFor_Group({ group }: { group: CopyGroup; }) {
     return (<>
-        <Button
-            className="-my-2 self-end"
-            variant="default"
-            size="xs"
+        <CopyActionButton
+            label="Copy group"
             disabled={group.items.length === 0}
-            onClick={() => {
-                const live = copyEditorStore.config.groups.find((g) => g.uid === group.uid);
-                if (live) {
-                    runCopyGroup(live);
-                }
-            }}
-            type="button"
-        >
-            <Copy className="size-3.5" />
-            Copy group
-        </Button>
+            onClick={() => copyLiveGroup(group.uid)}
+        />
 
         <LabelAndField label="Group name">
             <Input
@@ -54,25 +43,11 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
 
 export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
     return (<>
-        <Button
-            className="-my-2 self-end"
-            variant="default"
-            size="xs"
+        <CopyActionButton
+            label="Copy file"
             disabled={!item.sourceFile.trim() || !item.destFolder.trim()}
-            onClick={() => {
-                for (const g of copyEditorStore.config.groups) {
-                    const live = g.items.find((it) => it.uid === item.uid);
-                    if (live) {
-                        runCopyItem(live);
-                        return;
-                    }
-                }
-            }}
-            type="button"
-        >
-            <Copy className="size-3.5" />
-            Copy file
-        </Button>
+            onClick={() => copyLiveItem(item.uid)}
+        />
 
         <LabelAndField label="Source file">
             <PathInput
@@ -98,6 +73,49 @@ export function PropsFor_Item({ item }: { item: CopyOpItem; }) {
         <OperationNameField item={item} />
     </>);
 }
+
+// Copy action buttons
+
+function copyLiveGroup(uid?: string) {
+    if (!uid) {
+        return;
+    }
+    const live = copyEditorStore.config.groups.find((g) => g.uid === uid);
+    if (live) {
+        runCopyGroup(live);
+    }
+}
+
+function copyLiveItem(uid?: string) {
+    if (!uid) {
+        return;
+    }
+    for (const g of copyEditorStore.config.groups) {
+        const live = g.items.find((it) => it.uid === uid);
+        if (live) {
+            runCopyItem(live);
+            return;
+        }
+    }
+}
+
+function CopyActionButton({ label, disabled, title, onClick }: { label: string; disabled: boolean; title?: string; onClick: () => void; }) {
+    return (
+        <Button
+            className="-my-2 self-end font-normal text-sky-800 dark:text-sky-400 bg-sky-200 dark:bg-sky-800/40 border-sky-500/60 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
+            variant="secondary"
+            size="xs"
+            disabled={disabled}
+            title={title}
+            onClick={onClick}
+            type="button"
+        >
+            {label}
+        </Button>
+    );
+}
+
+// Copy run flags
 
 type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated" | "renameLocked">;
 
