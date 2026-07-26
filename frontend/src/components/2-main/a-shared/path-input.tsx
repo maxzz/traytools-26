@@ -23,7 +23,7 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
             if (!el) {
                 return;
             }
-            return registerDropTarget({
+            return registerFileDropTarget({
                 el,
                 getKind: () => kindRef.current,
                 onPath: (path) => onChangeRef.current(path),
@@ -145,27 +145,45 @@ export function initPathDropListener() {
 type PathKind = "file" | "folder";
 
 /** Marker used by Wails drag-over styling. Value must match CSSDropValue ("drop"). */
-const DROP_TARGET_STYLE: CSSProperties = { ["--wails-drop-target"]: "drop" };
+export const DROP_TARGET_STYLE: CSSProperties = { ["--wails-drop-target"]: "drop" };
 
-type DropTarget = {
+export type FileDropTarget = {
     el: HTMLElement;
-    getKind: () => PathKind;
-    onPath: (path: string) => void;
+    /** PathInput: single path + field kind. */
+    getKind?: () => PathKind;
+    onPath?: (path: string) => void;
+    /** Multi-file consumers (e.g. copy-ops tree). When set, receives all normalized paths. */
+    onPaths?: (paths: string[]) => void;
+    /** Kind used when normalizing for `onPaths` (default "file"). */
+    pathsKind?: PathKind;
 };
 
 type FileWithPath = File & { path?: string; };
 
-const dropTargets = new Set<DropTarget>();
+const dropTargets = new Set<FileDropTarget>();
 let dropListening = false;
 
-function findTargetAt(x: number, y: number): DropTarget | null {
+function findTargetAt(x: number, y: number): FileDropTarget | null {
     const under = document.elementFromPoint(x, y);
+    const containing: FileDropTarget[] = [];
     if (under) {
         for (const target of dropTargets) {
             if (target.el === under || target.el.contains(under)) {
-                return target;
+                containing.push(target);
             }
         }
+    }
+    if (containing.length > 0) {
+        // Prefer the deepest / most specific registered target.
+        return containing.reduce((best, t) => {
+            if (best.el.contains(t.el)) {
+                return t;
+            }
+            if (t.el.contains(best.el)) {
+                return best;
+            }
+            return best;
+        });
     }
     for (const target of dropTargets) {
         const rect = target.el.getBoundingClientRect();
@@ -188,6 +206,28 @@ async function applyDroppedPath(rawPath: string, kind: PathKind, onPath: (path: 
         // Fall back to raw path so the drop is not silently lost.
         onPath(rawPath);
     }
+}
+
+/** Normalize many dropped paths; skips entries that fail without a usable fallback. */
+export async function normalizeDroppedPaths(rawPaths: string[], kind: PathKind = "file"): Promise<string[]> {
+    const out: string[] = [];
+    for (const rawPath of rawPaths) {
+        const trimmed = rawPath.trim();
+        if (!trimmed) {
+            continue;
+        }
+        try {
+            const res = await copyOpsBus.normalizeDropPath(trimmed, kind);
+            if (res?.path) {
+                out.push(res.path);
+            }
+        } catch (e) {
+            console.error("normalizeDropPath failed", e);
+            // Folders fail kind "file"; keep raw path so the drop is not silently lost.
+            out.push(trimmed);
+        }
+    }
+    return out;
 }
 
 /**
@@ -219,11 +259,22 @@ function ensureDropListener() {
         if (!target) {
             return;
         }
-        void applyDroppedPath(paths[0], target.getKind(), target.onPath);
+        if (target.onPaths) {
+            void normalizeDroppedPaths(paths, target.pathsKind ?? "file").then((normalized) => {
+                if (normalized.length) {
+                    target.onPaths!(normalized);
+                }
+            });
+            return;
+        }
+        if (target.onPath && target.getKind) {
+            void applyDroppedPath(paths[0], target.getKind(), target.onPath);
+        }
     }, false);
 }
 
-function registerDropTarget(target: DropTarget) {
+/** Register a DOM element to receive OS / Wails file drops. */
+export function registerFileDropTarget(target: FileDropTarget) {
     ensureDropListener();
     dropTargets.add(target);
     return () => {
@@ -231,14 +282,31 @@ function registerDropTarget(target: DropTarget) {
     };
 }
 
-function pathFromDataTransfer(dt: DataTransfer): string | null {
-    const file = dt.files?.[0] as FileWithPath | undefined;
-    if (file && typeof file.path === "string" && file.path.length > 0) {
-        return file.path;
+export function isFileDrag(dt: DataTransfer | null | undefined): boolean {
+    return !!dt?.types && [...dt.types].includes("Files");
+}
+
+export function pathsFromDataTransfer(dt: DataTransfer): string[] {
+    const fromFiles: string[] = [];
+    const files = dt.files;
+    if (files?.length) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i] as FileWithPath;
+            if (typeof file.path === "string" && file.path.length > 0) {
+                fromFiles.push(file.path);
+            }
+        }
+    }
+    if (fromFiles.length) {
+        return fromFiles;
     }
     const text = dt.getData("text/plain")?.trim();
     if (text && (/^[a-zA-Z]:[\\/]/.test(text) || text.startsWith("\\\\") || text.startsWith("file:"))) {
-        return text.replace(/^file:\/\/\/?/i, "").replace(/\//g, "\\");
+        return [text.replace(/^file:\/\/\/?/i, "").replace(/\//g, "\\")];
     }
-    return null;
+    return [];
+}
+
+function pathFromDataTransfer(dt: DataTransfer): string | null {
+    return pathsFromDataTransfer(dt)[0] ?? null;
 }

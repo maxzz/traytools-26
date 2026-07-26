@@ -331,3 +331,55 @@ function uniquifyItemName(item: CopyOpItem, siblings: CopyNode[]): void {
     const names = siblings.filter(isCopyOpItem).map(itemLabel);
     item.name = nextNumberedName(itemLabel(item), names);
 }
+
+/**
+ * Add OS-dropped source files into the tree:
+ * - root → new group containing the items
+ * - group → append items to that group
+ * - item → append items to the parent group
+ */
+export function addDroppedFiles(targetUid: string, sourceFiles: string[]): boolean {
+    const paths = sourceFiles.map((p) => p.trim()).filter(Boolean);
+    if (!paths.length) {
+        return false;
+    }
+
+    const config = copyEditorStore.config;
+
+    if (isRootUid(targetUid)) {
+        const items = makeItemsFromPaths(paths, []);
+        const group = createGroup(items);
+        uniquifyGroupName(group, config.groups);
+        config.groups.push(group);
+        copyEditorStore.selectedUid = items[0]?.uid ?? group.uid!;
+        return true;
+    }
+
+    const loc = findByUid(config, targetUid);
+    if (!loc) {
+        return false;
+    }
+
+    if (loc.kind === "group") {
+        const items = makeItemsFromPaths(paths, loc.group.items);
+        loc.group.items.push(...items);
+        copyEditorStore.selectedUid = items[0]?.uid ?? loc.group.uid!;
+        return true;
+    }
+
+    const items = makeItemsFromPaths(paths, loc.siblings);
+    loc.siblings.push(...items);
+    copyEditorStore.selectedUid = items[0]?.uid ?? loc.item.uid!;
+    return true;
+}
+
+function makeItemsFromPaths(paths: string[], siblings: CopyNode[]): CopyOpItem[] {
+    const created: CopyOpItem[] = [];
+    for (const path of paths) {
+        const item = createItem();
+        item.sourceFile = path;
+        uniquifyItemName(item, [...siblings, ...created]);
+        created.push(item);
+    }
+    return created;
+}

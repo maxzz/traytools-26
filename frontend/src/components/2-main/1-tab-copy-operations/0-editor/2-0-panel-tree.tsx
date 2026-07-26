@@ -1,13 +1,23 @@
-import { createContext, useContext, useMemo, useRef, useState, type DragEvent } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
 import { type CopyOpItem, findByUid, itemLabel } from "../a-atoms/9-types-copy";
-import { type DropPosition, copyNode, moveNode } from "../a-atoms/1-copy-editor-atoms";
+import { type DropPosition, addDroppedFiles, copyNode, isRootUid, moveNode } from "../a-atoms/1-copy-editor-atoms";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
+import {
+    DROP_TARGET_STYLE,
+    isFileDrag,
+    normalizeDroppedPaths,
+    pathsFromDataTransfer,
+    registerFileDropTarget,
+} from "@/components/2-main/a-shared/path-input";
+
+/** Custom MIME so OS file drags are never mistaken for in-tree reorder. */
+const TREE_UID_MIME = "application/x-traytools-tree-uid";
 
 type SnapItem = {
     readonly sourceFile: string;
@@ -30,6 +40,26 @@ function isSnapGroup(node: SnapNode): node is SnapGroup {
     return Array.isArray((node as SnapGroup).items) && !("sourceFile" in node);
 }
 
+function isInternalTreeDrag(dt: DataTransfer): boolean {
+    return [...dt.types].includes(TREE_UID_MIME);
+}
+
+function isExternalFileDrag(dt: DataTransfer): boolean {
+    return isFileDrag(dt) && !isInternalTreeDrag(dt);
+}
+
+/** Map a hovered row uid to the group that should receive dropped files. */
+function fileDropDestUid(rowUid: string): string {
+    if (isRootUid(rowUid)) {
+        return rowUid;
+    }
+    const loc = findByUid(copyEditorStore.config, rowUid);
+    if (loc?.kind === "item" && loc.group.uid) {
+        return loc.group.uid;
+    }
+    return rowUid;
+}
+
 export function Panel_Tree() {
     const snap = useSnapshot(copyEditorStore);
     const groups = snap.config.groups as readonly SnapGroup[];
@@ -39,21 +69,80 @@ export function Panel_Tree() {
     const [dragUid, setDragUid] = useState<string | null>(null);
     const [dropUid, setDropUid] = useState<string | null>(null);
     const [dropPos, setDropPos] = useState<DropPosition | null>(null);
+    /** Highlight target for OS file drops (always a group or root uid). */
+    const [fileDropUid, setFileDropUid] = useState<string | null>(null);
+    const fileDropUidRef = useRef<string | null>(null);
     // drop.ctrlKey is unreliable in WebView2; remember intent from dragover.
     const wantCopyRef = useRef(false);
+    /** Dedupe Chromium File.path handling vs Wails OnFileDrop for the same gesture. */
+    const lastFileApplyRef = useRef<{ sig: string; at: number; } | null>(null);
+
+    const clearFileDrop = () => {
+        fileDropUidRef.current = null;
+        setFileDropUid(null);
+    };
+
+    const setFileDropTarget = (uid: string) => {
+        const dest = fileDropDestUid(uid);
+        fileDropUidRef.current = dest;
+        setFileDropUid(dest);
+    };
+
+    const applyExternalFiles = (targetUid: string, paths: string[]) => {
+        const sig = `${targetUid}\0${paths.join("\0")}`;
+        const now = Date.now();
+        const prev = lastFileApplyRef.current;
+        if (prev && prev.sig === sig && now - prev.at < 500) {
+            return;
+        }
+        lastFileApplyRef.current = { sig, at: now };
+        addDroppedFiles(targetUid, paths);
+    };
+
+    useEffect(
+        () => {
+            const el = treeRef.current;
+            if (!el) {
+                return;
+            }
+            return registerFileDropTarget({
+                el,
+                pathsKind: "file",
+                onPaths: (paths) => {
+                    const uid = fileDropUidRef.current ?? rootUid;
+                    applyExternalFiles(uid, paths);
+                    clearFileDrop();
+                },
+            });
+        },
+        [rootUid]);
 
     const dnd = useMemo<DndState>(
         () => ({
             dragUid,
             dropUid,
             dropPos,
+            fileDropUid,
             onDragStart: (e, uid) => {
                 setDragUid(uid);
+                clearFileDrop();
                 wantCopyRef.current = false;
                 e.dataTransfer.effectAllowed = "copyMove";
                 e.dataTransfer.setData("text/plain", uid);
+                e.dataTransfer.setData(TREE_UID_MIME, uid);
             },
             onDragOver: (e, uid, isGroup, isRoot) => {
+                if (isExternalFileDrag(e.dataTransfer)) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "copy";
+                    setFileDropTarget(uid);
+                    setDropUid(null);
+                    setDropPos(null);
+                    return;
+                }
+                if (fileDropUidRef.current) {
+                    clearFileDrop();
+                }
                 e.preventDefault();
                 const wantCopy = e.ctrlKey || e.metaKey;
                 wantCopyRef.current = wantCopy;
@@ -73,7 +162,30 @@ export function Panel_Tree() {
             },
             onDrop: (e, uid) => {
                 e.preventDefault();
-                const src = e.dataTransfer.getData("text/plain") || dragUid;
+                // Do not stopPropagation — Wails window listener must see the drop.
+
+                if (isExternalFileDrag(e.dataTransfer)) {
+                    const dest = fileDropUidRef.current ?? fileDropDestUid(uid);
+                    const paths = pathsFromDataTransfer(e.dataTransfer);
+                    if (paths.length) {
+                        void normalizeDroppedPaths(paths, "file").then((normalized) => {
+                            if (normalized.length) {
+                                applyExternalFiles(dest, normalized);
+                            }
+                        });
+                    }
+                    wantCopyRef.current = false;
+                    setDragUid(null);
+                    setDropUid(null);
+                    setDropPos(null);
+                    clearFileDrop();
+                    return;
+                }
+
+                const src =
+                    e.dataTransfer.getData(TREE_UID_MIME)
+                    || e.dataTransfer.getData("text/plain")
+                    || dragUid;
                 const isCopy =
                     wantCopyRef.current
                     || e.dataTransfer.dropEffect === "copy"
@@ -90,18 +202,22 @@ export function Panel_Tree() {
                 setDragUid(null);
                 setDropUid(null);
                 setDropPos(null);
+                clearFileDrop();
             },
             onDragEnd: () => {
                 wantCopyRef.current = false;
                 setDragUid(null);
                 setDropUid(null);
                 setDropPos(null);
+                clearFileDrop();
             },
             onDragLeaveRow: (uid) => {
+                // Only clear reorder indicators; file-drop highlight is owned by the
+                // next dragover / drop / dragend so it does not flicker between rows.
                 setDropUid((cur) => (cur === uid ? null : cur));
             },
         }),
-        [dragUid, dropUid, dropPos]);
+        [dragUid, dropUid, dropPos, fileDropUid]);
 
     const focusTree = () => {
         treeRef.current?.focus();
@@ -113,11 +229,26 @@ export function Panel_Tree() {
                 <DndContext.Provider value={dnd}>
                     <div
                         ref={treeRef}
-                        className="group/tree p-1 outline-none"
+                        className="group/tree p-1 min-h-full outline-none flex flex-col"
                         data-slot="tree-view"
+                        style={DROP_TARGET_STYLE}
                         tabIndex={0}
+                        onDragLeave={(e) => {
+                            const related = e.relatedTarget as Node | null;
+                            if (related && treeRef.current?.contains(related)) {
+                                return;
+                            }
+                            clearFileDrop();
+                        }}
                     >
                         <RootRow rootUid={rootUid} groups={groups} onActivate={focusTree} />
+                        {/* Empty space below the last row: OS drops create a new root group. */}
+                        <div
+                            className="min-h-10 flex-1"
+                            onDragOver={(e) => dnd.onDragOver(e, rootUid, true, true)}
+                            onDrop={(e) => dnd.onDrop(e, rootUid)}
+                            onDragLeave={() => dnd.onDragLeaveRow(rootUid)}
+                        />
                     </div>
                 </DndContext.Provider>
             </ScrollArea>
@@ -132,6 +263,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
     const selected = snap.selectedUid === rootUid;
     const isDropTarget = dnd.dropUid === rootUid;
     const showInside = isDropTarget && dnd.dropPos === "inside";
+    const showFileDrop = dnd.fileDropUid === rootUid;
 
     return (
         <div>
@@ -146,7 +278,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                         "group relative mx-0 px-1 h-5 font-medium rounded-none select-none flex items-center gap-1 cursor-pointer",
                         !selected && "hover:bg-accent/50",
                         selected && ROW_SELECTED,
-                        showInside && "ring-1 ring-sky-500 bg-sky-500/10",
+                        (showInside || showFileDrop) && "ring-1 ring-sky-500 bg-sky-500/10",
                     )}
                     style={{ paddingLeft: INDENT + 8 }}
                     onClick={(e) => {
@@ -191,8 +323,14 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                         </div>
                     )
                     : (
-                        <div className="px-3 py-4 text-muted-foreground" style={{ paddingLeft: 2 * INDENT + 8 }}>
-                            Empty. Use the menu above to add groups.
+                        <div
+                            className="px-3 py-4 text-muted-foreground"
+                            style={{ paddingLeft: 2 * INDENT + 8 }}
+                            onDragOver={(e) => dnd.onDragOver(e, rootUid, true, true)}
+                            onDrop={(e) => dnd.onDrop(e, rootUid)}
+                            onDragLeave={() => dnd.onDragLeaveRow(rootUid)}
+                        >
+                            Empty. Drop files here or use the menu above to add groups.
                         </div>
                     )
             )}
@@ -211,6 +349,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
     const showBefore = isDropTarget && dnd.dropPos === "before";
     const showAfter = isDropTarget && dnd.dropPos === "after";
     const showInside = isDropTarget && dnd.dropPos === "inside";
+    const showFileDrop = dnd.fileDropUid === uid;
     // ancestors[i] true ⇒ ancestor at level i has a following sibling (continue the vertical).
     const childAncestors = [...ancestors, !isLast];
     const hasChildren = group.items.length > 0;
@@ -234,7 +373,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         "group relative px-1 h-5 rounded-none select-none flex items-center gap-1 cursor-pointer",
                         !selected && "hover:bg-accent/50",
                         selected && ROW_SELECTED,
-                        showInside && "ring-1 ring-sky-500 bg-sky-500/10",
+                        (showInside || showFileDrop) && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
                     )}
                     style={{ paddingLeft: (depth + 1) * INDENT + 8 }}
@@ -443,6 +582,7 @@ type DndState = {
     dragUid: string | null;
     dropUid: string | null;
     dropPos: DropPosition | null;
+    fileDropUid: string | null;
     onDragStart: (e: DragEvent, uid: string) => void;
     onDragOver: (e: DragEvent, uid: string, isGroup: boolean, isRoot: boolean) => void;
     onDrop: (e: DragEvent, uid: string) => void;

@@ -123,11 +123,11 @@ export function ensureUids(config: CopyConfig, rootUidHolder: { rootUid: string;
     assignUids(config.groups, used);
 }
 
-export function createGroup(): CopyGroup {
+export function createGroup(items?: CopyOpItem[]): CopyGroup {
     return {
         uid: newUid(),
         name: "New Group",
-        items: [createItem()],
+        items: items ?? [createItem()],
         stopDpAgent: false,
         requireElevated: false,
         renameLocked: false,
