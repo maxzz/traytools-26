@@ -153,7 +153,7 @@ export type FileDropTarget = {
     getKind?: () => PathKind;
     onPath?: (path: string) => void;
     /** Multi-file consumers (e.g. copy-ops tree). When set, receives all normalized paths. */
-    onPaths?: (paths: string[]) => void;
+    onPaths?: (paths: string[], x: number, y: number) => void;
     /** Kind used when normalizing for `onPaths` (default "file"). */
     pathsKind?: PathKind;
 };
@@ -262,7 +262,7 @@ function ensureDropListener() {
         if (target.onPaths) {
             void normalizeDroppedPaths(paths, target.pathsKind ?? "file").then((normalized) => {
                 if (normalized.length) {
-                    target.onPaths!(normalized);
+                    target.onPaths!(normalized, x, y);
                 }
             });
             return;
