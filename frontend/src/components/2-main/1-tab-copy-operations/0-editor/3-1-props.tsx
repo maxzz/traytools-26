@@ -73,15 +73,19 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
     const topLevel = item.uid ? findTopLevelGroup(copyEditorStore.config, item.uid) : null;
     const parentHasItems = collectGroupItems(group).length > 0;
     const topLevelHasItems = topLevel ? collectGroupItems(topLevel).length > 0 : false;
+    // When the parent is already the root-level group, "top-level" would be redundant.
+    const showTopLevel = !!topLevel && topLevel.uid !== group.uid;
 
     return (<>
         <div className="-my-2 self-end flex items-center gap-2">
-            <CopyActionButton
-                label="Copy top-level group"
-                disabled={!topLevelHasItems}
-                title="Copy all items in the root-level group that contains this item"
-                onClick={() => copyLiveGroup(topLevel?.uid)}
-            />
+            {showTopLevel && (
+                <CopyActionButton
+                    label="Copy top-level group"
+                    disabled={!topLevelHasItems}
+                    title="Copy all items in the root-level group that contains this item"
+                    onClick={() => copyLiveGroup(topLevel?.uid)}
+                />
+            )}
             <CopyActionButton
                 label="Copy parent group"
                 disabled={!parentHasItems}
