@@ -41,8 +41,8 @@ export function ButtonWindowSize() {
             aria-pressed={isMini}
         >
             <IconPictureInPicture
-                className="size-3.5"
-                fillClasses={isMini ? "fill-current" : undefined}
+                className={classNames("size-3.5", isMini ? "rotate-180" : "", isMini ? "fill-foreground" : undefined)}
+                fillClasses={undefined}
             />
         </Button>
     );
