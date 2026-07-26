@@ -37,14 +37,13 @@ func main() {
 	app := backend.NewApp()
 	app.SetTrayIcon(trayIcon())
 
-	// Load options on startup to get initial width/height
+	// Load options on startup to get initial width/height for the active size key.
 	initialWidth := 1200
 	initialHeight := 800
 
 	opts, err := backend.LoadIniFileOptions()
-	if err == nil && opts != nil && opts.Bounds != nil {
-		bounds := backend.FixBounds(opts.Bounds)
-		if bounds != nil {
+	if err == nil && opts != nil {
+		if bounds := backend.ActiveWindowBounds(opts, opts.WindowSizeKey); bounds != nil {
 			initialWidth = bounds.Width
 			initialHeight = bounds.Height
 		}

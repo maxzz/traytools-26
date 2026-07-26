@@ -187,6 +187,23 @@ func (a *App) registerHandlers() {
 		}
 		return nil, nil
 	})
+	a.bus.Register("settings", "getWindowSizeKey", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return GetWindowSizeKeyOption(), nil
+	})
+	a.bus.Register("settings", "setWindowSizeKey", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			Key string `json:"key"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		return a.SetWindowSizeKeyOption(ctx, req.Key)
+	})
+	a.bus.Register("settings", "toggleWindowSize", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return a.ToggleWindowSizeOption(ctx)
+	})
 	a.bus.Register("app", "sendUnloadHookNotification", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return nil, dpagent.ForceUnload()
 	})

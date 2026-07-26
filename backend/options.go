@@ -11,6 +11,12 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+// Named window-size presets. Additional keys can be added later (e.g. per-tab layouts).
+const (
+	WindowSizeNormal = "normal"
+	WindowSizeMini   = "mini"
+)
+
 type Rectangle struct {
 	X      int `json:"x"`
 	Y      int `json:"y"`
@@ -19,13 +25,20 @@ type Rectangle struct {
 }
 
 type IniOptions struct {
-	Bounds                 *Rectangle `json:"bounds,omitempty"`
-	DevTools               bool       `json:"devTools"`
-	ShowMenu               bool       `json:"showMenu"`
-	RunElevated            bool       `json:"runElevated"`
-	QuitOnClose            bool       `json:"quitOnClose"`
-	UnloadHookHotkey       string     `json:"unloadHookHotkey,omitempty"`
-	UnloadHookHotkeyGlobal bool       `json:"unloadHookHotkeyGlobal,omitempty"`
+	// Bounds is the legacy single geometry field. Migrated into WindowSizes[normal]
+	// on load; still written as a mirror of the active size for older readers.
+	Bounds *Rectangle `json:"bounds,omitempty"`
+	// WindowSizeKey is the active named size ("normal", "mini", …).
+	WindowSizeKey string `json:"windowSizeKey,omitempty"`
+	// WindowSizes stores a geometry per named size key.
+	WindowSizes map[string]*Rectangle `json:"windowSizes,omitempty"`
+
+	DevTools               bool    `json:"devTools"`
+	ShowMenu               bool    `json:"showMenu"`
+	RunElevated            bool    `json:"runElevated"`
+	QuitOnClose            bool    `json:"quitOnClose"`
+	UnloadHookHotkey       string  `json:"unloadHookHotkey,omitempty"`
+	UnloadHookHotkeyGlobal bool    `json:"unloadHookHotkeyGlobal,omitempty"`
 	// ZoomLevel is an Electron-style zoom level: factor = 1.2^level (0 == 100%).
 	ZoomLevel float64 `json:"zoomLevel,omitempty"`
 }
@@ -56,6 +69,7 @@ func LoadIniFileOptions() (*IniOptions, error) {
 	if err := json.Unmarshal(data, &opts); err != nil {
 		return nil, err
 	}
+	migrateWindowSizes(&opts)
 	return &opts, nil
 }
 
@@ -75,8 +89,8 @@ func FixBounds(bounds *Rectangle) *Rectangle {
 	if bounds == nil {
 		return nil
 	}
-	// Sanity check: width and height must be positive and reasonable
-	if bounds.Width < 100 || bounds.Height < 100 {
+	// Mini mode can be a short toolbar strip; allow small but positive sizes.
+	if bounds.Width < 40 || bounds.Height < 40 {
 		return nil
 	}
 	// Virtual screen coords on modern multi-monitor setups rarely exceed +/- 16000.
@@ -86,60 +100,99 @@ func FixBounds(bounds *Rectangle) *Rectangle {
 	return bounds
 }
 
+func defaultWindowSize(key string) *Rectangle {
+	switch key {
+	case WindowSizeMini:
+		// Header/menubar strip — user can reposition/resize; persisted thereafter.
+		return &Rectangle{X: 100, Y: 100, Width: 480, Height: 72}
+	default:
+		return &Rectangle{X: 100, Y: 100, Width: 1200, Height: 800}
+	}
+}
+
+// migrateWindowSizes lifts legacy Bounds into WindowSizes["normal"] and
+// normalizes the active key. Idempotent.
+func migrateWindowSizes(opts *IniOptions) {
+	if opts == nil {
+		return
+	}
+	if opts.WindowSizes == nil {
+		opts.WindowSizes = map[string]*Rectangle{}
+	}
+	if FixBounds(opts.WindowSizes[WindowSizeNormal]) == nil {
+		if b := FixBounds(opts.Bounds); b != nil {
+			opts.WindowSizes[WindowSizeNormal] = &Rectangle{
+				X: b.X, Y: b.Y, Width: b.Width, Height: b.Height,
+			}
+		}
+	}
+	if opts.WindowSizeKey == "" {
+		opts.WindowSizeKey = WindowSizeNormal
+	}
+}
+
+func normalizeWindowSizeKey(key string) string {
+	if key == "" {
+		return WindowSizeNormal
+	}
+	return key
+}
+
+// ActiveWindowBounds returns the geometry for the active (or given) size key,
+// falling back to defaults when nothing valid is stored.
+func ActiveWindowBounds(opts *IniOptions, key string) *Rectangle {
+	if opts == nil {
+		return defaultWindowSize(normalizeWindowSizeKey(key))
+	}
+	migrateWindowSizes(opts)
+	key = normalizeWindowSizeKey(key)
+	if b := FixBounds(opts.WindowSizes[key]); b != nil {
+		return b
+	}
+	if key == WindowSizeNormal {
+		if b := FixBounds(opts.Bounds); b != nil {
+			return b
+		}
+	}
+	return defaultWindowSize(key)
+}
+
+func captureCurrentBounds(ctx context.Context) *Rectangle {
+	if runtime.WindowIsMaximised(ctx) || runtime.WindowIsMinimised(ctx) {
+		return nil
+	}
+	x, y := runtime.WindowGetPosition(ctx)
+	w, h := runtime.WindowGetSize(ctx)
+	return FixBounds(&Rectangle{X: x, Y: y, Width: w, Height: h})
+}
+
+func applyWindowBounds(ctx context.Context, bounds *Rectangle) {
+	if bounds == nil {
+		return
+	}
+	runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
+	winapp.SetWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
+}
+
 func (a *App) saveWindowOptions(ctx context.Context) {
-	// 1. Get current window state
-	isMaximized := runtime.WindowIsMaximised(ctx)
-	isMinimized := runtime.WindowIsMinimised(ctx)
-
-	var bounds *Rectangle
-	if !isMaximized && !isMinimized {
-		x, y := runtime.WindowGetPosition(ctx)
-		w, h := runtime.WindowGetSize(ctx)
-		bounds = &Rectangle{
-			X:      x,
-			Y:      y,
-			Width:  w,
-			Height: h,
-		}
-	} else {
-		// Maximized/minimized geometry is not the normal restore rect; keep prior bounds.
-		existing, err := LoadIniFileOptions()
-		if err == nil && existing != nil && existing.Bounds != nil {
-			bounds = existing.Bounds
-		}
+	opts, err := LoadIniFileOptions()
+	if err != nil || opts == nil {
+		opts = &IniOptions{}
 	}
+	migrateWindowSizes(opts)
 
-	// 2. DevTools & ShowMenu state.
-	// Query the OS for DevTools visibility: this captures the real state no
-	// matter how DevTools were closed (X button, F12 inside DevTools, native
-	// Wails hotkey, etc.), which the frontend toggle cannot always observe.
-	var showMenu bool
-	var runElevated bool
-	var quitOnClose bool
-	var unloadHookHotkey string
-	var unloadHookHotkeyGlobal bool
-	var zoomLevel float64
-
-	existing, err := LoadIniFileOptions()
-	if err == nil && existing != nil {
-		showMenu = existing.ShowMenu
-		runElevated = existing.RunElevated
-		quitOnClose = existing.QuitOnClose
-		unloadHookHotkey = existing.UnloadHookHotkey
-		unloadHookHotkeyGlobal = existing.UnloadHookHotkeyGlobal
-		zoomLevel = existing.ZoomLevel
+	key := normalizeWindowSizeKey(opts.WindowSizeKey)
+	if captured := captureCurrentBounds(ctx); captured != nil {
+		opts.WindowSizes[key] = captured
 	}
+	// Maximized/minimized: leave the active key's prior geometry untouched.
 
-	opts := &IniOptions{
-		Bounds:                 bounds,
-		DevTools:               winapp.IsDevToolsOpen(),
-		ShowMenu:               showMenu,
-		RunElevated:            runElevated,
-		QuitOnClose:            quitOnClose,
-		UnloadHookHotkey:       unloadHookHotkey,
-		UnloadHookHotkeyGlobal: unloadHookHotkeyGlobal,
-		ZoomLevel:              zoomLevel,
-	}
+	opts.WindowSizeKey = key
+	// Mirror active size into legacy Bounds for older tooling / one-release compat.
+	opts.Bounds = ActiveWindowBounds(opts, key)
+
+	opts.DevTools = winapp.IsDevToolsOpen()
+	// Other fields already loaded via LoadIniFileOptions above.
 
 	saveIniFileOptions(opts)
 }
@@ -210,11 +263,80 @@ func SetZoomLevelOption(level float64) error {
 	return saveIniFileOptions(opts)
 }
 
+func GetWindowSizeKeyOption() string {
+	opts, err := LoadIniFileOptions()
+	if err != nil || opts == nil {
+		return WindowSizeNormal
+	}
+	migrateWindowSizes(opts)
+	return normalizeWindowSizeKey(opts.WindowSizeKey)
+}
+
+// SetWindowSizeKeyOption saves the current window geometry under the active key,
+// switches to the requested key, applies that geometry, and persists immediately.
+// Unknown keys are accepted so future named sizes can be added without API changes.
+func (a *App) SetWindowSizeKeyOption(ctx context.Context, key string) (string, error) {
+	key = normalizeWindowSizeKey(key)
+
+	opts, err := LoadIniFileOptions()
+	if err != nil || opts == nil {
+		opts = &IniOptions{}
+	}
+	migrateWindowSizes(opts)
+
+	currentKey := normalizeWindowSizeKey(opts.WindowSizeKey)
+	if captured := captureCurrentBounds(ctx); captured != nil {
+		opts.WindowSizes[currentKey] = captured
+	}
+
+	opts.WindowSizeKey = key
+
+	target := ActiveWindowBounds(opts, key)
+	// First visit to a size with only defaults: keep the current screen position.
+	if FixBounds(opts.WindowSizes[key]) == nil {
+		if captured := captureCurrentBounds(ctx); captured != nil {
+			target = &Rectangle{
+				X:      captured.X,
+				Y:      captured.Y,
+				Width:  target.Width,
+				Height: target.Height,
+			}
+		}
+		opts.WindowSizes[key] = target
+	}
+
+	if runtime.WindowIsMaximised(ctx) {
+		runtime.WindowUnmaximise(ctx)
+	}
+	if runtime.WindowIsMinimised(ctx) {
+		runtime.WindowUnminimise(ctx)
+	}
+	applyWindowBounds(ctx, target)
+
+	opts.Bounds = target
+	if err := saveIniFileOptions(opts); err != nil {
+		return "", err
+	}
+	return key, nil
+}
+
+// ToggleWindowSizeOption flips between normal and mini (the current UI is a
+// simple toggle; SetWindowSizeKeyOption supports arbitrary future keys).
+func (a *App) ToggleWindowSizeOption(ctx context.Context) (string, error) {
+	current := GetWindowSizeKeyOption()
+	next := WindowSizeMini
+	if current == WindowSizeMini {
+		next = WindowSizeNormal
+	}
+	return a.SetWindowSizeKeyOption(ctx, next)
+}
+
 func (a *App) restoreWindowOptions(ctx context.Context) {
 	var bounds *Rectangle
 	opts, err := LoadIniFileOptions()
-	if err == nil && opts != nil && opts.Bounds != nil {
-		bounds = FixBounds(opts.Bounds)
+	if err == nil && opts != nil {
+		migrateWindowSizes(opts)
+		bounds = ActiveWindowBounds(opts, opts.WindowSizeKey)
 	}
 
 	// Apply geometry while still hidden (StartHidden), then show. Size uses
@@ -222,8 +344,7 @@ func (a *App) restoreWindowOptions(ctx context.Context) {
 	// SetWindowPositionAbsolute) so shortcut vs direct .exe launch does not
 	// depend on which monitor Windows initially assigned the window.
 	if bounds != nil {
-		runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
-		winapp.SetWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
+		applyWindowBounds(ctx, bounds)
 	}
 
 	runtime.WindowShow(ctx)
@@ -231,8 +352,7 @@ func (a *App) restoreWindowOptions(ctx context.Context) {
 	if runtime.WindowIsMaximised(ctx) {
 		runtime.WindowUnmaximise(ctx)
 		if bounds != nil {
-			winapp.SetWindowPositionAbsolute(ctx, bounds.X, bounds.Y)
-			runtime.WindowSetSize(ctx, bounds.Width, bounds.Height)
+			applyWindowBounds(ctx, bounds)
 		}
 	}
 

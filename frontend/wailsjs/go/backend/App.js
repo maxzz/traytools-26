@@ -34,6 +34,10 @@ export function SetTrayIcon(arg1) {
   return window['go']['backend']['App']['SetTrayIcon'](arg1);
 }
 
+export function SetWindowSizeKeyOption(arg1, arg2) {
+  return window['go']['backend']['App']['SetWindowSizeKeyOption'](arg1, arg2);
+}
+
 export function SetZoomLevel(arg1) {
   return window['go']['backend']['App']['SetZoomLevel'](arg1);
 }
@@ -44,4 +48,8 @@ export function SingleInstanceLock() {
 
 export function ToggleDevTools() {
   return window['go']['backend']['App']['ToggleDevTools']();
+}
+
+export function ToggleWindowSizeOption(arg1) {
+  return window['go']['backend']['App']['ToggleWindowSizeOption'](arg1);
 }
