@@ -9,23 +9,24 @@ import { type NodeProps, ExecuteCommandButton, Field_Comment, Field_MenuName, Fi
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
-        <Field_TypeIcon node={node} />
+        <QuickAccessList node={node} />
 
-        <Field_MenuName node={node} isSubmenu />
+        {!isRoot && (<>
+            <Field_TypeIcon node={node} />
+            <Field_MenuName node={node} isSubmenu />
+        </>)}
 
         <Field_Comment node={node} />
 
-        {isRoot && (
+        {/* {isRoot && (
             <p className="text-muted-foreground">
                 This is the root of the Tools menu. New items are added inside it. It cannot be moved or deleted.
             </p>
-        )}
-
-        <SubmenuChildrenList node={node} />
+        )} */}
     </>);
 }
 
-function SubmenuChildrenList({ node, depth = 0 }: NodeProps & { depth?: number; }) {
+function QuickAccessList({ node, depth = 0 }: NodeProps & { depth?: number; }) {
     const children = node.menuItems ?? [];
     if (children.length === 0) {
         return null;
@@ -33,14 +34,16 @@ function SubmenuChildrenList({ node, depth = 0 }: NodeProps & { depth?: number; 
 
     return (
         <div className="flex flex-col gap-1">
-            {children.map((child) => (
-                <SubmenuChildRow key={child.uid ?? child.menuName} node={child} depth={depth} />
-            ))}
+            {children.map(
+                (child) => (
+                    <QuickAccessItem key={child.uid ?? child.menuName} node={child} depth={depth} />
+                )
+            )}
         </div>
     );
 }
 
-function SubmenuChildRow({ node, depth }: NodeProps & { depth: number; }) {
+function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
     const kind = nodeKind(node);
     const indentStyle = { paddingLeft: depth * CHILD_INDENT };
 
@@ -56,12 +59,12 @@ function SubmenuChildRow({ node, depth }: NodeProps & { depth: number; }) {
         return (
             <div className="flex flex-col gap-1">
                 <div className="pr-1 min-h-7 flex items-center gap-1.5" style={indentStyle}>
-                    <ChildTypeIcon node={node} />
+                    <QuickAccessItemTypeIcon node={node} />
                     <span className="text-sm truncate">
                         {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                     </span>
                 </div>
-                <SubmenuChildrenList node={node} depth={depth + 1} />
+                <QuickAccessList node={node} depth={depth + 1} />
             </div>
         );
     }
@@ -69,11 +72,11 @@ function SubmenuChildRow({ node, depth }: NodeProps & { depth: number; }) {
     return (
         <div className="pr-1 min-h-7 flex items-center justify-between gap-2" style={indentStyle}>
             <div className="min-w-0 flex items-center gap-1.5">
-                <ChildTypeIcon node={node} />
+                <QuickAccessItemTypeIcon node={node} />
                 <span className="text-sm truncate">
                     {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
-                <NodePropertiesInfo node={node} />
+                <QuickAccessItemPropertiesInfo node={node} />
             </div>
 
             <ExecuteCommandButton node={node} />
@@ -83,8 +86,7 @@ function SubmenuChildRow({ node, depth }: NodeProps & { depth: number; }) {
 
 const CHILD_INDENT = 16;
 
-
-function ChildTypeIcon({ node }: NodeProps) {
+function QuickAccessItemTypeIcon({ node }: NodeProps) {
     const kind = nodeKind(node);
     const isRegistry = kind === "item" && isRegistryPath(node);
     const iconClass = cn(
@@ -105,8 +107,8 @@ function ChildTypeIcon({ node }: NodeProps) {
     return <IconTerminalHero className={iconClass} />;
 }
 
-function NodePropertiesInfo({ node }: NodeProps) {
-    const rows = nodePropertyRows(node);
+function QuickAccessItemPropertiesInfo({ node }: NodeProps) {
+    const rows = quickAccessItemPropertyRows(node);
     if (rows.length === 0) {
         return null;
     }
@@ -120,12 +122,14 @@ function NodePropertiesInfo({ node }: NodeProps) {
 
                 <TooltipContent side="top" className="max-w-80">
                     <div className="text-xs grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
-                        {rows.map((row) => (
-                            <Fragment key={row.label}>
-                                <span className="font-semibold whitespace-nowrap">{row.label}</span>
-                                <span className="break-all">{row.value}</span>
-                            </Fragment>
-                        ))}
+                        {rows.map(
+                            (row) => (
+                                <Fragment key={row.label}>
+                                    <span className="font-semibold whitespace-nowrap">{row.label}</span>
+                                    <span className="break-all">{row.value}</span>
+                                </Fragment>
+                            )
+                        )}
                     </div>
                 </TooltipContent>
             </Tooltip>
@@ -134,7 +138,7 @@ function NodePropertiesInfo({ node }: NodeProps) {
 }
 
 /** Filled-in properties only; Type/Name are shown in the row UI instead. */
-function nodePropertyRows(node: ToolMenuItem): { label: string; value: string; }[] {
+function quickAccessItemPropertyRows(node: ToolMenuItem): { label: string; value: string; }[] {
     const kind = nodeKind(node);
     const rows: { label: string; value: string; }[] = [];
 
@@ -151,28 +155,22 @@ function nodePropertyRows(node: ToolMenuItem): { label: string; value: string; }
 
     if (isRegistryPath(node)) {
         add("Registry key", node.cmdLine);
-        add(
-            "Platform",
-            node.cmdPlat === "32" ? "32-bit"
-                : node.cmdPlat === "64" ? "64-bit"
-                    : node.cmdPlat === "both" ? "Both"
-                        : undefined,
-        );
+        add("Platform", node.cmdPlat === "32" ? "32-bit" : node.cmdPlat === "64" ? "64-bit" : node.cmdPlat === "both" ? "Both" : undefined);
     } else {
         add("Command / path / URL", node.cmdLine);
         add("Arguments", node.cmdArgs);
-        if (node.cmdWhat === "rel" || node.cmdWhat === "abs") {
-            add("Path type", node.cmdWhat === "rel" ? "Relative" : "Absolute");
-        }
+        if (node.cmdWhat === "rel" || node.cmdWhat === "abs") { add("Path type", node.cmdWhat === "rel" ? "Relative" : "Absolute"); }
     }
 
     if (node.runElevated !== undefined) {
         add("Run elevated", node.runElevated ? "Yes" : "No");
     }
+
     add("Hotkey", node.hotKey);
     if (node.hotKey?.trim()) {
         add("Hotkey scope", node.hotKeyGlobal ? "Global" : "Local");
     }
+
     add("Comment", node.comment);
 
     return rows;
