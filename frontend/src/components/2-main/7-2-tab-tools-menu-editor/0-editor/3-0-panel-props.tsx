@@ -1,11 +1,13 @@
 import { MousePointerClick } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { type NodeKind, type ToolMenuItem, nodeKind } from "../a-atoms/9-types-menu";
+import { type ToolMenuItem, isRegistryPath, nodeKind } from "../a-atoms/9-types-menu";
 import { useSelectedNode } from "../a-atoms/use-selected-node";
-import { PropsFor_Item, PropsFor_Separator, PropsFor_Submenu } from "./3-1-props";
+import { PropsFor_Separator, PropsFor_Submenu } from "./3-1-props-group";
+import { PropsFor_Command } from "./3-2-props-command";
+import { PropsFor_Registry } from "./3-3-props-registry";
 
 export function Panel_Props() {
-    const { uid, node, isRoot } = useSelectedNode();
+    const { node, isRoot } = useSelectedNode();
 
     return (
         <div className="min-h-0 h-full flex flex-col">
@@ -22,16 +24,19 @@ function PropsByKind({ node, isRoot }: { node?: ToolMenuItem | null; isRoot: boo
     if (!node) {
         return <NoSelectionView />;
     }
-    const kind = nodeKind(node);
-    const Component = PROPS_BY_KIND[kind];
-    return <Component node={node} isRoot={isRoot} />;
-}
 
-const PROPS_BY_KIND = {
-    separator: PropsFor_Separator,
-    submenu: PropsFor_Submenu,
-    item: PropsFor_Item,
-} satisfies Record<NodeKind, React.ComponentType<{ node: ToolMenuItem; isRoot?: boolean; }>>;
+    const kind = nodeKind(node);
+    if (kind === "separator") {
+        return <PropsFor_Separator node={node} />;
+    }
+    if (kind === "submenu") {
+        return <PropsFor_Submenu node={node} isRoot={isRoot} />;
+    }
+    if (isRegistryPath(node)) {
+        return <PropsFor_Registry node={node} />;
+    }
+    return <PropsFor_Command node={node} />;
+}
 
 function NoSelectionView() {
     return (
