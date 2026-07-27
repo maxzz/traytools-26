@@ -88,19 +88,19 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
     }
 
     return (
-        <div className="pr-1 flex items-center justify-between gap-0.5" style={indentStyle}>
-            
+        <div
+            className="pr-1 flex items-center justify-between gap-0.5 has-[button:hover]:[&_[data-qa-name]]:text-blue-600 dark:has-[button:hover]:[&_[data-qa-name]]:text-blue-400"
+            style={indentStyle}
+        >
             <div className="min-w-0 flex items-center gap-x-1.5">
                 <QuickAccessItemTypeIcon node={node} />
-                
-                <span className="text-[0.75rem] truncate">
+
+                <span data-qa-name className="text-[0.75rem] truncate transition-colors">
                     {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
                 <QuickAccessItemPropertiesInfo node={node} />
             </div>
             <QuickAccessExecuteButton node={node} />
-
-            
         </div>
     );
 }
