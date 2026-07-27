@@ -51,7 +51,7 @@ function CurrentFileInfo({ saveNotice }: { saveNotice: string; }) {
                         <button
                             type="button"
                             className={cn(
-                                "size-5 shrink-0 border rounded-full inline-flex items-center justify-center",
+                                "shrink-0 size-5 border rounded-full inline-flex items-center justify-center",
                                 error
                                     ? "text-destructive border-destructive/70 bg-destructive/15"
                                     : "text-muted-foreground border-border bg-muted",
@@ -81,7 +81,7 @@ function CurrentFileInfo({ saveNotice }: { saveNotice: string; }) {
             {saveNotice && (
                 <span
                     className={cn(
-                        "text-xs shrink-0",
+                        "shrink-0 text-xs",
                         saveNotice === "saved"
                             ? "text-emerald-600 dark:text-emerald-400"
                             : "text-muted-foreground",

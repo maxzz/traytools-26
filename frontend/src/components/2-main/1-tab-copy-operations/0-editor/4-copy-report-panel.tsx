@@ -61,7 +61,7 @@ export function CopyReportPanel() {
                         </div>
                     )
                     : (
-                        <div className="p-2 space-y-3 text-sm">
+                        <div className="p-2 text-sm space-y-3">
                             {jobs.map(
                                 (job) => (
                                     <JobGroupHeader key={job.uid} job={job as CopyJobReport} />
@@ -77,7 +77,7 @@ export function CopyReportPanel() {
 function JobGroupHeader({ job }: { job: CopyJobReport; }) {
     return (
         <section className="space-y-1.5">
-            <header className="flex items-baseline gap-2 text-xs">
+            <header className="text-xs flex items-baseline gap-2">
                 <span className="font-semibold tabular-nums">
                     {formatJobTime(job.startedAt)}
                 </span>
@@ -87,7 +87,7 @@ function JobGroupHeader({ job }: { job: CopyJobReport; }) {
                 </span>
 
                 {job.running && (
-                    <span className="text-muted-foreground inline-flex items-center gap-1 shrink-0">
+                    <span className="shrink-0 text-muted-foreground inline-flex items-center gap-1">
                         <Loader2 className="size-3 animate-spin" />
                         running
                     </span>
@@ -108,7 +108,7 @@ function JobGroupHeader({ job }: { job: CopyJobReport; }) {
                                     <Fragment key={`${proc.pid}-${proc.name}`}>
                                         <span aria-hidden className="min-w-20" />
                                         <span
-                                            className="col-span-2 text-muted-foreground truncate pl-1"
+                                            className="pl-1 text-muted-foreground truncate col-span-2"
                                             title={`${proc.name} (PID ${proc.pid})`}
                                         >
                                             {proc.name}

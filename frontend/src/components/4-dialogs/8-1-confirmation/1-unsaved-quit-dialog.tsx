@@ -57,7 +57,7 @@ export function UnsavedQuitDialog() {
 
                         <div className="min-w-0 space-y-2">
                             <p>The following tabs have unsaved data:</p>
-                            <ul className="list-disc pl-4 space-y-0.5">
+                            <ul className="pl-4 list-disc space-y-0.5">
                                 {current.tabs.map(
                                     (tab) => (
                                         <li key={tab} className="font-medium text-orange-600">

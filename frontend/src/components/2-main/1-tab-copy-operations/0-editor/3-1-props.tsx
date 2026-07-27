@@ -149,7 +149,7 @@ function copyLiveItem(uid?: string) {
 function CopyActionButton({ label, disabled, title, onClick }: { label: string; disabled: boolean; title?: string; onClick: () => void; }) {
     return (
         <Button
-            className="font-normal text-sky-800 dark:text-sky-400 bg-sky-200 dark:bg-sky-800/40 border-sky-500/60 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
+            className="font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60"
             variant="secondary"
             size="xs"
             disabled={disabled}
@@ -195,7 +195,7 @@ function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: 
 
 function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
-        <Label className="text-[0.65rem] text-muted-foreground font-normal cursor-pointer flex items-center gap-1" title={hint}>
+        <Label className="font-normal text-[0.65rem] text-muted-foreground flex items-center gap-1 cursor-pointer" title={hint}>
             <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
             <span className="mt-0.5">{label}</span>
         </Label>

@@ -184,7 +184,7 @@ export function ExecuteCommandButton({ node }: NodeProps) {
 
     return (
         <Button
-            className="font-normal text-sky-800 dark:text-sky-400 bg-sky-200 dark:bg-sky-800/40 border-sky-500/60 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
+            className="font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60"
             variant="secondary"
             size="xs"
             type="button"

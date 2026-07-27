@@ -10,7 +10,7 @@ export function ButtonHome() {
 
     return (
         <Button
-            className="size-6 px-2 rounded text-xs text-foreground/75"
+            className="px-2 size-6 text-xs text-foreground/75 rounded"
             variant="ghost"
             size="sm"
             onClick={() => {

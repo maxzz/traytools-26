@@ -85,7 +85,7 @@ function CommandPathFlags({ node }: NodeProps) {
 function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: ReactNode; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
         <div className="inline-flex items-center gap-0.5">
-            <Label className="text-[0.65rem] text-muted-foreground font-normal cursor-pointer flex items-center gap-1">
+            <Label className="font-normal text-[0.65rem] text-muted-foreground flex items-center gap-1 cursor-pointer">
                 <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
                 <span className="mt-0.5">{label}</span>
             </Label>

@@ -180,7 +180,7 @@ function PathWithReveal({ path }: { path: string; }) {
     const folder = parentDir(path);
     return (
         <span className="min-w-0 w-full inline-flex items-center gap-1.5">
-            <span className="min-w-0 flex-1 truncate" title={path}>{path}</span>
+            <span className="flex-1 min-w-0 truncate" title={path}>{path}</span>
             <span className="shrink-0 inline-flex items-center gap-0.5">
                 <Button
                     type="button"
@@ -195,7 +195,7 @@ function PathWithReveal({ path }: { path: string; }) {
                         });
                     }}
                 >
-                    <FolderOpen className="size-3 stroke-[1.5px] text-muted-foreground" />
+                    <FolderOpen className="size-3 text-muted-foreground stroke-[1.5px]" />
                 </Button>
                 <Button
                     type="button"
@@ -207,7 +207,7 @@ function PathWithReveal({ path }: { path: string; }) {
                     disabled={!folder}
                     onClick={() => void copyFolderPath(folder)}
                 >
-                    <Copy className="size-3 stroke-[1.5px] text-muted-foreground" />
+                    <Copy className="size-3 text-muted-foreground stroke-[1.5px]" />
                 </Button>
             </span>
         </span>
@@ -345,7 +345,7 @@ function Grid({ children }: PropsWithChildren) {
 function Row({ label, children }: { label: string; children: ReactNode; }) {
     const title = typeof children === "string" ? children : undefined;
     return (<>
-        <span className="text-muted-foreground shrink-0">{label}</span>
+        <span className="shrink-0 text-muted-foreground">{label}</span>
         <span className="min-w-0 truncate" title={title}>{children}</span>
     </>);
 }

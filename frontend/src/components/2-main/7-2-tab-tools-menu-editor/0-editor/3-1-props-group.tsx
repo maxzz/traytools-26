@@ -9,14 +9,14 @@ import { type NodeProps, ExecuteCommandButton, Field_Comment, Field_MenuName, Fi
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
-        <QuickAccessList node={node} />
-
         {!isRoot && (<>
             <Field_TypeIcon node={node} />
             <Field_MenuName node={node} isSubmenu />
         </>)}
 
         <Field_Comment node={node} />
+
+        <QuickAccessList node={node} />
 
         {/* {isRoot && (
             <p className="text-muted-foreground">

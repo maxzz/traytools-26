@@ -8,7 +8,7 @@ export function ButtonSettings() {
 
     return (
         <Button
-            className="size-6 rounded text-foreground/75"
+            className="size-6 text-foreground/75 rounded"
             variant="ghost"
             size="icon"
             onClick={() => openSettingsDialog(true)}

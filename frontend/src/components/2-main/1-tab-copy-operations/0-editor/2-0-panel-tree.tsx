@@ -274,7 +274,7 @@ export function Panel_Tree() {
                         <RootRow rootUid={rootUid} groups={groups} onActivate={focusTree} />
                         {/* Empty space below the last row: OS drops create a new root group. */}
                         <div
-                            className="min-h-10 flex-1"
+                            className="flex-1 min-h-10"
                             data-tree-drop-uid={rootUid}
                             onDragOver={(e) => dnd.onDragOver(e, rootUid, true, true)}
                             onDrop={(e) => dnd.onDrop(e, rootUid)}
@@ -334,7 +334,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                         ? <Folder className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
-                    <span className="min-w-0 flex-1 relative truncate">Groups</span>
+                    <span className="flex-1 relative min-w-0 truncate">Groups</span>
                 </div>
             </div>
 
@@ -436,10 +436,10 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
 
-                    <span className="min-w-0 flex-1 relative truncate">{group.name || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                    <span className="flex-1 relative min-w-0 truncate">{group.name || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
 
                     <Button
-                        className="absolute right-1 top-1/2 size-4.5 rounded z-10 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-background"
+                        className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
                         variant="ghost"
                         size="icon-xs"
                         onClick={(e) => {
@@ -535,12 +535,12 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <FileIcon className="shrink-0 relative size-3.5 text-foreground/70" />
 
-                <span className="min-w-0 flex-1 relative truncate" title={label}>
+                <span className="flex-1 relative min-w-0 truncate" title={label}>
                     {label}
                 </span>
 
                 <Button
-                    className="absolute right-1 top-1/2 size-4.5 rounded z-10 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-background"
+                    className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
                     variant="ghost"
                     size="icon-xs"
                     onClick={(e) => {

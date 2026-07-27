@@ -102,7 +102,7 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
                 {...turnOffAutoComplete}
             />
 
-            <InputGroupAddon className="p-0 gap-0.5 pr-1.5" align="inline-end">
+            <InputGroupAddon className="p-0 pr-1.5 gap-0.5" align="inline-end">
                 <InputGroupButton
                     className="-mr-1"
                     size="icon-xs"

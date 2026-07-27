@@ -187,7 +187,7 @@ function Block_HighlightOptions() {
     const { windowHighlight } = useSnapshot(appSettings);
 
     return (
-        <div className="flex flex-col select-none">
+        <div className="select-none flex flex-col">
             <div className="pb-1 text-xs font-semibold">
                 Highlight Window Rectangle
             </div>
