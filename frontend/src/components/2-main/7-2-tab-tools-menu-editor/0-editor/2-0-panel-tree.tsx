@@ -179,13 +179,21 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                         isRoot && "font-medium",
                     )}
                     style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
-                    onClick={(e) => { if (isSubmenu) { e.stopPropagation(); setCollapsed((v) => !v); } toolsEditorStore.selectedUid = uid; }}
+                    onClick={() => { toolsEditorStore.selectedUid = uid; }}
                 >
                     {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} isSubmenu={isSubmenu} />}
 
                     {isSubmenu
                         ? (
-                            <button className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center" title={collapsed ? "Expand" : "Collapse"}>
+                            <button
+                                type="button"
+                                className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
+                                title={collapsed ? "Expand" : "Collapse"}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCollapsed((v) => !v);
+                                }}
+                            >
                                 {collapsed
                                     ? <ChevronRight className="size-3" />
                                     : <ChevronDown className="size-3" />
