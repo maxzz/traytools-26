@@ -89,7 +89,7 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
 
     return (
         <div
-            className="pr-1 flex items-center justify-between gap-0.5 has-[button:hover]:[&_[data-qa-name]]:text-blue-600 dark:has-[button:hover]:[&_[data-qa-name]]:text-blue-400"
+            className="pr-1 flex items-center justify-between gap-0.5 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400"
             style={indentStyle}
         >
             <div className="min-w-0 flex items-center gap-x-1.5">
