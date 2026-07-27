@@ -4,7 +4,7 @@ import { getNode, isRootUid } from "./1-menu-editor-atoms";
 import { toolsEditorStore } from "./0-menu-local-storage";
 
 export function useSelectedNode() {
-    const snap = useSnapshot(toolsEditorStore);
+    const snap = useSnapshot(toolsEditorStore, { sync: true });
     const uid = snap.selectedUid;
     const node = uid ? getNode(snap.config.menu as unknown as ToolMenuItem, uid) : null;
 

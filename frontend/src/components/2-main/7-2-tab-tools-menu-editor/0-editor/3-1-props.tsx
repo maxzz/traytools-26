@@ -1,10 +1,10 @@
 import { type ComponentProps, type ReactNode, useEffect, useState } from "react";
-import { ChevronRight, Folder, Info } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
+import { AnimatePresence, motion } from "motion/react";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
+import { ChevronRight, Folder, Info } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";

@@ -24,11 +24,13 @@ export async function syncToolsHotkeys(): Promise<void> {
             return;
         }
 
-        const lines = conflicts.map((c) => {
-            const label = c.name ? `"${c.name}"` : "Hotkey";
-            const chord = c.hotKey ? ` (${c.hotKey})` : "";
-            return `${label}${chord}: ${c.error}`;
-        });
+        const lines = conflicts.map(
+            (c) => {
+                const label = c.name ? `"${c.name}"` : "Hotkey";
+                const chord = c.hotKey ? ` (${c.hotKey})` : "";
+                return `${label}${chord}: ${c.error}`;
+            }
+        );
         notice.error(`Hotkey conflict${conflicts.length > 1 ? "s" : ""}:\n ${lines.join("\n ")}`);
     } catch (e) {
         notice.error(`Failed to sync tool hotkeys:\n ${String(e)}`);
