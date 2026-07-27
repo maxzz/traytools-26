@@ -1,4 +1,8 @@
 import { Fragment } from "react";
+import { cn } from "@/utils/classnames";
+import { Folder } from "lucide-react";
+import { IconTerminalHero } from "@/ui/icons/normal";
+import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 import {
@@ -57,38 +61,67 @@ function SubmenuChildrenList({ node }: NodeProps) {
 
 function SubmenuChildRow({ node }: NodeProps) {
     const kind = nodeKind(node);
-    const isItem = kind === "item";
-    const isSeparator = kind === "separator";
 
-    if (isSeparator) {
+    if (kind === "separator") {
         return (
-            <div className="pr-1 h-7 flex items-center justify-between gap-2">
-                <div className="min-w-0 flex items-center gap-1">
-                    <span className="w-24 max-w-40 border-t border-foreground/40" />
-                    <NodePropertiesInfo node={node} />
-                </div>
+            <div className="w-full min-h-3 flex items-center">
+                <span className="w-full border-t border-foreground/40" />
+            </div>
+        );
+    }
+
+    if (kind === "submenu") {
+        return (
+            <div className="pr-1 min-h-7 flex items-center gap-1.5">
+                <ChildTypeIcon node={node} />
+                <span className="text-sm truncate">
+                    {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
+                </span>
             </div>
         );
     }
 
     return (
         <div className="pr-1 min-h-7 flex items-center justify-between gap-2">
-            <div className="min-w-0 flex items-center gap-1">
+            <div className="min-w-0 flex items-center gap-1.5">
+                <ChildTypeIcon node={node} />
                 <span className="text-sm truncate">
                     {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
                 <NodePropertiesInfo node={node} />
             </div>
 
-            {isItem && (
-                <ExecuteCommandButton node={node} />
-            )}
+            <ExecuteCommandButton node={node} />
         </div>
     );
 }
 
+function ChildTypeIcon({ node }: NodeProps) {
+    const kind = nodeKind(node);
+    const isRegistry = kind === "item" && isRegistryPath(node);
+    const iconClass = cn(
+        "shrink-0 size-3.5",
+        kind === "submenu"
+            ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
+            : isRegistry
+                ? "opacity-70"
+                : "text-foreground/70 fill-foreground/10!",
+    );
+
+    if (kind === "submenu") {
+        return <Folder className={iconClass} />;
+    }
+    if (isRegistry) {
+        return <SymbolAppRegedit className={iconClass} />;
+    }
+    return <IconTerminalHero className={iconClass} />;
+}
+
 function NodePropertiesInfo({ node }: NodeProps) {
     const rows = nodePropertyRows(node);
+    if (rows.length === 0) {
+        return null;
+    }
 
     return (
         <TooltipProvider>
@@ -112,6 +145,7 @@ function NodePropertiesInfo({ node }: NodeProps) {
     );
 }
 
+/** Filled-in properties only; Type/Name are shown in the row UI instead. */
 function nodePropertyRows(node: ToolMenuItem): { label: string; value: string; }[] {
     const kind = nodeKind(node);
     const rows: { label: string; value: string; }[] = [];
@@ -123,27 +157,11 @@ function nodePropertyRows(node: ToolMenuItem): { label: string; value: string; }
         }
     }
 
-    if (kind === "separator") {
-        add("Type", "Separator");
-        add("Comment", node.comment);
+    if (kind !== "item") {
         return rows;
     }
 
-    if (kind === "submenu") {
-        add("Type", "Menu");
-        add("Name", node.menuName || "(unnamed)");
-        if ((node.menuItems?.length ?? 0) > 0) {
-            add("Items", String(node.menuItems!.length));
-        }
-        add("Comment", node.comment);
-        return rows;
-    }
-
-    const isRegistry = isRegistryPath(node);
-    add("Type", isRegistry ? "Registry Path" : "Command");
-    add("Name", node.menuName || "(unnamed)");
-
-    if (isRegistry) {
+    if (isRegistryPath(node)) {
         add("Registry key", node.cmdLine);
         add(
             "Platform",
