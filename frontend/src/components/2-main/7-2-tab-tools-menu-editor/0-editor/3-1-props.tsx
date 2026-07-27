@@ -478,52 +478,60 @@ function NodePropertiesInfo({ node }: NodeProps) {
 
 function nodePropertyRows(node: ToolMenuItem): { label: string; value: string; }[] {
     const kind = nodeKind(node);
-    const dash = "—";
+    const rows: { label: string; value: string; }[] = [];
+
+    function add(label: string, value: string | undefined | null) {
+        const trimmed = value?.trim();
+        if (trimmed) {
+            rows.push({ label, value: trimmed });
+        }
+    }
 
     if (kind === "separator") {
-        return [
-            { label: "Type", value: "Separator" },
-            { label: "Comment", value: node.comment?.trim() || dash },
-        ];
+        add("Type", "Separator");
+        add("Comment", node.comment);
+        return rows;
     }
 
     if (kind === "submenu") {
-        return [
-            { label: "Type", value: "Menu" },
-            { label: "Name", value: node.menuName.trim() || "(unnamed)" },
-            { label: "Items", value: String(node.menuItems?.length ?? 0) },
-            { label: "Comment", value: node.comment?.trim() || dash },
-        ];
+        add("Type", "Menu");
+        add("Name", node.menuName || "(unnamed)");
+        if ((node.menuItems?.length ?? 0) > 0) {
+            add("Items", String(node.menuItems!.length));
+        }
+        add("Comment", node.comment);
+        return rows;
     }
 
     const isRegistry = isRegistryPath(node);
-    const rows: { label: string; value: string; }[] = [
-        { label: "Type", value: isRegistry ? "Registry Path" : "Command" },
-        { label: "Name", value: node.menuName.trim() || "(unnamed)" },
-    ];
+    add("Type", isRegistry ? "Registry Path" : "Command");
+    add("Name", node.menuName || "(unnamed)");
 
     if (isRegistry) {
-        rows.push({ label: "Registry key", value: node.cmdLine?.trim() || dash });
-        rows.push({
-            label: "Platform",
-            value: node.cmdPlat === "32" ? "32-bit"
+        add("Registry key", node.cmdLine);
+        add(
+            "Platform",
+            node.cmdPlat === "32" ? "32-bit"
                 : node.cmdPlat === "64" ? "64-bit"
                     : node.cmdPlat === "both" ? "Both"
-                        : "Current",
-        });
+                        : undefined,
+        );
     } else {
-        rows.push({ label: "Command / path / URL", value: node.cmdLine?.trim() || dash });
-        rows.push({ label: "Arguments", value: node.cmdArgs?.trim() || dash });
-        rows.push({ label: "Path type", value: (node.cmdWhat ?? "rel") === "rel" ? "Relative" : "Absolute" });
+        add("Command / path / URL", node.cmdLine);
+        add("Arguments", node.cmdArgs);
+        if (node.cmdWhat === "rel" || node.cmdWhat === "abs") {
+            add("Path type", node.cmdWhat === "rel" ? "Relative" : "Absolute");
+        }
     }
 
-    rows.push({ label: "Run elevated", value: effectiveRunElevated(node) ? "Yes" : "No" });
-    rows.push({ label: "Hotkey", value: node.hotKey?.trim() || dash });
-    rows.push({
-        label: "Hotkey scope",
-        value: node.hotKey?.trim() ? (node.hotKeyGlobal ? "Global" : "Local") : dash,
-    });
-    rows.push({ label: "Comment", value: node.comment?.trim() || dash });
+    if (node.runElevated !== undefined) {
+        add("Run elevated", node.runElevated ? "Yes" : "No");
+    }
+    add("Hotkey", node.hotKey);
+    if (node.hotKey?.trim()) {
+        add("Hotkey scope", node.hotKeyGlobal ? "Global" : "Local");
+    }
+    add("Comment", node.comment);
 
     return rows;
 }
