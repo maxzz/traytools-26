@@ -230,16 +230,11 @@ export async function ToolsConfig_RevealInExplorer(): Promise<void> {
 }
 
 /**
- * Run the selected command/registry item the same way as the top-level Tools
+ * Run a command/registry item by editor uid the same way as the top-level Tools
  * menu (`getMenu` + `exec`). Applies first when the editor is dirty or the
  * file does not exist yet, so the launched command matches the panel fields.
  */
-export async function ToolsConfig_ExecuteSelected(): Promise<void> {
-    const uid = toolsEditorStore.selectedUid;
-    if (!uid) {
-        return;
-    }
-
+export async function ToolsConfig_ExecuteByUid(uid: string): Promise<void> {
     const node = findByUid(toolsEditorStore.config.menu, uid)?.node;
     if (!node || nodeKind(node) !== "item") {
         return;
@@ -279,4 +274,13 @@ export async function ToolsConfig_ExecuteSelected(): Promise<void> {
     } catch (e) {
         notice.error(`Command "${name}":\n ${String(e)}`);
     }
+}
+
+/** Run the currently selected command/registry item. */
+export async function ToolsConfig_ExecuteSelected(): Promise<void> {
+    const uid = toolsEditorStore.selectedUid;
+    if (!uid) {
+        return;
+    }
+    await ToolsConfig_ExecuteByUid(uid);
 }

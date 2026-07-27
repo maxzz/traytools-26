@@ -1,4 +1,4 @@
-import { type ComponentProps, type ReactNode, useEffect, useState } from "react";
+import { type ComponentProps, type ReactNode, Fragment, useEffect, useState } from "react";
 import { cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { AnimatePresence, motion } from "motion/react";
@@ -14,7 +14,7 @@ import { Textarea } from "@/ui/shadcn/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { HotkeyInput, formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
-import { ToolsConfig_ExecuteSelected } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
+import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type CmdPlat, type ToolMenuItem, effectiveRunElevated, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 
@@ -45,6 +45,8 @@ export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolea
                 This is the root of the Tools menu. New items are added inside it. It cannot be moved or deleted.
             </p>
         )}
+
+        <SubmenuChildrenList node={node} />
     </>);
 }
 
@@ -402,8 +404,133 @@ function Field_TypeIcon({ node }: { node: ToolMenuItem; }) {
     );
 }
 
+function SubmenuChildrenList({ node }: NodeProps) {
+    const children = node.menuItems ?? [];
+    if (children.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="flex flex-col gap-1">
+            {children.map((child) => (
+                <SubmenuChildRow key={child.uid ?? child.menuName} node={child} />
+            ))}
+        </div>
+    );
+}
+
+function SubmenuChildRow({ node }: NodeProps) {
+    const kind = nodeKind(node);
+    const isItem = kind === "item";
+    const isSeparator = kind === "separator";
+
+    if (isSeparator) {
+        return (
+            <div className="pr-1 h-7 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex items-center gap-1">
+                    <span className="w-24 max-w-40 border-t border-foreground/40" />
+                    <NodePropertiesInfo node={node} />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="pr-1 min-h-7 flex items-center justify-between gap-2">
+            <div className="min-w-0 flex items-center gap-1">
+                <span className="text-sm truncate">
+                    {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
+                </span>
+                <NodePropertiesInfo node={node} />
+            </div>
+
+            {isItem && (
+                <ExecuteCommandButton node={node} />
+            )}
+        </div>
+    );
+}
+
+function NodePropertiesInfo({ node }: NodeProps) {
+    const rows = nodePropertyRows(node);
+
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <TriggerInfo aria-label="Item properties" />
+                </TooltipTrigger>
+
+                <TooltipContent side="top" className="max-w-80">
+                    <div className="text-xs grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
+                        {rows.map((row) => (
+                            <Fragment key={row.label}>
+                                <span className="font-semibold whitespace-nowrap">{row.label}</span>
+                                <span className="break-all">{row.value}</span>
+                            </Fragment>
+                        ))}
+                    </div>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+}
+
+function nodePropertyRows(node: ToolMenuItem): { label: string; value: string; }[] {
+    const kind = nodeKind(node);
+    const dash = "—";
+
+    if (kind === "separator") {
+        return [
+            { label: "Type", value: "Separator" },
+            { label: "Comment", value: node.comment?.trim() || dash },
+        ];
+    }
+
+    if (kind === "submenu") {
+        return [
+            { label: "Type", value: "Menu" },
+            { label: "Name", value: node.menuName.trim() || "(unnamed)" },
+            { label: "Items", value: String(node.menuItems?.length ?? 0) },
+            { label: "Comment", value: node.comment?.trim() || dash },
+        ];
+    }
+
+    const isRegistry = isRegistryPath(node);
+    const rows: { label: string; value: string; }[] = [
+        { label: "Type", value: isRegistry ? "Registry Path" : "Command" },
+        { label: "Name", value: node.menuName.trim() || "(unnamed)" },
+    ];
+
+    if (isRegistry) {
+        rows.push({ label: "Registry key", value: node.cmdLine?.trim() || dash });
+        rows.push({
+            label: "Platform",
+            value: node.cmdPlat === "32" ? "32-bit"
+                : node.cmdPlat === "64" ? "64-bit"
+                    : node.cmdPlat === "both" ? "Both"
+                        : "Current",
+        });
+    } else {
+        rows.push({ label: "Command / path / URL", value: node.cmdLine?.trim() || dash });
+        rows.push({ label: "Arguments", value: node.cmdArgs?.trim() || dash });
+        rows.push({ label: "Path type", value: (node.cmdWhat ?? "rel") === "rel" ? "Relative" : "Absolute" });
+    }
+
+    rows.push({ label: "Run elevated", value: effectiveRunElevated(node) ? "Yes" : "No" });
+    rows.push({ label: "Hotkey", value: node.hotKey?.trim() || dash });
+    rows.push({
+        label: "Hotkey scope",
+        value: node.hotKey?.trim() ? (node.hotKeyGlobal ? "Global" : "Local") : dash,
+    });
+    rows.push({ label: "Comment", value: node.comment?.trim() || dash });
+
+    return rows;
+}
+
 function ExecuteCommandButton({ node }: NodeProps) {
     const canExecute = !!(node.cmdLine?.trim());
+    const uid = node.uid;
 
     return (
         <Button
@@ -411,11 +538,11 @@ function ExecuteCommandButton({ node }: NodeProps) {
             variant="secondary"
             size="xs"
             type="button"
-            disabled={!canExecute}
+            disabled={!canExecute || !uid}
             title={canExecute
                 ? "Run this command as if selected from the Tools menu"
                 : "Set a command / path / URL first"}
-            onClick={() => void ToolsConfig_ExecuteSelected()}
+            onClick={() => uid && void ToolsConfig_ExecuteByUid(uid)}
         >
             Execute
         </Button>
