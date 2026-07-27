@@ -7,6 +7,9 @@ import {
     type ToolsSelectionPath,
     type ToolsSource,
     ensureUids,
+    findByUid,
+    findExecIdForUid,
+    nodeKind,
     parseToolsSelectionPath,
     selectionPathFromUid,
     uidFromSelectionPath,
@@ -223,5 +226,57 @@ export async function ToolsConfig_RevealInExplorer(): Promise<void> {
         await appBus.revealInExplorer(toolsEditorStore.path);
     } catch (e) {
         notice.error(`Failed to reveal tools.json:<br/>${String(e)}`);
+    }
+}
+
+/**
+ * Run the selected command/registry item the same way as the top-level Tools
+ * menu (`getMenu` + `exec`). Applies first when the editor is dirty or the
+ * file does not exist yet, so the launched command matches the panel fields.
+ */
+export async function ToolsConfig_ExecuteSelected(): Promise<void> {
+    const uid = toolsEditorStore.selectedUid;
+    if (!uid) {
+        return;
+    }
+
+    const node = findByUid(toolsEditorStore.config.menu, uid)?.node;
+    if (!node || nodeKind(node) !== "item") {
+        return;
+    }
+
+    const name = node.menuName || "Command";
+    if (!node.cmdLine?.trim()) {
+        notice.warning(`"${name}" has no command / path / URL.`);
+        return;
+    }
+
+    if (toolsEditorStore.dirty || !toolsEditorStore.fileExists) {
+        await ToolsConfig_Apply();
+        if (toolsEditorStore.error) {
+            return;
+        }
+    }
+
+    try {
+        const menu = await toolsBus.getMenu();
+        if (!menu.found) {
+            notice.error("No tools.json found.");
+            return;
+        }
+        if (menu.error) {
+            notice.error(`Invalid tools.json:\n ${menu.error}`);
+            return;
+        }
+
+        const id = findExecIdForUid(toolsEditorStore.config.menu, uid);
+        if (id == null) {
+            notice.error(`Command "${name}" is not available in the Tools menu.`);
+            return;
+        }
+
+        await toolsBus.exec(id);
+    } catch (e) {
+        notice.error(`Command "${name}":\n ${String(e)}`);
     }
 }

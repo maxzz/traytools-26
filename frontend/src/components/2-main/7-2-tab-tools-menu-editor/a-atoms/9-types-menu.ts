@@ -229,6 +229,37 @@ export function uidFromSelectionPath(root: ToolMenuItem, path: ToolsSelectionPat
     return node.uid ?? null;
 }
 
+/**
+ * Resolve the numeric exec id for `targetUid` using the same walk / counter as
+ * backend `buildView` (submenu → separator → empty cmdLine drop → leaf id).
+ * The editor tree must match the on-disk tools.json that `getMenu` just loaded.
+ */
+export function findExecIdForUid(root: ToolMenuItem, targetUid: string): number | null {
+    let next = 1;
+
+    function walk(n: ToolMenuItem): number | null {
+        if ((n.menuItems?.length ?? 0) > 0) {
+            for (const child of n.menuItems!) {
+                const found = walk(child);
+                if (found != null) {
+                    return found;
+                }
+            }
+            return null;
+        }
+        if (n.menuName.trim() === "-") {
+            return null;
+        }
+        if (!n.cmdLine?.trim()) {
+            return null;
+        }
+        const id = next++;
+        return n.uid === targetUid ? id : null;
+    }
+
+    return walk(root);
+}
+
 export function parseToolsSelectionPath(value: unknown): ToolsSelectionPath | undefined {
     if (value === null) {
         return null;

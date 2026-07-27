@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ChevronRight, Folder, Info } from "lucide-react";
+import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
@@ -13,6 +14,7 @@ import { Textarea } from "@/ui/shadcn/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { HotkeyInput, formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
+import { ToolsConfig_ExecuteSelected } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 
@@ -48,7 +50,10 @@ export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolea
 
 export function PropsFor_Item({ node }: NodeProps) {
     return (<>
-        <Field_TypeIcon node={node} />
+        <div className="flex items-center justify-between gap-2">
+            <Field_TypeIcon node={node} />
+            <ExecuteCommandButton node={node} />
+        </div>
 
         {isRegistryPath(node)
             ? <PropsAs_RegistryItem node={node} />
@@ -90,21 +95,6 @@ function PropsAs_RegistryItem({ node }: NodeProps) {
 }
 
 // --------------------------------------------------------------------------
-// Fields
-
-function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; }) {
-    return (
-        <LabelAndField label={isSubmenu ? "Submenu name" : "Menu label"}>
-            <Input
-                className="h-7"
-                value={node.menuName}
-                onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
-                {...turnOffAutoComplete}
-            />
-        </LabelAndField>
-    );
-}
-
 // Command fields
 
 function Field_Cmd_PathAbsOrRelative({ node }: NodeProps) {
@@ -201,6 +191,7 @@ function Field_Cmd_CliArgs({ node }: NodeProps) {
     );
 }
 
+// --------------------------------------------------------------------------
 // Registry fields
 
 function Field_Reg_Path({ node }: NodeProps) {
@@ -256,7 +247,21 @@ function Field_Reg_Platform({ node }: NodeProps) {
     );
 }
 
+// --------------------------------------------------------------------------
 // Common fields
+
+function Field_MenuName({ node, isSubmenu }: NodeProps & { isSubmenu?: boolean; }) {
+    return (
+        <LabelAndField label={isSubmenu ? "Submenu name" : "Menu label"}>
+            <Input
+                className="h-7"
+                value={node.menuName}
+                onChange={(e) => patchSelectedNode((n) => { n.menuName = e.target.value; })}
+                {...turnOffAutoComplete}
+            />
+        </LabelAndField>
+    );
+}
 
 function Field_HotKey({ node }: NodeProps) {
     const chord = parseHotkey(node.hotKey);
@@ -399,5 +404,25 @@ function Field_TypeIcon({ node }: { node: ToolMenuItem; }) {
             )}
             {label}
         </div>
+    );
+}
+
+function ExecuteCommandButton({ node }: NodeProps) {
+    const canExecute = !!(node.cmdLine?.trim());
+
+    return (
+        <Button
+            className="font-normal text-sky-800 dark:text-sky-400 bg-sky-200 dark:bg-sky-800/40 border-sky-500/60 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
+            variant="secondary"
+            size="xs"
+            type="button"
+            disabled={!canExecute}
+            title={canExecute
+                ? "Run this command as if selected from the Tools menu"
+                : "Set a command / path / URL first"}
+            onClick={() => void ToolsConfig_ExecuteSelected()}
+        >
+            Execute
+        </Button>
     );
 }
