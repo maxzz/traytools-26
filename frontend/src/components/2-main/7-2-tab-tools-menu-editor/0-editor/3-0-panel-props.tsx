@@ -2,9 +2,10 @@ import { MousePointerClick } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "../a-atoms/9-types-menu";
 import { useSelectedNode } from "../a-atoms/use-selected-node";
-import { PropsFor_Separator, PropsFor_Submenu } from "./3-1-props-group";
+import { PropsFor_Submenu } from "./3-1-props-group";
 import { PropsFor_Command } from "./3-2-props-command";
 import { PropsFor_Registry } from "./3-3-props-registry";
+import { Field_Comment, Field_TypeIcon } from "./3-4-props-shared-ui";
 
 export function Panel_Props() {
     const { node, isRoot } = useSelectedNode();
@@ -36,6 +37,18 @@ function PropsByKind({ node, isRoot }: { node?: ToolMenuItem | null; isRoot: boo
         return <PropsFor_Registry node={node} />;
     }
     return <PropsFor_Command node={node} />;
+}
+
+function PropsFor_Separator({ node }: { node: ToolMenuItem; }) {
+    return (<>
+        <Field_TypeIcon node={node} />
+
+        <p className="text-muted-foreground">
+            A separator draws a horizontal divider line in the menu.
+        </p>
+
+        <Field_Comment node={node} />
+    </>);
 }
 
 function NoSelectionView() {

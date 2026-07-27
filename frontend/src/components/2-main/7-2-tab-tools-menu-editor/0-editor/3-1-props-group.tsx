@@ -5,26 +5,7 @@ import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
-import {
-    type NodeProps,
-    ExecuteCommandButton,
-    Field_Comment,
-    Field_MenuName,
-    Field_TypeIcon,
-    TriggerInfo,
-} from "./3-4-props-shared-ui";
-
-export function PropsFor_Separator({ node }: NodeProps) {
-    return (<>
-        <Field_TypeIcon node={node} />
-
-        <p className="text-muted-foreground">
-            A separator draws a horizontal divider line in the menu.
-        </p>
-
-        <Field_Comment node={node} />
-    </>);
-}
+import { type NodeProps, ExecuteCommandButton, Field_Comment, Field_MenuName, Field_TypeIcon, TriggerInfo } from "./3-4-props-shared-ui";
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
