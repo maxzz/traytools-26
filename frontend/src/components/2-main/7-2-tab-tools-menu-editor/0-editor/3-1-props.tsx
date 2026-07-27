@@ -162,50 +162,18 @@ function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string;
 }
 
 function Field_Cmd_CliArgs({ node }: NodeProps) {
-    const hasArgs = !!(node.cmdArgs?.trim());
-    const [open, setOpen] = useState(hasArgs);
-
-    useEffect(() => {
-        setOpen(hasArgs);
-    }, [hasArgs]);
-
     return (
-        <div className="-mt-1 flex flex-col gap-0.5">
-            <Label
-                className="text-[0.65rem] text-muted-foreground select-none inline-flex items-center gap-px cursor-pointer"
-                onClick={() => setOpen((v) => !v)}
-            >
-                Arguments
-                <motion.span
-                    animate={{ rotate: open ? 90 : 0 }}
-                    className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
-                    transition={{ duration: 0.1, ease: "easeInOut" }}
-                >
-                    <ChevronRight className="size-2.5" />
-                </motion.span>
-            </Label>
-            <AnimatePresence initial={false}>
-                {open && (
-                    <motion.div
-                        className="overflow-hidden"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                    >
-                        <Input
-                            className="h-7"
-                            value={node.cmdArgs ?? ""}
-                            onChange={(e) => patchSelectedNode((n) => {
-                                const v = e.target.value;
-                                if (v.trim()) { n.cmdArgs = v; } else { delete n.cmdArgs; }
-                            })}
-                            {...turnOffAutoComplete}
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+        <CollapsibleOptionalField label="Arguments" value={node.cmdArgs ?? ""}>
+            <Input
+                className="h-7"
+                value={node.cmdArgs ?? ""}
+                onChange={(e) => patchSelectedNode((n) => {
+                    const v = e.target.value;
+                    if (v.trim()) { n.cmdArgs = v; } else { delete n.cmdArgs; }
+                })}
+                {...turnOffAutoComplete}
+            />
+        </CollapsibleOptionalField>
     );
 }
 
@@ -320,12 +288,28 @@ function Field_HotKey({ node }: NodeProps) {
 }
 
 function Field_Comment({ node }: NodeProps) {
-    const hasComment = !!(node.comment?.trim());
-    const [open, setOpen] = useState(hasComment);
+    return (
+        <CollapsibleOptionalField label="Comment" value={node.comment ?? ""}>
+            <Textarea
+                className="px-3 resize-none"
+                value={node.comment ?? ""}
+                onChange={(e) => patchSelectedNode((n) => {
+                    const v = e.target.value;
+                    if (v.trim()) { n.comment = v; } else { delete n.comment; }
+                })}
+            />
+        </CollapsibleOptionalField>
+    );
+}
+
+/** Collapses when `value` is empty; click the label to expand/collapse. */
+function CollapsibleOptionalField({ label, value, children }: { label: string; value: string; children: ReactNode; }) {
+    const hasValue = !!value.trim();
+    const [open, setOpen] = useState(hasValue);
 
     useEffect(() => {
-        setOpen(hasComment);
-    }, [hasComment]);
+        setOpen(hasValue);
+    }, [hasValue]);
 
     return (
         <div className="-mt-1 flex flex-col gap-0.5">
@@ -333,7 +317,7 @@ function Field_Comment({ node }: NodeProps) {
                 className="text-[0.65rem] text-muted-foreground select-none inline-flex items-center gap-px cursor-pointer"
                 onClick={() => setOpen((v) => !v)}
             >
-                Comment
+                {label}
                 <motion.span
                     animate={{ rotate: open ? 90 : 0 }}
                     className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
@@ -351,14 +335,7 @@ function Field_Comment({ node }: NodeProps) {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2, ease: "easeInOut" }}
                     >
-                        <Textarea
-                            className="px-3 resize-none"
-                            value={node.comment ?? ""}
-                            onChange={(e) => patchSelectedNode((n) => {
-                                const v = e.target.value;
-                                if (v.trim()) { n.comment = v; } else { delete n.comment; }
-                            })}
-                        />
+                        {children}
                     </motion.div>
                 )}
             </AnimatePresence>
