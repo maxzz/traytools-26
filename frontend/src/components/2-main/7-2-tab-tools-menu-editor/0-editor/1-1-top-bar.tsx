@@ -2,7 +2,7 @@ import { useSnapshot } from "valtio";
 import { AlertTriangle, Info, Menu } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
 import {
@@ -145,6 +145,7 @@ function ActionsMenu() {
                 <DropdownMenuItem onSelect={() => ToolsConfig_Apply()} title="Save tools.json and apply hotkeys">
                     {/* <Check />  */}
                     Apply
+                    <DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
