@@ -3,9 +3,11 @@ import { cn } from "@/utils/classnames";
 import { Folder } from "lucide-react";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
+import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
-import { type NodeProps, ExecuteCommandButton, Field_Comment, Field_MenuName, Field_TypeIcon, TriggerInfo } from "./3-4-props-shared-ui";
+import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon, TriggerInfo } from "./3-4-props-shared-ui";
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
@@ -26,7 +28,23 @@ export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolea
     </>);
 }
 
-function QuickAccessList({ node, depth = 0 }: NodeProps & { depth?: number; }) {
+function QuickAccessList({ node }: NodeProps) {
+    const children = node.menuItems ?? [];
+    if (children.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="p-2 border rounded flex flex-col gap-1.5">
+            <div className="text-[0.65rem] text-muted-foreground select-none">
+                Quick actions list
+            </div>
+            <QuickAccessItems node={node} depth={0} />
+        </div>
+    );
+}
+
+function QuickAccessItems({ node, depth }: NodeProps & { depth: number; }) {
     const children = node.menuItems ?? [];
     if (children.length === 0) {
         return null;
@@ -58,34 +76,57 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
     if (kind === "submenu") {
         return (
             <div className="flex flex-col gap-1">
-                <div className="pr-1 min-h-7 flex items-center gap-1.5" style={indentStyle}>
+                <div className="pr-1 flex items-center gap-x-1.5" style={indentStyle}>
                     <QuickAccessItemTypeIcon node={node} />
-                    <span className="text-sm truncate">
+                    <span className="text-[0.65rem] truncate">
                         {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                     </span>
                 </div>
-                <QuickAccessList node={node} depth={depth + 1} />
+                <QuickAccessItems node={node} depth={depth + 1} />
             </div>
         );
     }
 
     return (
-        <div className="pr-1 min-h-7 flex items-center justify-between gap-2" style={indentStyle}>
-            <div className="min-w-0 flex items-center gap-1.5">
+        <div className="pr-1 flex items-center justify-between gap-0.5" style={indentStyle}>
+            
+            <div className="min-w-0 flex items-center gap-x-1.5">
                 <QuickAccessItemTypeIcon node={node} />
-                <span className="text-sm truncate">
+                
+                <span className="text-[0.75rem] truncate">
                     {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
                 <QuickAccessItemPropertiesInfo node={node} />
             </div>
+            <QuickAccessExecuteButton node={node} />
 
-            <ExecuteCommandButton node={node} />
+            
         </div>
     );
 }
 
 const CHILD_INDENT = 16;
 
+function QuickAccessExecuteButton({ node }: NodeProps) {
+    const canExecute = !!(node.cmdLine?.trim());
+    const uid = node.uid;
+
+    return (
+        <Button
+            className="h-5 px-1.5 text-[0.65rem] font-normal text-sky-800 bg-sky-200 border-sky-500/60 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
+            variant="secondary"
+            size="xs"
+            type="button"
+            disabled={!canExecute || !uid}
+            title={canExecute
+                ? "Run this command as if selected from the Tools menu"
+                : "Set a command / path / URL first"}
+            onClick={() => uid && void ToolsConfig_ExecuteByUid(uid)}
+        >
+            Execute
+        </Button>
+    );
+}
 function QuickAccessItemTypeIcon({ node }: NodeProps) {
     const kind = nodeKind(node);
     const isRegistry = kind === "item" && isRegistryPath(node);
