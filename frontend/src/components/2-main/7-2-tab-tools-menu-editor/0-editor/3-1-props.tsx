@@ -162,18 +162,50 @@ function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string;
 }
 
 function Field_Cmd_CliArgs({ node }: NodeProps) {
+    const hasArgs = !!(node.cmdArgs?.trim());
+    const [open, setOpen] = useState(hasArgs);
+
+    useEffect(() => {
+        setOpen(hasArgs);
+    }, [hasArgs]);
+
     return (
-        <LabelAndField label="Arguments">
-            <Input
-                className="h-7"
-                value={node.cmdArgs ?? ""}
-                onChange={(e) => patchSelectedNode((n) => {
-                    const v = e.target.value;
-                    if (v) { n.cmdArgs = v; } else { delete n.cmdArgs; }
-                })}
-                {...turnOffAutoComplete}
-            />
-        </LabelAndField>
+        <div className="-mt-1 flex flex-col gap-0.5">
+            <Label
+                className="text-[0.65rem] text-muted-foreground select-none inline-flex items-center gap-px cursor-pointer"
+                onClick={() => setOpen((v) => !v)}
+            >
+                Arguments
+                <motion.span
+                    animate={{ rotate: open ? 90 : 0 }}
+                    className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
+                    transition={{ duration: 0.1, ease: "easeInOut" }}
+                >
+                    <ChevronRight className="size-2.5" />
+                </motion.span>
+            </Label>
+            <AnimatePresence initial={false}>
+                {open && (
+                    <motion.div
+                        className="overflow-hidden"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
+                        <Input
+                            className="h-7"
+                            value={node.cmdArgs ?? ""}
+                            onChange={(e) => patchSelectedNode((n) => {
+                                const v = e.target.value;
+                                if (v.trim()) { n.cmdArgs = v; } else { delete n.cmdArgs; }
+                            })}
+                            {...turnOffAutoComplete}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 }
 
