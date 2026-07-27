@@ -115,10 +115,13 @@ function CommandPathFlags({ node }: NodeProps) {
             <FlagSwitch
                 label="Relative path"
                 hint={(
-                    <div className="text-xs flex flex-col gap-1.5">
-                        <p><strong>Relative</strong> — path relative to the folder containing tools.json.</p>
-                        <p><strong>Absolute</strong> — full path or program name, used as-is after env-var expansion.</p>
-                        <p><strong>URL</strong> — web link; use Absolute with a scheme:// address (e.g. https://…).</p>
+                    <div className="text-xs grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
+                        <span className="font-semibold">Relative</span>
+                        <span>Path relative to the folder containing tools.json.</span>
+                        <span className="font-semibold">Absolute</span>
+                        <span>Full path or program name, used as-is after env-var expansion.</span>
+                        <span className="font-semibold">URL</span>
+                        <span>Web link; use Absolute with a scheme:// address (e.g. https://…).</span>
                     </div>
                 )}
                 checked={isRelative}
