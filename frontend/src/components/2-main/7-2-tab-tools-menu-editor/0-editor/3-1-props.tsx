@@ -114,14 +114,20 @@ function CommandPathFlags({ node }: NodeProps) {
         <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
             <FlagSwitch
                 label="Relative path"
-                hint="Path relative to the folder containing tools.json. Uncheck for an absolute path, program name, or URL (scheme://…)."
+                hint={(
+                    <div className="text-xs flex flex-col gap-1.5">
+                        <p><strong>Relative</strong> — path relative to the folder containing tools.json.</p>
+                        <p><strong>Absolute</strong> — full path or program name, used as-is after env-var expansion.</p>
+                        <p><strong>URL</strong> — web link; use Absolute with a scheme:// address (e.g. https://…).</p>
+                    </div>
+                )}
                 checked={isRelative}
                 onCheckedChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v ? "rel" : "abs"; })}
             />
 
             <FlagSwitch
                 label="Run elevated"
-                hint="Launch this command with administrator privileges."
+                hint={<p className="text-xs">Launch this command with administrator privileges.</p>}
                 checked={effectiveRunElevated(node)}
                 onCheckedChange={(v) => patchSelectedNode((n) => { n.runElevated = v; })}
             />
@@ -129,12 +135,26 @@ function CommandPathFlags({ node }: NodeProps) {
     );
 }
 
-function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
+function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: ReactNode; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
-        <Label className="text-[0.65rem] text-muted-foreground font-normal cursor-pointer flex items-center gap-1" title={hint}>
-            <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
-            <span className="mt-0.5">{label}</span>
-        </Label>
+        <div className="inline-flex items-center gap-0.5">
+            <Label className="text-[0.65rem] text-muted-foreground font-normal cursor-pointer flex items-center gap-1">
+                <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
+                <span className="mt-0.5">{label}</span>
+            </Label>
+
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <TriggerInfo aria-label={`${label} help`} />
+                    </TooltipTrigger>
+
+                    <TooltipContent side="top" className="max-w-64">
+                        {hint}
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </div>
     );
 }
 
