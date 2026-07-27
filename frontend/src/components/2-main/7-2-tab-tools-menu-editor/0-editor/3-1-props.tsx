@@ -6,17 +6,17 @@ import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ChevronRight, Folder, Info } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
+import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
-import { Switch } from "@/ui/shadcn/switch";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { HotkeyInput, formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { ToolsConfig_ExecuteSelected } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
-import { type CmdPlat, type CmdWhat, type ToolMenuItem, effectiveRunElevated, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { type CmdPlat, type ToolMenuItem, effectiveRunElevated, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 
 type NodeProps = { node: ToolMenuItem; };
 
@@ -70,11 +70,8 @@ function PropsAs_CommandItem({ node }: NodeProps) {
         </div>
         <Field_Comment node={node} />
 
-        <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-            <Field_Cmd_Path node={node} />
-            <Field_Cmd_PathAbsOrRelative node={node} />
-            <Field_Cmd_RunElevated node={node} />
-        </div>
+        <Field_Cmd_Path node={node} />
+        <CommandPathFlags node={node} />
         <Field_Cmd_CliArgs node={node} />
     </>);
 }
@@ -97,81 +94,47 @@ function PropsAs_RegistryItem({ node }: NodeProps) {
 // --------------------------------------------------------------------------
 // Command fields
 
-function Field_Cmd_PathAbsOrRelative({ node }: NodeProps) {
-    return (
-        <LabelAndField
-            label="Path type"
-            labelHint={(
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <TriggerInfo aria-label="Path type help" />
-                        </TooltipTrigger>
-
-                        <TooltipContent side="top" className="max-w-64">
-                            <div className="text-xs flex flex-col gap-1.5">
-                                <p><strong>Relative</strong> — path relative to the folder containing tools.json.</p>
-                                <p><strong>Absolute</strong> — full path or program name, used as-is after env-var expansion.</p>
-                                <p><strong>URL</strong> — web link; use Absolute with a scheme:// address (e.g. https://…).</p>
-                            </div>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            )}
-        >
-            <Select value={node.cmdWhat ?? "rel"} onValueChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v as CmdWhat; })}>
-                <SelectTrigger className="px-2 w-full h-7! text-[0.72rem]">
-                    <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent>
-                    <SelectItem className="text-[0.72rem]" value="abs">Absolute</SelectItem>
-                    <SelectItem className="text-[0.72rem]" value="rel">Relative</SelectItem>
-                </SelectContent>
-            </Select>
-        </LabelAndField>
-    );
-}
-
-function Field_Cmd_RunElevated({ node }: NodeProps) {
-    return (
-        <LabelAndField
-            label="Elevated"
-            labelHint={(
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <TriggerInfo aria-label="Run elevated help" />
-                        </TooltipTrigger>
-
-                        <TooltipContent side="top" className="max-w-64">
-                            <p className="text-xs">Launch this command with administrator privileges.</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            )}
-        >
-            <div className="px-2 h-7 bg-transparent border border-input rounded-sm flex items-center">
-                <Switch
-                    className="mx-auto scale-70"
-                    checked={effectiveRunElevated(node)}
-                    onCheckedChange={(checked) => patchSelectedNode((n) => { n.runElevated = checked; })}
-                />
-            </div>
-        </LabelAndField>
-    );
-}
-
 function Field_Cmd_Path({ node }: NodeProps) {
     return (
         <LabelAndField label="Command / path / URL">
-        <PathInput
-            value={node.cmdLine ?? ""}
-            onChange={(path) => patchSelectedNode((n) => { n.cmdLine = path; })}
-            kind="file"
-            showReveal
-        />
+            <PathInput
+                value={node.cmdLine ?? ""}
+                onChange={(path) => patchSelectedNode((n) => { n.cmdLine = path; })}
+                kind="file"
+                showReveal
+            />
         </LabelAndField>
+    );
+}
+
+function CommandPathFlags({ node }: NodeProps) {
+    const isRelative = (node.cmdWhat ?? "rel") === "rel";
+
+    return (
+        <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <FlagSwitch
+                label="Relative path"
+                hint="Path relative to the folder containing tools.json. Uncheck for an absolute path, program name, or URL (scheme://…)."
+                checked={isRelative}
+                onCheckedChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v ? "rel" : "abs"; })}
+            />
+
+            <FlagSwitch
+                label="Run elevated"
+                hint="Launch this command with administrator privileges."
+                checked={effectiveRunElevated(node)}
+                onCheckedChange={(v) => patchSelectedNode((n) => { n.runElevated = v; })}
+            />
+        </div>
+    );
+}
+
+function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
+    return (
+        <Label className="text-[0.65rem] text-muted-foreground font-normal cursor-pointer flex items-center gap-1" title={hint}>
+            <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
+            <span className="mt-0.5">{label}</span>
+        </Label>
     );
 }
 
