@@ -25,7 +25,7 @@ export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolea
     </>);
 }
 
-function SubmenuChildrenList({ node }: NodeProps) {
+function SubmenuChildrenList({ node, depth = 0 }: NodeProps & { depth?: number; }) {
     const children = node.menuItems ?? [];
     if (children.length === 0) {
         return null;
@@ -34,18 +34,19 @@ function SubmenuChildrenList({ node }: NodeProps) {
     return (
         <div className="flex flex-col gap-1">
             {children.map((child) => (
-                <SubmenuChildRow key={child.uid ?? child.menuName} node={child} />
+                <SubmenuChildRow key={child.uid ?? child.menuName} node={child} depth={depth} />
             ))}
         </div>
     );
 }
 
-function SubmenuChildRow({ node }: NodeProps) {
+function SubmenuChildRow({ node, depth }: NodeProps & { depth: number; }) {
     const kind = nodeKind(node);
+    const indentStyle = { paddingLeft: depth * CHILD_INDENT };
 
     if (kind === "separator") {
         return (
-            <div className="w-full min-h-3 flex items-center">
+            <div className="w-full min-h-3 flex items-center" style={indentStyle}>
                 <span className="w-full border-t border-foreground/40" />
             </div>
         );
@@ -53,17 +54,20 @@ function SubmenuChildRow({ node }: NodeProps) {
 
     if (kind === "submenu") {
         return (
-            <div className="pr-1 min-h-7 flex items-center gap-1.5">
-                <ChildTypeIcon node={node} />
-                <span className="text-sm truncate">
-                    {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
-                </span>
+            <div className="flex flex-col gap-1">
+                <div className="pr-1 min-h-7 flex items-center gap-1.5" style={indentStyle}>
+                    <ChildTypeIcon node={node} />
+                    <span className="text-sm truncate">
+                        {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
+                    </span>
+                </div>
+                <SubmenuChildrenList node={node} depth={depth + 1} />
             </div>
         );
     }
 
     return (
-        <div className="pr-1 min-h-7 flex items-center justify-between gap-2">
+        <div className="pr-1 min-h-7 flex items-center justify-between gap-2" style={indentStyle}>
             <div className="min-w-0 flex items-center gap-1.5">
                 <ChildTypeIcon node={node} />
                 <span className="text-sm truncate">
@@ -76,6 +80,9 @@ function SubmenuChildRow({ node }: NodeProps) {
         </div>
     );
 }
+
+const CHILD_INDENT = 16;
+
 
 function ChildTypeIcon({ node }: NodeProps) {
     const kind = nodeKind(node);
