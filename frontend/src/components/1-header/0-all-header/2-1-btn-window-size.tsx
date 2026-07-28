@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { classNames } from "@/utils/classnames";
-import { IconPictureInPicture } from "@/ui/icons/normal";
+import { IconAppMini } from "@/ui/icons/normal";
 import { Button } from "@/ui/shadcn/button";
 import { settingsBus, type WindowSizeKey } from "@/bridge/groups/settings";
 
@@ -40,7 +40,7 @@ export function ButtonWindowSize() {
             type="button"
             aria-pressed={isMini}
         >
-            <IconPictureInPicture
+            <IconAppMini
                 className={classNames("size-3.5", isMini ? "rotate-180" : "", isMini ? "fill-foreground" : undefined)}
                 fillClasses={undefined}
             />

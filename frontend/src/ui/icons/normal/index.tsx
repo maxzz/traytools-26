@@ -37,5 +37,6 @@ export * from "./40-sunnyvale";
 export * from "./41-dp-sensor";
 export * from "./42-earth";
 export * from "./43-picture-in-picture";
+export * from "./43-app-mini";
 export * from "./44-collapse";
 export * from "./45-home";
