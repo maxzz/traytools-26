@@ -43,6 +43,7 @@ export function ButtonWindowSize() {
             <IconAppMini
                 className={classNames("size-3.5", isMini ? "rotate-180" : "", isMini ? "fill-foreground" : undefined)}
                 fillClasses={undefined}
+                isMini={isMini}
             />
         </Button>
     );
