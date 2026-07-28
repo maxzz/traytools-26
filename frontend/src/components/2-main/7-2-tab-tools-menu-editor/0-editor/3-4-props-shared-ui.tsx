@@ -79,6 +79,7 @@ export function Field_Comment({ node }: NodeProps) {
                     const v = e.target.value;
                     if (v.trim()) { n.comment = v; } else { delete n.comment; }
                 })}
+                {...turnOffAutoComplete}
             />
         </CollapsibleOptionalField>
     );
