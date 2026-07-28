@@ -1,6 +1,7 @@
 import { proxy } from "valtio";
 import { getDefaultStore } from "jotai";
 import { copyOpsBus, onWailsEvent, COPY_OPS_EVENTS, settingsBus, type CopyItemStatusEvent, type CopyJobDoneEvent, type LockedProcess } from "@/bridge";
+import { resolveDirtyTabsBeforeDestructiveAction } from "@/components/0-all/a-quit-unsaved";
 import { confirmElevationRestartMessages } from "@/components/4-dialogs/8-1-confirmation/8-confirmation-ui-messages";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
@@ -76,6 +77,10 @@ async function ensureElevatedOrPrompt(requireElevated: boolean): Promise<boolean
     }
     const ok = await store.set(doAsyncExecuteConfirmDialogAtom, confirmElevationRestartMessages);
     if (ok) {
+        const proceed = await resolveDirtyTabsBeforeDestructiveAction();
+        if (proceed === "cancel") {
+            return false;
+        }
         try {
             await settingsBus.requestElevationRestart();
         } catch (e) {

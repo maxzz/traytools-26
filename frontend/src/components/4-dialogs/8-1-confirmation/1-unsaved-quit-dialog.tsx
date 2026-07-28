@@ -45,7 +45,7 @@ export function UnsavedQuitDialog() {
                     </DialogTitle>
 
                     <DialogDescription className="sr-only">
-                        Choose whether to save unsaved tab data before closing.
+                        Choose whether to save unsaved tab data before continuing.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -66,7 +66,7 @@ export function UnsavedQuitDialog() {
                                     ),
                                 )}
                             </ul>
-                            <p>Save before closing the application?</p>
+                            <p>Save your changes before continuing?</p>
                         </div>
                     </div>
 

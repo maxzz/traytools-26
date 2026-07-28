@@ -55,15 +55,14 @@ function collectDirtyTabs(): DirtyTab[] {
 }
 
 /**
- * Handle a backend quit request: prompt when tabs are dirty, optionally save,
- * then confirmExit — or cancelQuitPrompt if the user aborts / save fails.
+ * Prompt when editor tabs are dirty. Returns "proceed" after save/discard (or when
+ * nothing is dirty), or "cancel" if the user aborts or a save fails.
+ * Used before quit and before elevation restart (both exit this process).
  */
-export async function handleQuitRequested(): Promise<void> {
+export async function resolveDirtyTabsBeforeDestructiveAction(): Promise<"proceed" | "cancel"> {
     const dirty = collectDirtyTabs();
-
     if (dirty.length === 0) {
-        await appBus.confirmExit();
-        return;
+        return "proceed";
     }
 
     const store = getDefaultStore();
@@ -73,20 +72,31 @@ export async function handleQuitRequested(): Promise<void> {
     );
 
     if (choice === "cancel") {
-        await appBus.cancelQuitPrompt();
-        return;
+        return "cancel";
     }
 
     if (choice === "save") {
         for (const tab of dirty) {
             const ok = await tab.save();
             if (!ok) {
-                notice.warning(`Could not save “${tab.label}”. Close cancelled.`);
-                await appBus.cancelQuitPrompt();
-                return;
+                notice.warning(`Could not save “${tab.label}”. Action cancelled.`);
+                return "cancel";
             }
         }
     }
 
+    return "proceed";
+}
+
+/**
+ * Handle a backend quit request: prompt when tabs are dirty, optionally save,
+ * then confirmExit — or cancelQuitPrompt if the user aborts / save fails.
+ */
+export async function handleQuitRequested(): Promise<void> {
+    const result = await resolveDirtyTabsBeforeDestructiveAction();
+    if (result === "cancel") {
+        await appBus.cancelQuitPrompt();
+        return;
+    }
     await appBus.confirmExit();
 }

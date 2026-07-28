@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { atom, useSetAtom } from "jotai";
 import { settingsBus } from "@/bridge/groups/settings";
+import { resolveDirtyTabsBeforeDestructiveAction } from "@/components/0-all/a-quit-unsaved";
 import { appSettings } from "@/store/1-ui-settings";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
@@ -74,22 +75,30 @@ export const refreshAppIsElevatedAtom = atom(
 
 export const settingsRunElevatedAtom = atom(
     (get) => get(settingsRunElevatedBaseAtom),
-    (_get, set, next: boolean) => {
+    async (get, set, next: boolean) => {
+        // Restart exits this process — prompt for dirty editor tabs first.
+        const proceed = await resolveDirtyTabsBeforeDestructiveAction();
+        if (proceed === "cancel") {
+            return;
+        }
+
+        const previous = get(settingsRunElevatedBaseAtom);
         set(settingsRunElevatedBaseAtom, next);
-        settingsBus.setRunElevated(next)
-            .then(async () => {
-                // Restart into the requested privilege level. Successful relaunch
-                // exits this process; on UAC cancel / failure, refresh UI state.
-                if (next) {
-                    await settingsBus.requestElevationRestart();
-                } else {
-                    await settingsBus.requestUnelevatedRestart();
-                }
-                await set(refreshAppIsElevatedAtom);
-            })
-            .catch((e) => {
-                notice.error(`Failed to change elevation:\n ${String(e)}`);
-            });
+        try {
+            await settingsBus.setRunElevated(next);
+            // Restart into the requested privilege level. Successful relaunch
+            // exits this process; on UAC cancel / failure, refresh UI state.
+            if (next) {
+                await settingsBus.requestElevationRestart();
+            } else {
+                await settingsBus.requestUnelevatedRestart();
+            }
+            await set(refreshAppIsElevatedAtom);
+        } catch (e) {
+            notice.error(`Failed to change elevation:\n ${String(e)}`);
+            set(settingsRunElevatedBaseAtom, previous);
+            await set(refreshAppIsElevatedAtom);
+        }
     },
 );
 
