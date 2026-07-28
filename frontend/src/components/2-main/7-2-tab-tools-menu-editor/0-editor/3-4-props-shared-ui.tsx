@@ -1,5 +1,5 @@
 import { type ComponentProps, type ReactNode, useEffect, useState } from "react";
-import { cn } from "@/utils/classnames";
+import { classNames, cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { AnimatePresence, motion } from "motion/react";
 import { IconTerminalHero } from "@/ui/icons/normal";
@@ -94,7 +94,7 @@ export function CollapsibleOptionalField({ label, value, children }: { label: st
     return (
         <div className="-mt-1 flex flex-col gap-0.5">
             <Label
-                className="text-[0.65rem] text-muted-foreground select-none inline-flex items-center gap-px cursor-pointer"
+                className={classNames(labelClasses, "select-none inline-flex items-center gap-px cursor-pointer")}
                 onClick={() => setOpen((v) => !v)}
             >
                 {label}
@@ -123,11 +123,13 @@ export function CollapsibleOptionalField({ label, value, children }: { label: st
     );
 }
 
+export const labelClasses = "text-[0.65rem] font-normal text-foreground/65 select-none";
+
 export function LabelAndField({ label, labelHint, children, ...props }: { label: string; labelHint?: ReactNode; } & ComponentProps<"div">) {
     return (
         <div className="flex flex-col gap-0.5" {...props}>
             <div className="inline-flex items-center gap-0.5">
-                <Label className="text-[0.65rem] text-muted-foreground">{label}</Label>
+                <Label className={labelClasses}>{label}</Label>
                 {labelHint}
             </div>
             {children}
@@ -165,7 +167,7 @@ export function Field_TypeIcon({ node }: { node: ToolMenuItem; }) {
                 : "text-foreground/70 fill-foreground/10!",
     );
     return (
-        <div className="px-2 py-1 w-fit text-[0.65rem] text-muted-foreground bg-muted border rounded inline-flex items-center gap-1">
+        <div className={classNames(labelClasses, "px-2 py-1 w-fit bg-muted border rounded inline-flex items-center gap-1")}>
             {kind !== "separator" && (
                 kind === "submenu"
                     ? <Folder className={iconClass} />

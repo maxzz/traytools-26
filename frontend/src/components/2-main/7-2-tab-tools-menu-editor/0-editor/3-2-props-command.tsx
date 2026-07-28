@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { classNames } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Input } from "@/ui/shadcn/input";
@@ -16,6 +17,7 @@ import {
     Field_MenuName,
     Field_TypeIcon,
     LabelAndField,
+    labelClasses,
     TriggerInfo,
 } from "./3-4-props-shared-ui";
 
@@ -85,7 +87,7 @@ function CommandPathFlags({ node }: NodeProps) {
 function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: ReactNode; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     return (
         <div className="inline-flex items-center gap-0.5">
-            <Label className="font-normal text-[0.65rem] text-muted-foreground flex items-center gap-1 cursor-pointer">
+            <Label className={classNames(labelClasses, "flex items-center gap-1 cursor-pointer")}>
                 <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
                 <span className="mt-0.5">{label}</span>
             </Label>

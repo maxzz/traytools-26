@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { cn } from "@/utils/classnames";
+import { classNames } from "@/utils/classnames";
 import { Folder } from "lucide-react";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
@@ -7,7 +7,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
-import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon, TriggerInfo } from "./3-4-props-shared-ui";
+import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon, labelClasses, TriggerInfo } from "./3-4-props-shared-ui";
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
@@ -35,11 +35,13 @@ function QuickAccessList({ node }: NodeProps) {
     }
 
     return (
-        <div className="p-2 border rounded flex flex-col gap-1.5">
-            <div className="text-[0.65rem] text-muted-foreground select-none">
+        <div className="">
+            <div className={labelClasses}>
                 Quick actions list
             </div>
+        <div className="p-2 border rounded flex flex-col gap-1.5">
             <QuickAccessItems node={node} depth={0} />
+        </div>
         </div>
     );
 }
@@ -78,10 +80,12 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
             <div className="flex flex-col gap-1">
                 <div className="pr-1 flex items-center gap-x-1.5" style={indentStyle}>
                     <QuickAccessItemTypeIcon node={node} />
+
                     <span className="text-[0.65rem] truncate">
                         {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                     </span>
                 </div>
+
                 <QuickAccessItems node={node} depth={depth + 1} />
             </div>
         );
@@ -98,8 +102,10 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
                 <span data-qa-name className="text-[0.75rem] truncate transition-colors">
                     {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
+
                 <QuickAccessItemPropertiesInfo node={node} />
             </div>
+            
             <QuickAccessExecuteButton node={node} />
         </div>
     );
@@ -130,7 +136,7 @@ function QuickAccessExecuteButton({ node }: NodeProps) {
 function QuickAccessItemTypeIcon({ node }: NodeProps) {
     const kind = nodeKind(node);
     const isRegistry = kind === "item" && isRegistryPath(node);
-    const iconClass = cn(
+    const iconClass = classNames(
         "shrink-0 size-3.5",
         kind === "submenu"
             ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
