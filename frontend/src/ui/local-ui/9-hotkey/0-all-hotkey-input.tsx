@@ -68,8 +68,9 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
                 stopRecording();
             }
 
+            // Capture so Escape stops recording before Dialog/DismissableLayer closes the overlay.
             const controller = new AbortController();
-            window.addEventListener("keydown", onKeyDown, { signal: controller.signal });
+            window.addEventListener("keydown", onKeyDown, { capture: true, signal: controller.signal });
             return () => controller.abort();
         },
         [recording, onChange, stopRecording],
