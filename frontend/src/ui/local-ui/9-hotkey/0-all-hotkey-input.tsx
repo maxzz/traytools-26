@@ -78,7 +78,7 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
     const displayValue = recording ? "Press shortcut…" : (stringFromHotkeyChord(value) || placeholder || "");
 
     return (
-        <div className="relative">
+        <div className="relative w-36">
             <Input
                 className={classNames(
                     "h-7 font-condensed cursor-pointer",

@@ -57,12 +57,13 @@ export function Field_HotKey({ node }: NodeProps) {
     }
 
     return (
-        <LabelAndField className="w-44" label="Hotkey">
+        <LabelAndField className="w-36" label="Hotkey">
             <HotkeyInput
                 value={chord}
                 onChange={setChord}
                 isGlobal={isGlobal}
                 onIsGlobalChange={setGlobal}
+                tabIndex={-1}
             />
         </LabelAndField>
     );
@@ -94,14 +95,11 @@ export function CollapsibleOptionalField({ label, value, children }: { label: st
 
     return (
         <div className="-mt-1 flex flex-col gap-0.5">
-            <Label
-                className={classNames(labelClasses, "select-none inline-flex items-center gap-px cursor-pointer")}
-                onClick={() => setOpen((v) => !v)}
-            >
+            <Label className={classNames(labelClasses, "select-none inline-flex items-center gap-px cursor-pointer")} onClick={() => setOpen((v) => !v)}>
                 {label}
                 <motion.span
-                    animate={{ rotate: open ? 90 : 0 }}
                     className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
+                    animate={{ rotate: open ? 90 : 0 }}
                     transition={{ duration: 0.1, ease: "easeInOut" }}
                 >
                     <ChevronRight className="size-2.5" />
@@ -110,7 +108,6 @@ export function CollapsibleOptionalField({ label, value, children }: { label: st
             <AnimatePresence initial={false}>
                 {open && (
                     <motion.div
-                        className="overflow-hidden"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -204,7 +201,7 @@ export function ExecuteCommandButton({ node }: NodeProps) {
 
     return (
         <Button
-            className="font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60"
+            className="font-normal rounded text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60"
             variant="secondary"
             size="xs"
             type="button"

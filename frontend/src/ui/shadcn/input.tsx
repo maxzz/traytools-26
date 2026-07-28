@@ -8,22 +8,21 @@ export function Input({ className, type, ...props }: ComponentProps<"input">) {
 }
 
 const inputClasses = "\
-px-2.5 py-1 w-full min-w-0 h-7 \
+px-2.5 py-1 w-full min-w-0 h-7 text-xs \
 \
-text-xs \
 bg-transparent \
 transition-colors \
 \
 placeholder:text-muted-foreground \
 \
+focus-visible:border-ring \
+focus-visible:ring-1 \
+focus-visible:ring-ring/50 \
+\
 dark:bg-input/30 \
 dark:disabled:bg-input/80 \
 dark:aria-invalid:border-destructive/50 \
 dark:aria-invalid:ring-destructive/40 \
-\
-focus-visible:border-ring \
-focus-visible:ring-1 \
-focus-visible:ring-ring/50 \
 \
 disabled:pointer-events-none \
 disabled:cursor-not-allowed \
@@ -43,8 +42,5 @@ file:font-medium \
 file:text-foreground \
 \
 rounded \
-outline-none \
-border \
-border-input \
-";
+outline-none border border-input";
 //md:text-sm \

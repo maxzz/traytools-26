@@ -137,6 +137,7 @@ function ControlUnloadHookHotkey() {
                 onChange={setChord}
                 isGlobal={state.global}
                 onIsGlobalChange={setGlobal}
+                tabIndex={-1}
             />
         </div>
     );
