@@ -77,8 +77,8 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
 
     if (kind === "submenu") {
         return (
-            <div className="flex flex-col gap-1 cursor-default select-none">
-                <div className="h-4 pr-1 flex items-center gap-x-1.5" style={indentStyle}>
+            <div className="select-none flex flex-col gap-1 cursor-default">
+                <div className="pr-1 h-4 flex items-center gap-x-1.5" style={indentStyle}>
                     <QuickAccessItemTypeIcon node={node} />
                     <span className="text-[0.65rem] truncate">
                         {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
@@ -90,11 +90,11 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
     }
 
     return (
-        <div className="pr-1 flex items-center justify-between gap-0.5 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 select-none" style={indentStyle}>
+        <div className="pr-1 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 select-none flex items-center justify-between gap-0.5" style={indentStyle}>
             <div className="min-w-0 flex items-center gap-x-0.5">
                 <QuickAccessItemTypeIcon node={node} />
                 <QuickAccessItemTooltip node={node} />
-                <span data-qa-name className="text-[0.75rem] truncate transition-colors">
+                <span data-qa-name className="text-[0.75rem] transition-colors truncate">
                     {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
             </div>
@@ -111,7 +111,7 @@ function QuickAccessExecuteButton({ node }: NodeProps) {
 
     return (
         <Button
-            className="h-4.5 px-1.5 text-[0.65rem] font-normal text-sky-800 bg-sky-200 border-sky-500/60 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
+            className="px-1.5 h-4.5 font-normal text-[0.65rem] text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60"
             variant="secondary"
             size="xs"
             type="button"
