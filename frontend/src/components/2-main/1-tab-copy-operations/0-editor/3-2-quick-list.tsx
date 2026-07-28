@@ -3,17 +3,21 @@ import { FileIcon, Folder, Info } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import {
+    type CopyGroup,
     type CopyNode,
     type CopyOpItem,
+    collectGroupItems,
     findByUid,
     isCopyGroup,
     itemLabel,
 } from "../a-atoms/9-types-copy";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
-import { runCopyItem } from "../a-atoms/2-run-copy";
+import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 
 const CHILD_INDENT = 16;
 const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
+const copyButtonClass =
+    "px-1.5 h-4.5 font-normal text-[0.65rem] text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
 
 export function QuickAccessList({ nodes }: { nodes: readonly CopyNode[]; }) {
     if (nodes.length === 0) {
@@ -58,11 +62,17 @@ function QuickAccessItem({ node, depth }: { node: CopyNode; depth: number; }) {
     if (isCopyGroup(node)) {
         return (
             <div className="select-none flex flex-col gap-1 cursor-default">
-                <div className="pr-1 h-4 flex items-center gap-x-1.5" style={indentStyle}>
-                    <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
-                    <span className="text-[0.65rem] truncate">
-                        {node.name || <span className="text-muted-foreground italic">(unnamed)</span>}
-                    </span>
+                <div
+                    className="pr-1 h-4 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 flex items-center justify-between gap-0.5"
+                    style={indentStyle}
+                >
+                    <div className="min-w-0 flex items-center gap-x-1.5">
+                        <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
+                        <span data-qa-name className="text-[0.65rem] transition-colors truncate">
+                            {node.name || <span className="text-muted-foreground italic">(unnamed)</span>}
+                        </span>
+                    </div>
+                    <QuickAccessCopyGroupButton group={node} />
                 </div>
                 <QuickAccessItems nodes={node.items} depth={depth + 1} />
             </div>
@@ -81,18 +91,47 @@ function QuickAccessItem({ node, depth }: { node: CopyNode; depth: number; }) {
                     {itemLabel(node) || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
             </div>
-            <QuickAccessCopyButton item={node} />
+            <QuickAccessCopyItemButton item={node} />
         </div>
     );
 }
 
-function QuickAccessCopyButton({ item }: { item: CopyOpItem; }) {
+function QuickAccessCopyGroupButton({ group }: { group: CopyGroup; }) {
+    const canCopy = collectGroupItems(group).length > 0;
+    const uid = group.uid;
+
+    return (
+        <Button
+            className={copyButtonClass}
+            variant="secondary"
+            size="xs"
+            type="button"
+            disabled={!canCopy || !uid}
+            title={canCopy
+                ? "Copy all items in this group"
+                : "Add copy items to this group first"}
+            onClick={() => {
+                if (!uid) {
+                    return;
+                }
+                const loc = findByUid(copyEditorStore.config, uid);
+                if (loc?.kind === "group") {
+                    runCopyGroup(loc.group);
+                }
+            }}
+        >
+            Copy group
+        </Button>
+    );
+}
+
+function QuickAccessCopyItemButton({ item }: { item: CopyOpItem; }) {
     const canCopy = !!(item.sourceFile.trim() && item.destFolder.trim());
     const uid = item.uid;
 
     return (
         <Button
-            className="px-1.5 h-4.5 font-normal text-[0.65rem] text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60"
+            className={copyButtonClass}
             variant="secondary"
             size="xs"
             type="button"

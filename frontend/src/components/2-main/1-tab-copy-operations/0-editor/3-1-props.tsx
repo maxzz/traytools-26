@@ -38,36 +38,33 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
     const isTopLevel = loc?.kind === "group" && loc.parent === null;
     const parent = loc?.kind === "group" ? loc.parent : null;
     const topLevel = group.uid ? findTopLevelGroup(copyEditorStore.config, group.uid) : null;
-    const selfHasItems = collectGroupItems(group).length > 0;
     const parentHasItems = parent ? collectGroupItems(parent).length > 0 : false;
     const topLevelHasItems = topLevel ? collectGroupItems(topLevel).length > 0 : false;
     // When the parent is already the root-level group, "top-level" would be redundant.
     const showTopLevel = !isTopLevel && !!topLevel && topLevel.uid !== parent?.uid;
+    const showParent = !isTopLevel;
 
     return (<>
-        <div className="-my-2 self-end flex items-center gap-2">
-            {showTopLevel && (
-                <CopyActionButton
-                    label="Copy top-level group"
-                    disabled={!topLevelHasItems}
-                    title="Copy all items in the root-level group that contains this group"
-                    onClick={() => copyLiveGroup(topLevel?.uid)}
-                />
-            )}
-            {!isTopLevel && (
-                <CopyActionButton
-                    label="Copy parent group"
-                    disabled={!parentHasItems}
-                    title="Copy all items in this group's parent (including nested groups)"
-                    onClick={() => copyLiveGroup(parent?.uid)}
-                />
-            )}
-            <CopyActionButton
-                label="Copy group"
-                disabled={!selfHasItems}
-                onClick={() => copyLiveGroup(group.uid)}
-            />
-        </div>
+        {(showTopLevel || showParent) && (
+            <div className="-my-2 self-end flex items-center gap-2">
+                {showTopLevel && (
+                    <CopyActionButton
+                        label="Copy top-level group"
+                        disabled={!topLevelHasItems}
+                        title="Copy all items in the root-level group that contains this group"
+                        onClick={() => copyLiveGroup(topLevel?.uid)}
+                    />
+                )}
+                {showParent && (
+                    <CopyActionButton
+                        label="Copy parent group"
+                        disabled={!parentHasItems}
+                        title="Copy all items in this group's parent (including nested groups)"
+                        onClick={() => copyLiveGroup(parent?.uid)}
+                    />
+                )}
+            </div>
+        )}
 
         <LabelAndField label="Group name">
             <Input
