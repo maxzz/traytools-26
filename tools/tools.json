@@ -53,9 +53,47 @@
                         "cmdWhat": "abs"
                     },
                     {
+                        "menuName": "-"
+                    },
+                    {
                         "menuName": "Open %TEMP%",
                         "cmdLine": "%TEMP%",
                         "cmdWhat": "abs"
+                    },
+                    {
+                        "menuName": "New Submenu",
+                        "menuItems": [
+                            {
+                                "menuName": "New Command",
+                                "cmdLine": "",
+                                "cmdWhat": "abs"
+                            },
+                            {
+                                "menuName": "New Command",
+                                "cmdLine": "",
+                                "cmdWhat": "abs"
+                            }
+                        ]
+                    },
+                    {
+                        "menuName": "New Submenu",
+                        "menuItems": [
+                            {
+                                "menuName": "New Command",
+                                "cmdLine": "",
+                                "cmdWhat": "abs"
+                            },
+                            {
+                                "menuName": "New Command",
+                                "cmdLine": "",
+                                "cmdWhat": "abs"
+                            },
+                            {
+                                "menuName": "New Command",
+                                "cmdLine": "",
+                                "cmdWhat": "abs"
+                            }
+                        ]
                     }
                 ]
             },

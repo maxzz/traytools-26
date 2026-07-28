@@ -124,7 +124,7 @@ export function CollapsibleOptionalField({ label, value, children }: { label: st
     );
 }
 
-export const labelClasses = "text-[0.65rem] font-normal text-foreground/65 select-none";
+export const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
 
 export function LabelAndField({ label, labelHint, children, ...props }: { label: string; labelHint?: ReactNode; } & ComponentProps<"div">) {
     return (
@@ -138,21 +138,13 @@ export function LabelAndField({ label, labelHint, children, ...props }: { label:
     );
 }
 
-export function TriggerInfo({ className, ...rest }: ComponentProps<"button">) {
-    return (
-        <button className={cn("ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center", className)} type="button" {...rest}>
-            <Info className="size-2.5" />
-        </button>
-    );
-}
-
 /** Info-icon trigger with tooltip content; pass `label` for accessibility. */
 export function InfoTooltip({ label, children, side, contentClasses }: { label: string; children: ReactNode; side?: ComponentProps<typeof TooltipContent>["side"]; contentClasses?: string; }) {
     return (
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <TriggerInfo aria-label={label} />
+                    <InfoTooltipTrigger aria-label={label} />
                 </TooltipTrigger>
 
                 <TooltipContent side={side} className={contentClasses}>
@@ -160,6 +152,14 @@ export function InfoTooltip({ label, children, side, contentClasses }: { label: 
                 </TooltipContent>
             </Tooltip>
         </TooltipProvider>
+    );
+}
+
+export function InfoTooltipTrigger({ className, ...rest }: ComponentProps<"button">) {
+    return (
+        <button className={cn("ml-px text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center", className)} type="button" {...rest}>
+            <Info className="size-2.5" />
+        </button>
     );
 }
 

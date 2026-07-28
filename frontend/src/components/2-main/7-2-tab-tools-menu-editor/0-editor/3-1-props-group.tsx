@@ -7,7 +7,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
-import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon, labelClasses, TriggerInfo } from "./3-4-props-shared-ui";
+import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon, labelClasses, InfoTooltipTrigger } from "./3-4-props-shared-ui";
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
@@ -77,35 +77,27 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
 
     if (kind === "submenu") {
         return (
-            <div className="flex flex-col gap-1">
-                <div className="pr-1 flex items-center gap-x-1.5" style={indentStyle}>
+            <div className="flex flex-col gap-1 cursor-default select-none">
+                <div className="h-4 pr-1 flex items-center gap-x-1.5" style={indentStyle}>
                     <QuickAccessItemTypeIcon node={node} />
-
                     <span className="text-[0.65rem] truncate">
                         {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                     </span>
                 </div>
-
                 <QuickAccessItems node={node} depth={depth + 1} />
             </div>
         );
     }
 
     return (
-        <div
-            className="pr-1 flex items-center justify-between gap-0.5 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400"
-            style={indentStyle}
-        >
-            <div className="min-w-0 flex items-center gap-x-1.5">
+        <div className="pr-1 flex items-center justify-between gap-0.5 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 select-none" style={indentStyle}>
+            <div className="min-w-0 flex items-center gap-x-0.5">
                 <QuickAccessItemTypeIcon node={node} />
-
+                <QuickAccessItemTooltip node={node} />
                 <span data-qa-name className="text-[0.75rem] truncate transition-colors">
                     {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
-
-                <QuickAccessItemPropertiesInfo node={node} />
             </div>
-            
             <QuickAccessExecuteButton node={node} />
         </div>
     );
@@ -119,7 +111,7 @@ function QuickAccessExecuteButton({ node }: NodeProps) {
 
     return (
         <Button
-            className="h-5 px-1.5 text-[0.65rem] font-normal text-sky-800 bg-sky-200 border-sky-500/60 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
+            className="h-4.5 px-1.5 text-[0.65rem] font-normal text-sky-800 bg-sky-200 border-sky-500/60 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80"
             variant="secondary"
             size="xs"
             type="button"
@@ -154,7 +146,7 @@ function QuickAccessItemTypeIcon({ node }: NodeProps) {
     return <IconTerminalHero className={iconClass} />;
 }
 
-function QuickAccessItemPropertiesInfo({ node }: NodeProps) {
+function QuickAccessItemTooltip({ node }: NodeProps) {
     const rows = quickAccessItemPropertyRows(node);
     if (rows.length === 0) {
         return null;
@@ -164,7 +156,7 @@ function QuickAccessItemPropertiesInfo({ node }: NodeProps) {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <TriggerInfo aria-label="Item properties" />
+                    <InfoTooltipTrigger aria-label="Item properties" />
                 </TooltipTrigger>
 
                 <TooltipContent side="top" className="max-w-80">
@@ -204,7 +196,7 @@ function quickAccessItemPropertyRows(node: ToolMenuItem): { label: string; value
         add("Registry key", node.cmdLine);
         add("Platform", node.cmdPlat === "32" ? "32-bit" : node.cmdPlat === "64" ? "64-bit" : node.cmdPlat === "both" ? "Both" : undefined);
     } else {
-        add("Command / path / URL", node.cmdLine);
+        add("Command", node.cmdLine);
         add("Arguments", node.cmdArgs);
         if (node.cmdWhat === "rel" || node.cmdWhat === "abs") { add("Path type", node.cmdWhat === "rel" ? "Relative" : "Absolute"); }
     }
