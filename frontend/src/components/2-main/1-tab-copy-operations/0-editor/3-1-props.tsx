@@ -80,7 +80,7 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
 
         <CopyRunFlags flags={group} onPatch={patchSelectedGroup} />
 
-        <QuickAccessList nodes={group.items} />
+        <QuickAccessList nodes={[group]} />
     </>);
 }
 
