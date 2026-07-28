@@ -1,5 +1,7 @@
 import { type ReactNode } from "react";
 import { useSnapshot } from "valtio";
+import { classNames } from "@/utils/classnames";
+import { FileIcon, Folder } from "lucide-react";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
@@ -45,26 +47,29 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
     const showParent = !isTopLevel;
 
     return (<>
-        {(showTopLevel || showParent) && (
-            <div className="-my-2 self-end flex items-center gap-2">
-                {showTopLevel && (
-                    <CopyActionButton
-                        label="Copy top-level group"
-                        disabled={!topLevelHasItems}
-                        title="Copy all items in the root-level group that contains this group"
-                        onClick={() => copyLiveGroup(topLevel?.uid)}
-                    />
-                )}
-                {showParent && (
-                    <CopyActionButton
-                        label="Copy parent group"
-                        disabled={!parentHasItems}
-                        title="Copy all items in this group's parent (including nested groups)"
-                        onClick={() => copyLiveGroup(parent?.uid)}
-                    />
-                )}
-            </div>
-        )}
+        <div className="flex items-center justify-between gap-2">
+            <Field_TypeIcon kind="group" />
+            {(showTopLevel || showParent) && (
+                <div className="flex items-center gap-2">
+                    {showTopLevel && (
+                        <CopyActionButton
+                            label="Copy top-level group"
+                            disabled={!topLevelHasItems}
+                            title="Copy all items in the root-level group that contains this group"
+                            onClick={() => copyLiveGroup(topLevel?.uid)}
+                        />
+                    )}
+                    {showParent && (
+                        <CopyActionButton
+                            label="Copy parent group"
+                            disabled={!parentHasItems}
+                            title="Copy all items in this group's parent (including nested groups)"
+                            onClick={() => copyLiveGroup(parent?.uid)}
+                        />
+                    )}
+                </div>
+            )}
+        </div>
 
         <LabelAndField label="Group name">
             <Input
@@ -89,26 +94,29 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
     const showTopLevel = !!topLevel && topLevel.uid !== group.uid;
 
     return (<>
-        <div className="-my-2 self-end flex items-center gap-2">
-            {showTopLevel && (
+        <div className="flex items-center justify-between gap-2">
+            <Field_TypeIcon kind="item" />
+            <div className="flex items-center gap-2">
+                {showTopLevel && (
+                    <CopyActionButton
+                        label="Copy top-level group"
+                        disabled={!topLevelHasItems}
+                        title="Copy all items in the root-level group that contains this item"
+                        onClick={() => copyLiveGroup(topLevel?.uid)}
+                    />
+                )}
                 <CopyActionButton
-                    label="Copy top-level group"
-                    disabled={!topLevelHasItems}
-                    title="Copy all items in the root-level group that contains this item"
-                    onClick={() => copyLiveGroup(topLevel?.uid)}
+                    label="Copy parent group"
+                    disabled={!parentHasItems}
+                    title="Copy all items in this item's parent group (including nested groups)"
+                    onClick={() => copyLiveGroup(group.uid)}
                 />
-            )}
-            <CopyActionButton
-                label="Copy parent group"
-                disabled={!parentHasItems}
-                title="Copy all items in this item's parent group (including nested groups)"
-                onClick={() => copyLiveGroup(group.uid)}
-            />
-            <CopyActionButton
-                label="Copy file"
-                disabled={!item.sourceFile.trim() || !item.destFolder.trim()}
-                onClick={() => copyLiveItem(item.uid)}
-            />
+                <CopyActionButton
+                    label="Copy file"
+                    disabled={!item.sourceFile.trim() || !item.destFolder.trim()}
+                    onClick={() => copyLiveItem(item.uid)}
+                />
+            </div>
         </div>
 
         <LabelAndField label="Source file">
@@ -254,5 +262,27 @@ function LabelAndField({ label, children }: { label: string; children: ReactNode
             </div>
             {children}
         </Label >
+    );
+}
+
+const typeIconLabelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
+
+function Field_TypeIcon({ kind }: { kind: "group" | "item"; }) {
+    const isGroup = kind === "group";
+    const iconClass = classNames(
+        "shrink-0 size-3.5",
+        isGroup
+            ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
+            : "text-foreground/70",
+    );
+
+    return (
+        <div className={classNames(typeIconLabelClasses, "px-2 py-1 w-fit bg-muted border rounded inline-flex items-center gap-1")}>
+            {isGroup
+                ? <Folder className={iconClass} />
+                : <FileIcon className={iconClass} />
+            }
+            {isGroup ? "Group" : "Copy item"}
+        </div>
     );
 }
