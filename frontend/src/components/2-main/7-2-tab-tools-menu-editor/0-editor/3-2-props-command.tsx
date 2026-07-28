@@ -4,7 +4,6 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { effectiveRunElevated } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
@@ -16,9 +15,9 @@ import {
     Field_HotKey,
     Field_MenuName,
     Field_TypeIcon,
+    InfoTooltip,
     LabelAndField,
     labelClasses,
-    TriggerInfo,
 } from "./3-4-props-shared-ui";
 
 export function PropsFor_Command({ node }: NodeProps) {
@@ -42,7 +41,23 @@ export function PropsFor_Command({ node }: NodeProps) {
 
 function Field_Cmd_Path({ node }: NodeProps) {
     return (
-        <LabelAndField label="Command / path / URL">
+        <LabelAndField
+            label="Command"
+            labelHint={(
+                <InfoTooltip label="Command / path / URL help">
+                    <div className="text-xs font-light flex flex-col gap-1.5">
+                        <p className="font-medium">Command</p>
+                        <p>Program, file, folder, or web address to open when this menu item is selected.</p>
+                        <p className="font-medium">Path</p>
+                        <p>Full path or program name, used as-is after env-var expansion.</p>
+                        <p className="font-medium">URL</p>
+                        <p>Web link; use Absolute with a scheme:// address (e.g. https://…).</p>
+                        <p className="font-medium">Environment variables</p>
+                        <p>Environment variables such as <strong>%AppData%</strong> are expanded. Use the Relative path option for paths under the tools.json folder.</p>
+                    </div>
+                </InfoTooltip>
+            )}
+        >
             <PathInput
                 value={node.cmdLine ?? ""}
                 onChange={(path) => patchSelectedNode((n) => { n.cmdLine = path; })}
@@ -61,13 +76,11 @@ function CommandPathFlags({ node }: NodeProps) {
             <FlagSwitch
                 label="Relative path"
                 hint={(
-                    <div className="text-xs grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
-                        <span className="font-semibold">Relative</span>
+                    <div className="text-xs font-light grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
+                        <span className="font-medium">Relative</span>
                         <span>Path relative to the folder containing tools.json.</span>
-                        <span className="font-semibold">Absolute</span>
+                        <span className="font-medium">Absolute</span>
                         <span>Full path or program name, used as-is after env-var expansion.</span>
-                        <span className="font-semibold">URL</span>
-                        <span>Web link; use Absolute with a scheme:// address (e.g. https://…).</span>
                     </div>
                 )}
                 checked={isRelative}
@@ -92,17 +105,9 @@ function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string;
                 <span className="mt-0.5">{label}</span>
             </Label>
 
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <TriggerInfo aria-label={`${label} help`} />
-                    </TooltipTrigger>
-
-                    <TooltipContent side="top" className="max-w-64">
-                        {hint}
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+            <InfoTooltip label={`${label} help`}>
+                {hint}
+            </InfoTooltip>
         </div>
     );
 }

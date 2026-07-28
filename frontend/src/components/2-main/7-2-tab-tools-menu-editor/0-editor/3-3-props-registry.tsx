@@ -1,7 +1,6 @@
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type CmdPlat } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 import {
@@ -11,8 +10,8 @@ import {
     Field_HotKey,
     Field_MenuName,
     Field_TypeIcon,
+    InfoTooltip,
     LabelAndField,
-    TriggerInfo,
 } from "./3-4-props-shared-ui";
 
 export function PropsFor_Registry({ node }: NodeProps) {
@@ -54,22 +53,14 @@ function Field_Reg_Platform({ node }: NodeProps) {
         <LabelAndField
             label="Platform"
             labelHint={(
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <TriggerInfo aria-label="Platform help" />
-                        </TooltipTrigger>
-
-                        <TooltipContent side="top" className="max-w-64">
-                            <div className="text-xs flex flex-col gap-1.5">
-                                <p><strong>Current</strong> — use the default registry view for this OS.</p>
-                                <p><strong>32-bit</strong> — prefer the 32-bit (WOW6432Node) registry view.</p>
-                                <p><strong>64-bit</strong> — prefer the 64-bit registry view.</p>
-                                <p><strong>Both</strong> — for keys that may exist in either view.</p>
-                            </div>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <InfoTooltip label="Platform help">
+                    <div className="text-xs flex flex-col gap-1.5">
+                        <p><strong>Current</strong> — use the default registry view for this OS.</p>
+                        <p><strong>32-bit</strong> — prefer the 32-bit (WOW6432Node) registry view.</p>
+                        <p><strong>64-bit</strong> — prefer the 64-bit registry view.</p>
+                        <p><strong>Both</strong> — for keys that may exist in either view.</p>
+                    </div>
+                </InfoTooltip>
             )}
         >
             <Select value={node.cmdPlat ?? "curr"} onValueChange={(v) => patchSelectedNode((n) => { if (v === "curr") { delete n.cmdPlat; } else { n.cmdPlat = v as CmdPlat; } })}>

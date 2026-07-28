@@ -9,6 +9,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Textarea } from "@/ui/shadcn/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { HotkeyInput, formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
 import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
@@ -142,6 +143,23 @@ export function TriggerInfo({ className, ...rest }: ComponentProps<"button">) {
         <button className={cn("ml-0.5 text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center", className)} type="button" {...rest}>
             <Info className="size-2.5" />
         </button>
+    );
+}
+
+/** Info-icon trigger with tooltip content; pass `label` for accessibility. */
+export function InfoTooltip({ label, children, side, contentClasses }: { label: string; children: ReactNode; side?: ComponentProps<typeof TooltipContent>["side"]; contentClasses?: string; }) {
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <TriggerInfo aria-label={label} />
+                </TooltipTrigger>
+
+                <TooltipContent side={side} className={contentClasses}>
+                    {children}
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     );
 }
 
