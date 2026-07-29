@@ -86,6 +86,36 @@ func TestSplitFileArgs_BareNameFirstSpace(t *testing.T) {
 	}
 }
 
+func TestSplitFileArgs_ForwardAndMixedSlashes(t *testing.T) {
+	dir := t.TempDir()
+	spaced := filepath.Join(dir, "org page-qa2-test")
+	if err := os.MkdirAll(spaced, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	exe := filepath.Join(spaced, "notepad.exe")
+	if err := os.WriteFile(exe, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Forward-slash form of the same path (common in tools.json).
+	fwd := filepath.ToSlash(exe)
+	gotT, gotA := splitFileArgs(fwd, "")
+	if gotT != fwd || gotA != "" {
+		t.Fatalf("forward slashes: got (%q, %q), want (%q, \"\")", gotT, gotA, fwd)
+	}
+	gotT, gotA = splitFileArgs(fwd+" --flag", "")
+	if toBackslashes(gotT) != toBackslashes(exe) || gotA != "--flag" {
+		t.Fatalf("forward slashes + args: got (%q, %q)", gotT, gotA)
+	}
+
+	// Mixed separators: backslash dirs, forward-slash file.
+	mixed := spaced + "/notepad.exe"
+	gotT, gotA = splitFileArgs(mixed, "")
+	if toBackslashes(gotT) != toBackslashes(exe) || gotA != "" {
+		t.Fatalf("mixed slashes: got (%q, %q), want normalized %q", gotT, gotA, exe)
+	}
+}
+
 func TestResolveCommand_AbsPathWithSpaces(t *testing.T) {
 	dir := t.TempDir()
 	spaced := filepath.Join(dir, "org page-qa2-test")
@@ -106,5 +136,49 @@ func TestResolveCommand_AbsPathWithSpaces(t *testing.T) {
 	}
 	if cmd.args != "" {
 		t.Fatalf("resolved args = %q, want empty", cmd.args)
+	}
+}
+
+func TestResolveCommand_ForwardSlashAbsPath(t *testing.T) {
+	dir := t.TempDir()
+	spaced := filepath.Join(dir, "org page-qa2-test")
+	if err := os.MkdirAll(spaced, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	exe := filepath.Join(spaced, "notepad.exe")
+	if err := os.WriteFile(exe, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := resolveCommand(dir, MenuNode{
+		CmdLine: filepath.ToSlash(exe),
+		CmdWhat: whatAbs,
+	})
+	want := toBackslashes(exe)
+	if cmd.path != want {
+		t.Fatalf("resolved path = %q, want %q", cmd.path, want)
+	}
+	if cmd.args != "" {
+		t.Fatalf("resolved args = %q, want empty", cmd.args)
+	}
+}
+
+func TestResolveCommand_MixedSlashRelPath(t *testing.T) {
+	base := t.TempDir()
+	spaced := filepath.Join(base, "my tools")
+	if err := os.MkdirAll(spaced, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(spaced, "app.exe"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := resolveCommand(base, MenuNode{
+		CmdLine: `my tools/app.exe`,
+		CmdWhat: whatRel,
+	})
+	want := filepath.Join(base, "my tools", "app.exe")
+	if cmd.path != want {
+		t.Fatalf("resolved path = %q, want %q", cmd.path, want)
 	}
 }

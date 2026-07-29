@@ -165,7 +165,9 @@ func expandEnv(s string) string {
 
 func isURL(s string) bool { return urlRe.MatchString(s) }
 
-func toBackslashes(s string) string { return strings.ReplaceAll(s, "/", `\`) }
+// toBackslashes normalizes '/' to the OS path separator so forward and
+// backslashes are interchangeable in tools.json. Do not use on URLs.
+func toBackslashes(s string) string { return filepath.FromSlash(s) }
 
 func hasPathSeparator(p string) bool {
 	return strings.ContainsAny(p, `/\`) || filepath.VolumeName(p) != ""
@@ -234,20 +236,22 @@ func spacePrefixCandidates(s string) []string {
 
 // targetExists reports whether candidate is a usable launch target: an existing
 // file/dir (absolute, or relative to baseDir), or a bare name found on PATH.
+// Forward and backslashes are treated as equivalent.
 func targetExists(candidate, baseDir string) bool {
 	candidate = strings.TrimSpace(candidate)
 	if candidate == "" {
 		return false
 	}
 
-	check := candidate
-	if baseDir != "" && !filepath.IsAbs(candidate) {
-		check = filepath.Join(baseDir, filepath.FromSlash(candidate))
+	normalized := toBackslashes(candidate)
+	check := normalized
+	if baseDir != "" && !filepath.IsAbs(normalized) {
+		check = filepath.Join(baseDir, normalized)
 	}
 	if _, err := os.Stat(check); err == nil {
 		return true
 	}
-	if filepath.IsAbs(candidate) || hasPathSeparator(candidate) {
+	if filepath.IsAbs(normalized) || hasPathSeparator(candidate) {
 		return false
 	}
 	_, err := exec.LookPath(candidate)
@@ -284,9 +288,13 @@ func resolveCommand(baseDir string, n MenuNode) resolvedCommand {
 	}
 
 	// Expand env before splitting so existence checks see real paths
-	// (e.g. %UserProfile%\My Tools\app.exe).
+	// (e.g. %UserProfile%\My Tools\app.exe). Normalize separators early so
+	// '/' and '\' are interchangeable for both the split and the launch.
 	target := expandEnv(strings.TrimSpace(n.CmdLine))
 	args := expandEnv(strings.TrimSpace(n.CmdArgs))
+	if !isURL(target) {
+		target = toBackslashes(target)
+	}
 	if args == "" {
 		checkBase := ""
 		if what == whatRel {
@@ -307,7 +315,8 @@ func resolveCommand(baseDir string, n MenuNode) resolvedCommand {
 	full := filepath.Join(baseDir, target)
 	// filepath.Join strips a trailing separator; keep it so a folder target
 	// still opens Explorer rather than being ambiguous.
-	if strings.HasSuffix(target, `\`) && !strings.HasSuffix(full, string(os.PathSeparator)) {
+	if (strings.HasSuffix(target, `\`) || strings.HasSuffix(target, `/`)) &&
+		!strings.HasSuffix(full, string(os.PathSeparator)) {
 		full += string(os.PathSeparator)
 	}
 	return resolvedCommand{what: whatRel, path: full, args: args, plat: n.CmdPlat, elevated: elevated}
