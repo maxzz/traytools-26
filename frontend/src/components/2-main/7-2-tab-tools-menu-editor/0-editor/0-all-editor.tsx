@@ -7,7 +7,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadc
 import { ToolsConfig_Load } from "../a-atoms/0-menu-local-storage";
 import { Panel_Tree } from "./2-0-panel-tree";
 import { Panel_Props } from "./3-0-panel-props";
-import { TopBar } from "./1-1-top-bar";
+import { TopBar } from "./1-1-tools-toolbar";
 import { TreeViewMenu } from "./2-1-tree-menu";
 
 // Tools Menu editor. Lets the user edit the "Tools" menu tree and write it to
