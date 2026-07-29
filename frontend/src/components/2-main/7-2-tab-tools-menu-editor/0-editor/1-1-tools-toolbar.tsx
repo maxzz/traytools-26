@@ -185,7 +185,11 @@ function ActionsMenu() {
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                    title={canReveal ? "Show working file in File Explorer" : "No file on disk yet — save first"}
+                    title={
+                        canReveal
+                            ? `Reveal "${sourceFileBaseName(path)}" in File Explorer`
+                            : "No file on disk yet — save first"
+                    }
                     disabled={!canReveal}
                     onSelect={() => canReveal && void ToolsConfig_RevealInExplorer()}
                 >
