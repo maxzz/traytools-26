@@ -4,7 +4,7 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
-import { PathInput } from "@/components/2-main/a-shared/path-input";
+import { PathInput, isProbablyURL } from "@/components/2-main/a-shared/path-input";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { effectiveRunElevated } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 import {
@@ -51,7 +51,7 @@ function Field_Cmd_Path({ node }: NodeProps) {
                         <p className="font-medium">Path</p>
                         <p>Full path or program name. Prefer forward slashes (C:/…); backslashes also work. Used as-is after env-var expansion.</p>
                         <p className="font-medium">URL</p>
-                        <p>Web link; use Absolute with a scheme:// address (e.g. https://…).</p>
+                        <p>Web link; use Absolute with a scheme:// address (e.g. https://…). You can drag a link from the browser or drop a .url shortcut file into this field.</p>
                         <p className="font-medium">Environment variables</p>
                         <p>Environment variables such as <strong>%AppData%</strong> are expanded. Use the Relative path option for paths under the tools.json folder.</p>
                     </div>
@@ -60,9 +60,16 @@ function Field_Cmd_Path({ node }: NodeProps) {
         >
             <PathInput
                 value={node.cmdLine ?? ""}
-                onChange={(path) => patchSelectedNode((n) => { n.cmdLine = path; })}
+                onChange={(path) => patchSelectedNode((n) => {
+                    n.cmdLine = path;
+                    // URLs must be absolute; relative resolution would corrupt scheme:// targets.
+                    if (isProbablyURL(path)) {
+                        n.cmdWhat = "abs";
+                    }
+                })}
                 kind="file"
                 showReveal
+                acceptUrls
             />
         </LabelAndField>
     );

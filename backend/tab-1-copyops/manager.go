@@ -128,12 +128,15 @@ func (m *Manager) Register(b *bus.Bus) {
 				return nil, err
 			}
 		}
-		path, err := normalizeDroppedPath(req.Path, req.Kind)
+		path, err := normalizeDroppedPath(req.Path, req.Kind, req.ResolveURLFile)
 		if err != nil {
 			return nil, err
 		}
-		// Prefer forward slashes for UI / JSON; Windows accepts both at launch.
-		return NormalizeDropPathResponse{Path: filepath.ToSlash(path)}, nil
+		// Prefer forward slashes for filesystem paths; leave URLs unchanged.
+		if !isProbablyURL(path) {
+			path = filepath.ToSlash(path)
+		}
+		return NormalizeDropPathResponse{Path: path}, nil
 	})
 	b.Register(Group, "copyBatch", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		var req CopyBatchRequest

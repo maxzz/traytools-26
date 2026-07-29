@@ -14,16 +14,25 @@ import (
 
 // normalizeDroppedPath prepares a path from a drag-and-drop operation:
 //   - .lnk shortcuts are resolved to their target
+//   - when resolveURLFile: .url Internet Shortcuts become their URL= target
 //   - kind "folder": directories kept as-is; files reduced to their parent directory
-//   - kind "file": the resolved file path is returned
-func normalizeDroppedPath(path, kind string) (string, error) {
+//   - kind "file": the resolved file path (or URL) is returned
+func normalizeDroppedPath(path, kind string, resolveURLFile bool) (string, error) {
 	path = strings.TrimSpace(path)
 	if path == "" {
 		return "", fmt.Errorf("empty path")
 	}
 	path = filepath.Clean(path)
 
-	resolved, err := resolveIfShortcut(path)
+	resolved, err := resolveIfURLFile(path, resolveURLFile)
+	if err != nil {
+		return "", err
+	}
+	if isProbablyURL(resolved) {
+		return resolved, nil
+	}
+
+	resolved, err = resolveIfShortcut(resolved)
 	if err != nil {
 		return "", err
 	}
@@ -49,6 +58,11 @@ func normalizeDroppedPath(path, kind string) (string, error) {
 		return "", fmt.Errorf("expected a file, got a folder: %s", resolved)
 	}
 	return resolved, nil
+}
+
+func isProbablyURL(s string) bool {
+	s = strings.TrimSpace(s)
+	return strings.Index(s, "://") > 0
 }
 
 func resolveIfShortcut(path string) (string, error) {

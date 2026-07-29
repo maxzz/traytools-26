@@ -65,11 +65,11 @@
                         "menuItems": [
                             {
                                 "menuName": "notepad2",
-                                "cmdLine": "C:\\Users\\maxzz\\Desktop\\org page-qa2-test\\notepad.exe",
+                                "cmdLine": "C:/Windows/System32/notepad.exe",
                                 "cmdWhat": "abs"
                             },
                             {
-                                "menuName": "New Command",
+                                "menuName": "https://excalidraw.com",
                                 "cmdLine": "",
                                 "cmdWhat": "abs"
                             }

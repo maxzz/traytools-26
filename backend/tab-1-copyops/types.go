@@ -41,8 +41,9 @@ type PickResponse struct {
 
 // NormalizeDropPathRequest is the payload for "normalizeDropPath".
 type NormalizeDropPathRequest struct {
-	Path string `json:"path"`
-	Kind string `json:"kind"` // "file" | "folder"
+	Path           string `json:"path"`
+	Kind           string `json:"kind"` // "file" | "folder"
+	ResolveURLFile bool   `json:"resolveUrlFile,omitempty"`
 }
 
 // NormalizeDropPathResponse is returned by "normalizeDropPath".

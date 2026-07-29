@@ -83,8 +83,12 @@ export const copyOpsBus = {
     readTextFile: (path: string) => dispatch<{ content: string; }>(GROUP, "readTextFile", { path }),
     writeTextFile: (path: string, content: string) =>
         dispatch<CopyOpsSaveResponse>(GROUP, "writeTextFile", { path, content }),
-    /** Resolve .lnk targets and normalize file→parent for folder fields. */
-    normalizeDropPath: (path: string, kind: NormalizeDropPathKind) =>
-        dispatch<NormalizeDropPathResponse>(GROUP, "normalizeDropPath", { path, kind }),
+    /** Resolve .lnk targets; optionally expand .url Internet Shortcuts to their URL. */
+    normalizeDropPath: (path: string, kind: NormalizeDropPathKind, opts?: { resolveUrlFile?: boolean; }) =>
+        dispatch<NormalizeDropPathResponse>(GROUP, "normalizeDropPath", {
+            path,
+            kind,
+            resolveUrlFile: opts?.resolveUrlFile ?? false,
+        }),
     copyBatch: (req: CopyBatchRequest) => dispatch<CopyBatchResponse>(GROUP, "copyBatch", req),
 };

@@ -8,19 +8,34 @@ import { appBus, copyOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { OnFileDrop, OnFileDropOff } from "@/../wailsjs/runtime/runtime";
 
-export function PathInput({ value, onChange, kind, showReveal, }: { value: string; onChange: (path: string) => void; kind: PathKind; showReveal?: boolean; }) {
+export function PathInput({
+    value,
+    onChange,
+    kind,
+    showReveal,
+    acceptUrls,
+}: {
+    value: string;
+    onChange: (path: string) => void;
+    kind: PathKind;
+    showReveal?: boolean;
+    /** When true, accept browser link drops and expand .url Internet Shortcuts to their URL. */
+    acceptUrls?: boolean;
+}) {
 
     const [dragOver, setDragOver] = useState(false);
     const dropRef = useRef<HTMLDivElement>(null);
     const onChangeRef = useRef<typeof onChange>(onChange);
     const kindRef = useRef<typeof kind>(kind);
+    const acceptUrlsRef = useRef(!!acceptUrls);
 
     onChangeRef.current = onChange;
     kindRef.current = kind;
+    acceptUrlsRef.current = !!acceptUrls;
 
-    // Prefer forward slashes in the UI / saved JSON; Windows accepts both at launch.
+    // Prefer forward slashes for filesystem paths; leave scheme:// URLs alone.
     function setPath(path: string) {
-        onChange(toUnix(path));
+        onChange(isProbablyURL(path) ? path.trim() : toUnix(path));
     }
 
     useEffect(
@@ -32,7 +47,10 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
             return registerFileDropTarget({
                 el,
                 getKind: () => kindRef.current,
-                onPath: (path) => onChangeRef.current(toUnix(path)),
+                resolveUrlFile: () => acceptUrlsRef.current,
+                onPath: (path) => {
+                    onChangeRef.current(isProbablyURL(path) ? path.trim() : toUnix(path));
+                },
             });
         },
         []);
@@ -42,7 +60,7 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
             const initial = value.trim();
             const res = kind === "file" ? await copyOpsBus.pickFile(initial || undefined) : await copyOpsBus.pickFolder(initial || undefined);
             if (!res.canceled && res.path) {
-                setPath(res.path);
+                await applyDroppedPath(res.path, kind, setPath, { resolveUrlFile: acceptUrls });
             }
         } catch (e) {
             console.error("Path browse failed", e);
@@ -50,7 +68,7 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
     }
 
     const trimmed = value.trim();
-    const canReveal = trimmed.length > 0;
+    const canReveal = trimmed.length > 0 && !isProbablyURL(trimmed);
 
     function reveal() {
         if (!canReveal) {
@@ -63,9 +81,21 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
         });
     }
 
+    function dragHasAcceptablePayload(dt: DataTransfer): boolean {
+        if (dt.types.includes("Files")) {
+            return true;
+        }
+        if (!acceptUrls) {
+            return false;
+        }
+        return dt.types.includes("text/uri-list")
+            || dt.types.includes("text/plain")
+            || dt.types.includes("URL");
+    }
+
     // Visual feedback + optional Chromium File.path. Never stopPropagation.
     function onDragOver(e: DragEvent) {
-        if (!e.dataTransfer.types.includes("Files")) {
+        if (!dragHasAcceptablePayload(e.dataTransfer)) {
             return;
         }
         e.preventDefault();
@@ -83,9 +113,17 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
 
     function onDrop(e: DragEvent) {
         setDragOver(false);
+        if (acceptUrls) {
+            const uri = uriFromDataTransfer(e.dataTransfer);
+            if (uri) {
+                e.preventDefault();
+                setPath(uri);
+                return;
+            }
+        }
         const path = pathFromDataTransfer(e.dataTransfer);
         if (path) {
-            void applyDroppedPath(path, kind, setPath);
+            void applyDroppedPath(path, kind, setPath, { resolveUrlFile: acceptUrls });
         }
         // Let the event bubble to Wails' window listener for WebView2 path resolution.
     }
@@ -122,7 +160,15 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
                 {showReveal && (
                     <InputGroupButton
                         size="icon-xs"
-                        title={!canReveal ? "Enter a path first" : kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
+                        title={
+                            !trimmed
+                                ? "Enter a path first"
+                                : isProbablyURL(trimmed)
+                                    ? "Reveal is not available for URLs"
+                                    : kind === "file"
+                                        ? "Reveal in File Explorer"
+                                        : "Open folder in File Explorer"
+                        }
                         aria-label={kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
                         disabled={!canReveal}
                         onClick={reveal}
@@ -157,6 +203,8 @@ export type FileDropTarget = {
     el: HTMLElement;
     /** PathInput: single path + field kind. */
     getKind?: () => PathKind;
+    /** When true, expand dropped .url files to their Internet Shortcut URL. */
+    resolveUrlFile?: () => boolean;
     onPath?: (path: string) => void;
     /** Multi-file consumers (e.g. copy-ops tree). When set, receives all normalized paths. */
     onPaths?: (paths: string[], x: number, y: number) => void;
@@ -168,6 +216,10 @@ type FileWithPath = File & { path?: string; };
 
 const dropTargets = new Set<FileDropTarget>();
 let dropListening = false;
+
+export function isProbablyURL(s: string): boolean {
+    return /^[a-z][a-z0-9+.-]*:\/\//i.test(s.trim());
+}
 
 function findTargetAt(x: number, y: number): FileDropTarget | null {
     const under = document.elementFromPoint(x, y);
@@ -200,17 +252,24 @@ function findTargetAt(x: number, y: number): FileDropTarget | null {
     return null;
 }
 
-/** Resolve .lnk targets and, for folder fields, strip a trailing filename. */
-async function applyDroppedPath(rawPath: string, kind: PathKind, onPath: (path: string) => void) {
+/** Resolve .lnk / optional .url targets and, for folder fields, strip a trailing filename. */
+async function applyDroppedPath(
+    rawPath: string,
+    kind: PathKind,
+    onPath: (path: string) => void,
+    opts?: { resolveUrlFile?: boolean; },
+) {
     try {
-        const res = await copyOpsBus.normalizeDropPath(rawPath, kind);
+        const res = await copyOpsBus.normalizeDropPath(rawPath, kind, {
+            resolveUrlFile: opts?.resolveUrlFile,
+        });
         if (res?.path) {
-            onPath(toUnix(res.path));
+            onPath(isProbablyURL(res.path) ? res.path.trim() : toUnix(res.path));
         }
     } catch (e) {
         console.error("normalizeDropPath failed", e);
         // Fall back to raw path so the drop is not silently lost.
-        onPath(toUnix(rawPath));
+        onPath(isProbablyURL(rawPath) ? rawPath.trim() : toUnix(rawPath));
     }
 }
 
@@ -274,7 +333,9 @@ function ensureDropListener() {
             return;
         }
         if (target.onPath && target.getKind) {
-            void applyDroppedPath(paths[0], target.getKind(), target.onPath);
+            void applyDroppedPath(paths[0], target.getKind(), target.onPath, {
+                resolveUrlFile: target.resolveUrlFile?.(),
+            });
         }
     }, false);
 }
@@ -290,6 +351,38 @@ export function registerFileDropTarget(target: FileDropTarget) {
 
 export function isFileDrag(dt: DataTransfer | null | undefined): boolean {
     return !!dt?.types && [...dt.types].includes("Files");
+}
+
+/** First http(s) / scheme:// URI from a browser link drag, if any. */
+export function uriFromDataTransfer(dt: DataTransfer): string | null {
+    const uriList = dt.getData("text/uri-list");
+    if (uriList) {
+        for (const line of uriList.split(/\r?\n/)) {
+            const t = line.trim();
+            if (!t || t.startsWith("#")) {
+                continue;
+            }
+            // Skip local file:// — those are handled as filesystem paths.
+            if (/^file:/i.test(t)) {
+                continue;
+            }
+            if (isProbablyURL(t)) {
+                return t;
+            }
+        }
+    }
+    for (const type of ["text/plain", "URL", "text/x-moz-url"] as const) {
+        const raw = dt.getData(type)?.trim();
+        if (!raw) {
+            continue;
+        }
+        // text/x-moz-url is "url\ntitle"
+        const first = raw.split(/\r?\n/)[0]?.trim() ?? "";
+        if (first && !/^file:/i.test(first) && isProbablyURL(first)) {
+            return first;
+        }
+    }
+    return null;
 }
 
 export function pathsFromDataTransfer(dt: DataTransfer): string[] {
