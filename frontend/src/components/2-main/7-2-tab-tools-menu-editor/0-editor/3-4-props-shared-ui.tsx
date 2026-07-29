@@ -155,7 +155,7 @@ export function InfoTooltip({ label, children, side, contentClasses }: { label: 
 
 export function InfoTooltipTrigger({ className, ...rest }: ComponentProps<"button">) {
     return (
-        <button className={cn("ml-px text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center", className)} type="button" {...rest}>
+        <button className={cn("ml-px text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center", className)} type="button" tabIndex={-1} {...rest}>
             <Info className="size-2.5" />
         </button>
     );
