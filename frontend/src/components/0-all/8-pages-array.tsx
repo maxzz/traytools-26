@@ -16,7 +16,7 @@ const MAIN_PAGES = [
     { id: "trace-bits", label: "Trace Bits", Page: Page_TraceBits },
     { id: "windows-tree", label: "Windows", Page: Page_WindowsTree },
     { id: "active-monitor", label: "Active Monitor", Page: Page_ActiveMonitor },
-    { id: "tools-menu-editor", label: "Tools Menu Editor", Page: Page_ToolsMenuEditor },
+    { id: "tools-menu-editor", label: "Tools", Page: Page_ToolsMenuEditor },
     { id: "copy-operations", label: "Copy Operations", Page: Page_CopyOperations },
     // { id: "demos", label: "Demos", Page: Page_XYZdemos },
     // { id: "test-a", label: "Test A", Page: PageTestTabA },
@@ -27,9 +27,9 @@ export type MainTabId = (typeof MAIN_PAGES)[number]["id"];
 
 // Top menu view pages.
 
-const ID_FOR_TOPMENU: MainTabId[] = ["welcome", "copy-operations", "tools-menu-editor", "windows-tree", "active-monitor", "trace-bits"];
+const ID_FOR_TOPMENU: MainTabId[] = ["copy-operations", "tools-menu-editor", "windows-tree", "active-monitor", "trace-bits", "welcome"];
 const ID_FOR_QUICKTABS: MainTabId[] = ["copy-operations", "tools-menu-editor", "windows-tree"];
-const ID_FOR_WELCOME: MainTabId[] = ["copy-operations", "windows-tree", "trace-bits", "active-monitor", "tools-menu-editor"];
+const ID_FOR_WELCOME: MainTabId[] = ["copy-operations", "tools-menu-editor", "windows-tree", "trace-bits", "active-monitor"];
 
 export const TOPMENU_VIEW_PAGES = ID_FOR_TOPMENU.map((id) => MAIN_PAGES.find((page) => page.id === id)!);
 export const QUICKTABS_VIEW_PAGES = ID_FOR_QUICKTABS.map((id) => MAIN_PAGES.find((page) => page.id === id)!);

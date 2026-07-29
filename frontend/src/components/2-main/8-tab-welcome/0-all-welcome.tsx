@@ -11,11 +11,14 @@ export function PageWelcome() {
     return (
         <div className="flex-1 p-6 min-h-0 flex items-center justify-center">
             <div className="max-w-lg w-full text-center flex flex-col items-center gap-1">
-                <WelcomeLogo />
+
 
                 <div className="flex flex-col gap-1">
                     Welcome to traytools!
-                    <PagesList />
+                    <div className="py-1 grid grid-cols-2 gap-2">
+                        <WelcomeLogo />
+                        <PagesList />
+                    </div>
                     <div className="text-[0.6rem] text-muted-foreground/80 flex gap-2">
                         <div>Version: {envBuildVersion()}</div>
                         <div>Updated: {envModifiedDate()}</div>
