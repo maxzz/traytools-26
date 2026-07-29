@@ -212,7 +212,6 @@ export function PathInput({
         </InputGroup>
     );
 }
-
 /** Call once when a page with PathInput mounts so the drop listener is ready early. */
 export function initPathDropListener() {
     // Do not read window.wails.flags.enableWailsDragAndDrop here: the Wails JS
@@ -505,3 +504,4 @@ export function pathsFromDataTransfer(dt: DataTransfer): string[] {
 function pathFromDataTransfer(dt: DataTransfer): string | null {
     return pathsFromDataTransfer(dt)[0] ?? null;
 }
+

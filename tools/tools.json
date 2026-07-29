@@ -70,7 +70,7 @@
                             },
                             {
                                 "menuName": "https://excalidraw.com",
-                                "cmdLine": "",
+                                "cmdLine": "https://excalidraw.com/",
                                 "cmdWhat": "abs"
                             }
                         ]
