@@ -7,6 +7,7 @@ import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "
 import { appBus, copyOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { OnFileDrop, OnFileDropOff } from "@/../wailsjs/runtime/runtime";
+import { extractURLFromInternetShortcutFile } from "./url-shortcut";
 
 export function PathInput({
     value,
@@ -88,12 +89,15 @@ export function PathInput({
         if (!acceptUrls) {
             return false;
         }
-        return dt.types.includes("text/uri-list")
-            || dt.types.includes("text/plain")
-            || dt.types.includes("URL");
+        // WebView2 / Edge expose link drags under several type names.
+        return [...dt.types].some((t) =>
+            /uri-list|text\/plain|^text$|^URL$|moz-url|html/i.test(t)
+        );
     }
 
-    // Visual feedback + optional Chromium File.path. Never stopPropagation.
+    // Visual feedback + optional Chromium File.path. Never stopPropagation for
+    // normal filesystem drops (Wails window listener must see them). URI / .url
+    // handling below may stopPropagation after a successful acceptUrls consume.
     function onDragOver(e: DragEvent) {
         if (!dragHasAcceptablePayload(e.dataTransfer)) {
             return;
@@ -113,14 +117,41 @@ export function PathInput({
 
     function onDrop(e: DragEvent) {
         setDragOver(false);
+
         if (acceptUrls) {
             const uri = uriFromDataTransfer(e.dataTransfer);
             if (uri) {
+                // Address-bar / link drag: consume here. Wails ResolveFilePaths
+                // often yields an empty path for these and would error otherwise.
                 e.preventDefault();
+                e.stopPropagation();
+                markUrlDropHandled();
                 setPath(uri);
                 return;
             }
+
+            const urlFile = findUrlFile(e.dataTransfer);
+            if (urlFile) {
+                e.preventDefault();
+                e.stopPropagation();
+                markUrlDropHandled();
+                const filePath = (urlFile as FileWithPath).path;
+                void (async () => {
+                    // Prefer reading the shortcut body from the File blob — works
+                    // even when WebView2 does not expose File.path / Wails path.
+                    const fromBlob = await extractURLFromInternetShortcutFile(urlFile);
+                    if (fromBlob) {
+                        setPath(fromBlob);
+                        return;
+                    }
+                    if (filePath?.trim()) {
+                        await applyDroppedPath(filePath, kind, setPath, { resolveUrlFile: true });
+                    }
+                })();
+                return;
+            }
         }
+
         const path = pathFromDataTransfer(e.dataTransfer);
         if (path) {
             void applyDroppedPath(path, kind, setPath, { resolveUrlFile: acceptUrls });
@@ -217,6 +248,17 @@ type FileWithPath = File & { path?: string; };
 const dropTargets = new Set<FileDropTarget>();
 let dropListening = false;
 
+/** Suppress a trailing Wails OnFileDrop after we already handled a URI/.url drop. */
+let urlDropHandledUntil = 0;
+
+function markUrlDropHandled() {
+    urlDropHandledUntil = performance.now() + 750;
+}
+
+function wasUrlDropJustHandled() {
+    return performance.now() < urlDropHandledUntil;
+}
+
 export function isProbablyURL(s: string): boolean {
     return /^[a-z][a-z0-9+.-]*:\/\//i.test(s.trim());
 }
@@ -259,8 +301,12 @@ async function applyDroppedPath(
     onPath: (path: string) => void,
     opts?: { resolveUrlFile?: boolean; },
 ) {
+    const trimmed = rawPath?.trim() ?? "";
+    if (!trimmed) {
+        return;
+    }
     try {
-        const res = await copyOpsBus.normalizeDropPath(rawPath, kind, {
+        const res = await copyOpsBus.normalizeDropPath(trimmed, kind, {
             resolveUrlFile: opts?.resolveUrlFile,
         });
         if (res?.path) {
@@ -269,7 +315,7 @@ async function applyDroppedPath(
     } catch (e) {
         console.error("normalizeDropPath failed", e);
         // Fall back to raw path so the drop is not silently lost.
-        onPath(isProbablyURL(rawPath) ? rawPath.trim() : toUnix(rawPath));
+        onPath(isProbablyURL(trimmed) ? trimmed : toUnix(trimmed));
     }
 }
 
@@ -299,8 +345,9 @@ export async function normalizeDroppedPaths(rawPaths: string[], kind: PathKind =
  * Register Wails file-drop once for the app lifetime.
  *
  * Important:
- * - Do NOT call stopPropagation on field drag/drop handlers. Wails listens on
- *   `window` and must see the bubbled drop to ResolveFilePaths → wails:file-drop.
+ * - Do NOT call stopPropagation on field drag/drop handlers for normal files.
+ *   Wails listens on `window` and must see the bubbled drop to ResolveFilePaths.
+ * - URI / .url drops with acceptUrls may stopPropagation after handling.
  * - useDropTarget=false so the callback always runs; we hit-test the field ourselves.
  * - Do not OnFileDropOff on field unmount (breaks HMR / remounts).
  */
@@ -317,7 +364,12 @@ function ensureDropListener() {
     }
 
     OnFileDrop((x, y, paths) => {
-        if (!paths?.length) {
+        if (wasUrlDropJustHandled()) {
+            return;
+        }
+        // Browser link drops often arrive as [""] from ResolveFilePaths — ignore.
+        const usable = (paths ?? []).map((p) => p?.trim() ?? "").filter(Boolean);
+        if (!usable.length) {
             return;
         }
         const target = findTargetAt(x, y);
@@ -325,7 +377,7 @@ function ensureDropListener() {
             return;
         }
         if (target.onPaths) {
-            void normalizeDroppedPaths(paths, target.pathsKind ?? "file").then((normalized) => {
+            void normalizeDroppedPaths(usable, target.pathsKind ?? "file").then((normalized) => {
                 if (normalized.length) {
                     target.onPaths!(normalized, x, y);
                 }
@@ -333,7 +385,7 @@ function ensureDropListener() {
             return;
         }
         if (target.onPath && target.getKind) {
-            void applyDroppedPath(paths[0], target.getKind(), target.onPath, {
+            void applyDroppedPath(usable[0], target.getKind(), target.onPath, {
                 resolveUrlFile: target.resolveUrlFile?.(),
             });
         }
@@ -353,11 +405,30 @@ export function isFileDrag(dt: DataTransfer | null | undefined): boolean {
     return !!dt?.types && [...dt.types].includes("Files");
 }
 
-/** First http(s) / scheme:// URI from a browser link drag, if any. */
+function findUrlFile(dt: DataTransfer): File | null {
+    const files = dt.files;
+    if (!files?.length) {
+        return null;
+    }
+    for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        if (f && /\.url$/i.test(f.name)) {
+            return f;
+        }
+    }
+    return null;
+}
+
+/**
+ * First http(s) / scheme:// URI from a browser link / address-bar drag.
+ * WebView2 may expose the URL under several MIME type names; scan them all.
+ */
 export function uriFromDataTransfer(dt: DataTransfer): string | null {
-    const uriList = dt.getData("text/uri-list");
-    if (uriList) {
-        for (const line of uriList.split(/\r?\n/)) {
+    const tryText = (raw: string | undefined | null): string | null => {
+        if (!raw?.trim()) {
+            return null;
+        }
+        for (const line of raw.split(/\r?\n/)) {
             const t = line.trim();
             if (!t || t.startsWith("#")) {
                 continue;
@@ -369,17 +440,41 @@ export function uriFromDataTransfer(dt: DataTransfer): string | null {
             if (isProbablyURL(t)) {
                 return t;
             }
+            // text/html: <a href="https://...">
+            const href = t.match(/href\s*=\s*["']([^"']+)["']/i)?.[1]?.trim();
+            if (href && !/^file:/i.test(href) && isProbablyURL(href)) {
+                return href;
+            }
         }
-    }
-    for (const type of ["text/plain", "URL", "text/x-moz-url"] as const) {
-        const raw = dt.getData(type)?.trim();
-        if (!raw) {
+        return null;
+    };
+
+    // Preferred types first, then every type the browser advertised.
+    const preferred = [
+        "text/uri-list",
+        "text/x-moz-url",
+        "URL",
+        "UniformResourceLocator",
+        "UniformResourceLocatorW",
+        "text/plain",
+        "text",
+        "text/html",
+    ];
+    const seen = new Set<string>();
+    for (const type of [...preferred, ...dt.types]) {
+        if (!type || seen.has(type)) {
             continue;
         }
-        // text/x-moz-url is "url\ntitle"
-        const first = raw.split(/\r?\n/)[0]?.trim() ?? "";
-        if (first && !/^file:/i.test(first) && isProbablyURL(first)) {
-            return first;
+        seen.add(type);
+        let raw = "";
+        try {
+            raw = dt.getData(type);
+        } catch {
+            continue;
+        }
+        const found = tryText(raw);
+        if (found) {
+            return found;
         }
     }
     return null;

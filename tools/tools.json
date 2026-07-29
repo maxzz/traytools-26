@@ -80,7 +80,7 @@
                         "menuItems": [
                             {
                                 "menuName": "New Command",
-                                "cmdLine": "",
+                                "cmdLine": "https://excalidraw.com/",
                                 "cmdWhat": "abs"
                             },
                             {
