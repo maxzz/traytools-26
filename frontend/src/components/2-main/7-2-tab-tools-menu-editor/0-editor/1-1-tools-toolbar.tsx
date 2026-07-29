@@ -126,27 +126,30 @@ function ActionsMenu() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => ToolsConfig_Load()} title="Reload from tools.json">
-                    {/* <RefreshCw />  */}
-                    Reload
-                </DropdownMenuItem>
-
-                <DropdownMenuItem onSelect={() => void ToolsConfig_RevealInExplorer()} title="Show tools.json in File Explorer">
-                    Reveal in File Explorer
+                <DropdownMenuItem onSelect={() => ToolsConfig_Apply()} title="Save tools.json and apply hotkeys">
+                    {/* <Check />  */}
+                    Save & Apply
+                    <DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem onSelect={() => ToolsConfig_ResetToDefaults()} title="Restore default tools">
                     {/* <RotateCcw />  */}
-                    Reset
+                    Create New…
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={() => ToolsConfig_Apply()} title="Save tools.json and apply hotkeys">
-                    {/* <Check />  */}
-                    Apply
-                    <DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
+                <DropdownMenuItem onSelect={() => void ToolsConfig_RevealInExplorer()} title="Show tools.json in File Explorer">
+                    Reveal in File Explorer (tools.json)
                 </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem onSelect={() => ToolsConfig_Load()} title="Reload from tools.json">
+                    {/* <RefreshCw />  */}
+                    Reload
+                </DropdownMenuItem>
+
             </DropdownMenuContent>
         </DropdownMenu>
     );
