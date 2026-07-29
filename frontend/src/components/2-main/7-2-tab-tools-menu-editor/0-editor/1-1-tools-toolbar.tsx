@@ -8,17 +8,20 @@ import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
 import {
     toolsEditorStore,
     ToolsConfig_Apply,
-    ToolsConfig_Load,
-    ToolsConfig_ResetToDefaults,
+    ToolsConfig_CreateNew,
+    ToolsConfig_Open,
+    ToolsConfig_Reload,
     ToolsConfig_RevealInExplorer,
+    ToolsConfig_SaveAs,
 } from "../a-atoms/0-menu-local-storage";
+import { sourceFileBaseName } from "../a-atoms/9-types-menu";
 
 export function TopBar() {
     const saveNotice = useSaveNotice();
 
     useCtrlSSave(
         async () => {
-            if (!toolsEditorStore.dirty) {
+            if (!toolsEditorStore.dirty && toolsEditorStore.fileExists) {
                 saveNotice.show("no changes to save");
                 return;
             }
@@ -44,12 +47,9 @@ export function TopBar() {
 }
 
 function StatusMessage({ saveNotice }: { saveNotice: string; }) {
-    const { status, error, path, fileExists } = useSnapshot(toolsEditorStore);
-    const message = error || status;
-    const fileLabel = path
-        ? path.replace(/\//g, "\\").split("\\").pop() || path
-        : (fileExists ? "tools.json" : "Local storage");
-    const fileDetail = path || "Edit the Tools menu and create tools.json";
+    const snap = useSnapshot(toolsEditorStore);
+    const { error } = snap;
+    const working = workingFileCaption(snap);
 
     return (
         <div className="min-w-0 flex items-center gap-2">
@@ -64,7 +64,7 @@ function StatusMessage({ saveNotice }: { saveNotice: string; }) {
                                     ? "text-destructive border-destructive/70 bg-destructive/15"
                                     : "text-muted-foreground border-border bg-muted",
                             )}
-                            aria-label="Status"
+                            aria-label={working.aria}
                         >
                             {error
                                 ? <AlertTriangle className="size-3" />
@@ -75,15 +75,15 @@ function StatusMessage({ saveNotice }: { saveNotice: string; }) {
 
                     <TooltipContent side="bottom" className="max-w-80">
                         <div className="flex flex-col gap-1">
-                            {message && <p>{message}</p>}
-                            <p>{fileDetail}</p>
+                            {error && <p>{error}</p>}
+                            <p>{working.detail}</p>
                         </div>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
 
-            <span className="text-xs text-muted-foreground truncate" title={fileDetail}>
-                {fileLabel}
+            <span className="text-xs text-muted-foreground truncate" title={working.detail}>
+                {working.label}
             </span>
 
             {saveNotice && (
@@ -102,6 +102,41 @@ function StatusMessage({ saveNotice }: { saveNotice: string; }) {
     );
 }
 
+function workingFileCaption(snap: {
+    path: string;
+    source: string;
+    fileExists: boolean;
+}): { label: string; detail: string; aria: string; } {
+    const { path, source, fileExists } = snap;
+
+    if (fileExists && path) {
+        const label = sourceFileBaseName(path);
+        return {
+            label,
+            detail: path,
+            aria: source === "open" ? `Opened file: ${path}` : `Working file: ${path}`,
+        };
+    }
+
+    if (source === "default") {
+        const detail = "New configuration — stored in local storage until you Save.";
+        return {
+            label: "New (local storage)",
+            detail,
+            aria: detail,
+        };
+    }
+
+    const detail = path
+        ? `No file on disk yet (expected ${path}). Stored in local storage until you Save.`
+        : "Stored in local storage until you Save.";
+    return {
+        label: "Local storage",
+        detail,
+        aria: detail,
+    };
+}
+
 function DirtyStatusBadge() {
     const { dirty } = useSnapshot(toolsEditorStore);
 
@@ -117,6 +152,13 @@ function DirtyStatusBadge() {
 }
 
 function ActionsMenu() {
+    const { dirty, fileExists, path, source } = useSnapshot(toolsEditorStore);
+
+    const alreadyNew = source === "default" && !fileExists;
+    const canSave = dirty || !fileExists;
+    const canReveal = Boolean(path) && fileExists;
+    const canReload = !alreadyNew;
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -126,30 +168,53 @@ function ActionsMenu() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => ToolsConfig_Apply()} title="Save tools.json and apply hotkeys">
-                    {/* <Check />  */}
-                    Save & Apply
+                <DropdownMenuItem
+                    title={canSave ? "Save and apply hotkeys when editing tools.json" : "Nothing to save"}
+                    disabled={!canSave}
+                    onSelect={() => canSave && void ToolsConfig_Apply()}
+                >
+                    Save
                     <DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
                 </DropdownMenuItem>
 
+                <DropdownMenuItem
+                    title="Save under a new name and switch to that file"
+                    onSelect={() => void ToolsConfig_SaveAs()}
+                >
+                    Save As…
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                    title={canReveal ? "Show working file in File Explorer" : "No file on disk yet — save first"}
+                    disabled={!canReveal}
+                    onSelect={() => canReveal && void ToolsConfig_RevealInExplorer()}
+                >
+                    Reveal in File Explorer
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onSelect={() => ToolsConfig_ResetToDefaults()} title="Restore default tools">
-                    {/* <RotateCcw />  */}
+                <DropdownMenuItem
+                    title={alreadyNew ? "Already editing a new unsaved configuration" : "Start a new configuration (local storage until Save)"}
+                    disabled={alreadyNew}
+                    onSelect={() => !alreadyNew && ToolsConfig_CreateNew()}
+                >
                     Create New…
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={() => void ToolsConfig_RevealInExplorer()} title="Show tools.json in File Explorer">
-                    Reveal in File Explorer (tools.json)
+                <DropdownMenuItem onSelect={() => void ToolsConfig_Open()} title="Open a JSON tools menu file">
+                    Open…
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onSelect={() => ToolsConfig_Load()} title="Reload from tools.json">
-                    {/* <RefreshCw />  */}
+                <DropdownMenuItem
+                    title={canReload ? "Reload from the working file" : "Nothing to reload yet"}
+                    disabled={!canReload}
+                    onSelect={() => canReload && void ToolsConfig_Reload()}
+                >
                     Reload
                 </DropdownMenuItem>
-
             </DropdownMenuContent>
         </DropdownMenu>
     );

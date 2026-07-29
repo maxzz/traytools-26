@@ -11,6 +11,7 @@ export type {
     ToolsMenuResponse,
     ToolsRawResponse,
     ToolsSaveResponse,
+    ToolsPickResponse,
     ToolHotkeyBinding,
     ToolHotkeyConflict,
     ToolsHotkeySyncResponse,

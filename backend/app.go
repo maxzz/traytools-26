@@ -78,6 +78,7 @@ func (a *App) Startup(ctx context.Context) {
 	a.startHotkeys()
 	a.trace.Start(ctx)
 	a.copyops.Start(ctx)
+	a.tools.Start(ctx)
 	a.startTray()
 }
 

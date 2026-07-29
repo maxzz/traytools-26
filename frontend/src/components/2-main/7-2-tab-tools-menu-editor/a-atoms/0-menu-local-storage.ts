@@ -11,7 +11,9 @@ import {
     findExecIdForUid,
     nodeKind,
     parseToolsSelectionPath,
+    sameFilePath,
     selectionPathFromUid,
+    sourceFileBaseName,
     uidFromSelectionPath,
 } from "./9-types-menu";
 import { buildToolsFileText, syncDirty } from "./6-json-serialize-dirty";
@@ -113,10 +115,12 @@ export function writeCache(
 // ---------------------------------------------------------------------------
 // Load / save flow
 //
-// On load: prefer the on-disk file (and cache it). If the file is missing, fall
-// back to the previously cached (localStorage) version, then to the defaults.
+// On load: prefer the on-disk managed file (and cache it). If the file is
+// missing, fall back to the previously cached (localStorage) version, then to
+// the defaults. Open / Save As switch the working path to an arbitrary file.
 
-export async function ToolsConfig_Load(): Promise<void> {
+export async function ToolsConfig_Load(options?: { notify?: boolean; }): Promise<void> {
+    const notify = options?.notify === true;
     try {
         const raw = await toolsBus.getRaw();
 
@@ -127,10 +131,15 @@ export async function ToolsConfig_Load(): Promise<void> {
                 ToolsConfig_Set(config, "file", raw.path, true, { rootComments });
                 writeCache(config, rootComments, toolsEditorStore.selectedUid);
                 toolsEditorStore.status = `Loaded from ${raw.path}`;
-                //notice.success(`Loaded from ${raw.path}`);
+                if (notify) {
+                    notice.success(`Loaded from<br/>${raw.path}`);
+                }
                 return;
             } catch (e) {
                 toolsEditorStore.error = `Invalid tools.json: ${String(e)}`;
+                if (notify) {
+                    notice.error(toolsEditorStore.error);
+                }
                 // fall through to cached/default below
             }
         }
@@ -141,6 +150,9 @@ export async function ToolsConfig_Load(): Promise<void> {
             ToolsConfig_Set(cached.config, "storage", raw?.path ?? "", false, { rootComments: cached.rootComments });
             if (!toolsEditorStore.error) {
                 toolsEditorStore.status = "File not found — using saved copy";
+                if (notify) {
+                    notice.warning("File not found — using saved copy");
+                }
             }
             return;
         }
@@ -148,10 +160,39 @@ export async function ToolsConfig_Load(): Promise<void> {
         ToolsConfig_Set(cloneConfig(DEFAULT_TOOLS_CONFIG), "default", raw?.path ?? "", false);
         if (!toolsEditorStore.error) {
             toolsEditorStore.status = "No tools.json — showing defaults";
+            if (notify) {
+                notice.info("No tools.json — showing defaults");
+            }
         }
     } catch (e) {
         toolsEditorStore.error = `Failed to load tools menu: ${String(e)}`;
+        if (notify) {
+            notice.error(toolsEditorStore.error);
+        }
     }
+}
+
+/** Reload the current working file, or the managed tools.json when none is open. */
+export async function ToolsConfig_Reload(): Promise<void> {
+    const { path, fileExists } = toolsEditorStore;
+    if (fileExists && path) {
+        try {
+            const { content } = await toolsBus.readTextFile(path);
+            const config = parseToolsJsonc(content);
+            const rootComments = extractRootComments(content);
+            const source: ToolsSource = toolsEditorStore.source === "open" ? "open" : "file";
+            ToolsConfig_Set(config, source, path, true, { rootComments });
+            writeCache(config, rootComments, toolsEditorStore.selectedUid);
+            toolsEditorStore.status = `Reloaded from ${path}`;
+            notice.success(`Reloaded from<br/>${path}`);
+        } catch (e) {
+            const msg = `Failed to reload: ${String(e)}`;
+            toolsEditorStore.error = msg;
+            notice.error(msg);
+        }
+        return;
+    }
+    await ToolsConfig_Load({ notify: true });
 }
 
 // Record a freshly loaded (or saved) config as the baseline for dirty tracking.
@@ -159,7 +200,7 @@ function ToolsConfig_Set(
     config: ToolsConfig,
     source: ToolsSource,
     path = "",
-    fileExists = source === "file",
+    fileExists = source === "file" || source === "open",
     opts?: { rootComments?: string; },
 ) {
     // Capture selection as an index path before ensureUids reassigns runtime uids.
@@ -177,55 +218,141 @@ function ToolsConfig_Set(
     toolsEditorStore.selectedUid = uidFromSelectionPath(config.menu, pathToRestore);
 }
 
-export async function ToolsConfig_Save(): Promise<void> {
+function markSaved(path: string, text: string, source: ToolsSource = "file") {
+    toolsEditorStore.path = path;
+    toolsEditorStore.source = source;
+    toolsEditorStore.baseline = text;
+    toolsEditorStore.fileExists = true;
+    toolsEditorStore.dirty = false;
+    toolsEditorStore.error = "";
+    toolsEditorStore.status = `Saved to ${path}`;
+    writeCache(toolsEditorStore.config, toolsEditorStore.rootComments, toolsEditorStore.selectedUid);
+}
+
+/** Whether the working path is the managed tools.json used by the live Tools menu. */
+async function isManagedWorkingPath(workingPath: string): Promise<boolean> {
+    if (!workingPath) {
+        return false;
+    }
     try {
-        const text = buildToolsFileText(toolsEditorStore.config, toolsEditorStore.rootComments);
-        const res = await toolsBus.save(text);
-        toolsEditorStore.path = res?.path ?? toolsEditorStore.path;
-        toolsEditorStore.source = "file";
-        toolsEditorStore.baseline = text;
-        toolsEditorStore.fileExists = true;
-        toolsEditorStore.dirty = false;
-        toolsEditorStore.error = "";
-        toolsEditorStore.status = `Saved to ${toolsEditorStore.path}`;
-        writeCache(toolsEditorStore.config, toolsEditorStore.rootComments, toolsEditorStore.selectedUid);
-    } catch (e) {
-        toolsEditorStore.error = `Failed to save tools.json: ${String(e)}`;
+        const raw = await toolsBus.getRaw();
+        return Boolean(raw?.path && sameFilePath(workingPath, raw.path));
+    } catch {
+        return false;
     }
 }
 
-/** Persist tools.json and (re)register global/local tool hotkeys. */
+/**
+ * Persist the working document. Overwrites the current path when one exists;
+ * otherwise writes the managed tools.json (creating it if needed).
+ */
+export async function ToolsConfig_Save(): Promise<void> {
+    try {
+        const text = buildToolsFileText(toolsEditorStore.config, toolsEditorStore.rootComments);
+        const workingPath = toolsEditorStore.path;
+
+        if (workingPath && toolsEditorStore.fileExists) {
+            await toolsBus.writeTextFile(workingPath, text);
+            markSaved(workingPath, text, toolsEditorStore.source === "open" ? "open" : "file");
+            return;
+        }
+
+        // First persist (Create new / local storage) — write managed tools.json.
+        const res = await toolsBus.save(text);
+        const path = res?.path ?? workingPath;
+        markSaved(path, text, "file");
+    } catch (e) {
+        toolsEditorStore.error = `Failed to save: ${String(e)}`;
+        notice.error(toolsEditorStore.error);
+    }
+}
+
+/** Persist the working file and (re)register hotkeys when it is the live Tools menu file. */
 export async function ToolsConfig_Apply(): Promise<void> {
     await ToolsConfig_Save();
     if (toolsEditorStore.error) {
         return;
     }
-    await syncToolsHotkeys();
-    if (!toolsEditorStore.error) {
-        toolsEditorStore.status = `Applied — saved to ${toolsEditorStore.path}`;
+
+    if (await isManagedWorkingPath(toolsEditorStore.path)) {
+        await syncToolsHotkeys();
+        if (!toolsEditorStore.error) {
+            toolsEditorStore.status = `Applied — saved to ${toolsEditorStore.path}`;
+        }
     }
 }
 
-export function ToolsConfig_ResetToDefaults() {
-    const config = cloneConfig(DEFAULT_TOOLS_CONFIG);
-    ensureUids(config.menu);
-    toolsEditorStore.config = config;
-    toolsEditorStore.rootComments = "";
-    toolsEditorStore.source = "default";
-    syncDirty(toolsEditorStore);
-    toolsEditorStore.status = "Reset to default tools";
+/** Open an arbitrary JSON file into the editor (native dialog). */
+export async function ToolsConfig_Open(): Promise<void> {
+    try {
+        const pick = await toolsBus.openPath();
+        if (pick.canceled || !pick.path) {
+            return;
+        }
+        const { content } = await toolsBus.readTextFile(pick.path);
+        const config = parseToolsJsonc(content);
+        const rootComments = extractRootComments(content);
+        ToolsConfig_Set(config, "open", pick.path, true, { rootComments });
+        writeCache(config, rootComments, toolsEditorStore.selectedUid);
+        toolsEditorStore.status = `Opened ${pick.path}`;
+        notice.success(`Opened<br/>${pick.path}`);
+    } catch (e) {
+        const msg = `Failed to open: ${String(e)}`;
+        toolsEditorStore.error = msg;
+        notice.error(msg);
+    }
 }
 
-/** Open File Explorer with tools.json selected, or warn if it was never saved. */
+/** Save under a new name and switch the working file to that path. */
+export async function ToolsConfig_SaveAs(): Promise<void> {
+    try {
+        const defaultName = sourceFileBaseName(toolsEditorStore.path) || "tools.json";
+        const pick = await toolsBus.saveAsPath(defaultName);
+        if (pick.canceled || !pick.path) {
+            return;
+        }
+        const text = buildToolsFileText(toolsEditorStore.config, toolsEditorStore.rootComments);
+        await toolsBus.writeTextFile(pick.path, text);
+        markSaved(pick.path, text, "open");
+        notice.success(`Saved as<br/>${pick.path}`);
+
+        if (await isManagedWorkingPath(pick.path)) {
+            await syncToolsHotkeys();
+            if (!toolsEditorStore.error) {
+                toolsEditorStore.status = `Applied — saved to ${pick.path}`;
+            }
+        }
+    } catch (e) {
+        const msg = `Failed to save as: ${String(e)}`;
+        toolsEditorStore.error = msg;
+        notice.error(msg);
+    }
+}
+
+/** Start a new config from the default template; kept in local storage until Save. */
+export function ToolsConfig_CreateNew() {
+    const config = cloneConfig(DEFAULT_TOOLS_CONFIG);
+    ToolsConfig_Set(config, "default", "", false);
+    toolsEditorStore.status = "New configuration — local storage until saved";
+    writeCache(config, toolsEditorStore.rootComments, toolsEditorStore.selectedUid);
+    notice.info("Created new configuration — local storage only until saved");
+}
+
+/** @deprecated Use ToolsConfig_CreateNew */
+export function ToolsConfig_ResetToDefaults() {
+    ToolsConfig_CreateNew();
+}
+
+/** Open File Explorer with the working file selected, or warn if nothing is on disk yet. */
 export async function ToolsConfig_RevealInExplorer(): Promise<void> {
     if (!toolsEditorStore.fileExists || !toolsEditorStore.path) {
-        notice.warning("tools.json has not been saved yet. Use Apply to create it first.");
+        notice.warning("No file on disk yet. Use Save to create it first.");
         return;
     }
     try {
         await appBus.revealInExplorer(toolsEditorStore.path);
     } catch (e) {
-        notice.error(`Failed to reveal tools.json:<br/>${String(e)}`);
+        notice.error(`Failed to reveal file:<br/>${String(e)}`);
     }
 }
 
@@ -233,6 +360,9 @@ export async function ToolsConfig_RevealInExplorer(): Promise<void> {
  * Run a command/registry item by editor uid the same way as the top-level Tools
  * menu (`getMenu` + `exec`). Applies first when the editor is dirty or the
  * file does not exist yet, so the launched command matches the panel fields.
+ *
+ * Run always uses the managed tools.json. When the working file is a different
+ * path, the current editor content is written there first so the command matches.
  */
 export async function ToolsConfig_ExecuteByUid(uid: string): Promise<void> {
     const node = findByUid(toolsEditorStore.config.menu, uid)?.node;
@@ -254,6 +384,14 @@ export async function ToolsConfig_ExecuteByUid(uid: string): Promise<void> {
     }
 
     try {
+        const text = buildToolsFileText(toolsEditorStore.config, toolsEditorStore.rootComments);
+        const managed = await toolsBus.getRaw();
+        if (!managed?.path || !sameFilePath(toolsEditorStore.path, managed.path)) {
+            // Run uses the live Tools menu file; push editor content there for this test.
+            await toolsBus.save(text);
+            await syncToolsHotkeys();
+        }
+
         const menu = await toolsBus.getMenu();
         if (!menu.found) {
             notice.error("No tools.json found.");

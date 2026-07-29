@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
 
 	"traytools-26-go/backend/bus"
 	"traytools-26-go/backend/winhotkeys"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // Group is the bus group name shared with the frontend bridge.
@@ -18,6 +22,7 @@ const Group = "tools"
 // Manager owns the parsed Tools menu and the id -> command map used to run a
 // selected entry. getMenu rebuilds both; exec looks up by id.
 type Manager struct {
+	ctx      context.Context
 	mu       sync.Mutex
 	commands map[int]resolvedCommand
 }
@@ -25,6 +30,11 @@ type Manager struct {
 // New creates an empty Manager.
 func New() *Manager {
 	return &Manager{commands: map[int]resolvedCommand{}}
+}
+
+// Start binds the Wails context used for native open/save dialogs.
+func (m *Manager) Start(ctx context.Context) {
+	m.ctx = ctx
 }
 
 // Register wires the tools command group onto the bus.
@@ -61,9 +71,100 @@ func (m *Manager) Register(b *bus.Bus) {
 		}
 		return SaveResponse{Path: path}, nil
 	})
+	b.Register(Group, "openPath", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return m.openPath()
+	})
+	b.Register(Group, "saveAsPath", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			DefaultFilename string `json:"defaultFilename"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		return m.saveAsPath(req.DefaultFilename)
+	})
+	b.Register(Group, "readTextFile", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			Path string `json:"path"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		data, err := os.ReadFile(req.Path)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]string{"content": string(data)}, nil
+	})
+	b.Register(Group, "writeTextFile", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			Path    string `json:"path"`
+			Content string `json:"content"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		if err := os.MkdirAll(filepath.Dir(req.Path), 0o755); err != nil {
+			return nil, err
+		}
+		if err := os.WriteFile(req.Path, []byte(req.Content), 0o644); err != nil {
+			return nil, err
+		}
+		return SaveResponse{Path: req.Path}, nil
+	})
 	b.Register(Group, "syncHotkeys", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return m.SyncHotkeys(), nil
 	})
+}
+
+func (m *Manager) openPath() (PickResponse, error) {
+	if m.ctx == nil {
+		return PickResponse{}, fmt.Errorf("tools: not started")
+	}
+	path, err := runtime.OpenFileDialog(m.ctx, runtime.OpenDialogOptions{
+		Title: "Open tools menu",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "JSON (*.json)", Pattern: "*.json"},
+			{DisplayName: "All files (*.*)", Pattern: "*.*"},
+		},
+	})
+	if err != nil {
+		return PickResponse{}, err
+	}
+	if path == "" {
+		return PickResponse{Canceled: true}, nil
+	}
+	return PickResponse{Path: filepath.ToSlash(path)}, nil
+}
+
+func (m *Manager) saveAsPath(defaultFilename string) (PickResponse, error) {
+	if m.ctx == nil {
+		return PickResponse{}, fmt.Errorf("tools: not started")
+	}
+	if defaultFilename == "" {
+		defaultFilename = "tools.json"
+	}
+	path, err := runtime.SaveFileDialog(m.ctx, runtime.SaveDialogOptions{
+		Title:           "Save tools menu as",
+		DefaultFilename: defaultFilename,
+		Filters: []runtime.FileFilter{
+			{DisplayName: "JSON (*.json)", Pattern: "*.json"},
+			{DisplayName: "All files (*.*)", Pattern: "*.*"},
+		},
+	})
+	if err != nil {
+		return PickResponse{}, err
+	}
+	if path == "" {
+		return PickResponse{Canceled: true}, nil
+	}
+	return PickResponse{Path: filepath.ToSlash(path)}, nil
 }
 
 // getRaw returns the unparsed tools.json text for the editor.

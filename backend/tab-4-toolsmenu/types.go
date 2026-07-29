@@ -104,9 +104,15 @@ type RawResponse struct {
 	Error   string `json:"error,omitempty"`
 }
 
-// SaveResponse is returned by the "save" command with the path written to.
+// SaveResponse is returned by the "save" / "writeTextFile" commands with the path written to.
 type SaveResponse struct {
 	Path string `json:"path"`
+}
+
+// PickResponse is returned by openPath / saveAsPath dialogs.
+type PickResponse struct {
+	Canceled bool   `json:"canceled"`
+	Path     string `json:"path,omitempty"`
 }
 
 // resolvedCommand is the executable form of a command leaf, produced while the

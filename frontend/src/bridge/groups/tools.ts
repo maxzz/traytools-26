@@ -30,9 +30,15 @@ export interface ToolsRawResponse {
     error?: string;
 }
 
-// Response of the "save" command. Mirrors backend/toolsmenu.SaveResponse.
+// Response of the "save" / "writeTextFile" commands. Mirrors backend/toolsmenu.SaveResponse.
 export interface ToolsSaveResponse {
     path: string;
+}
+
+// Response of openPath / saveAsPath dialogs. Mirrors backend/toolsmenu.PickResponse.
+export interface ToolsPickResponse {
+    canceled: boolean;
+    path?: string;
 }
 
 export type ToolHotkeyBinding = {
@@ -62,7 +68,9 @@ export interface ToolsHotkeySyncResponse {
  * - getMenu returns the render-ready Tools menu tree;
  * - exec executes a tool by id;
  * - getRaw returns the unparsed tools.json text for editing;
- * - save writes tools.json to disk (creating it if missing);
+ * - save writes the managed tools.json to disk (creating it if missing);
+ * - openPath / saveAsPath show native dialogs for arbitrary JSON files;
+ * - readTextFile / writeTextFile read/write an explicit path;
  * - syncHotkeys registers global tool hotkeys and returns local bindings + conflicts.
  */
 export const toolsBus = {
@@ -70,5 +78,11 @@ export const toolsBus = {
     exec: (id: number) => dispatch(GROUP, "exec", { id }),
     getRaw: () => dispatch<ToolsRawResponse>(GROUP, "getRaw"),
     save: (content: string) => dispatch<ToolsSaveResponse>(GROUP, "save", { content }),
+    openPath: () => dispatch<ToolsPickResponse>(GROUP, "openPath"),
+    saveAsPath: (defaultFilename = "tools.json") =>
+        dispatch<ToolsPickResponse>(GROUP, "saveAsPath", { defaultFilename }),
+    readTextFile: (path: string) => dispatch<{ content: string; }>(GROUP, "readTextFile", { path }),
+    writeTextFile: (path: string, content: string) =>
+        dispatch<ToolsSaveResponse>(GROUP, "writeTextFile", { path, content }),
     syncHotkeys: () => dispatch<ToolsHotkeySyncResponse>(GROUP, "syncHotkeys"),
 };

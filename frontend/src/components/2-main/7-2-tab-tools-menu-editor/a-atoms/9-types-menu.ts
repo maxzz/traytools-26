@@ -74,20 +74,36 @@ export type ToolsConfig = {
 // ---------------------------------------------------------------------------
 // Editor state
 
-export type ToolsSource = "default" | "file" | "storage";
+export type ToolsSource = "default" | "file" | "storage" | "open";
 
 export type ToolsEditorStore = {
     config: ToolsConfig;         // the current editable tree
     source: ToolsSource;         // where `config` came from on the last load
-    path: string;                // file path reported by the backend (load/save target)
+    path: string;                // working file path (load/save target)
     baseline: string;            // full file text at last load/save (includes JSONC comments)
     rootComments: string;        // // and /* */ lines inside the root { } before "menu"
-    fileExists: boolean;         // whether tools.json currently exists on disk
+    fileExists: boolean;         // whether the working file currently exists on disk
     dirty: boolean;              // true when the editor differs from the loaded/saved file
     status: string;              // last user-facing status message
     error: string;               // last error, if any
     selectedUid: string | null;  // uid of the node shown in the properties panel
 };
+
+/** Basename of a path for toolbar captions (handles / and \\). */
+export function sourceFileBaseName(sourceFile: string): string {
+    const src = sourceFile.trim();
+    if (!src) {
+        return "";
+    }
+    const parts = src.replace(/\//g, "\\").split("\\");
+    return parts[parts.length - 1] || src;
+}
+
+/** Case-insensitive path compare (Windows-friendly). */
+export function sameFilePath(a: string, b: string): boolean {
+    const norm = (p: string) => p.replace(/\//g, "\\").replace(/\\+$/, "").toLowerCase();
+    return Boolean(a && b && norm(a) === norm(b));
+}
 
 // ---------------------------------------------------------------------------
 // Stable runtime ids
