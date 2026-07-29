@@ -3,6 +3,7 @@ package toolsmenu
 import (
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -166,13 +167,24 @@ func isURL(s string) bool { return urlRe.MatchString(s) }
 
 func toBackslashes(s string) string { return strings.ReplaceAll(s, "/", `\`) }
 
+func hasPathSeparator(p string) bool {
+	return strings.ContainsAny(p, `/\`) || filepath.VolumeName(p) != ""
+}
+
 // splitFileArgs separates an executable/target from trailing arguments when the
-// user put both on cmdLine. It mirrors the legacy fnames::splitfilenameargs:
-// a leading quoted segment is the target and the remainder is the arguments;
-// otherwise it splits on the first space (an unterminated leading quote falls
-// back to the space split, keeping the quote). Targets without a space (folders,
-// URLs, plain exes) are returned whole.
-func splitFileArgs(s string) (target, args string) {
+// user put both on cmdLine.
+//
+// Quoted targets keep the legacy fnames::splitfilenameargs behavior (a leading
+// quoted segment is the target; an unterminated leading quote falls through).
+//
+// Unquoted targets with spaces are resolved against the filesystem (CreateProcess-
+// style, longest match first): the longest prefix that exists on disk is the
+// target and the remainder is args. baseDir, when non-empty, is used to resolve
+// relative candidates. If nothing matches and the string looks like a path
+// (drive, UNC, or separators), the whole string is kept as the target so paths
+// with spaces from the file picker work without quotes. Bare names without
+// separators still fall back to a first-space split.
+func splitFileArgs(s, baseDir string) (target, args string) {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return "", ""
@@ -181,12 +193,65 @@ func splitFileArgs(s string) (target, args string) {
 		if end := strings.IndexByte(s[1:], '"'); end >= 0 {
 			return s[1 : 1+end], strings.TrimSpace(s[1+end+1:])
 		}
-		// Unterminated quote: fall through to the space split below.
+		// Unterminated quote: fall through.
 	}
-	if i := strings.IndexByte(s, ' '); i >= 0 {
-		return s[:i], strings.TrimSpace(s[i+1:])
+	if isURL(s) || !strings.ContainsRune(s, ' ') {
+		return s, ""
 	}
-	return s, ""
+
+	for _, cand := range spacePrefixCandidates(s) {
+		if targetExists(cand, baseDir) {
+			return cand, strings.TrimSpace(s[len(cand):])
+		}
+	}
+
+	// Nothing on disk matched. Prefer the full string when it looks like a
+	// filesystem path — silent truncation at the first space is worse than a
+	// clear "not found" for the path the user actually configured.
+	if hasPathSeparator(s) {
+		return s, ""
+	}
+
+	i := strings.IndexByte(s, ' ')
+	return s[:i], strings.TrimSpace(s[i+1:])
+}
+
+// spacePrefixCandidates returns s itself, then each prefix ending at a space,
+// longest first. Used to prefer a real path with spaces over a shorter token.
+func spacePrefixCandidates(s string) []string {
+	out := []string{s}
+	for i := len(s) - 1; i >= 0; i-- {
+		if s[i] != ' ' {
+			continue
+		}
+		cand := strings.TrimRight(s[:i], " ")
+		if cand != "" {
+			out = append(out, cand)
+		}
+	}
+	return out
+}
+
+// targetExists reports whether candidate is a usable launch target: an existing
+// file/dir (absolute, or relative to baseDir), or a bare name found on PATH.
+func targetExists(candidate, baseDir string) bool {
+	candidate = strings.TrimSpace(candidate)
+	if candidate == "" {
+		return false
+	}
+
+	check := candidate
+	if baseDir != "" && !filepath.IsAbs(candidate) {
+		check = filepath.Join(baseDir, filepath.FromSlash(candidate))
+	}
+	if _, err := os.Stat(check); err == nil {
+		return true
+	}
+	if filepath.IsAbs(candidate) || hasPathSeparator(candidate) {
+		return false
+	}
+	_, err := exec.LookPath(candidate)
+	return err == nil
 }
 
 // effectiveElevated reports whether a command should run elevated. An explicit
@@ -218,16 +283,17 @@ func resolveCommand(baseDir string, n MenuNode) resolvedCommand {
 		}
 	}
 
-	target := n.CmdLine
-	args := n.CmdArgs
+	// Expand env before splitting so existence checks see real paths
+	// (e.g. %UserProfile%\My Tools\app.exe).
+	target := expandEnv(strings.TrimSpace(n.CmdLine))
+	args := expandEnv(strings.TrimSpace(n.CmdArgs))
 	if args == "" {
-		target, args = splitFileArgs(target)
-	} else {
-		target = strings.TrimSpace(target)
+		checkBase := ""
+		if what == whatRel {
+			checkBase = baseDir
+		}
+		target, args = splitFileArgs(target, checkBase)
 	}
-
-	target = expandEnv(target)
-	args = expandEnv(args)
 
 	if what == whatAbs {
 		if !isURL(target) {

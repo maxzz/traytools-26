@@ -157,10 +157,12 @@ Provide arguments either inline on `cmdLine` or via a separate `cmdArgs`:
 { "menuName": "Procmon", "cmdLine": "tools/procmon.exe", "cmdArgs": "-accepteula" }
 ```
 
-When `cmdArgs` is omitted, the target is split from the arguments at the first
-space. If the target itself contains spaces, wrap it in double quotes:
+When `cmdArgs` is omitted, unquoted `cmdLine` values are split using a
+filesystem-aware match (longest existing path prefix wins), so paths with
+spaces work without quotes. Quotes are still supported for ambiguous cases:
 
 ```json
+{ "menuName": "App", "cmdLine": "C:/Program Files/App/app.exe --flag" }
 { "menuName": "App", "cmdLine": "\"C:/Program Files/App/app.exe\" --flag" }
 ```
 

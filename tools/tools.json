@@ -64,8 +64,8 @@
                         "menuName": "New Submenu",
                         "menuItems": [
                             {
-                                "menuName": "New Command",
-                                "cmdLine": "",
+                                "menuName": "notepad2",
+                                "cmdLine": "C:\\Users\\maxzz\\Desktop\\org page-qa2-test\\notepad.exe",
                                 "cmdWhat": "abs"
                             },
                             {
