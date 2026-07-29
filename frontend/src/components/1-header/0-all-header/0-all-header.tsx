@@ -29,7 +29,7 @@ export function Header() {
                 <ButtonWindowSize />
                 <ButtonStayOnTop />
                 <ButtonSettings />
-                {!showMainTabs && <ButtonHome />}
+                <ButtonHome />
                 {showThemeToggle && <ButtonThemeToggle />}
                 <DpAgentToolbar className="ml-1" />
                 <ButtonExit />
