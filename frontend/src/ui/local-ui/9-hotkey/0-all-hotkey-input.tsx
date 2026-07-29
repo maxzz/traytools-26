@@ -108,6 +108,7 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
                     onClick={() => { onChange(null); stopRecording(); }}
                     type="button"
                     aria-label="Clear shortcut"
+                    tabIndex={-1}
                     title="Clear shortcut"
                 >
                     <X />
@@ -124,6 +125,7 @@ export function HotkeyInput({ value, onChange, isGlobal, onIsGlobalChange, place
                         type="button"
                         aria-pressed={isGlobal}
                         aria-label="Global system-wide hotkey"
+                        tabIndex={-1}
                         title="Global system-wide hotkey"
                     >
                         {/* <div className="w-px h-full border-l border-border"></div> */}
