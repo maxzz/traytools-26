@@ -190,6 +190,9 @@ export function PathInput({
 
                 {showReveal && (
                     <InputGroupButton
+                        // Use aria-disabled (not disabled): InputGroup's has-disabled:opacity-50
+                        // would dim the whole field — including a filled URL value.
+                        className={!canReveal ? "opacity-50" : undefined}
                         size="icon-xs"
                         title={
                             !trimmed
@@ -201,7 +204,7 @@ export function PathInput({
                                         : "Open folder in File Explorer"
                         }
                         aria-label={kind === "file" ? "Reveal in File Explorer" : "Open folder in File Explorer"}
-                        disabled={!canReveal}
+                        aria-disabled={!canReveal}
                         onClick={reveal}
                         tabIndex={-1}
                     >
