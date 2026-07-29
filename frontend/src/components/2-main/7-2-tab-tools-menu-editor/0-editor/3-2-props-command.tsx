@@ -49,7 +49,7 @@ function Field_Cmd_Path({ node }: NodeProps) {
                         <p className="font-medium">Command</p>
                         <p>Program, file, folder, or web address to open when this menu item is selected.</p>
                         <p className="font-medium">Path</p>
-                        <p>Full path or program name, used as-is after env-var expansion.</p>
+                        <p>Full path or program name. Prefer forward slashes (C:/…); backslashes also work. Used as-is after env-var expansion.</p>
                         <p className="font-medium">URL</p>
                         <p>Web link; use Absolute with a scheme:// address (e.g. https://…).</p>
                         <p className="font-medium">Environment variables</p>

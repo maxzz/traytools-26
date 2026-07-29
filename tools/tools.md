@@ -108,8 +108,10 @@ A trailing `/` (or `\`) marks a **folder**, which opens in Explorer.
 ### `abs` — absolute path or URL
 
 Used as-is (after environment-variable expansion). Covers system programs,
-absolute paths, and web links. Forward slashes are normalized to backslashes for
-file paths, but URLs (anything with a `scheme://`) keep their slashes.
+absolute paths, and web links. Prefer forward slashes in `tools.json` and the
+editor (`C:/Program Files/...`); backslashes are accepted too. At launch, path
+separators are normalized for the OS. URLs (anything with a `scheme://`) keep
+their slashes.
 
 ```json
 { "menuName": "Notepad",      "cmdLine": "notepad.exe",                                          "cmdWhat": "abs" }

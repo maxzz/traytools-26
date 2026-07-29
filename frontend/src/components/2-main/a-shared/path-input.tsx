@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from "react";
 import { classNames } from "@/utils/classnames";
+import { toUnix } from "@/utils";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { FolderOpen, FileIcon, SquareArrowOutUpRight } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
@@ -17,6 +18,11 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
     onChangeRef.current = onChange;
     kindRef.current = kind;
 
+    // Prefer forward slashes in the UI / saved JSON; Windows accepts both at launch.
+    function setPath(path: string) {
+        onChange(toUnix(path));
+    }
+
     useEffect(
         () => {
             const el = dropRef.current;
@@ -26,7 +32,7 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
             return registerFileDropTarget({
                 el,
                 getKind: () => kindRef.current,
-                onPath: (path) => onChangeRef.current(path),
+                onPath: (path) => onChangeRef.current(toUnix(path)),
             });
         },
         []);
@@ -36,7 +42,7 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
             const initial = value.trim();
             const res = kind === "file" ? await copyOpsBus.pickFile(initial || undefined) : await copyOpsBus.pickFolder(initial || undefined);
             if (!res.canceled && res.path) {
-                onChange(res.path);
+                setPath(res.path);
             }
         } catch (e) {
             console.error("Path browse failed", e);
@@ -79,7 +85,7 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
         setDragOver(false);
         const path = pathFromDataTransfer(e.dataTransfer);
         if (path) {
-            void applyDroppedPath(path, kind, onChange);
+            void applyDroppedPath(path, kind, setPath);
         }
         // Let the event bubble to Wails' window listener for WebView2 path resolution.
     }
@@ -98,7 +104,7 @@ export function PathInput({ value, onChange, kind, showReveal, }: { value: strin
             <InputGroupInput
                 style={DROP_TARGET_STYLE}
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(e) => setPath(e.target.value)}
                 {...turnOffAutoComplete}
             />
 
@@ -199,12 +205,12 @@ async function applyDroppedPath(rawPath: string, kind: PathKind, onPath: (path: 
     try {
         const res = await copyOpsBus.normalizeDropPath(rawPath, kind);
         if (res?.path) {
-            onPath(res.path);
+            onPath(toUnix(res.path));
         }
     } catch (e) {
         console.error("normalizeDropPath failed", e);
         // Fall back to raw path so the drop is not silently lost.
-        onPath(rawPath);
+        onPath(toUnix(rawPath));
     }
 }
 
@@ -219,12 +225,12 @@ export async function normalizeDroppedPaths(rawPaths: string[], kind: PathKind =
         try {
             const res = await copyOpsBus.normalizeDropPath(trimmed, kind);
             if (res?.path) {
-                out.push(res.path);
+                out.push(toUnix(res.path));
             }
         } catch (e) {
             console.error("normalizeDropPath failed", e);
             // Folders fail kind "file"; keep raw path so the drop is not silently lost.
-            out.push(trimmed);
+            out.push(toUnix(trimmed));
         }
     }
     return out;
@@ -293,7 +299,7 @@ export function pathsFromDataTransfer(dt: DataTransfer): string[] {
         for (let i = 0; i < files.length; i++) {
             const file = files[i] as FileWithPath;
             if (typeof file.path === "string" && file.path.length > 0) {
-                fromFiles.push(file.path);
+                fromFiles.push(toUnix(file.path));
             }
         }
     }
@@ -302,7 +308,8 @@ export function pathsFromDataTransfer(dt: DataTransfer): string[] {
     }
     const text = dt.getData("text/plain")?.trim();
     if (text && (/^[a-zA-Z]:[\\/]/.test(text) || text.startsWith("\\\\") || text.startsWith("file:"))) {
-        return [text.replace(/^file:\/\/\/?/i, "").replace(/\//g, "\\")];
+        // Prefer forward slashes for UI / JSON; Windows accepts both at launch.
+        return [toUnix(text.replace(/^file:\/\/\/?/i, ""))];
     }
     return [];
 }

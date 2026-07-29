@@ -132,7 +132,8 @@ func (m *Manager) Register(b *bus.Bus) {
 		if err != nil {
 			return nil, err
 		}
-		return NormalizeDropPathResponse{Path: path}, nil
+		// Prefer forward slashes for UI / JSON; Windows accepts both at launch.
+		return NormalizeDropPathResponse{Path: filepath.ToSlash(path)}, nil
 	})
 	b.Register(Group, "copyBatch", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		var req CopyBatchRequest
@@ -174,7 +175,7 @@ func (m *Manager) pickFile(initialPath string) (PickResponse, error) {
 	if path == "" {
 		return PickResponse{Canceled: true}, nil
 	}
-	return PickResponse{Path: path}, nil
+	return PickResponse{Path: filepath.ToSlash(path)}, nil
 }
 
 func (m *Manager) pickFolder(initialPath string) (PickResponse, error) {
@@ -194,7 +195,7 @@ func (m *Manager) pickFolder(initialPath string) (PickResponse, error) {
 	if path == "" {
 		return PickResponse{Canceled: true}, nil
 	}
-	return PickResponse{Path: path}, nil
+	return PickResponse{Path: filepath.ToSlash(path)}, nil
 }
 
 // dialogDefaultsForFile returns DefaultDirectory / DefaultFilename for an open-file
@@ -253,7 +254,7 @@ func (m *Manager) importPath() (PickResponse, error) {
 	if path == "" {
 		return PickResponse{Canceled: true}, nil
 	}
-	return PickResponse{Path: path}, nil
+	return PickResponse{Path: filepath.ToSlash(path)}, nil
 }
 
 func (m *Manager) exportPath(defaultFilename string) (PickResponse, error) {
@@ -277,7 +278,7 @@ func (m *Manager) exportPath(defaultFilename string) (PickResponse, error) {
 	if path == "" {
 		return PickResponse{Canceled: true}, nil
 	}
-	return PickResponse{Path: path}, nil
+	return PickResponse{Path: filepath.ToSlash(path)}, nil
 }
 
 func (m *Manager) startCopyBatch(req CopyBatchRequest) CopyBatchResponse {
