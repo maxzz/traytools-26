@@ -1,0 +1,23 @@
+{
+    "groups": [
+        {
+            "name": "Example",
+            "items": [
+                {
+                    "sourceFolder": "C:/Users/maxzz/Desktop/page-qa2-test",
+                    "destFolder": "C:/Users/maxzz/Desktop/org page-qa2-test",
+                    "name": "page-qa2-test 2"
+                },
+                {
+                    "sourceFolder": "C:/Users/maxzz/Desktop/page-qa2-test",
+                    "destFolder": "C:/Users/maxzz/Desktop/org page-qa2-test",
+                    "name": "page-qa2-test 1"
+                },
+                {
+                    "sourceFolder": "C:/Users/maxzz/Desktop/page-qa2-test",
+                    "destFolder": "C:/Users/maxzz/Desktop/org page-qa2-test"
+                }
+            ]
+        }
+    ]
+}

@@ -53,12 +53,12 @@
                         "cmdWhat": "abs"
                     },
                     {
-                        "menuName": "-"
-                    },
-                    {
                         "menuName": "Open %TEMP%",
                         "cmdLine": "%TEMP%",
                         "cmdWhat": "abs"
+                    },
+                    {
+                        "menuName": "-"
                     },
                     {
                         "menuName": "New Submenu",

@@ -61,17 +61,7 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
     );
 }
 
-function FolderNode({
-    node,
-    depth,
-    isLast,
-    ancestors,
-}: {
-    node: SyncTreeNodeDTO;
-    depth: number;
-    isLast: boolean;
-    ancestors: boolean[];
-}) {
+function FolderNode({ node, depth, isLast, ancestors }: { node: SyncTreeNodeDTO; depth: number; isLast: boolean; ancestors: boolean[]; }) {
     const children = node.children ?? [];
     const changes = node.changes ?? [];
     const childAncestors = [...ancestors, !isLast];
@@ -130,23 +120,7 @@ function FolderNode({
     );
 }
 
-function FolderRow({
-    name,
-    fileCount,
-    depth,
-    isLast,
-    ancestors,
-    hasChildren,
-    children,
-}: {
-    name: string;
-    fileCount: number;
-    depth: number;
-    isLast: boolean;
-    ancestors: boolean[];
-    hasChildren: boolean;
-    children?: ReactNode;
-}) {
+function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, children }: { name: string; fileCount: number; depth: number; isLast: boolean; ancestors: boolean[]; hasChildren: boolean; children?: ReactNode; }) {
     const [collapsed, setCollapsed] = useState(false);
 
     return (
@@ -186,17 +160,7 @@ function FolderRow({
     );
 }
 
-function ChangeRow({
-    change,
-    depth,
-    isLast,
-    ancestors,
-}: {
-    change: SyncChangeDTO;
-    depth: number;
-    isLast: boolean;
-    ancestors: boolean[];
-}) {
+function ChangeRow({ change, depth, isLast, ancestors }: { change: SyncChangeDTO; depth: number; isLast: boolean; ancestors: boolean[]; }) {
     const marker = (change.marker || "?").slice(0, 1).toUpperCase();
     const name = change.displayName || change.relPath || "";
     const color = markerColorClass(marker);
