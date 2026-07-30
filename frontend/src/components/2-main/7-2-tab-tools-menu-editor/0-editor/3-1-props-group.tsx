@@ -53,7 +53,7 @@ function QuickAccessItems({ node, depth }: NodeProps & { depth: number; }) {
     }
 
     return (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
             {children.map(
                 (child) => (
                     <QuickAccessItem key={child.uid ?? child.menuName} node={child} depth={depth} />
@@ -69,7 +69,7 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
 
     if (kind === "separator") {
         return (
-            <div className="w-full min-h-3 flex items-center" style={indentStyle}>
+            <div className="w-full min-h-1 flex items-center" style={indentStyle}>
                 <span className="w-full border-t border-foreground/40" />
             </div>
         );
@@ -78,7 +78,7 @@ function QuickAccessItem({ node, depth }: NodeProps & { depth: number; }) {
     if (kind === "submenu") {
         return (
             <div className="select-none flex flex-col gap-1 cursor-default">
-                <div className="pr-1 h-4 flex items-center gap-x-1.5" style={indentStyle}>
+                <div className="pr-1 h-4.5 pt-1 flex items-center gap-x-1.5" style={indentStyle}>
                     <QuickAccessItemTypeIcon node={node} />
                     <span className="text-[0.65rem] truncate">
                         {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
