@@ -9,16 +9,17 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
     const hasRootFiles = rootChanges.length > 0;
 
     return (
-        <div className="font-mono text-xs leading-none whitespace-pre select-text">
-            <div className="text-sky-600 dark:text-cyan-400 leading-5">Check</div>
+        <div className="font-mono text-xs select-text">
+            <div className="text-sky-600 dark:text-cyan-400">Check</div>
             <div className="h-2" />
-            <div className="leading-none">
+
+            <div>
                 {response.sourceRootLabel || "."}
                 {" "}
                 <span className="text-muted-foreground">({response.sourceFileCount} files)</span>
             </div>
 
-            <div className="leading-none [&>div]:leading-none">
+            <div className="whitespace-pre leading-none [&>div]:leading-none">
                 {firstLevel.map(
                     (node, i) => {
                         const isLastFirst = i === firstLevel.length - 1;
@@ -44,11 +45,11 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
                 )}
             </div>
 
-            <div className="mt-2 leading-5 text-muted-foreground">
+            <div className="mt-2 text-muted-foreground">
                 Total: {response.sourceFileCount} files in {response.folderCount} folders
             </div>
             {response.changeCount > 0 && (
-                <div className="leading-5 text-muted-foreground">
+                <div className="text-muted-foreground">
                     Required updates: A = add, M = modify, D = delete
                 </div>
             )}
