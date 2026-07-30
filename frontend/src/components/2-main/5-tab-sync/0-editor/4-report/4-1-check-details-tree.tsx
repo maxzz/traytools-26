@@ -9,44 +9,46 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
     const hasRootFiles = rootChanges.length > 0;
 
     return (
-        <div className="text-xs leading-5 whitespace-pre select-text">
-            <div className="text-sky-600 dark:text-cyan-400">Check</div>
+        <div className="font-mono text-xs leading-none whitespace-pre select-text">
+            <div className="text-sky-600 dark:text-cyan-400 leading-5">Check</div>
             <div className="h-2" />
-            <div>
+            <div className="leading-none">
                 {response.sourceRootLabel || "."}
                 {" "}
                 <span className="text-muted-foreground">({response.sourceFileCount} files)</span>
             </div>
 
-            {firstLevel.map(
-                (node, i) => {
-                    const isLastFirst = i === firstLevel.length - 1;
-                    const moreAfter = hasRootFiles || !isLastFirst;
-                    const branch = isLastFirst && !hasRootFiles ? "└──" : "├──";
-                    const cont = isLastFirst && !hasRootFiles ? "    " : "│   ";
-                    return (
-                        <FirstLevelBlock
-                            key={`${node.name}-${i}`}
-                            node={node}
-                            branch={branch}
-                            cont={cont}
-                            moreAfter={moreAfter}
-                            isLastFirst={isLastFirst}
-                            hasRootFiles={hasRootFiles}
-                        />
-                    );
-                }
-            )}
+            <div className="leading-none [&>div]:leading-none">
+                {firstLevel.map(
+                    (node, i) => {
+                        const isLastFirst = i === firstLevel.length - 1;
+                        const moreAfter = hasRootFiles || !isLastFirst;
+                        const branch = isLastFirst && !hasRootFiles ? "└──" : "├──";
+                        const cont = isLastFirst && !hasRootFiles ? "    " : "│   ";
+                        return (
+                            <FirstLevelBlock
+                                key={`${node.name}-${i}`}
+                                node={node}
+                                branch={branch}
+                                cont={cont}
+                                moreAfter={moreAfter}
+                                isLastFirst={isLastFirst}
+                                hasRootFiles={hasRootFiles}
+                            />
+                        );
+                    }
+                )}
 
-            {hasRootFiles && (
-                <FileChangeLines cont="" changes={rootChanges} blockEnds />
-            )}
+                {hasRootFiles && (
+                    <FileChangeLines cont="" changes={rootChanges} blockEnds />
+                )}
+            </div>
 
-            <div className="mt-2 text-muted-foreground">
+            <div className="mt-2 leading-5 text-muted-foreground">
                 Total: {response.sourceFileCount} files in {response.folderCount} folders
             </div>
             {response.changeCount > 0 && (
-                <div className="text-muted-foreground">
+                <div className="leading-5 text-muted-foreground">
                     Required updates: A = add, M = modify, D = delete
                 </div>
             )}
@@ -103,10 +105,8 @@ function SecondLevelBlock({ node, cont, moreAfter }: { node: SyncTreeNodeDTO; co
 
 function FolderLine({ prefix, name, fileCount }: { prefix: string; name: string; fileCount: number; }) {
     return (
-        <div>
-            <span className="font-mono">{prefix}</span>
-            {name}
-            {" "}
+        <div className="leading-none">
+            {prefix}{name}{" "}
             <span className="text-muted-foreground">({fileCount} files)</span>
         </div>
     );
@@ -119,9 +119,8 @@ function FileChangeLines({ cont, changes, blockEnds }: { cont: string; changes: 
                 const isLast = i === changes.length - 1;
                 const branch = isLast && blockEnds ? "└──" : "├──";
                 return (
-                    <div key={`${change.marker}-${change.relPath}-${i}`}>
-                        <span className="font-mono">{cont}</span>
-                        {branch}
+                    <div key={`${change.marker}-${change.relPath}-${i}`} className="leading-none">
+                        {cont}{branch}
                         <FileChangeText change={change} />
                     </div>
                 );
