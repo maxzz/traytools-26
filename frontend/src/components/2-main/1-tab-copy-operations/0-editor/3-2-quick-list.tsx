@@ -61,9 +61,9 @@ function QuickAccessItem({ node, depth }: { node: CopyNode; depth: number; }) {
 
     if (isCopyGroup(node)) {
         return (
-            <div className="select-none flex flex-col gap-1 cursor-default">
+            <div className="select-none flex flex-col gap-0.5 cursor-default">
                 <div
-                    className="pr-1 h-4 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 flex items-center justify-between gap-0.5"
+                    className="pr-1 h-4.5 pb-0.5 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 flex items-center justify-between gap-0.5"
                     style={indentStyle}
                 >
                     <div className="min-w-0 flex items-center gap-x-1.5">
