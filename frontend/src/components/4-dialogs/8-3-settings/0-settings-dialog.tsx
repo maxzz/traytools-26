@@ -20,6 +20,7 @@ import {
     settingsShowThemeToggleAtom,
     settingsStartDpAgentHighAtom,
     settingsStayOnTopAtom,
+    settingsSyncCheckDetailsInPanelAtom,
     settingsUnloadHookHotkeyAtom,
 } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 
@@ -47,6 +48,7 @@ export function SettingsDialog() {
                     <ControlSwitch label="Quit the application when the window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                     <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
                     <ControlSwitch label="Show main tabs in header" valueAtom={settingsShowMainTabsAtom} />
+                    <ControlSwitch label="Show Sync Check Details in bottom panel" valueAtom={settingsSyncCheckDetailsInPanelAtom} />
                     <ControlTheme />
                     <Separator />
                     <ControlUnloadHookHotkey />

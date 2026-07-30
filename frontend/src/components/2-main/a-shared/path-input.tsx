@@ -9,12 +9,15 @@ import { notice } from "@/ui/local-ui/7-toaster";
 import { OnFileDrop, OnFileDropOff } from "@/../wailsjs/runtime/runtime";
 import { extractURLFromInternetShortcutFile } from "./url-shortcut";
 
+export type PathPickResult = { canceled: boolean; path?: string; };
+
 export function PathInput({
     value,
     onChange,
     kind,
     showReveal,
     acceptUrls,
+    pickPath,
 }: {
     value: string;
     onChange: (path: string) => void;
@@ -22,6 +25,8 @@ export function PathInput({
     showReveal?: boolean;
     /** When true, accept browser link drops and expand .url Internet Shortcuts to their URL. */
     acceptUrls?: boolean;
+    /** Optional browse dialog; defaults to copyOpsBus pickFile/pickFolder. */
+    pickPath?: (initialPath?: string) => Promise<PathPickResult>;
 }) {
 
     const [dragOver, setDragOver] = useState(false);
@@ -59,7 +64,11 @@ export function PathInput({
     async function browse() {
         try {
             const initial = value.trim();
-            const res = kind === "file" ? await copyOpsBus.pickFile(initial || undefined) : await copyOpsBus.pickFolder(initial || undefined);
+            const res = pickPath
+                ? await pickPath(initial || undefined)
+                : kind === "file"
+                    ? await copyOpsBus.pickFile(initial || undefined)
+                    : await copyOpsBus.pickFolder(initial || undefined);
             if (!res.canceled && res.path) {
                 await applyDroppedPath(res.path, kind, setPath, { resolveUrlFile: acceptUrls });
             }

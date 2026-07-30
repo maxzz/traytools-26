@@ -27,6 +27,8 @@ export interface AppSettings {
     mainTab: string;             // Active main body tab
     showDpAgentToolbar: boolean; // Expand DPAgent toolbar controls and run monitoring
     startDpAgentHigh: boolean;   // Start DPAgent elevated (runas)
+    /** When true, Sync "Check Details" renders in the tab bottom panel; when false, in a dialog. Default: false (dialog). */
+    syncCheckDetailsInPanel: boolean;
     windowHighlight: WindowHighlightSettings;
 }
 
@@ -49,6 +51,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     mainTab: 'welcome',
     showDpAgentToolbar: true,
     startDpAgentHigh: false,
+    syncCheckDetailsInPanel: false,
     windowHighlight: { ...DEFAULT_WINDOW_HIGHLIGHT },
 };
 
@@ -71,6 +74,7 @@ function loadSettings(): AppSettings {
                 showThemeToggle: parsed.showThemeToggle ?? DEFAULT_SETTINGS.showThemeToggle,
                 showDpAgentToolbar: parsed.showDpAgentToolbar ?? DEFAULT_SETTINGS.showDpAgentToolbar,
                 startDpAgentHigh: parsed.startDpAgentHigh ?? DEFAULT_SETTINGS.startDpAgentHigh,
+                syncCheckDetailsInPanel: parsed.syncCheckDetailsInPanel ?? DEFAULT_SETTINGS.syncCheckDetailsInPanel,
                 windowHighlight: {
                     ...DEFAULT_WINDOW_HIGHLIGHT,
                     ...parsed.windowHighlight,

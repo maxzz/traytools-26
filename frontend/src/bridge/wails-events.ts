@@ -31,6 +31,12 @@ export const COPY_OPS_EVENTS = {
     jobDone: "copyops:jobDone",
 } as const;
 
+/** Event names emitted by backend/syncops while a sync job runs. */
+export const SYNC_OPS_EVENTS = {
+    progress: "syncops:progress",
+    jobDone: "syncops:jobDone",
+} as const;
+
 /** Event names emitted by backend/app.go for application lifecycle. */
 export const APP_EVENTS = {
     /** User requested quit; frontend confirms after checking unsaved tabs. */

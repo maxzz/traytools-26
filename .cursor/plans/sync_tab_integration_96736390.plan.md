@@ -4,25 +4,25 @@ overview: Add a Sync tab to traytools-26 that mirrors Copy Operations’ layout 
 todos:
   - id: cli-sync-result
     content: Change syncdir.Sync to return SyncResult{SourceFileCount, Changes}; keep CLI Finish/tree UX via recorded or returned changes
-    status: pending
+    status: cancelled
   - id: go-mod-replace
     content: Bump traytools go to 1.23.0; add copy-no-nm require+replace → ../to-copy-no-nm-cli; smoke-compile checkdir/syncdir
-    status: pending
+    status: completed
   - id: backend-syncops
     content: Add backend/tab-5-syncops split by concern (config/dialogs/run_sync/run_check); register in app.go
-    status: pending
+    status: completed
   - id: frontend-bridge
     content: Add bridge/groups/syncops.ts + SYNC_OPS_EVENTS; export from bridge index
-    status: pending
+    status: completed
   - id: frontend-tab-shell
     content: Register Sync tab; 5-tab-sync folders (0-editor/2-tree|3-props|4-report + a-atoms); Valtio+Jotai; quit dirty + panels
-    status: pending
+    status: completed
   - id: settings-check-details
     content: "Add appSettings + Settings dialog checkbox: Check Details in dialog vs bottom panel (persisted)"
-    status: pending
+    status: completed
   - id: frontend-actions-ui
     content: Item props 4 buttons; 4-report CLI-style Check Details (dialog or bottom panel per setting)
-    status: pending
+    status: completed
 isProject: false
 ---
 

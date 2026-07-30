@@ -37,6 +37,16 @@ export const settingsShowThemeToggleAtom = atom(
     },
 );
 
+const settingsSyncCheckDetailsInPanelBaseAtom = atom(appSettings.syncCheckDetailsInPanel);
+
+export const settingsSyncCheckDetailsInPanelAtom = atom(
+    (get) => get(settingsSyncCheckDetailsInPanelBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsSyncCheckDetailsInPanelBaseAtom, next);
+        appSettings.syncCheckDetailsInPanel = next;
+    },
+);
+
 const settingsStayOnTopBaseAtom = atom(appSettings.stayOnTop);
 
 export const settingsStayOnTopAtom = atom(

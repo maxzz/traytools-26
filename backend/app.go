@@ -13,6 +13,7 @@ import (
 	windowtree "traytools-26-go/backend/tab-2-windowtree"
 	tracemanager "traytools-26-go/backend/tab-3-tracemanager"
 	toolsmenu "traytools-26-go/backend/tab-4-toolsmenu"
+	syncops "traytools-26-go/backend/tab-5-syncops"
 	"traytools-26-go/backend/winapp"
 	"traytools-26-go/backend/winhighlight"
 	"traytools-26-go/backend/winlaunch"
@@ -34,6 +35,7 @@ type App struct {
 	dpagent       *dpagent.Manager
 	highlight     *winhighlight.Manager
 	copyops       *copyops.Manager
+	syncops       *syncops.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -54,6 +56,7 @@ func NewApp() *App {
 		dpagent:   dpagent.New(),
 		highlight: winhighlight.New(),
 		copyops:   copyops.New(),
+		syncops:   syncops.New(),
 	}
 	a.registerHandlers()
 	a.trace.Register(a.bus)
@@ -62,6 +65,7 @@ func NewApp() *App {
 	a.dpagent.Register(a.bus)
 	a.highlight.Register(a.bus)
 	a.copyops.Register(a.bus)
+	a.syncops.Register(a.bus)
 	return a
 }
 
@@ -78,6 +82,7 @@ func (a *App) Startup(ctx context.Context) {
 	a.startHotkeys()
 	a.trace.Start(ctx)
 	a.copyops.Start(ctx)
+	a.syncops.Start(ctx)
 	a.tools.Start(ctx)
 	a.startTray()
 }
