@@ -9,7 +9,7 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
     const hasRootFiles = rootChanges.length > 0;
 
     return (
-        <div className="font-mono text-xs leading-5 whitespace-pre select-text">
+        <div className="text-xs leading-5 whitespace-pre select-text">
             <div className="text-sky-600 dark:text-cyan-400">Check</div>
             <div className="h-2" />
             <div>
@@ -54,21 +54,7 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
     );
 }
 
-function FirstLevelBlock({
-    node,
-    branch,
-    cont,
-    moreAfter,
-    isLastFirst,
-    hasRootFiles,
-}: {
-    node: SyncTreeNodeDTO;
-    branch: string;
-    cont: string;
-    moreAfter: boolean;
-    isLastFirst: boolean;
-    hasRootFiles: boolean;
-}) {
+function FirstLevelBlock({ node, branch, cont, moreAfter, isLastFirst, hasRootFiles }: { node: SyncTreeNodeDTO; branch: string; cont: string; moreAfter: boolean; isLastFirst: boolean; hasRootFiles: boolean; }) {
     const children = node.children ?? [];
     const changes = node.changes ?? [];
 
@@ -91,15 +77,7 @@ function FirstLevelBlock({
     </>);
 }
 
-function SecondLevelBlock({
-    cont,
-    node,
-    moreAfter,
-}: {
-    cont: string;
-    node: SyncTreeNodeDTO;
-    moreAfter: boolean;
-}) {
+function SecondLevelBlock({ node, cont, moreAfter }: { node: SyncTreeNodeDTO; cont: string; moreAfter: boolean; }) {
     const children = node.children ?? [];
     const changes = node.changes ?? [];
 
@@ -126,22 +104,15 @@ function SecondLevelBlock({
 function FolderLine({ prefix, name, fileCount }: { prefix: string; name: string; fileCount: number; }) {
     return (
         <div>
-            {prefix}{name}
+            <span className="font-mono">{prefix}</span>
+            {name}
             {" "}
             <span className="text-muted-foreground">({fileCount} files)</span>
         </div>
     );
 }
 
-function FileChangeLines({
-    cont,
-    changes,
-    blockEnds,
-}: {
-    cont: string;
-    changes: SyncChangeDTO[];
-    blockEnds: boolean;
-}) {
+function FileChangeLines({ cont, changes, blockEnds }: { cont: string; changes: SyncChangeDTO[]; blockEnds: boolean; }) {
     return (<>
         {changes.map(
             (change, i) => {
@@ -149,7 +120,8 @@ function FileChangeLines({
                 const branch = isLast && blockEnds ? "└──" : "├──";
                 return (
                     <div key={`${change.marker}-${change.relPath}-${i}`}>
-                        {cont}{branch}
+                        <span className="font-mono">{cont}</span>
+                        {branch}
                         <FileChangeText change={change} />
                     </div>
                 );
