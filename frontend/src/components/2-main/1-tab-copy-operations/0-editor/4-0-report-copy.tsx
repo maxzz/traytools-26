@@ -1,15 +1,13 @@
 import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
 import { useSnapshot } from "valtio";
-import { AlertCircle, Check, Info, Loader2 } from "lucide-react";
 import { IconTrash24 } from "@/ui/icons/normal";
-import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { DelayedRunningIndicator } from "../../a-shared/delayed-running-indicator";
 import { formatJobTime } from "../../a-shared/format-job-time";
 import { type CopyJobReport, type CopyProgressRow, clearCopyReportMessages, copyReportStore } from "../a-atoms/2-run-copy";
 import { itemLabel, sourceFileBaseName } from "../a-atoms/9-types-copy";
+import { OperationStatus } from "./4-1-report-copy-status";
 
 export function CopyReportPanel() {
     const { jobs } = useSnapshot(copyReportStore);
@@ -59,8 +57,7 @@ export function CopyReportPanel() {
             <ScrollArea2 ref={viewportRef} className="flex-1 min-h-0">
                 {!hasJobs
                     ? (
-                        <div className="p-3 text-xs text-muted-foreground">
-                        </div>
+                        <div className="p-3 text-xs text-muted-foreground" />
                     )
                     : (
                         <div className="p-2 text-sm space-y-3">
@@ -145,90 +142,4 @@ function ReportRow({ row }: { row: CopyProgressRow; }) {
     </>);
 }
 
-function OperationStatus({ row }: { row: CopyProgressRow; }) {
-    if (row.status === "pending") {
-        return (
-            <span className="min-w-20 text-muted-foreground/50 inline-flex items-center gap-1 justify-end">
-                pending
-                <Loader2 className="size-3.5 animate-spin" />
-            </span>
-        );
-    }
-
-    if (row.status === "renamed") {
-        return (
-            <span className="min-w-20 text-amber-600 dark:text-amber-400 inline-flex items-center gap-1 justify-end">
-                renamed
-                <Loader2 className="size-3.5 animate-spin" />
-            </span>
-        );
-    }
-
-    if (row.status === "skipped") {
-        return (
-            <span className="min-w-20 text-orange-500/75 dark:text-yellow-400/50 inline-flex items-center gap-1 justify-end">
-                identical
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <button type="button" className="inline-flex" aria-label="Skip reason">
-                                <Check className="size-3.5" />
-                            </button>
-                        </TooltipTrigger>
-
-                        <TooltipContent side="left" className="max-w-80">
-                            {row.error || SKIPPED_REASON}
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            </span>
-        );
-    }
-
-    if (row.status === "copied") {
-        return (
-            <span className={cn("min-w-20 text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1 justify-end")}>
-                copied
-                <Check className="size-3.5" />
-            </span>
-        );
-    }
-
-    return (
-        <span className="min-w-20 text-destructive inline-flex items-center gap-1 justify-end">
-            failed
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <button type="button" className="inline-flex" aria-label="Failure details">
-                            <AlertCircle className="size-3.5" />
-                        </button>
-                    </TooltipTrigger>
-
-                    <TooltipContent side="left" className="max-w-80">
-                        <div className="space-y-1">
-                            <div>{row.error || "Unknown error"}</div>
-                            {row.lockingProcesses && row.lockingProcesses.length > 0 && (
-                                <div className="space-y-0.5">
-                                    <div className="text-muted-foreground">In use by:</div>
-                                    {row.lockingProcesses.map(
-                                        (proc) => (
-                                            <div key={`${proc.pid}-${proc.name}`} className="tabular-nums">
-                                                {proc.name} (PID {proc.pid})
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-        </span>
-    );
-}
-
 const NEAR_BOTTOM_PX = 48;
-
-const SKIPPED_REASON =
-    "Destination already exists with the same size and modification time as the source.";
