@@ -6,6 +6,7 @@ import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { DelayedRunningIndicator } from "../../a-shared/delayed-running-indicator";
 import { type CopyJobReport, type CopyProgressRow, clearCopyReportMessages, copyReportStore } from "../a-atoms/2-run-copy";
 import { itemLabel, sourceFileBaseName } from "../a-atoms/9-types-copy";
 
@@ -86,12 +87,7 @@ function JobGroupHeader({ job }: { job: CopyJobReport; }) {
                     {job.label}
                 </span>
 
-                {job.running && (
-                    <span className="shrink-0 text-muted-foreground inline-flex items-center gap-1">
-                        <Loader2 className="size-3 animate-spin" />
-                        running
-                    </span>
-                )}
+                <DelayedRunningIndicator running={job.running} />
             </header>
 
             {job.setupError && (
