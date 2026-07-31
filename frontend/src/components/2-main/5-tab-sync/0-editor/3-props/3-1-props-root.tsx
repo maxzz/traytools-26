@@ -1,15 +1,24 @@
 import { type ReactNode } from "react";
+import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
 import { FileIcon, Folder } from "lucide-react";
+import { type SyncGroup } from "../../a-atoms/9-types-sync";
+import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
+import { QuickAccessList } from "./3-4-quick-list";
 
 export function PropsFor_Root() {
-    return (
+    const { config } = useSnapshot(syncEditorStore, { sync: true });
+    const groups = config.groups as SyncGroup[];
+
+    return (<>
         <p className="text-muted-foreground">
             Root of the sync operations tree. Add groups here. Groups can contain sync items
             (folder pairs) and nested groups in one ordered list. Groups and items can be
             reordered by drag-and-drop. This node cannot be moved or deleted.
         </p>
-    );
+
+        <QuickAccessList nodes={groups} />
+    </>);
 }
 
 export function LabelAndField({ label, children }: { label: string; children: ReactNode; }) {

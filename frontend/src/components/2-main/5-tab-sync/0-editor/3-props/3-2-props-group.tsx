@@ -3,6 +3,7 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { type SyncGroup } from "../../a-atoms/9-types-sync";
 import { patchSelectedGroup } from "../../a-atoms/use-selected-node";
 import { Field_TypeIcon, LabelAndField } from "./3-1-props-root";
+import { QuickAccessList } from "./3-4-quick-list";
 
 export function PropsFor_Group({ group }: { group: SyncGroup; }) {
     return (<>
@@ -16,5 +17,7 @@ export function PropsFor_Group({ group }: { group: SyncGroup; }) {
                 {...turnOffAutoComplete}
             />
         </LabelAndField>
+
+        <QuickAccessList nodes={[group]} />
     </>);
 }

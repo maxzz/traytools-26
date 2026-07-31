@@ -1,0 +1,252 @@
+import { type ReactNode } from "react";
+import { ArrowLeft, ArrowRight, Check, FileIcon, Folder, ListTree } from "lucide-react";
+import { Button } from "@/ui/shadcn/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import {
+    type SyncNode,
+    type SyncOpItem,
+    findByUid,
+    isSyncGroup,
+    itemLabel,
+} from "../../a-atoms/9-types-sync";
+import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
+import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
+
+const CHILD_INDENT = 16;
+const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
+const actionButtonClass =
+    "size-4.5 p-0 font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
+
+export function QuickAccessList({ nodes }: { nodes: readonly SyncNode[]; }) {
+    if (nodes.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="">
+            <div className={labelClasses}>
+                Quick actions list
+            </div>
+            <div className="p-2 border rounded flex flex-col gap-1.5">
+                <QuickAccessItems nodes={nodes} depth={0} />
+            </div>
+        </div>
+    );
+}
+
+function QuickAccessItems({ nodes, depth }: { nodes: readonly SyncNode[]; depth: number; }) {
+    if (nodes.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="flex flex-col gap-1">
+            {nodes.map(
+                (node) => (
+                    <QuickAccessItem
+                        key={node.uid ?? (isSyncGroup(node) ? node.name : itemLabel(node))}
+                        node={node}
+                        depth={depth}
+                    />
+                )
+            )}
+        </div>
+    );
+}
+
+function QuickAccessItem({ node, depth }: { node: SyncNode; depth: number; }) {
+    const indentStyle = { paddingLeft: depth * CHILD_INDENT };
+
+    if (isSyncGroup(node)) {
+        return (
+            <div className="select-none flex flex-col gap-0.5 cursor-default">
+                <div
+                    className="pr-1 h-4.5 pb-0.5 flex items-center gap-x-1.5"
+                    style={indentStyle}
+                >
+                    <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
+                    <span className="text-[0.65rem] truncate">
+                        {node.name || <span className="text-muted-foreground italic">(unnamed)</span>}
+                    </span>
+                </div>
+                <QuickAccessItems nodes={node.items} depth={depth + 1} />
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className="pr-1 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 select-none flex items-center justify-between gap-1"
+            style={indentStyle}
+        >
+            <div className="min-w-0 flex items-center gap-x-0.5">
+                <FileIcon className="shrink-0 size-3.5 text-foreground/70" />
+                <span data-qa-name className="text-[0.75rem] transition-colors truncate">
+                    {itemLabel(node) || <span className="text-muted-foreground italic">(unnamed)</span>}
+                </span>
+            </div>
+            <QuickAccessItemActions item={node} />
+        </div>
+    );
+}
+
+function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
+    const canRun = !!(item.sourceFolder.trim() && item.destFolder.trim());
+    const uid = item.uid;
+
+    return (
+        <TooltipProvider>
+            <div className="shrink-0 flex items-center gap-0.5">
+                <ActionIconButton
+                    icon={<ArrowRight className="size-3" />}
+                    disabled={!canRun || !uid}
+                    ariaLabel="Sync source into destination"
+                    tooltip={(
+                        <ActionTooltipBody
+                            operation="Sync →"
+                            direction="Source → Destination"
+                            from={item.sourceFolder}
+                            to={item.destFolder}
+                        />
+                    )}
+                    onClick={() => runLiveSync(uid, "forward")}
+                />
+                <ActionIconButton
+                    icon={<ArrowLeft className="size-3" />}
+                    disabled={!canRun || !uid}
+                    ariaLabel="Sync destination into source"
+                    tooltip={(
+                        <ActionTooltipBody
+                            operation="Sync ←"
+                            direction="Destination → Source"
+                            from={item.destFolder}
+                            to={item.sourceFolder}
+                        />
+                    )}
+                    onClick={() => runLiveSync(uid, "reverse")}
+                />
+                <ActionIconButton
+                    icon={<Check className="size-3" />}
+                    disabled={!canRun || !uid}
+                    ariaLabel="Check folders"
+                    tooltip={(
+                        <ActionTooltipBody
+                            operation="Check"
+                            direction="Compare folders"
+                            from={item.sourceFolder}
+                            to={item.destFolder}
+                        />
+                    )}
+                    onClick={() => runLiveCheck(uid)}
+                />
+                <ActionIconButton
+                    icon={<ListTree className="size-3" />}
+                    disabled={!canRun || !uid}
+                    ariaLabel="Check Details"
+                    tooltip={(
+                        <ActionTooltipBody
+                            operation="Check Details"
+                            direction="Compare folders (detailed)"
+                            from={item.sourceFolder}
+                            to={item.destFolder}
+                        />
+                    )}
+                    onClick={() => runLiveCheckDetails(uid)}
+                />
+            </div>
+        </TooltipProvider>
+    );
+}
+
+function ActionIconButton({
+    icon,
+    disabled,
+    ariaLabel,
+    tooltip,
+    onClick,
+}: {
+    icon: ReactNode;
+    disabled: boolean;
+    ariaLabel: string;
+    tooltip: ReactNode;
+    onClick: () => void;
+}) {
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                {/* Span keeps hover/focus when the button is disabled (pointer-events: none). */}
+                <span className="inline-flex">
+                    <Button
+                        className={actionButtonClass}
+                        variant="secondary"
+                        size="icon-xs"
+                        type="button"
+                        disabled={disabled}
+                        aria-label={ariaLabel}
+                        onClick={onClick}
+                    >
+                        {icon}
+                    </Button>
+                </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-80">
+                {tooltip}
+            </TooltipContent>
+        </Tooltip>
+    );
+}
+
+function ActionTooltipBody({
+    operation,
+    direction,
+    from,
+    to,
+}: {
+    operation: string;
+    direction: string;
+    from: string;
+    to: string;
+}) {
+    return (
+        <div className="text-xs grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
+            <span className="font-semibold whitespace-nowrap">Operation</span>
+            <span>{operation}</span>
+            <span className="font-semibold whitespace-nowrap">Direction</span>
+            <span>{direction}</span>
+            <span className="font-semibold whitespace-nowrap">Source</span>
+            <span className="break-all">{from.trim() || "—"}</span>
+            <span className="font-semibold whitespace-nowrap">Target</span>
+            <span className="break-all">{to.trim() || "—"}</span>
+        </div>
+    );
+}
+
+function runLiveSync(uid: string | undefined, direction: "forward" | "reverse") {
+    if (!uid) {
+        return;
+    }
+    const loc = findByUid(syncEditorStore.config, uid);
+    if (loc?.kind === "item") {
+        runSyncItem(loc.item, direction);
+    }
+}
+
+function runLiveCheck(uid: string | undefined) {
+    if (!uid) {
+        return;
+    }
+    const loc = findByUid(syncEditorStore.config, uid);
+    if (loc?.kind === "item") {
+        runCheckItem(loc.item);
+    }
+}
+
+function runLiveCheckDetails(uid: string | undefined) {
+    if (!uid) {
+        return;
+    }
+    const loc = findByUid(syncEditorStore.config, uid);
+    if (loc?.kind === "item") {
+        runCheckDetails(loc.item);
+    }
+}
