@@ -21,17 +21,22 @@ export function OperationStatus({ row }: { row: CopyProgressRow; }) {
         },
         [status]);
 
+    const pendingHidden = status === "pending" && !pendingVisible;
+
     return (
-        <span className="min-w-20 relative inline-flex items-center justify-end">
-            <AnimatePresence mode="popLayout" initial={false}>
+        <span className="min-w-20 inline-grid justify-items-end overflow-x-clip">
+            <AnimatePresence initial={false}>
                 <motion.span
                     key={status}
-                    className={classNames("inline-flex items-center gap-1 justify-end", statusToneClass[status],)}
-                    initial={{ opacity: 0, y: 3 }}
-                    animate={{ opacity: status === "pending" && !pendingVisible ? 0 : 1, y: 0, }}
-                    exit={{ opacity: 0, y: -3 }}
-                    transition={{ duration: 0.18, ease: "easeInOut" }}
-                    aria-hidden={status === "pending" && !pendingVisible}
+                    className={classNames(
+                        "col-start-1 row-start-1 inline-flex items-center gap-1 justify-end",
+                        statusToneClass[status],
+                    )}
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: pendingHidden ? 0 : 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                    transition={{ duration: 0.22, ease: "easeInOut" }}
+                    aria-hidden={pendingHidden}
                 >
                     <StatusContent row={row} />
                 </motion.span>
