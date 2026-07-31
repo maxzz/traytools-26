@@ -17,37 +17,10 @@ import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-
 import { Field_TypeIcon, LabelAndField } from "./3-1-props-root";
 
 export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; }) {
-    const canRun = !!(item.sourceFolder.trim() && item.destFolder.trim());
-
     return (<>
         <div className="flex items-center justify-between gap-2">
             <Field_TypeIcon kind="item" />
-            <div className="flex flex-wrap items-center justify-end gap-1.5">
-                <SyncActionButton
-                    label="Sync →"
-                    disabled={!canRun}
-                    title={syncDirectionName(item, "forward") || "Sync source folder into destination"}
-                    onClick={() => syncLiveItem(item.uid, "forward")}
-                />
-                <SyncActionButton
-                    label="Sync ←"
-                    disabled={!canRun}
-                    title={syncDirectionName(item, "reverse") || "Sync destination folder into source"}
-                    onClick={() => syncLiveItem(item.uid, "reverse")}
-                />
-                <SyncActionButton
-                    label="Check"
-                    disabled={!canRun}
-                    title="Compare folders and show a short summary"
-                    onClick={() => checkLiveItem(item.uid)}
-                />
-                <SyncActionButton
-                    label="Check Details"
-                    disabled={!canRun}
-                    title="Compare folders and show the CLI-style difference tree"
-                    onClick={() => checkDetailsLiveItem(item.uid)}
-                />
-            </div>
+            <ItemActionButtons item={item} />
         </div>
 
         <LabelAndField label="Source folder">
@@ -86,34 +59,48 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
     </>);
 }
 
-function syncLiveItem(uid: string | undefined, direction: "forward" | "reverse") {
-    if (!uid) {
-        return;
-    }
-    const loc = findByUid(syncEditorStore.config, uid);
-    if (loc?.kind === "item") {
-        runSyncItem(loc.item, direction);
-    }
-}
+function ItemActionButtons({ item }: { item: SyncOpItem; }) {
+    const canRun = !!(item.sourceFolder.trim() && item.destFolder.trim());
+    const uid = item.uid;
 
-function checkLiveItem(uid: string | undefined) {
-    if (!uid) {
-        return;
+    function withLiveItem(run: (live: SyncOpItem) => void) {
+        if (!uid) {
+            return;
+        }
+        const loc = findByUid(syncEditorStore.config, uid);
+        if (loc?.kind === "item") {
+            run(loc.item);
+        }
     }
-    const loc = findByUid(syncEditorStore.config, uid);
-    if (loc?.kind === "item") {
-        runCheckItem(loc.item);
-    }
-}
 
-function checkDetailsLiveItem(uid: string | undefined) {
-    if (!uid) {
-        return;
-    }
-    const loc = findByUid(syncEditorStore.config, uid);
-    if (loc?.kind === "item") {
-        runCheckDetails(loc.item);
-    }
+    return (
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+            <SyncActionButton
+                label="Sync →"
+                disabled={!canRun}
+                title={syncDirectionName(item, "forward") || "Sync source folder into destination"}
+                onClick={() => withLiveItem((live) => runSyncItem(live, "forward"))}
+            />
+            <SyncActionButton
+                label="Sync ←"
+                disabled={!canRun}
+                title={syncDirectionName(item, "reverse") || "Sync destination folder into source"}
+                onClick={() => withLiveItem((live) => runSyncItem(live, "reverse"))}
+            />
+            <SyncActionButton
+                label="Check"
+                disabled={!canRun}
+                title="Compare folders and show a short summary"
+                onClick={() => withLiveItem(runCheckItem)}
+            />
+            <SyncActionButton
+                label="Check Details"
+                disabled={!canRun}
+                title="Compare folders and show the CLI-style difference tree"
+                onClick={() => withLiveItem(runCheckDetails)}
+            />
+        </div>
+    );
 }
 
 function SyncActionButton({ label, disabled, title, onClick }: { label: string; disabled: boolean; title?: string; onClick: () => void; }) {
@@ -162,17 +149,7 @@ function OperationNameField({ item }: { item: SyncOpItem; }) {
     );
 }
 
-function DirectionNameField({
-    item,
-    field,
-    label,
-    placeholder,
-}: {
-    item: SyncOpItem;
-    field: "forwardName" | "reverseName";
-    label: string;
-    placeholder: string;
-}) {
+function DirectionNameField({ item, field, label, placeholder }: { item: SyncOpItem; field: "forwardName" | "reverseName"; label: string; placeholder: string; }) {
     const value = item[field] ?? "";
 
     return (
