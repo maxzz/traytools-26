@@ -1,5 +1,6 @@
 import { Input } from "@/ui/shadcn/input";
 import { Button } from "@/ui/shadcn/button";
+import { CollapsibleOptionalField } from "@/ui/local-ui";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { syncOpsBus } from "@/bridge";
@@ -172,11 +173,13 @@ function DirectionNameField({
     label: string;
     placeholder: string;
 }) {
+    const value = item[field] ?? "";
+
     return (
-        <LabelAndField label={label}>
+        <CollapsibleOptionalField label={label} value={value}>
             <Input
                 className="h-7"
-                value={item[field] ?? ""}
+                value={value}
                 onChange={(e) => {
                     const next = e.target.value;
                     patchSelectedItem((it) => {
@@ -197,6 +200,6 @@ function DirectionNameField({
                 placeholder={placeholder}
                 {...turnOffAutoComplete}
             />
-        </LabelAndField>
+        </CollapsibleOptionalField>
     );
 }

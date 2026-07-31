@@ -4,21 +4,11 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
+import { CollapsibleOptionalField } from "@/ui/local-ui";
 import { PathInput, isProbablyURL } from "@/components/2-main/a-shared/path-input";
-import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
-import { effectiveRunElevated } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
-import {
-    type NodeProps,
-    CollapsibleOptionalField,
-    ExecuteCommandButton,
-    Field_Comment,
-    Field_HotKey,
-    Field_MenuName,
-    Field_TypeIcon,
-    InfoTooltip,
-    LabelAndField,
-    labelClasses,
-} from "./3-4-props-shared-ui";
+import { patchSelectedNode } from "../a-atoms/use-selected-node";
+import { effectiveRunElevated } from "../a-atoms/9-types-menu";
+import { type NodeProps, ExecuteCommandButton, Field_Comment, Field_HotKey, Field_MenuName, Field_TypeIcon, InfoTooltip, LabelAndField, labelClasses } from "./3-4-props-shared-ui";
 
 export function PropsFor_Command({ node }: NodeProps) {
     return (<>
