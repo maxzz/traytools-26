@@ -28,10 +28,7 @@ export function OperationStatus({ row }: { row: CopyProgressRow; }) {
             <AnimatePresence initial={false}>
                 <motion.span
                     key={status}
-                    className={classNames(
-                        "col-start-1 row-start-1 inline-flex items-center gap-1 justify-end",
-                        statusToneClass[status],
-                    )}
+                    className={classNames("col-start-1 row-start-1 inline-flex items-center gap-1 justify-end", statusToneClass[status])}
                     initial={{ opacity: 0, x: 16 }}
                     animate={{ opacity: pendingHidden ? 0 : 1, x: 0 }}
                     exit={{ opacity: 0, x: -16 }}
