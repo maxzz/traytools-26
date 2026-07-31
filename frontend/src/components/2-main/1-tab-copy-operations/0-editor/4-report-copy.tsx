@@ -107,10 +107,7 @@ function JobGroupHeader({ job }: { job: CopyJobReport; }) {
                                 (proc) => (
                                     <Fragment key={`${proc.pid}-${proc.name}`}>
                                         <span aria-hidden className="min-w-20" />
-                                        <span
-                                            className="pl-1 text-muted-foreground truncate col-span-2"
-                                            title={`${proc.name} (PID ${proc.pid})`}
-                                        >
+                                        <span className="pl-1 text-muted-foreground truncate col-span-2" title={`${proc.name} (PID ${proc.pid})`}>
                                             {proc.name}
                                             {" "}
                                             <span className="tabular-nums">(PID {proc.pid})</span>

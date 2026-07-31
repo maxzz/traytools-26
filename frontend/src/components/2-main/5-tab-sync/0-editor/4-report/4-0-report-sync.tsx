@@ -1,5 +1,6 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSnapshot } from "valtio";
+import { AnimatePresence, motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { IconTrash24 } from "@/ui/icons/normal";
 import { Button } from "@/ui/shadcn/button";
@@ -83,12 +84,7 @@ function JobBlock({ job }: { job: SyncJobReport; }) {
                     {job.label}
                 </span>
 
-                {job.running && (
-                    <span className="shrink-0 text-muted-foreground inline-flex items-center gap-1">
-                        <Loader2 className="size-3 animate-spin" />
-                        running
-                    </span>
-                )}
+                <DelayedRunningIndicator running={job.running} />
             </header>
 
             {job.setupError && (
@@ -119,6 +115,41 @@ function JobBlock({ job }: { job: SyncJobReport; }) {
 }
 
 const NEAR_BOTTOM_PX = 48;
+const RUNNING_INDICATOR_DELAY_MS = 2000;
+
+/** Shows only after a delay so short-lived jobs never flash "running". */
+function DelayedRunningIndicator({ running }: { running: boolean; }) {
+    const [show, setShow] = useState(false);
+
+    useEffect(
+        () => {
+            if (!running) {
+                setShow(false);
+                return;
+            }
+            const id = setTimeout(() => setShow(true), RUNNING_INDICATOR_DELAY_MS);
+            return () => clearTimeout(id);
+        },
+        [running]
+    );
+
+    return (
+        <AnimatePresence initial={false}>
+            {show && (
+                <motion.span
+                    className="shrink-0 text-muted-foreground inline-flex items-center gap-1 overflow-hidden"
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                >
+                    <Loader2 className="size-3 animate-spin" />
+                    running
+                </motion.span>
+            )}
+        </AnimatePresence>
+    );
+}
 
 function formatJobTime(startedAt: number): string {
     return new Date(startedAt).toLocaleTimeString(undefined, {
