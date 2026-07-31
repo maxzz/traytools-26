@@ -148,7 +148,7 @@ function ReportRow({ row }: { row: CopyProgressRow; }) {
 function OperationStatus({ row }: { row: CopyProgressRow; }) {
     if (row.status === "pending") {
         return (
-            <span className="min-w-20 text-sky-600 dark:text-sky-400 inline-flex items-center gap-1 justify-end">
+            <span className="min-w-20 text-muted-foreground/50 inline-flex items-center gap-1 justify-end">
                 pending
                 <Loader2 className="size-3.5 animate-spin" />
             </span>
