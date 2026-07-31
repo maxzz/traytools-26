@@ -8,7 +8,7 @@ import { Panel_Tree } from "./2-tree/2-0-panel-tree";
 import { Panel_Props } from "./3-props/3-0-panel-props";
 import { SyncOperationsToolbar } from "./1-1-sync-toolbar";
 import { TreeViewMenu } from "./2-tree/2-1-tree-menu";
-import { SyncReportPanel } from "./4-report/4-0-sync-report-panel";
+import { SyncReportPanel } from "./4-report/4-0-report-sync";
 import { CheckDetailsDialog } from "./4-report/4-2-check-details-dialog";
 import { initPathDropListener } from "@/components/2-main/a-shared/path-input";
 import { SyncConfig_Load } from "../a-atoms/0-sync-local-storage";

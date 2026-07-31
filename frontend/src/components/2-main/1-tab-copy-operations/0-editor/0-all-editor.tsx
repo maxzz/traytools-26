@@ -8,7 +8,7 @@ import { Panel_Tree } from "./2-0-panel-tree";
 import { Panel_Props } from "./3-0-panel-props";
 import { CopyOperationsToolbar } from "./1-1-ops-toolbar";
 import { TreeViewMenu } from "./2-1-tree-menu";
-import { CopyReportPanel } from "./4-copy-report-panel";
+import { CopyReportPanel } from "./4-report-copy";
 import { initPathDropListener } from "@/components/2-main/a-shared/path-input";
 import { CopyConfig_Load } from "../a-atoms/0-copy-local-storage";
 

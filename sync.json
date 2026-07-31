@@ -7,8 +7,8 @@
                     "sourceFolder": "C:/Users/maxzz/Desktop/page-qa2-test",
                     "destFolder": "C:/Users/maxzz/Desktop/org page-qa2-test",
                     "name": "page-qa2-test 2",
-                    "forwardName": "Backup page-qa2-test",
-                    "reverseName": "Restore page-qa2-test"
+                    "forwardName": "org to test",
+                    "reverseName": "test to org"
                 },
                 {
                     "sourceFolder": "C:/Users/maxzz/Desktop/page-qa2-test",
