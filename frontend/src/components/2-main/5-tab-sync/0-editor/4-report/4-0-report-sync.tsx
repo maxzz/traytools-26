@@ -4,6 +4,7 @@ import { IconTrash24 } from "@/ui/icons/normal";
 import { Button } from "@/ui/shadcn/button";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { DelayedRunningIndicator } from "../../../a-shared/delayed-running-indicator";
+import { formatJobTime } from "../../../a-shared/format-job-time";
 import { type SyncJobReport, clearSyncReportMessages, syncReportStore } from "../../a-atoms/2-run-sync";
 import { CheckDetailsTree } from "./4-1-check-details-tree";
 
@@ -94,14 +95,18 @@ function JobBlock({ job }: { job: SyncJobReport; }) {
                 <div className="text-xs text-muted-foreground space-y-0.5">
                     {job.messages.map(
                         (msg, i) => (
-                            <div key={i} className="truncate" title={msg}>{msg}</div>
+                            <div key={i} className="truncate" title={msg}>
+                                {msg}
+                            </div>
                         )
                     )}
                 </div>
             )}
 
             {job.summary && (
-                <p className="text-xs">{job.summary}</p>
+                <p className="text-xs">
+                    {job.summary}
+                </p>
             )}
 
             {job.kind === "check-details" && job.checkDetails && (
@@ -114,11 +119,3 @@ function JobBlock({ job }: { job: SyncJobReport; }) {
 }
 
 const NEAR_BOTTOM_PX = 48;
-
-function formatJobTime(startedAt: number): string {
-    return new Date(startedAt).toLocaleTimeString(undefined, {
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-    });
-}

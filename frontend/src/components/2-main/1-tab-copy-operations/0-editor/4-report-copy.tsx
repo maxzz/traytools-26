@@ -7,6 +7,7 @@ import { Button } from "@/ui/shadcn/button";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { DelayedRunningIndicator } from "../../a-shared/delayed-running-indicator";
+import { formatJobTime } from "../../a-shared/format-job-time";
 import { type CopyJobReport, type CopyProgressRow, clearCopyReportMessages, copyReportStore } from "../a-atoms/2-run-copy";
 import { itemLabel, sourceFileBaseName } from "../a-atoms/9-types-copy";
 
@@ -166,12 +167,12 @@ function OperationStatus({ row }: { row: CopyProgressRow; }) {
     if (row.status === "skipped") {
         return (
             <span className="min-w-20 text-orange-500/75 dark:text-yellow-400/50 inline-flex items-center gap-1 justify-end">
-                skipped
+                identical
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button type="button" className="inline-flex" aria-label="Skip reason">
-                                <Info className="size-3.5" />
+                                <Check className="size-3.5" />
                             </button>
                         </TooltipTrigger>
 
@@ -231,11 +232,3 @@ const NEAR_BOTTOM_PX = 48;
 
 const SKIPPED_REASON =
     "Destination already exists with the same size and modification time as the source.";
-
-function formatJobTime(startedAt: number): string {
-    return new Date(startedAt).toLocaleTimeString(undefined, {
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-    });
-}
