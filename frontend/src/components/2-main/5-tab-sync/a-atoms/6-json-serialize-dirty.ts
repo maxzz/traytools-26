@@ -24,7 +24,18 @@ function jsonReplacer(this: SyncGroup | SyncOpItem, key: string, value: unknown)
         }
         return custom;
     }
-    if (key === "sourceFolder" || key === "destFolder" || key === "name") {
+    // Direction-specific tooltip names: omit when empty.
+    if ((key === "forwardName" || key === "reverseName") && isSyncOpItem(this as SyncNode)) {
+        const custom = typeof value === "string" ? value.trim() : "";
+        return custom || undefined;
+    }
+    if (
+        key === "sourceFolder"
+        || key === "destFolder"
+        || key === "name"
+        || key === "forwardName"
+        || key === "reverseName"
+    ) {
         return typeof value === "string" ? value : value;
     }
     return value;
@@ -105,9 +116,20 @@ function normalizeItem(raw: object): SyncOpItem {
     } else {
         delete item.name;
     }
+    normalizeOptionalName(item, "forwardName");
+    normalizeOptionalName(item, "reverseName");
     // Items must not carry a nested items array.
     if ("items" in item) {
         delete (item as { items?: unknown; }).items;
     }
     return item;
+}
+
+function normalizeOptionalName(item: SyncOpItem, key: "forwardName" | "reverseName"): void {
+    const value = typeof item[key] === "string" ? item[key]!.trim() : "";
+    if (value) {
+        item[key] = value;
+    } else {
+        delete item[key];
+    }
 }

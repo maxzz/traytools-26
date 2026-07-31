@@ -8,6 +8,7 @@ import {
     findByUid,
     isSyncGroup,
     itemLabel,
+    syncDirectionName,
 } from "../../a-atoms/9-types-sync";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
@@ -100,10 +101,10 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
                 <ActionIconButton
                     icon={<ArrowRight className="size-3" />}
                     disabled={!canRun || !uid}
-                    ariaLabel="Sync source into destination"
+                    ariaLabel={syncDirectionName(item, "forward") || "Sync source into destination"}
                     tooltip={(
                         <ActionTooltipBody
-                            operation="Sync →"
+                            operation={syncDirectionName(item, "forward") || "Sync →"}
                             direction="Source → Destination"
                             from={item.sourceFolder}
                             to={item.destFolder}
@@ -114,10 +115,10 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
                 <ActionIconButton
                     icon={<ArrowLeft className="size-3" />}
                     disabled={!canRun || !uid}
-                    ariaLabel="Sync destination into source"
+                    ariaLabel={syncDirectionName(item, "reverse") || "Sync destination into source"}
                     tooltip={(
                         <ActionTooltipBody
-                            operation="Sync ←"
+                            operation={syncDirectionName(item, "reverse") || "Sync ←"}
                             direction="Destination → Source"
                             from={item.destFolder}
                             to={item.sourceFolder}

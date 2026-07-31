@@ -3,7 +3,13 @@ import { Button } from "@/ui/shadcn/button";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { syncOpsBus } from "@/bridge";
-import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName } from "../../a-atoms/9-types-sync";
+import {
+    type SyncGroup,
+    type SyncOpItem,
+    findByUid,
+    folderBaseName,
+    syncDirectionName,
+} from "../../a-atoms/9-types-sync";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
@@ -19,13 +25,13 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
                 <SyncActionButton
                     label="Sync →"
                     disabled={!canRun}
-                    title="Sync source folder into destination"
+                    title={syncDirectionName(item, "forward") || "Sync source folder into destination"}
                     onClick={() => syncLiveItem(item.uid, "forward")}
                 />
                 <SyncActionButton
                     label="Sync ←"
                     disabled={!canRun}
-                    title="Sync destination folder into source"
+                    title={syncDirectionName(item, "reverse") || "Sync destination folder into source"}
                     onClick={() => syncLiveItem(item.uid, "reverse")}
                 />
                 <SyncActionButton
@@ -64,6 +70,18 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
         </LabelAndField>
 
         <OperationNameField item={item} />
+        <DirectionNameField
+            item={item}
+            field="forwardName"
+            label="Sync → name"
+            placeholder="Optional name for source → destination"
+        />
+        <DirectionNameField
+            item={item}
+            field="reverseName"
+            label="Sync ← name"
+            placeholder="Optional name for destination → source"
+        />
     </>);
 }
 
@@ -137,6 +155,46 @@ function OperationNameField({ item }: { item: SyncOpItem; }) {
                     }
                 }}
                 placeholder={baseName || "Operation name"}
+                {...turnOffAutoComplete}
+            />
+        </LabelAndField>
+    );
+}
+
+function DirectionNameField({
+    item,
+    field,
+    label,
+    placeholder,
+}: {
+    item: SyncOpItem;
+    field: "forwardName" | "reverseName";
+    label: string;
+    placeholder: string;
+}) {
+    return (
+        <LabelAndField label={label}>
+            <Input
+                className="h-7"
+                value={item[field] ?? ""}
+                onChange={(e) => {
+                    const next = e.target.value;
+                    patchSelectedItem((it) => {
+                        if (next.trim()) {
+                            it[field] = next;
+                        } else {
+                            delete it[field];
+                        }
+                    });
+                }}
+                onBlur={() => {
+                    if (!item[field]?.trim()) {
+                        patchSelectedItem((it) => { delete it[field]; });
+                    } else {
+                        patchSelectedItem((it) => { it[field] = it[field]!.trim(); });
+                    }
+                }}
+                placeholder={placeholder}
                 {...turnOffAutoComplete}
             />
         </LabelAndField>

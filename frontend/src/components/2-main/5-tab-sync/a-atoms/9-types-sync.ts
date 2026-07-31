@@ -7,6 +7,10 @@ export type SyncOpItem = {
     destFolder: string;
     /** Display name; omitted from sync.json when empty or equal to the source basename. */
     name?: string;
+    /** Optional tooltip label for Sync → (source → destination). Omitted from sync.json when empty. */
+    forwardName?: string;
+    /** Optional tooltip label for Sync ← (destination → source). Omitted from sync.json when empty. */
+    reverseName?: string;
     // Runtime-only identity for selection / DnD; stripped on serialize.
     uid?: string;
 };
@@ -380,4 +384,13 @@ export function itemLabel(item: Pick<SyncOpItem, "sourceFolder" | "name">): stri
         return custom;
     }
     return folderBaseName(item.sourceFolder) || "(no source)";
+}
+
+/** Custom Sync → / Sync ← tooltip name when set; otherwise undefined. */
+export function syncDirectionName(
+    item: Pick<SyncOpItem, "forwardName" | "reverseName">,
+    direction: "forward" | "reverse",
+): string | undefined {
+    const custom = (direction === "forward" ? item.forwardName : item.reverseName)?.trim();
+    return custom || undefined;
 }

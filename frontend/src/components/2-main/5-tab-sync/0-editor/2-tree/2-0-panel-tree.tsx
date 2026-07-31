@@ -23,6 +23,8 @@ type SnapItem = {
     readonly sourceFolder: string;
     readonly destFolder: string;
     readonly name?: string;
+    readonly forwardName?: string;
+    readonly reverseName?: string;
     readonly uid?: string;
 };
 
