@@ -1,7 +1,7 @@
 import { Input } from "@/ui/shadcn/input";
 import { Button } from "@/ui/shadcn/button";
-import { CollapsibleOptionalField } from "@/ui/local-ui";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
+import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { syncOpsBus } from "@/bridge";
 import {

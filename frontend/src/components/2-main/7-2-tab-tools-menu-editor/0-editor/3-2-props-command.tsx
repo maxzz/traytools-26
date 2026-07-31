@@ -4,7 +4,7 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
-import { CollapsibleOptionalField } from "@/ui/local-ui";
+import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
 import { PathInput, isProbablyURL } from "@/components/2-main/a-shared/path-input";
 import { patchSelectedNode } from "../a-atoms/use-selected-node";
 import { effectiveRunElevated } from "../a-atoms/9-types-menu";

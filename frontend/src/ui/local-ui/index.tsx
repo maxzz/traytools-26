@@ -11,5 +11,3 @@ export * from "./4-bars-loader";
 
 export * from "./9-hotkey";
 
-export * from "./10-collapsible-optional-field";
-
