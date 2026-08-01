@@ -58,6 +58,8 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
 function ItemActionButtons({ item }: { item: SyncOpItem; }) {
     const canRun = !!(item.sourceFolder.trim() && item.destFolder.trim());
     const uid = item.uid;
+    const forwardName = syncDirectionName(item, "forward");
+    const reverseName = syncDirectionName(item, "reverse");
 
     function withLiveItem(run: (live: SyncOpItem) => void) {
         if (!uid) {
@@ -72,15 +74,15 @@ function ItemActionButtons({ item }: { item: SyncOpItem; }) {
     return (
         <div className="flex flex-wrap items-center justify-end gap-1.5">
             <SyncActionButton
-                label="Sync →"
+                label={forwardName || "Sync →"}
                 disabled={!canRun}
-                title={syncDirectionName(item, "forward") || "Sync source folder into destination"}
+                title="Sync source folder into destination"
                 onClick={() => withLiveItem((live) => runSyncItem(live, "forward"))}
             />
             <SyncActionButton
-                label="Sync ←"
+                label={reverseName || "Sync ←"}
                 disabled={!canRun}
-                title={syncDirectionName(item, "reverse") || "Sync destination folder into source"}
+                title="Sync destination folder into source"
                 onClick={() => withLiveItem((live) => runSyncItem(live, "reverse"))}
             />
             <SyncActionButton
