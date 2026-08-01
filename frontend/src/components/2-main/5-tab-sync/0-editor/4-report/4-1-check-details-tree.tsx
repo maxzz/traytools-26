@@ -128,22 +128,20 @@ function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, chi
 
     return (
         <div>
-            <div
-                className="relative px-1 h-5 rounded-none select-none flex items-center gap-1"
-                style={{ paddingLeft: (depth + 1) * INDENT + 8 }}
-            >
+            <div className="relative px-1 h-5 rounded-none select-none flex items-center gap-1" style={{ paddingLeft: (depth + 1) * INDENT + 8 }}>
                 <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={hasChildren} />
 
                 <button
-                    type="button"
                     className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center disabled:opacity-40"
-                    title={hasChildren ? (collapsed ? "Expand" : "Collapse") : undefined}
                     onClick={() => setCollapsed((v) => !v)}
+                    title={hasChildren ? (collapsed ? "Expand" : "Collapse") : undefined}
                     disabled={!hasChildren}
+                    type="button"
                 >
                     {hasChildren
                         ? (collapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />)
-                        : <span className="w-4 h-4" />}
+                        : <span className="w-4 h-4" />
+                    }
                 </button>
 
                 {collapsed || !hasChildren
@@ -169,10 +167,7 @@ function ChangeRow({ change, depth, isLast, ancestors }: { change: SyncChangeDTO
     const color = markerColorClass(marker);
 
     return (
-        <div
-            className="relative px-1 h-5 rounded-none select-none flex items-center gap-1"
-            style={{ paddingLeft: (depth + 1) * INDENT + 8 }}
-        >
+        <div className="relative px-1 h-5 rounded-none select-none flex items-center gap-1" style={{ paddingLeft: (depth + 1) * INDENT + 8 }}>
             <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={false} />
 
             <span className="shrink-0 relative w-4 h-4" />
@@ -195,9 +190,10 @@ function TreeGuides({ depth, isLast, ancestors, hasChildren }: { depth: number; 
 
     const x = guideX(depth);
     const toContent = INDENT - 8;
-    const tickWidth = hasChildren
-        ? toContent - TREE_LINE_CONTENT_GAP
-        : toContent + TREE_EXPANDER_SLOT - TREE_LINE_CONTENT_GAP;
+    const tickWidth =
+        hasChildren
+            ? toContent - TREE_LINE_CONTENT_GAP
+            : toContent + TREE_EXPANDER_SLOT - TREE_LINE_CONTENT_GAP;
 
     return (
         <div className="absolute inset-y-0 left-0 pointer-events-none">
@@ -207,36 +203,25 @@ function TreeGuides({ depth, isLast, ancestors, hasChildren }: { depth: number; 
                 ) : null
             )}
 
-            <div
-                className="absolute top-0 border-l border-foreground/40"
-                style={isLast ? { left: x, height: "50%" } : { left: x, bottom: 0 }}
-            />
-
-            <div
-                className="absolute top-1/2 border-t border-foreground/40"
-                style={{ left: x, width: Math.max(0, tickWidth), transform: "translateY(-1px)" }}
-            />
+            <div className="absolute top-0 border-l border-foreground/40" style={isLast ? { left: x, height: "50%" } : { left: x, bottom: 0 }} />
+            <div className="absolute top-1/2 border-t border-foreground/40" style={{ left: x, width: Math.max(0, tickWidth), transform: "translateY(-1px)" }} />
         </div>
     );
-}
-
-function guideX(depth: number): number {
-    return depth * INDENT + 16;
 }
 
 const INDENT = 16;
 const TREE_LINE_CONTENT_GAP = 4;
 const TREE_EXPANDER_SLOT = 16;
 
+function guideX(depth: number): number {
+    return depth * INDENT + 16;
+}
+
 function markerColorClass(marker: string): string {
     switch (marker) {
-        case "A":
-            return "text-emerald-600 dark:text-emerald-400";
-        case "M":
-            return "text-amber-600 dark:text-amber-400";
-        case "D":
-            return "text-red-600 dark:text-red-400";
-        default:
-            return "";
+        case "A": return "text-emerald-600 dark:text-emerald-400";
+        case "M": return "text-amber-600 dark:text-amber-400";
+        case "D": return "text-red-600 dark:text-red-400";
+        default: return "";
     }
 }
