@@ -82,7 +82,7 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
     const reverseName = syncDirectionName(item, "reverse");
 
     return (
-        <TooltipProvider>
+        <TooltipProvider delayDuration={1000}>
             <div className="shrink-0 flex items-center gap-x-1">
                 <ActionIconButton
                     icon={<ArrowRight className="size-3" />}
