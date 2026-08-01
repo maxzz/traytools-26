@@ -216,9 +216,13 @@ function guideX(depth: number): number {
 
 function markerColorClasses(marker: string): string {
     switch (marker) {
-        case "A": return "text-emerald-600 dark:text-emerald-400";
-        case "M": return "text-amber-600 dark:text-amber-400";
-        case "D": return "text-red-600 dark:text-red-400";
+        case "A": return markerAddClasses;
+        case "M": return markerModifyClasses;
+        case "D": return markerDeleteClasses;
         default: return "";
     }
 }
+
+const markerAddClasses = "text-emerald-600 dark:text-emerald-400";
+const markerModifyClasses = "text-amber-600 dark:text-amber-400";
+const markerDeleteClasses = "text-red-600 dark:text-red-400";
