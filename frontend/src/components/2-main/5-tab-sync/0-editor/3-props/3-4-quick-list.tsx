@@ -15,8 +15,10 @@ import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-
 
 const CHILD_INDENT = 16;
 const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
-const actionButtonClass =
-    "size-4.5 p-0 font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
+const actionButtonBaseClass =
+    "font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
+const actionIconButtonClass = `${actionButtonBaseClass} size-4.5 p-0`;
+const actionNamedButtonClass = `${actionButtonBaseClass} h-4.5 max-w-36 px-1.5 text-[0.65rem]`;
 
 export function QuickAccessList({ nodes }: { nodes: readonly SyncNode[]; }) {
     if (nodes.length === 0) {
@@ -94,17 +96,20 @@ function QuickAccessItem({ node, depth }: { node: SyncNode; depth: number; }) {
 function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
     const canRun = !!(item.sourceFolder.trim() && item.destFolder.trim());
     const uid = item.uid;
+    const forwardName = syncDirectionName(item, "forward");
+    const reverseName = syncDirectionName(item, "reverse");
 
     return (
         <TooltipProvider>
             <div className="shrink-0 flex items-center gap-0.5">
                 <ActionIconButton
                     icon={<ArrowRight className="size-3" />}
+                    label={forwardName}
                     disabled={!canRun || !uid}
-                    ariaLabel={syncDirectionName(item, "forward") || "Sync source into destination"}
+                    ariaLabel={forwardName || "Sync source into destination"}
                     tooltip={(
                         <ActionTooltipBody
-                            operation={syncDirectionName(item, "forward") || "Sync →"}
+                            operation={forwardName || "Sync →"}
                             direction="Source → Destination"
                             from={item.sourceFolder}
                             to={item.destFolder}
@@ -114,11 +119,12 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
                 />
                 <ActionIconButton
                     icon={<ArrowLeft className="size-3" />}
+                    label={reverseName}
                     disabled={!canRun || !uid}
-                    ariaLabel={syncDirectionName(item, "reverse") || "Sync destination into source"}
+                    ariaLabel={reverseName || "Sync destination into source"}
                     tooltip={(
                         <ActionTooltipBody
-                            operation={syncDirectionName(item, "reverse") || "Sync ←"}
+                            operation={reverseName || "Sync ←"}
                             direction="Destination → Source"
                             from={item.destFolder}
                             to={item.sourceFolder}
@@ -161,32 +167,36 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
 
 function ActionIconButton({
     icon,
+    label,
     disabled,
     ariaLabel,
     tooltip,
     onClick,
 }: {
     icon: ReactNode;
+    label?: string;
     disabled: boolean;
     ariaLabel: string;
     tooltip: ReactNode;
     onClick: () => void;
 }) {
+    const named = !!label;
+
     return (
         <Tooltip>
             <TooltipTrigger asChild>
                 {/* Span keeps hover/focus when the button is disabled (pointer-events: none). */}
-                <span className="inline-flex">
+                <span className="inline-flex min-w-0">
                     <Button
-                        className={actionButtonClass}
+                        className={named ? actionNamedButtonClass : actionIconButtonClass}
                         variant="secondary"
-                        size="icon-xs"
+                        size={named ? "xs" : "icon-xs"}
                         type="button"
                         disabled={disabled}
                         aria-label={ariaLabel}
                         onClick={onClick}
                     >
-                        {icon}
+                        {named ? <span className="truncate">{label}</span> : icon}
                     </Button>
                 </span>
             </TooltipTrigger>
