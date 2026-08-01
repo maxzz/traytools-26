@@ -75,17 +75,7 @@ export function SyncReportPanel() {
 function JobBlock({ job }: { job: SyncJobReport; }) {
     return (
         <section className="space-y-1.5">
-            <header className="text-xs flex items-baseline gap-2">
-                <span className="font-semibold tabular-nums">
-                    {formatJobTime(job.startedAt)}
-                </span>
-
-                <span className="text-muted-foreground truncate" title={job.label}>
-                    {job.label}
-                </span>
-
-                <DelayedRunningIndicator running={job.running} />
-            </header>
+            <JobHeader job={job} />
 
             {job.setupError && (
                 <p className="text-xs text-destructive">{job.setupError}</p>
@@ -115,6 +105,22 @@ function JobBlock({ job }: { job: SyncJobReport; }) {
                 </div>
             )}
         </section>
+    );
+}
+
+function JobHeader({ job }: { job: SyncJobReport; }) {
+    return (
+        <header className="text-xs flex items-baseline gap-2">
+            <span className="font-semibold tabular-nums">
+                {formatJobTime(job.startedAt)}
+            </span>
+
+            <span className="text-muted-foreground truncate" title={job.label}>
+                {job.label}
+            </span>
+
+            <DelayedRunningIndicator running={job.running} />
+        </header>
     );
 }
 
