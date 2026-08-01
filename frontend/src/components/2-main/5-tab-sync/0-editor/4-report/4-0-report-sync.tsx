@@ -101,13 +101,7 @@ function JobBlock({ job }: { job: SyncJobReport; }) {
                 </p>
             )}
 
-            {job.kind === "check-details" && job.checkDetails && (
-                <div className="pt-1">
-                    <div className="mb-1.5 text-xs text-sky-600 dark:text-cyan-400">Check</div>
-                    <CheckDetailsTree response={job.checkDetails} />
-                    <JobFooter response={job.checkDetails} />
-                </div>
-            )}
+            <JobDetails job={job} />
         </section>
     );
 }
@@ -125,6 +119,20 @@ function JobHeader({ job }: { job: SyncJobReport; }) {
 
             <DelayedRunningIndicator running={job.running} />
         </header>
+    );
+}
+
+function JobDetails({ job }: { job: SyncJobReport; }) {
+    if (job.kind !== "check-details" || !job.checkDetails) {
+        return null;
+    }
+
+    return (
+        <div className="pt-1">
+            <div className="mb-1.5 text-xs text-sky-600 dark:text-cyan-400">Check</div>
+            <CheckDetailsTree response={job.checkDetails} />
+            <JobFooter response={job.checkDetails} />
+        </div>
     );
 }
 

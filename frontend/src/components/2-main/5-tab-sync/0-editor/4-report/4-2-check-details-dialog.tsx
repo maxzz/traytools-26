@@ -25,8 +25,8 @@ export function CheckDetailsDialog() {
                     {payload && (
                         <>
                             <div className="mb-1.5 text-xs text-sky-600 dark:text-cyan-400">Check</div>
-                            <CheckDetailsTree response={payload.response} />
                             <JobFooter response={payload.response} />
+                            <CheckDetailsTree response={payload.response} />
                         </>
                     )}
                 </ScrollArea2>
