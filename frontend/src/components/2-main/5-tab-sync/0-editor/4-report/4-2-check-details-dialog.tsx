@@ -21,15 +21,21 @@ export function CheckDetailsDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
+                {payload && (
+                    <div className="px-4 pt-3 text-xs text-sky-600 dark:text-cyan-400">
+                        Check
+                    </div>
+                )}
+
                 <ScrollArea2 className="max-h-[min(70vh,32rem)] px-4 py-3">
-                    {payload && (
-                        <>
-                            <div className="mb-1.5 text-xs text-sky-600 dark:text-cyan-400">Check</div>
-                            <JobFooter response={payload.response} />
-                            <CheckDetailsTree response={payload.response} />
-                        </>
-                    )}
+                    {payload && <CheckDetailsTree response={payload.response} />}
                 </ScrollArea2>
+
+                {payload && (
+                    <div className="px-4">
+                        <JobFooter response={payload.response} />
+                    </div>
+                )}
 
                 <DialogFooter className="m-0 px-4 pb-3 pt-2 flex justify-center!">
                     <Button
