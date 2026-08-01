@@ -4,13 +4,7 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { syncOpsBus } from "@/bridge";
-import {
-    type SyncGroup,
-    type SyncOpItem,
-    findByUid,
-    folderBaseName,
-    syncDirectionName,
-} from "../../a-atoms/9-types-sync";
+import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
@@ -44,12 +38,14 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
         </LabelAndField>
 
         <OperationNameField item={item} />
+
         <DirectionNameField
             item={item}
             field="forwardName"
             label="Sync → name"
             placeholder="Optional name for source → destination"
         />
+        
         <DirectionNameField
             item={item}
             field="reverseName"
