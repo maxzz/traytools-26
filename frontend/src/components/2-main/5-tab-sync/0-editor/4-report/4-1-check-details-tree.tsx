@@ -49,12 +49,15 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
                 )}
             </FolderRow>
 
-            <div className="mt-2 text-muted-foreground">
-                Total: {response.sourceFileCount} files in {response.folderCount} folders
-            </div>
             {response.changeCount > 0 && (
-                <div className="text-muted-foreground">
-                    Required updates: A = add, M = modify, D = delete
+                <div className="mt-1 text-[0.65rem] text-muted-foreground">
+                    <span className="mr-4">
+                        Total: {response.sourceFileCount} files in {response.folderCount} folders
+                    </span>
+                    Legend:{" "}
+                    <span className={markerColorClass("A")}>A</span> = add,{" "}
+                    <span className={markerColorClass("M")}>M</span> = modify,{" "}
+                    <span className={markerColorClass("D")}>D</span> = delete
                 </div>
             )}
         </div>
