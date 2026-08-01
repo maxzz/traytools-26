@@ -224,5 +224,5 @@ function markerColorClasses(marker: string): string {
 }
 
 const markerAddClasses = "text-emerald-600 dark:text-emerald-400";
-const markerModifyClasses = "text-amber-600 dark:text-amber-400";
+const markerModifyClasses = "text-yellow-600 dark:text-amber-300/70";
 const markerDeleteClasses = "text-red-600 dark:text-red-400";
