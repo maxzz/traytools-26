@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight, FileIcon, Folder, FolderOpen } from "lucide-react";
-import { cn } from "@/utils/classnames";
+import { classNames } from "@/utils/classnames";
 import { type SyncChangeDTO, type SyncCheckResponse, type SyncTreeNodeDTO } from "@/bridge";
 
 /** Check Details tree using the same guide-line / indent style as the Sync left panel. */
@@ -132,7 +132,7 @@ function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, chi
                 <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={hasChildren} />
 
                 <button
-                    className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center disabled:opacity-40"
+                    className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center disabled:opacity-40 cursor-pointer"
                     onClick={() => setCollapsed((v) => !v)}
                     title={hasChildren ? (collapsed ? "Expand" : "Collapse") : undefined}
                     disabled={!hasChildren}
@@ -171,11 +171,10 @@ function ChangeRow({ change, depth, isLast, ancestors }: { change: SyncChangeDTO
             <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={false} />
 
             <span className="shrink-0 relative w-4 h-4" />
-            <FileIcon className={cn("shrink-0 relative size-3.5", color || "text-foreground/70")} />
+            <FileIcon className={classNames("shrink-0 relative size-3.5", "text-foreground/70")} />
             <span className="relative min-w-0 truncate">
-                File:{" "}
-                <span className={cn(color)}>
-                    {marker} {name}
+                <span className={classNames(color)}>
+                    {marker}: {name}
                 </span>
             </span>
         </div>
