@@ -3,7 +3,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { checkDetailsDialogAtom } from "../../a-atoms/2-run-sync";
-import { CheckDetailsTree } from "./4-1-check-details-tree";
+import { CheckDetailsTree, JobFooter } from "./4-1-check-details-tree";
 
 export function CheckDetailsDialog() {
     const [payload, setPayload] = useAtom(checkDetailsDialogAtom);
@@ -22,7 +22,13 @@ export function CheckDetailsDialog() {
                 </DialogHeader>
 
                 <ScrollArea2 className="max-h-[min(70vh,32rem)] px-4 py-3">
-                    {payload && <CheckDetailsTree response={payload.response} />}
+                    {payload && (
+                        <>
+                            <div className="mb-1.5 text-xs text-sky-600 dark:text-cyan-400">Check</div>
+                            <CheckDetailsTree response={payload.response} />
+                            <JobFooter response={payload.response} />
+                        </>
+                    )}
                 </ScrollArea2>
 
                 <DialogFooter className="m-0 px-4 pb-3 pt-2 flex justify-center!">

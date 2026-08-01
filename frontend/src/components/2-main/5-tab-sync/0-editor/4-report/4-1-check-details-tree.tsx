@@ -12,8 +12,6 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
 
     return (
         <div className="text-xs select-text">
-            <div className="mb-1.5 text-sky-600 dark:text-cyan-400">Check</div>
-
             <FolderRow
                 name={response.sourceRootLabel || "."}
                 fileCount={response.sourceFileCount}
@@ -48,13 +46,11 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
                     )
                 )}
             </FolderRow>
-
-            <JobFooter response={response} />
         </div>
     );
 }
 
-function JobFooter({ response }: { response: SyncCheckResponse; }) {
+export function JobFooter({ response }: { response: SyncCheckResponse; }) {
     if (response.changeCount <= 0) {
         return null;
     }
