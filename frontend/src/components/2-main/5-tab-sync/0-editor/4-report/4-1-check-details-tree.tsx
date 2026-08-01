@@ -49,17 +49,25 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
                 )}
             </FolderRow>
 
-            {response.changeCount > 0 && (
-                <div className="mt-1 text-[0.65rem] text-muted-foreground">
-                    <span className="mr-4">
-                        Total: {response.sourceFileCount} files in {response.folderCount} folders
-                    </span>
-                    Legend:{" "}
-                    <span className={markerColorClasses("A")}>A</span> = add,{" "}
-                    <span className={markerColorClasses("M")}>M</span> = modify,{" "}
-                    <span className={markerColorClasses("D")}>D</span> = delete
-                </div>
-            )}
+            <JobFooter response={response} />
+        </div>
+    );
+}
+
+function JobFooter({ response }: { response: SyncCheckResponse; }) {
+    if (response.changeCount <= 0) {
+        return null;
+    }
+
+    return (
+        <div className="mt-1 text-[0.65rem] text-muted-foreground">
+            <span className="mr-4">
+                Total: {response.sourceFileCount} files in {response.folderCount} folders
+            </span>
+            Legend:{" "}
+            <span className={markerColorClasses("A")}>A</span> = add,{" "}
+            <span className={markerColorClasses("M")}>M</span> = modify,{" "}
+            <span className={markerColorClasses("D")}>D</span> = delete
         </div>
     );
 }
