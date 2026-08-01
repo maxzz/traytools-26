@@ -55,9 +55,9 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
                         Total: {response.sourceFileCount} files in {response.folderCount} folders
                     </span>
                     Legend:{" "}
-                    <span className={markerColorClass("A")}>A</span> = add,{" "}
-                    <span className={markerColorClass("M")}>M</span> = modify,{" "}
-                    <span className={markerColorClass("D")}>D</span> = delete
+                    <span className={markerColorClasses("A")}>A</span> = add,{" "}
+                    <span className={markerColorClasses("M")}>M</span> = modify,{" "}
+                    <span className={markerColorClasses("D")}>D</span> = delete
                 </div>
             )}
         </div>
@@ -164,7 +164,7 @@ function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, chi
 function ChangeRow({ change, depth, isLast, ancestors }: { change: SyncChangeDTO; depth: number; isLast: boolean; ancestors: boolean[]; }) {
     const marker = (change.marker || "?").slice(0, 1).toUpperCase();
     const name = change.displayName || change.relPath || "";
-    const color = markerColorClass(marker);
+    const color = markerColorClasses(marker);
 
     return (
         <div className="relative px-1 h-5 rounded-none select-none flex items-center gap-1" style={{ paddingLeft: (depth + 1) * INDENT + 8 }}>
@@ -172,16 +172,14 @@ function ChangeRow({ change, depth, isLast, ancestors }: { change: SyncChangeDTO
 
             <span className="shrink-0 relative w-4 h-4" />
             <FileIcon className={classNames("shrink-0 relative size-3.5", "text-foreground/70")} />
-            <span className="relative min-w-0 truncate">
-                <span className={classNames(color)}>
-                    {marker}: {name}
-                </span>
+            <span className={classNames("relative min-w-0 truncate", color)}>
+                <span className="text-[0.5rem] opacity-50">{marker}{": "}</span>
+                {name}
             </span>
         </div>
     );
 }
 
-/** Connector lines matching the Sync left panel / kibo-ui-tree. */
 function TreeGuides({ depth, isLast, ancestors, hasChildren }: { depth: number; isLast: boolean; ancestors: boolean[]; hasChildren: boolean; }) {
     if (depth <= 0) {
         return null;
@@ -216,7 +214,7 @@ function guideX(depth: number): number {
     return depth * INDENT + 16;
 }
 
-function markerColorClass(marker: string): string {
+function markerColorClasses(marker: string): string {
     switch (marker) {
         case "A": return "text-emerald-600 dark:text-emerald-400";
         case "M": return "text-amber-600 dark:text-amber-400";
