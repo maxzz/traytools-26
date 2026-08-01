@@ -5,14 +5,10 @@
 export type SyncOpItem = {
     sourceFolder: string;
     destFolder: string;
-    /** Display name; omitted from sync.json when empty or equal to the source basename. */
-    name?: string;
-    /** Optional tooltip label for Sync → (source → destination). Omitted from sync.json when empty. */
-    forwardName?: string;
-    /** Optional tooltip label for Sync ← (destination → source). Omitted from sync.json when empty. */
-    reverseName?: string;
-    // Runtime-only identity for selection / DnD; stripped on serialize.
-    uid?: string;
+    name?: string;         // Display name; omitted from sync.json when empty or equal to the source basename.
+    forwardName?: string;  // Optional tooltip label for Sync → (source → destination). Omitted from sync.json when empty.
+    reverseName?: string;  // Optional tooltip label for Sync ← (destination → source). Omitted from sync.json when empty.
+    uid?: string;          // Runtime-only identity for selection / DnD; stripped on serialize.
 };
 
 export type SyncGroup = {
@@ -38,9 +34,7 @@ export type SyncConfig = {
 };
 
 export type SyncNodeKind = "root" | "group" | "item";
-
 export type AddSyncKind = "group" | "item";
-
 export type SyncSource = "default" | "file" | "storage" | "import";
 
 export type SyncEditorStore = {
@@ -192,11 +186,9 @@ export function containsGroup(maybeAncestor: SyncGroup, group: SyncGroup): boole
 export type GroupLocation = {
     kind: "group";
     group: SyncGroup;
-    /** Array that contains `group` (`config.groups` or a parent's `items`). */
-    siblings: SyncNode[];
+    siblings: SyncNode[];     // Array that contains `group` (`config.groups` or a parent's `items`).
     index: number;
-    /** Immediate parent group, or null when under the root. */
-    parent: SyncGroup | null;
+    parent: SyncGroup | null; // Immediate parent group, or null when under the root.
 };
 
 export type ItemLocation = {
@@ -223,11 +215,7 @@ export function findTopLevelGroup(config: SyncConfig, uid: string): SyncGroup | 
     return config.groups[path.path[0]] ?? null;
 }
 
-function findInNodes(
-    siblings: SyncNode[],
-    uid: string,
-    parent: SyncGroup | null,
-): SyncLocation | null {
+function findInNodes(siblings: SyncNode[], uid: string, parent: SyncGroup | null): SyncLocation | null {
     for (let index = 0; index < siblings.length; index++) {
         const node = siblings[index];
         if (node.uid === uid) {
@@ -261,22 +249,14 @@ export type SyncSelectionPath =
     | { kind: "group"; path: number[]; }
     | { kind: "item"; path: number[]; };
 
-export function selectionPathFromUid(
-    config: SyncConfig,
-    rootUid: string,
-    uid: string | null | undefined,
-): SyncSelectionPath {
+export function selectionPathFromUid(config: SyncConfig, rootUid: string, uid: string | null | undefined): SyncSelectionPath {
     if (!uid || uid === rootUid) {
         return { kind: "root" };
     }
     return walkSelectionPath(config.groups, uid, []) ?? { kind: "root" };
 }
 
-function walkSelectionPath(
-    nodes: SyncNode[],
-    uid: string,
-    path: number[],
-): SyncSelectionPath | null {
+function walkSelectionPath(nodes: SyncNode[], uid: string, path: number[]): SyncSelectionPath | null {
     for (let index = 0; index < nodes.length; index++) {
         const node = nodes[index];
         const next = [...path, index];
@@ -309,11 +289,7 @@ function nodeAtPath(config: SyncConfig, path: number[]): SyncNode | undefined {
     return node;
 }
 
-export function uidFromSelectionPath(
-    config: SyncConfig,
-    rootUid: string,
-    path: SyncSelectionPath | null | undefined,
-): string {
+export function uidFromSelectionPath(config: SyncConfig, rootUid: string, path: SyncSelectionPath | null | undefined): string {
     if (!path || path.kind === "root") {
         return rootUid;
     }
@@ -337,21 +313,19 @@ export function parseSyncSelectionPath(value: unknown): SyncSelectionPath | null
         path?: number[];
         groupPath?: number[];
     };
+
     if (path.kind === "root") {
         return { kind: "root" };
     }
 
-    const indexPath = Array.isArray(path.path)
-        ? path.path
-        : Array.isArray(path.groupPath)
-            ? path.groupPath
-            : null;
+    const indexPath =
+        Array.isArray(path.path)
+            ? path.path
+            : Array.isArray(path.groupPath)
+                ? path.groupPath
+                : null;
 
-    if (
-        (path.kind === "group" || path.kind === "item")
-        && indexPath
-        && indexPath.every((n) => Number.isInteger(n) && n >= 0)
-    ) {
+    if ((path.kind === "group" || path.kind === "item") && indexPath && indexPath.every((n) => Number.isInteger(n) && n >= 0)) {
         return { kind: path.kind, path: indexPath };
     }
 
@@ -359,13 +333,11 @@ export function parseSyncSelectionPath(value: unknown): SyncSelectionPath | null
     if (path.kind === "group" && Number.isInteger(path.groupIndex) && path.groupIndex! >= 0) {
         return { kind: "group", path: [path.groupIndex!] };
     }
-    if (
-        path.kind === "item"
-        && Number.isInteger(path.groupIndex) && path.groupIndex! >= 0
-        && Number.isInteger(path.itemIndex) && path.itemIndex! >= 0
-    ) {
+
+    if (path.kind === "item" && Number.isInteger(path.groupIndex) && path.groupIndex! >= 0 && Number.isInteger(path.itemIndex) && path.itemIndex! >= 0) {
         return { kind: "item", path: [path.groupIndex!, path.itemIndex!] };
     }
+
     return null;
 }
 
@@ -387,10 +359,7 @@ export function itemLabel(item: Pick<SyncOpItem, "sourceFolder" | "name">): stri
 }
 
 /** Custom Sync → / Sync ← tooltip name when set; otherwise undefined. */
-export function syncDirectionName(
-    item: Pick<SyncOpItem, "forwardName" | "reverseName">,
-    direction: "forward" | "reverse",
-): string | undefined {
+export function syncDirectionName(item: Pick<SyncOpItem, "forwardName" | "reverseName">, direction: "forward" | "reverse",): string | undefined {
     const custom = (direction === "forward" ? item.forwardName : item.reverseName)?.trim();
     return custom || undefined;
 }

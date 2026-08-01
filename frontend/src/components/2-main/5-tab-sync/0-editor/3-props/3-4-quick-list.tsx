@@ -2,23 +2,9 @@ import { type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Check, FileIcon, Folder, ListTree } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import {
-    type SyncNode,
-    type SyncOpItem,
-    findByUid,
-    isSyncGroup,
-    itemLabel,
-    syncDirectionName,
-} from "../../a-atoms/9-types-sync";
+import { type SyncNode, type SyncOpItem, findByUid, isSyncGroup, itemLabel, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
-
-const CHILD_INDENT = 16;
-const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
-const actionButtonBaseClass =
-    "font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
-const actionIconButtonClass = `${actionButtonBaseClass} size-4.5 p-0`;
-const actionNamedButtonClass = `${actionButtonBaseClass} h-4.5 max-w-36 px-1.5 text-[0.65rem]`;
 
 export function QuickAccessList({ nodes }: { nodes: readonly SyncNode[]; }) {
     if (nodes.length === 0) {
@@ -37,6 +23,8 @@ export function QuickAccessList({ nodes }: { nodes: readonly SyncNode[]; }) {
     );
 }
 
+const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
+
 function QuickAccessItems({ nodes, depth }: { nodes: readonly SyncNode[]; depth: number; }) {
     if (nodes.length === 0) {
         return null;
@@ -46,11 +34,7 @@ function QuickAccessItems({ nodes, depth }: { nodes: readonly SyncNode[]; depth:
         <div className="flex flex-col gap-1">
             {nodes.map(
                 (node) => (
-                    <QuickAccessItem
-                        key={node.uid ?? (isSyncGroup(node) ? node.name : itemLabel(node))}
-                        node={node}
-                        depth={depth}
-                    />
+                    <QuickAccessItem node={node} depth={depth} key={node.uid ?? (isSyncGroup(node) ? node.name : itemLabel(node))} />
                 )
             )}
         </div>
@@ -63,35 +47,33 @@ function QuickAccessItem({ node, depth }: { node: SyncNode; depth: number; }) {
     if (isSyncGroup(node)) {
         return (
             <div className="select-none flex flex-col gap-0.5 cursor-default">
-                <div
-                    className="pr-1 h-4.5 pb-0.5 flex items-center gap-x-1.5"
-                    style={indentStyle}
-                >
+                <div className="pr-1 h-4.5 pb-0.5 flex items-center gap-x-1.5" style={indentStyle}>
                     <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     <span className="text-[0.65rem] truncate">
                         {node.name || <span className="text-muted-foreground italic">(unnamed)</span>}
                     </span>
                 </div>
+
                 <QuickAccessItems nodes={node.items} depth={depth + 1} />
             </div>
         );
     }
 
     return (
-        <div
-            className="pr-1 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 select-none flex items-center justify-between gap-1"
-            style={indentStyle}
-        >
+        <div className="pr-1 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 select-none flex items-center justify-between gap-1" style={indentStyle}>
             <div className="min-w-0 flex items-center gap-x-0.5">
                 <FileIcon className="shrink-0 size-3.5 text-foreground/70" />
                 <span data-qa-name className="text-[0.75rem] transition-colors truncate">
                     {itemLabel(node) || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
             </div>
+            
             <QuickAccessItemActions item={node} />
         </div>
     );
 }
+
+const CHILD_INDENT = 16;
 
 function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
     const canRun = !!(item.sourceFolder.trim() && item.destFolder.trim());
@@ -125,7 +107,7 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
                     tooltip={(
                         <ActionTooltipBody
                             operation={reverseName || "Sync ←"}
-                            direction="Destination → Source"
+                            direction="Source ← Destination"
                             from={item.destFolder}
                             to={item.sourceFolder}
                         />
@@ -165,21 +147,7 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
     );
 }
 
-function ActionIconButton({
-    icon,
-    label,
-    disabled,
-    ariaLabel,
-    tooltip,
-    onClick,
-}: {
-    icon: ReactNode;
-    label?: string;
-    disabled: boolean;
-    ariaLabel: string;
-    tooltip: ReactNode;
-    onClick: () => void;
-}) {
+function ActionIconButton({ icon, label, disabled, ariaLabel, tooltip, onClick }: { icon: ReactNode; label?: string; disabled: boolean; ariaLabel: string; tooltip: ReactNode; onClick: () => void; }) {
     const named = !!label;
 
     return (
@@ -207,17 +175,11 @@ function ActionIconButton({
     );
 }
 
-function ActionTooltipBody({
-    operation,
-    direction,
-    from,
-    to,
-}: {
-    operation: string;
-    direction: string;
-    from: string;
-    to: string;
-}) {
+const actionButtonBaseClass = "font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
+const actionIconButtonClass = `${actionButtonBaseClass} size-4.5 p-0`;
+const actionNamedButtonClass = `${actionButtonBaseClass} h-4.5 max-w-36 px-1.5 text-[0.65rem]`;
+
+function ActionTooltipBody({ operation, direction, from, to }: { operation: string; direction: string; from: string; to: string; }) {
     return (
         <div className="text-xs grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
             <span className="font-semibold whitespace-nowrap">Operation</span>
