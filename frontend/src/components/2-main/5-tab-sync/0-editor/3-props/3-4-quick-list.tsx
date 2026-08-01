@@ -67,7 +67,7 @@ function QuickAccessItem({ node, depth }: { node: SyncNode; depth: number; }) {
                     {itemLabel(node) || <span className="text-muted-foreground italic">(unnamed)</span>}
                 </span>
             </div>
-            
+
             <QuickAccessItemActions item={node} />
         </div>
     );
@@ -83,7 +83,7 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
 
     return (
         <TooltipProvider>
-            <div className="shrink-0 flex items-center gap-0.5">
+            <div className="shrink-0 flex items-center gap-x-1">
                 <ActionIconButton
                     icon={<ArrowRight className="size-3" />}
                     label={forwardName}
@@ -91,8 +91,7 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
                     ariaLabel={forwardName || "Sync source into destination"}
                     tooltip={(
                         <ActionTooltipBody
-                            operation={forwardName || "Sync →"}
-                            direction="Source → Destination"
+                            direction={<span className="inline-flex items-center gap-x-1">Source <ArrowRight className="size-3" /> Destination</span>}
                             from={item.sourceFolder}
                             to={item.destFolder}
                         />
@@ -106,8 +105,7 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
                     ariaLabel={reverseName || "Sync destination into source"}
                     tooltip={(
                         <ActionTooltipBody
-                            operation={reverseName || "Sync ←"}
-                            direction="Source ← Destination"
+                            direction={<span className="inline-flex items-center gap-x-1">Source <ArrowLeft className="size-3" /> Destination</span>}
                             from={item.destFolder}
                             to={item.sourceFolder}
                         />
@@ -120,7 +118,6 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
                     ariaLabel="Check folders"
                     tooltip={(
                         <ActionTooltipBody
-                            operation="Check"
                             direction="Compare folders"
                             from={item.sourceFolder}
                             to={item.destFolder}
@@ -134,7 +131,6 @@ function QuickAccessItemActions({ item }: { item: SyncOpItem; }) {
                     ariaLabel="Check Details"
                     tooltip={(
                         <ActionTooltipBody
-                            operation="Check Details"
                             direction="Compare folders (detailed)"
                             from={item.sourceFolder}
                             to={item.destFolder}
@@ -175,17 +171,15 @@ function ActionIconButton({ icon, label, disabled, ariaLabel, tooltip, onClick }
     );
 }
 
-const actionButtonBaseClass = "font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
+const actionButtonBaseClass = "font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/70";
 const actionIconButtonClass = `${actionButtonBaseClass} size-4.5 p-0`;
 const actionNamedButtonClass = `${actionButtonBaseClass} h-4.5 max-w-36 px-1.5 text-[0.65rem]`;
 
-function ActionTooltipBody({ operation, direction, from, to }: { operation: string; direction: string; from: string; to: string; }) {
+function ActionTooltipBody({ direction, from, to }: { direction: ReactNode; from: string; to: string; }) {
     return (
         <div className="text-xs grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
-            <span className="font-semibold whitespace-nowrap">Operation</span>
-            <span>{operation}</span>
             <span className="font-semibold whitespace-nowrap">Direction</span>
-            <span>{direction}</span>
+            {direction}
             <span className="font-semibold whitespace-nowrap">Source</span>
             <span className="break-all">{from.trim() || "—"}</span>
             <span className="font-semibold whitespace-nowrap">Target</span>
