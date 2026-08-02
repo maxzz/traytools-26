@@ -27,7 +27,7 @@ const MIN_CONTENT_W = 80;
 const MIN_CONTENT_H = 24;
 /** Extra client pixels so subpixel / DPI rounding does not clip controls. */
 const CLIENT_PAD_W = 4;
-const CLIENT_PAD_H = 1;
+const CLIENT_PAD_H = 2;
 
 export function Header() {
     const { showMainTabs, showThemeToggle } = useSnapshot(appSettings);
@@ -36,7 +36,8 @@ export function Header() {
     const isMini = sizeKey === "mini";
     const headerRef = useRef<HTMLElement>(null);
     const toolbarRef = useRef<HTMLDivElement>(null);
-    const lastSizeRef = useRef<{ w: number; h: number; } | null>(null);
+    const lastOuterRef = useRef<{ w: number; h: number; } | null>(null);
+    const lastContentRef = useRef<{ w: number; h: number; } | null>(null);
     const applyingRef = useRef(false);
 
     useEffect(
@@ -48,7 +49,6 @@ export function Header() {
                 body.style.overflow = "";
                 return;
             }
-            // Prevent scrollbar gutters from stealing client space while we fit the window.
             html.style.overflow = "hidden";
             body.style.overflow = "hidden";
             return () => {
@@ -61,7 +61,8 @@ export function Header() {
     useEffect(
         () => {
             if (!isMini || !isBackendAvailable()) {
-                lastSizeRef.current = null;
+                lastOuterRef.current = null;
+                lastContentRef.current = null;
                 return;
             }
 
@@ -74,26 +75,55 @@ export function Header() {
             let timer = 0;
             let cancelled = false;
 
-            const measureContent = () => {
+            /** Content size in CSS layout px (pre-zoom), from the toolbar + header chrome. */
+            const measureLayoutContent = () => {
                 const styles = getComputedStyle(headerEl);
                 const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
-                // header.offsetHeight already includes padding + border — do not add them again.
                 const contentW = Math.max(toolbarEl.offsetWidth, toolbarEl.scrollWidth) + padX;
-                const contentH = headerEl.offsetHeight;
+                // Prefer header box; fall back to toolbar + vertical padding/border if header collapsed.
+                const padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
+                const borderY = (parseFloat(styles.borderTopWidth) || 0) + (parseFloat(styles.borderBottomWidth) || 0);
+                const contentH = Math.max(
+                    headerEl.offsetHeight,
+                    toolbarEl.offsetHeight + padY + borderY,
+                );
                 return { contentW, contentH };
+            };
+
+            /**
+             * Client-pixel size needed for the toolbar at the current zoom.
+             * Uses max(layout×zoom, getBoundingClientRect) so both CSS-zoom and
+             * native WebView zoom are covered without under-sizing.
+             */
+            const measureClientNeed = (zoomFactor: number) => {
+                const { contentW, contentH } = measureLayoutContent();
+                const toolbarRect = toolbarEl.getBoundingClientRect();
+                const headerRect = headerEl.getBoundingClientRect();
+                const styles = getComputedStyle(headerEl);
+                const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+
+                const clientW = Math.max(
+                    contentW * zoomFactor,
+                    toolbarRect.width + padX * zoomFactor,
+                );
+                const clientH = Math.max(
+                    contentH * zoomFactor,
+                    headerRect.height,
+                    toolbarRect.height + (contentH - toolbarEl.offsetHeight) * zoomFactor,
+                );
+                return {
+                    layoutW: contentW,
+                    layoutH: contentH,
+                    clientW: Math.ceil(clientW) + CLIENT_PAD_W,
+                    clientH: Math.ceil(clientH) + CLIENT_PAD_H,
+                };
             };
 
             const frameChrome = () => {
                 const rawH = window.outerHeight - window.innerHeight;
                 const rawW = window.outerWidth - window.innerWidth;
-                // Use live chrome when the client area is trustworthy; otherwise fall back.
-                // Do not Math.max with the fallback — that was adding ~10–15px of empty height.
-                const chromeH = window.innerHeight >= MIN_CONTENT_H && rawH > 0
-                    ? rawH
-                    : FRAME_FALLBACK_H;
-                const chromeW = window.innerWidth >= MIN_CONTENT_W && rawW >= 0
-                    ? rawW
-                    : FRAME_FALLBACK_W;
+                const chromeH = window.innerHeight >= MIN_CONTENT_H && rawH > 0 ? rawH : FRAME_FALLBACK_H;
+                const chromeW = window.innerWidth >= MIN_CONTENT_W && rawW >= 0 ? rawW : FRAME_FALLBACK_W;
                 return { chromeW, chromeH };
             };
 
@@ -103,37 +133,50 @@ export function Header() {
                 }
 
                 const zoomFactor = Math.pow(1.2, zoomLevel);
-                const { contentW, contentH } = measureContent();
+                const { layoutW, layoutH, clientW, clientH } = measureClientNeed(zoomFactor);
 
-                if (contentW < MIN_CONTENT_W || contentH < MIN_CONTENT_H) {
-                    timer = window.setTimeout(() => { void applySize(); }, 100);
+                if (layoutW < MIN_CONTENT_W || layoutH < MIN_CONTENT_H) {
+                    // Transient bad layout (e.g. mid-resize). Keep any good size; retry only if none yet.
+                    if (!lastOuterRef.current) {
+                        timer = window.setTimeout(() => { void applySize(); }, 100);
+                    }
                     return;
                 }
 
-                const clientW = Math.ceil(contentW * zoomFactor) + CLIENT_PAD_W;
-                const clientH = Math.ceil(contentH * zoomFactor) + CLIENT_PAD_H;
+                const prevContent = lastContentRef.current;
+                const contentUnchanged = prevContent
+                    && prevContent.w === layoutW
+                    && prevContent.h === layoutH;
+                const clientFits = window.innerWidth >= clientW && window.innerHeight >= clientH;
+
+                // Skip re-apply when toolbar content is unchanged and still fully visible.
+                // This stops the DPAgent 1s poll / header width RO from collapsing the window.
+                if (contentUnchanged && clientFits && lastOuterRef.current) {
+                    return;
+                }
+
                 const { chromeW, chromeH } = frameChrome();
                 let w = clientW + chromeW;
                 let h = clientH + chromeH;
 
-                const prev = lastSizeRef.current;
-                if (prev && prev.w === w && prev.h === h) {
-                    const needW = Math.max(0, clientW - window.innerWidth);
-                    const needH = Math.max(0, clientH - window.innerHeight);
-                    if (needW === 0 && needH === 0) {
+                // Never shrink while staying in mini — only grow for larger toolbar / zoom.
+                const prevOuter = lastOuterRef.current;
+                if (prevOuter) {
+                    w = Math.max(w, prevOuter.w);
+                    h = Math.max(h, prevOuter.h);
+                    if (w === prevOuter.w && h === prevOuter.h && clientFits) {
+                        lastContentRef.current = { w: layoutW, h: layoutH };
                         return;
                     }
-                    w = prev.w + needW;
-                    h = prev.h + needH;
                 }
 
                 applyingRef.current = true;
-                lastSizeRef.current = { w, h };
+                lastContentRef.current = { w: layoutW, h: layoutH };
+                lastOuterRef.current = { w, h };
 
                 try {
                     WindowSetSize(w, h);
 
-                    // Feedback pass: grow only if the client area still clips the toolbar.
                     await new Promise<void>((resolve) => {
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => resolve());
@@ -143,6 +186,7 @@ export function Header() {
                         return;
                     }
 
+                    // Grow-only feedback if the client area still clips the toolbar.
                     const shortW = Math.max(0, clientW - window.innerWidth);
                     const shortH = Math.max(0, clientH - window.innerHeight);
                     if (shortW > 0 || shortH > 0) {
@@ -157,9 +201,9 @@ export function Header() {
                         } catch {
                             // keep last set size
                         }
-                        const nextW = outerW + shortW + CLIENT_PAD_W;
-                        const nextH = outerH + shortH + CLIENT_PAD_H;
-                        lastSizeRef.current = { w: nextW, h: nextH };
+                        const nextW = outerW + shortW;
+                        const nextH = outerH + shortH;
+                        lastOuterRef.current = { w: nextW, h: nextH };
                         WindowSetSize(nextW, nextH);
                     }
                 } catch {
@@ -171,7 +215,7 @@ export function Header() {
 
             const schedule = () => {
                 window.clearTimeout(timer);
-                // Wait for mini CSS + DPAgent expand animation (~200ms) before measuring.
+                // Wait for mini CSS + DPAgent expand animation before first measure.
                 timer = window.setTimeout(
                     () => {
                         requestAnimationFrame(() => {
@@ -182,9 +226,10 @@ export function Header() {
             };
 
             schedule();
+            // Observe only the toolbar content — not the header. The header is width:100%
+            // and fires on every WindowSetSize, which previously re-ran sizing and collapsed.
             const ro = new ResizeObserver(schedule);
             ro.observe(toolbarEl);
-            ro.observe(headerEl);
 
             return () => {
                 cancelled = true;
