@@ -20,6 +20,8 @@
 /* Standard shadcn https://zippystarter.com/tools/shadcn-ui-theme-generator */
 
 @custom-variant dark (&:is(.dark *));
+/* Atom sets data-app-size + --app-size on the app @container; match the container and its descendants. */
+@custom-variant mini (&:where([data-app-size="mini"], [data-app-size="mini"] *));
 
 @theme inline {
     --font-heading: var(--font-sans);
