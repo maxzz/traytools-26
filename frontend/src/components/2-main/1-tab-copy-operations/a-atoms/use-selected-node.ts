@@ -61,3 +61,14 @@ export function patchSelectedItem(fn: (item: CopyOpItem) => void) {
         fn(loc.item);
     }
 }
+
+export function patchSelectedSeparator(fn: (separator: CopySeparator) => void) {
+    const uid = copyEditorStore.selectedUid;
+    if (!uid) {
+        return;
+    }
+    const loc = findByUid(copyEditorStore.config, uid);
+    if (loc?.kind === "separator") {
+        fn(loc.separator);
+    }
+}

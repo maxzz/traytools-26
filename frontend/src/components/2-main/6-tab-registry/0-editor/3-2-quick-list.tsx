@@ -271,6 +271,7 @@ function quickAccessItemPropertyRows(item: RegItem): { label: string; value: str
     rows.push({ label: "Value", value: valueDisplayName(item.valueName) });
     rows.push({ label: "Type", value: VALUE_TYPE_LABELS[item.valueType] });
     add("New value", item.newValue);
+    add("Comment", item.comment);
 
     if (item.view === "32" || item.view === "64") {
         add("View", `${item.view}-bit`);

@@ -1,3 +1,4 @@
+import { normalizeOptionalComment } from "@/components/2-main/a-shared/field-comment";
 import {
     type RegConfig,
     type RegEditorStore,
@@ -34,6 +35,9 @@ function jsonReplacer(this: RegGroup | RegItem, key: string, value: unknown): un
         }
         return custom;
     }
+    if (key === "comment") {
+        return typeof value === "string" && value.trim() === "" ? undefined : value;
+    }
     return value;
 }
 
@@ -60,6 +64,7 @@ export function parseRegistryJson(text: string): RegConfig {
         throw new Error("Invalid registry.json: expected { groups: [...] }");
     }
     const config = parsed as RegConfig;
+    normalizeOptionalComment(config);
     config.groups = config.groups.map((group) => normalizeGroup(group));
     return config;
 }
@@ -72,6 +77,7 @@ export function normalizeGroup(raw: unknown): RegGroup {
     if (typeof group.name !== "string") {
         group.name = "Group";
     }
+    normalizeOptionalComment(group);
 
     const children: RegNode[] = [];
     if (Array.isArray(group.items)) {
@@ -98,8 +104,14 @@ function normalizeNode(raw: unknown): RegNode {
     return normalizeItem(node);
 }
 
-function normalizeSeparator(_raw: object): RegSeparator {
-    return { separator: true };
+function normalizeSeparator(raw: object): RegSeparator {
+    const separator: RegSeparator = { separator: true };
+    const comment = typeof (raw as RegSeparator).comment === "string" ? (raw as RegSeparator).comment : undefined;
+    if (comment !== undefined) {
+        separator.comment = comment;
+        normalizeOptionalComment(separator);
+    }
+    return separator;
 }
 
 function normalizeItem(raw: object): RegItem {
@@ -119,6 +131,7 @@ function normalizeItem(raw: object): RegItem {
     } else {
         delete item.name;
     }
+    normalizeOptionalComment(item);
     // Items must not carry a nested items array.
     if ("items" in item) {
         delete (item as { items?: unknown; }).items;

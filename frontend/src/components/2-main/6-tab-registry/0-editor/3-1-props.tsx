@@ -11,10 +11,12 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Button } from "@/ui/shadcn/button";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
+import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import {
     type RegGroup,
     type RegHive,
     type RegItem,
+    type RegSeparator,
     type RegValueType,
     type RegView,
     HIVE_LONG_NAMES,
@@ -26,7 +28,7 @@ import {
     fullKeyPath,
     hiveNeedsElevation,
 } from "../a-atoms/9-types-registry";
-import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
+import { patchSelectedGroup, patchSelectedItem, patchSelectedSeparator } from "../a-atoms/use-selected-node";
 import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
 import {
     confirmRegistryWritesAtom,
@@ -55,6 +57,11 @@ export function PropsFor_Root() {
                 This node cannot be moved or deleted.
             </p>
         </div>
+
+        <Field_Comment
+            value={config.comment ?? ""}
+            onChange={(next) => applyComment(registryEditorStore.config, next)}
+        />
 
         <div className="flex items-center gap-2">
             <RegActionButton label="Read all current values" disabled={!hasItems} onClick={() => void readAll()} />
@@ -99,6 +106,11 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
             />
         </LabelAndField>
 
+        <Field_Comment
+            value={group.comment ?? ""}
+            onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
+        />
+
         <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
             <FlagSwitch
                 label="Require elevated privileges"
@@ -112,13 +124,18 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
     </>);
 }
 
-export function PropsFor_Separator() {
+export function PropsFor_Separator({ separator }: { separator: RegSeparator; }) {
     return (<>
         <Field_TypeIcon kind="separator" />
 
         <p className="text-muted-foreground">
             A separator draws a horizontal divider line in the tree and in the quick actions list.
         </p>
+
+        <Field_Comment
+            value={separator.comment ?? ""}
+            onChange={(next) => patchSelectedSeparator((s) => applyComment(s, next))}
+        />
     </>);
 }
 
@@ -156,6 +173,11 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
                 />
             </div>
         </div>
+
+        <Field_Comment
+            value={item.comment ?? ""}
+            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+        />
 
         <div className="grid grid-cols-[auto_1fr] gap-2">
             <Field_Hive item={item} />

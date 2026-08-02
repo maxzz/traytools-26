@@ -61,3 +61,14 @@ export function patchSelectedItem(fn: (item: SyncOpItem) => void) {
         fn(loc.item);
     }
 }
+
+export function patchSelectedSeparator(fn: (separator: SyncSeparator) => void) {
+    const uid = syncEditorStore.selectedUid;
+    if (!uid) {
+        return;
+    }
+    const loc = findByUid(syncEditorStore.config, uid);
+    if (loc?.kind === "separator") {
+        fn(loc.separator);
+    }
+}

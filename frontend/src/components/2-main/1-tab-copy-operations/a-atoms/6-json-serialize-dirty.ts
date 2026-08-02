@@ -1,3 +1,4 @@
+import { normalizeOptionalComment } from "@/components/2-main/a-shared/field-comment";
 import {
     type CopyConfig,
     type CopyEditorStore,
@@ -28,6 +29,9 @@ function jsonReplacer(this: CopyGroup | CopyOpItem, key: string, value: unknown)
         }
         return custom;
     }
+    if (key === "comment") {
+        return typeof value === "string" && value.trim() === "" ? undefined : value;
+    }
     if (key === "sourceFile" || key === "destFolder" || key === "name") {
         return typeof value === "string" ? value : value;
     }
@@ -57,6 +61,7 @@ export function parseCopyJson(text: string): CopyConfig {
         throw new Error("Invalid copy.json: expected { groups: [...] }");
     }
     const config = parsed as CopyConfig;
+    normalizeOptionalComment(config);
     config.groups = config.groups.map((group) => normalizeGroup(group));
     return config;
 }
@@ -69,6 +74,7 @@ function normalizeGroup(raw: unknown): CopyGroup {
     if (typeof group.name !== "string") {
         group.name = "Group";
     }
+    normalizeOptionalComment(group);
 
     const children: CopyNode[] = [];
     if (Array.isArray(group.items)) {
@@ -102,8 +108,14 @@ function normalizeNode(raw: unknown): CopyNode {
     return normalizeItem(node);
 }
 
-function normalizeSeparator(_raw: object): CopySeparator {
-    return { separator: true };
+function normalizeSeparator(raw: object): CopySeparator {
+    const separator: CopySeparator = { separator: true };
+    const comment = typeof (raw as CopySeparator).comment === "string" ? (raw as CopySeparator).comment : undefined;
+    if (comment !== undefined) {
+        separator.comment = comment;
+        normalizeOptionalComment(separator);
+    }
+    return separator;
 }
 
 function normalizeItem(raw: object): CopyOpItem {
@@ -116,6 +128,7 @@ function normalizeItem(raw: object): CopyOpItem {
     } else {
         delete item.name;
     }
+    normalizeOptionalComment(item);
     // Items must not carry a nested items array.
     if ("items" in item) {
         delete (item as { items?: unknown; }).items;

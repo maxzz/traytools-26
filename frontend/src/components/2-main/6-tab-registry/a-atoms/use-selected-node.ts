@@ -61,3 +61,14 @@ export function patchSelectedItem(fn: (item: RegItem) => void) {
         fn(loc.item);
     }
 }
+
+export function patchSelectedSeparator(fn: (separator: RegSeparator) => void) {
+    const uid = registryEditorStore.selectedUid;
+    if (!uid) {
+        return;
+    }
+    const loc = findByUid(registryEditorStore.config, uid);
+    if (loc?.kind === "separator") {
+        fn(loc.separator);
+    }
+}

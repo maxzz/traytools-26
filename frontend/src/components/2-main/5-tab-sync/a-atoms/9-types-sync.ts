@@ -8,11 +8,14 @@ export type SyncOpItem = {
     name?: string;         // Display name; omitted from sync.json when empty or equal to the source basename.
     forwardName?: string;  // Optional tooltip label for Sync → (source → destination). Omitted from sync.json when empty.
     reverseName?: string;  // Optional tooltip label for Sync ← (destination → source). Omitted from sync.json when empty.
+    comment?: string;      // Optional note stored in sync.json; omitted when empty.
     uid?: string;          // Runtime-only identity for selection / DnD; stripped on serialize.
 };
 
 export type SyncGroup = {
     name: string;
+    /** Optional note stored in sync.json; omitted when empty. */
+    comment?: string;
     /** Ordered children: sync items, nested groups, and/or separators. */
     items: SyncNode[];
     uid?: string;
@@ -21,6 +24,8 @@ export type SyncGroup = {
 /** Visual divider in a group's item list. Persists as `{ "separator": true }`. */
 export type SyncSeparator = {
     separator: true;
+    /** Optional note stored in sync.json; omitted when empty. */
+    comment?: string;
     uid?: string;
 };
 
@@ -40,6 +45,8 @@ export function isSyncOpItem(node: SyncNode): node is SyncOpItem {
 }
 
 export type SyncConfig = {
+    /** Optional note for the tree root; omitted from sync.json when empty. */
+    comment?: string;
     groups: SyncGroup[];
 };
 
@@ -172,8 +179,12 @@ export function cloneItem(item: SyncOpItem): SyncOpItem {
 }
 
 /** Clone a separator with a fresh runtime uid. */
-export function cloneSeparator(_separator: SyncSeparator): SyncSeparator {
-    return createSeparator();
+export function cloneSeparator(separator: SyncSeparator): SyncSeparator {
+    const clone = createSeparator();
+    if (separator.comment?.trim()) {
+        clone.comment = separator.comment;
+    }
+    return clone;
 }
 
 /** Flatten all sync items under a group, including nested groups (depth-first). */

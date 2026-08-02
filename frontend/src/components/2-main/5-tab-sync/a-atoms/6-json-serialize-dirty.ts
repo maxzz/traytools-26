@@ -1,3 +1,4 @@
+import { normalizeOptionalComment } from "@/components/2-main/a-shared/field-comment";
 import {
     type SyncConfig,
     type SyncEditorStore,
@@ -29,6 +30,9 @@ function jsonReplacer(this: SyncGroup | SyncOpItem, key: string, value: unknown)
     if ((key === "forwardName" || key === "reverseName") && isSyncOpItem(this as SyncNode)) {
         const custom = typeof value === "string" ? value.trim() : "";
         return custom || undefined;
+    }
+    if (key === "comment") {
+        return typeof value === "string" && value.trim() === "" ? undefined : value;
     }
     if (
         key === "sourceFolder"
@@ -65,6 +69,7 @@ export function parseSyncJson(text: string): SyncConfig {
         throw new Error("Invalid sync.json: expected { groups: [...] }");
     }
     const config = parsed as SyncConfig;
+    normalizeOptionalComment(config);
     config.groups = config.groups.map((group) => normalizeGroup(group));
     return config;
 }
@@ -77,6 +82,7 @@ function normalizeGroup(raw: unknown): SyncGroup {
     if (typeof group.name !== "string") {
         group.name = "Group";
     }
+    normalizeOptionalComment(group);
 
     const children: SyncNode[] = [];
     if (Array.isArray(group.items)) {
@@ -110,8 +116,14 @@ function normalizeNode(raw: unknown): SyncNode {
     return normalizeItem(node);
 }
 
-function normalizeSeparator(_raw: object): SyncSeparator {
-    return { separator: true };
+function normalizeSeparator(raw: object): SyncSeparator {
+    const separator: SyncSeparator = { separator: true };
+    const comment = typeof (raw as SyncSeparator).comment === "string" ? (raw as SyncSeparator).comment : undefined;
+    if (comment !== undefined) {
+        separator.comment = comment;
+        normalizeOptionalComment(separator);
+    }
+    return separator;
 }
 
 function normalizeItem(raw: object): SyncOpItem {
@@ -126,6 +138,7 @@ function normalizeItem(raw: object): SyncOpItem {
     }
     normalizeOptionalName(item, "forwardName");
     normalizeOptionalName(item, "reverseName");
+    normalizeOptionalComment(item);
     // Items must not carry a nested items array.
     if ("items" in item) {
         delete (item as { items?: unknown; }).items;

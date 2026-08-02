@@ -17,7 +17,7 @@ export function Panel_Props() {
                             : selected.kind === "group"
                                 ? <PropsFor_Group group={selected.group} />
                                 : selected.kind === "separator"
-                                    ? <PropsFor_Separator />
+                                    ? <PropsFor_Separator separator={selected.separator} />
                                     : <PropsFor_Item item={selected.item} group={selected.group} />
                     }
                 </div>

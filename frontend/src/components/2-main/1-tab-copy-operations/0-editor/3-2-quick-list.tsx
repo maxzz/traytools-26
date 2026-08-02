@@ -212,6 +212,7 @@ function quickAccessItemPropertyRows(item: CopyOpItem): { label: string; value: 
 
     add("Source", item.sourceFile);
     add("Destination", item.destFolder);
+    add("Comment", item.comment);
 
     if (item.stopDpAgent) {
         add("Stop DpAgent", "Yes");

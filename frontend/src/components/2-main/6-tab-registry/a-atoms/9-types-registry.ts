@@ -49,6 +49,8 @@ export type RegItem = {
     name?: string;
     view?: RegView;
     requireElevated?: boolean;
+    /** Optional note stored in registry.json; omitted when empty. */
+    comment?: string;
     // Runtime-only identity for selection / DnD; stripped on serialize.
     uid?: string;
 };
@@ -56,6 +58,8 @@ export type RegItem = {
 export type RegGroup = {
     name: string;
     requireElevated?: boolean;
+    /** Optional note stored in registry.json; omitted when empty. */
+    comment?: string;
     /** Ordered children: registry items, nested groups, and/or separators. */
     items: RegNode[];
     uid?: string;
@@ -64,6 +68,8 @@ export type RegGroup = {
 /** Visual divider in a group's item list. Persists as `{ "separator": true }`. */
 export type RegSeparator = {
     separator: true;
+    /** Optional note stored in registry.json; omitted when empty. */
+    comment?: string;
     uid?: string;
 };
 
@@ -83,6 +89,8 @@ export function isRegItem(node: RegNode): node is RegItem {
 }
 
 export type RegConfig = {
+    /** Optional note for the tree root; omitted from registry.json when empty. */
+    comment?: string;
     groups: RegGroup[];
 };
 
@@ -242,8 +250,12 @@ export function cloneItem(item: RegItem): RegItem {
 }
 
 /** Clone a separator with a fresh runtime uid. */
-export function cloneSeparator(_separator: RegSeparator): RegSeparator {
-    return createSeparator();
+export function cloneSeparator(separator: RegSeparator): RegSeparator {
+    const clone = createSeparator();
+    if (separator.comment?.trim()) {
+        clone.comment = separator.comment;
+    }
+    return clone;
 }
 
 /** Flatten all registry items under a group, including nested groups (depth-first). */

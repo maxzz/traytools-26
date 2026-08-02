@@ -2,6 +2,7 @@ import { Input } from "@/ui/shadcn/input";
 import { Button } from "@/ui/shadcn/button";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
+import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { syncOpsBus } from "@/bridge";
 import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirectionName } from "../../a-atoms/9-types-sync";
@@ -16,6 +17,11 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
             <Field_TypeIcon kind="item" />
             <ItemActionButtons item={item} />
         </div>
+
+        <Field_Comment
+            value={item.comment ?? ""}
+            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+        />
 
         <LabelAndField label="Source folder">
             <PathInput

@@ -11,6 +11,8 @@ export type CopyOpItem = {
     requireElevated?: boolean;
     /** On Access Denied, rename locked dest to name_locked_N.ext and retry. */
     renameLocked?: boolean;
+    /** Optional note stored in copy.json; omitted when empty. */
+    comment?: string;
     // Runtime-only identity for selection / DnD; stripped on serialize.
     uid?: string;
 };
@@ -21,6 +23,8 @@ export type CopyGroup = {
     requireElevated?: boolean;
     /** On Access Denied, rename locked dest to name_locked_N.ext and retry. */
     renameLocked?: boolean;
+    /** Optional note stored in copy.json; omitted when empty. */
+    comment?: string;
     /** Ordered children: copy items, nested groups, and/or separators. */
     items: CopyNode[];
     uid?: string;
@@ -29,6 +33,8 @@ export type CopyGroup = {
 /** Visual divider in a group's item list. Persists as `{ "separator": true }`. */
 export type CopySeparator = {
     separator: true;
+    /** Optional note stored in copy.json; omitted when empty. */
+    comment?: string;
     uid?: string;
 };
 
@@ -48,6 +54,8 @@ export function isCopyOpItem(node: CopyNode): node is CopyOpItem {
 }
 
 export type CopyConfig = {
+    /** Optional note for the tree root; omitted from copy.json when empty. */
+    comment?: string;
     groups: CopyGroup[];
 };
 
@@ -188,8 +196,12 @@ export function cloneItem(item: CopyOpItem): CopyOpItem {
 }
 
 /** Clone a separator with a fresh runtime uid. */
-export function cloneSeparator(_separator: CopySeparator): CopySeparator {
-    return createSeparator();
+export function cloneSeparator(separator: CopySeparator): CopySeparator {
+    const clone = createSeparator();
+    if (separator.comment?.trim()) {
+        clone.comment = separator.comment;
+    }
+    return clone;
 }
 
 /** Flatten all copy items under a group, including nested groups (depth-first). */

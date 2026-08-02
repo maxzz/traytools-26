@@ -2,7 +2,9 @@ import { type ReactNode } from "react";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
 import { FileIcon, Folder } from "lucide-react";
-import { type SyncGroup } from "../../a-atoms/9-types-sync";
+import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
+import { type SyncGroup, type SyncSeparator } from "../../a-atoms/9-types-sync";
+import { patchSelectedSeparator } from "../../a-atoms/use-selected-node";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { QuickAccessList } from "./3-4-quick-list";
 
@@ -17,17 +19,27 @@ export function PropsFor_Root() {
             can be reordered by drag-and-drop. This node cannot be moved or deleted.
         </p>
 
+        <Field_Comment
+            value={config.comment ?? ""}
+            onChange={(next) => applyComment(syncEditorStore.config, next)}
+        />
+
         <QuickAccessList nodes={groups} />
     </>);
 }
 
-export function PropsFor_Separator() {
+export function PropsFor_Separator({ separator }: { separator: SyncSeparator; }) {
     return (<>
         <Field_TypeIcon kind="separator" />
 
         <p className="text-muted-foreground">
             A separator draws a horizontal divider line in the tree and in the quick actions list.
         </p>
+
+        <Field_Comment
+            value={separator.comment ?? ""}
+            onChange={(next) => patchSelectedSeparator((s) => applyComment(s, next))}
+        />
     </>);
 }
 

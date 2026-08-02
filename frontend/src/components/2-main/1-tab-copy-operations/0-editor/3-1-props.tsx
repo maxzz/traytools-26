@@ -8,15 +8,17 @@ import { Label } from "@/ui/shadcn/label";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Button } from "@/ui/shadcn/button";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
+import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import {
     type CopyGroup,
     type CopyOpItem,
+    type CopySeparator,
     collectGroupItems,
     findByUid,
     findTopLevelGroup,
     sourceFileBaseName,
 } from "../a-atoms/9-types-copy";
-import { patchSelectedGroup, patchSelectedItem } from "../a-atoms/use-selected-node";
+import { patchSelectedGroup, patchSelectedItem, patchSelectedSeparator } from "../a-atoms/use-selected-node";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 import { QuickAccessList } from "./3-2-quick-list";
@@ -30,6 +32,11 @@ export function PropsFor_Root() {
             Root of the copy operations tree. Add groups here. Groups can contain copy items and nested groups
             in one ordered list. Groups and items can be reordered by drag-and-drop. This node cannot be moved or deleted.
         </p>
+
+        <Field_Comment
+            value={config.comment ?? ""}
+            onChange={(next) => applyComment(copyEditorStore.config, next)}
+        />
 
         <QuickAccessList nodes={groups} />
     </>);
@@ -80,19 +87,29 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
             />
         </LabelAndField>
 
+        <Field_Comment
+            value={group.comment ?? ""}
+            onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
+        />
+
         <CopyRunFlags flags={group} onPatch={patchSelectedGroup} />
 
         <QuickAccessList nodes={[group]} />
     </>);
 }
 
-export function PropsFor_Separator() {
+export function PropsFor_Separator({ separator }: { separator: CopySeparator; }) {
     return (<>
         <Field_TypeIcon kind="separator" />
 
         <p className="text-muted-foreground">
             A separator draws a horizontal divider line in the tree and in the quick actions list.
         </p>
+
+        <Field_Comment
+            value={separator.comment ?? ""}
+            onChange={(next) => patchSelectedSeparator((s) => applyComment(s, next))}
+        />
     </>);
 }
 
@@ -128,6 +145,11 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
                 />
             </div>
         </div>
+
+        <Field_Comment
+            value={item.comment ?? ""}
+            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+        />
 
         <LabelAndField label="Source file">
             <PathInput
