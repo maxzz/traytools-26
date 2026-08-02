@@ -26,7 +26,8 @@ const FRAME_FALLBACK_W = 16;
 const MIN_CONTENT_W = 80;
 const MIN_CONTENT_H = 24;
 /** Extra client pixels so subpixel / DPI rounding does not clip controls. */
-const CLIENT_PAD = 6;
+const CLIENT_PAD_W = 4;
+const CLIENT_PAD_H = 1;
 
 export function Header() {
     const { showMainTabs, showThemeToggle } = useSnapshot(appSettings);
@@ -76,27 +77,22 @@ export function Header() {
             const measureContent = () => {
                 const styles = getComputedStyle(headerEl);
                 const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
-                const padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
-                const borderY = (parseFloat(styles.borderTopWidth) || 0) + (parseFloat(styles.borderBottomWidth) || 0);
-
+                // header.offsetHeight already includes padding + border — do not add them again.
                 const contentW = Math.max(toolbarEl.offsetWidth, toolbarEl.scrollWidth) + padX;
-                const contentH = Math.max(
-                    toolbarEl.offsetHeight + padY + borderY,
-                    headerEl.offsetHeight,
-                    headerEl.scrollHeight,
-                );
+                const contentH = headerEl.offsetHeight;
                 return { contentW, contentH };
             };
 
             const frameChrome = () => {
                 const rawH = window.outerHeight - window.innerHeight;
                 const rawW = window.outerWidth - window.innerWidth;
-                // Prefer live chrome only when the client area is already large enough to trust.
+                // Use live chrome when the client area is trustworthy; otherwise fall back.
+                // Do not Math.max with the fallback — that was adding ~10–15px of empty height.
                 const chromeH = window.innerHeight >= MIN_CONTENT_H && rawH > 0
-                    ? Math.max(rawH, FRAME_FALLBACK_H)
+                    ? rawH
                     : FRAME_FALLBACK_H;
                 const chromeW = window.innerWidth >= MIN_CONTENT_W && rawW >= 0
-                    ? Math.max(rawW, FRAME_FALLBACK_W)
+                    ? rawW
                     : FRAME_FALLBACK_W;
                 return { chromeW, chromeH };
             };
@@ -114,22 +110,21 @@ export function Header() {
                     return;
                 }
 
-                const clientW = Math.ceil(contentW * zoomFactor) + CLIENT_PAD;
-                const clientH = Math.ceil(contentH * zoomFactor) + CLIENT_PAD;
+                const clientW = Math.ceil(contentW * zoomFactor) + CLIENT_PAD_W;
+                const clientH = Math.ceil(contentH * zoomFactor) + CLIENT_PAD_H;
                 const { chromeW, chromeH } = frameChrome();
                 let w = clientW + chromeW;
                 let h = clientH + chromeH;
 
                 const prev = lastSizeRef.current;
                 if (prev && prev.w === w && prev.h === h) {
-                    // Still verify the client actually fits — scrollbars may remain.
                     const needW = Math.max(0, clientW - window.innerWidth);
                     const needH = Math.max(0, clientH - window.innerHeight);
                     if (needW === 0 && needH === 0) {
                         return;
                     }
-                    w = (prev.w) + needW;
-                    h = (prev.h) + needH;
+                    w = prev.w + needW;
+                    h = prev.h + needH;
                 }
 
                 applyingRef.current = true;
@@ -138,7 +133,7 @@ export function Header() {
                 try {
                     WindowSetSize(w, h);
 
-                    // Feedback pass: grow by any remaining client shortfall after the resize.
+                    // Feedback pass: grow only if the client area still clips the toolbar.
                     await new Promise<void>((resolve) => {
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => resolve());
@@ -162,8 +157,8 @@ export function Header() {
                         } catch {
                             // keep last set size
                         }
-                        const nextW = outerW + shortW + CLIENT_PAD;
-                        const nextH = outerH + shortH + CLIENT_PAD;
+                        const nextW = outerW + shortW + CLIENT_PAD_W;
+                        const nextH = outerH + shortH + CLIENT_PAD_H;
                         lastSizeRef.current = { w: nextW, h: nextH };
                         WindowSetSize(nextW, nextH);
                     }
