@@ -497,10 +497,15 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
             >
                 <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={false} />
 
-                {/* Match expander slot width so the horizontal tick reaches the divider. */}
+                {/* Same expander slot as ItemRow so content starts at the icon column. */}
                 <span className="shrink-0 relative w-4 h-4" />
 
-                <span className="flex-1 relative -ml-1.5 mr-2 max-w-40 border-t border-foreground/40" />
+                {/*
+                  Divider starts at the icon column (no negative margin) so it does
+                  not cross the vertical guide. -translate-y-px matches TreeGuides'
+                  horizontal tick; scoped to this span only.
+                */}
+                <span className="flex-1 relative -ml-2 mr-2 max-w-40 border-t border-foreground/40 -translate-y-px" />
             </div>
         </div>
     );
