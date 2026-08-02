@@ -17,6 +17,12 @@ import { ButtonSettings } from "./2-2-btn-settings";
 import { ButtonThemeToggle } from "./2-3-btn-theme-toggle";
 import { BadgeSelfIntegrity, ButtonExit } from "./5-btn-exit-self-integrity";
 
+/** Approx. Win title-bar + borders when outer/inner chrome cannot be trusted. */
+const FRAME_FALLBACK_H = 40;
+const FRAME_FALLBACK_W = 16;
+const MIN_CONTENT_W = 80;
+const MIN_CONTENT_H = 24;
+
 export function Header() {
     const { showMainTabs, showThemeToggle } = useSnapshot(appSettings);
     const sizeKey = useAtomValue(windowSizeKeyAtom);
@@ -40,21 +46,46 @@ export function Header() {
             }
 
             let timer = 0;
+            let cancelled = false;
+
+            const frameChrome = () => {
+                // When the window is already collapsed, outer≈inner (or inner is ~0)
+                // and cannot be used to infer the title-bar size.
+                const rawH = window.outerHeight - window.innerHeight;
+                const rawW = window.outerWidth - window.innerWidth;
+                const chromeH = window.innerHeight >= MIN_CONTENT_H && rawH > 0
+                    ? rawH
+                    : FRAME_FALLBACK_H;
+                const chromeW = window.innerWidth >= MIN_CONTENT_W && rawW >= 0
+                    ? rawW
+                    : FRAME_FALLBACK_W;
+                return { chromeW, chromeH };
+            };
 
             const applySize = () => {
-                // Width follows the right-side controls; height uses the full header strip
-                // (padding/border) so the window matches the visible chrome under zoom.
+                if (cancelled) {
+                    return;
+                }
+
                 const zoomFactor = Math.pow(1.2, zoomLevel);
-                const contentW = Math.ceil(toolbarEl.offsetWidth * zoomFactor);
-                const contentH = Math.ceil(headerEl.offsetHeight * zoomFactor);
                 const styles = getComputedStyle(headerEl);
                 const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
-                const width = contentW + Math.ceil(padX * zoomFactor);
-                const height = contentH;
-                const chromeW = Math.max(0, window.outerWidth - window.innerWidth);
-                const chromeH = Math.max(0, window.outerHeight - window.innerHeight);
-                const w = Math.max(1, width + chromeW);
-                const h = Math.max(1, height + chromeH);
+                const padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
+                const borderY = (parseFloat(styles.borderTopWidth) || 0) + (parseFloat(styles.borderBottomWidth) || 0);
+
+                // Width from the right-side controls; height from toolbar + header chrome.
+                const contentW = toolbarEl.offsetWidth + padX;
+                const contentH = Math.max(toolbarEl.offsetHeight + padY + borderY, headerEl.scrollHeight);
+
+                if (contentW < MIN_CONTENT_W || contentH < MIN_CONTENT_H) {
+                    // Layout not ready yet — retry shortly without locking lastSize.
+                    timer = window.setTimeout(applySize, 100);
+                    return;
+                }
+
+                const { chromeW, chromeH } = frameChrome();
+                const w = Math.max(1, Math.ceil(contentW * zoomFactor) + chromeW);
+                const h = Math.max(1, Math.ceil(contentH * zoomFactor) + chromeH);
 
                 const prev = lastSizeRef.current;
                 if (prev && prev.w === w && prev.h === h) {
@@ -71,7 +102,14 @@ export function Header() {
 
             const schedule = () => {
                 window.clearTimeout(timer);
-                timer = window.setTimeout(applySize, 80);
+                // Double rAF: wait for mini CSS (hide left/body) + DPAgent expand layout.
+                timer = window.setTimeout(
+                    () => {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(applySize);
+                        });
+                    },
+                    80);
             };
 
             schedule();
@@ -80,6 +118,7 @@ export function Header() {
             ro.observe(headerEl);
 
             return () => {
+                cancelled = true;
                 window.clearTimeout(timer);
                 ro.disconnect();
             };
@@ -89,7 +128,7 @@ export function Header() {
     return (
         <header
             ref={headerRef}
-            className="px-3 py-1 bg-background border-b border-border flex items-center justify-between mini:justify-end"
+            className="px-3 py-1 bg-background border-b border-border flex items-center justify-between mini:justify-end mini:min-h-8"
         >
             <div className="min-w-0 flex items-center gap-3 mini:hidden">
                 <AppMenubar />
