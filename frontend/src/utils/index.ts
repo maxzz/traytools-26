@@ -1,5 +1,8 @@
-export * from "./util-hooks";
+// classnames first: many icon modules import `@/utils` for `classNames` while
+// util-hooks/spy-all-icons imports those icons (circular). Exporting classnames
+// before util-hooks keeps `classNames` initialized during that cycle.
 export * from "./classnames";
+export * from "./util-hooks";
 export * from "./console-styles";
 export * from "./debounce";
 export * from "./debug-time";
