@@ -43,6 +43,20 @@ export type {
     SyncProgressEvent,
     SyncJobDoneEvent,
 } from "./groups/syncops";
+export { registryOpsBus } from "./groups/registryops";
+export type {
+    RegHive,
+    RegValueType,
+    RegView,
+    RegFileKind,
+    RegistryRawResponse,
+    RegistrySaveResponse,
+    RegistryPickResponse,
+    RegValueSpec,
+    RegReadResult,
+    RegWriteStatus,
+    RegWriteResult,
+} from "./groups/registryops";
 export { windowTreeBus, isProcessGroupHandle, processGroupId, processGroupHandle } from "./groups/windowtree";
 export type { WindowNode, WindowTree, WindowInfo, ProcessInfo, RectInfo, RelatedWindow, MonitorWindow, ActiveWindowsInfo } from "./groups/windowtree";
 export { highlightBus } from "./groups/highlight";
