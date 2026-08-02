@@ -346,8 +346,8 @@ export function Header() {
             <div ref={toolbarRef} className="shrink-0 flex items-center gap-1">
                 <ButtonWindowSize />
                 <ButtonStayOnTop />
-                <ButtonSettings />
-                <ButtonHome />
+                {!isMini && <ButtonSettings />}
+                {!isMini && <ButtonHome />}
                 {showThemeToggle && <ButtonThemeToggle />}
                 <DpAgentToolbar className="ml-1" />
                 <ButtonExit />
