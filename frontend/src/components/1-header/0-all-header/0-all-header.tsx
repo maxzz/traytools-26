@@ -29,6 +29,10 @@ const MIN_CONTENT_H = 24;
 const CLIENT_PAD_W = 4;
 const CLIENT_PAD_H = 2;
 
+function isValidSize(n: number): boolean {
+    return Number.isFinite(n) && n > 0;
+}
+
 export function Header() {
     const { showMainTabs, showThemeToggle, showFooter } = useSnapshot(appSettings);
     const sizeKey = useAtomValue(windowSizeKeyAtom);
@@ -78,17 +82,20 @@ export function Header() {
             const footerEl = () =>
                 headerEl.parentElement?.querySelector<HTMLElement>("[data-app-footer]") ?? null;
 
-            /** Footer is width:100% of the window — measure children for intrinsic width. */
+            /**
+             * Footer is width:100% of the window — briefly size to max-content
+             * to read intrinsic width without observing it (RO on footer loops).
+             */
             const measureFooterIntrinsic = (footer: HTMLElement) => {
-                let childrenW = 0;
-                for (const child of footer.children) {
-                    childrenW += (child as HTMLElement).offsetWidth;
-                }
-                // scrollWidth catches overflow when the window is already too narrow.
-                return {
-                    footerW: Math.max(childrenW, footer.scrollWidth > footer.clientWidth ? footer.scrollWidth : 0),
-                    footerH: footer.offsetHeight,
-                };
+                const prevWidth = footer.style.width;
+                const prevMaxWidth = footer.style.maxWidth;
+                footer.style.width = "max-content";
+                footer.style.maxWidth = "none";
+                const footerW = footer.offsetWidth;
+                const footerH = footer.offsetHeight;
+                footer.style.width = prevWidth;
+                footer.style.maxWidth = prevMaxWidth;
+                return { footerW, footerH };
             };
 
             /** Content size in CSS layout px (pre-zoom), from toolbar + optional footer. */
@@ -158,18 +165,43 @@ export function Header() {
                 return { chromeW, chromeH };
             };
 
-            const adoptCurrentOuter = async (layoutW: number, layoutH: number) => {
-                lastContentRef.current = { w: layoutW, h: layoutH };
+            /** True when toolbar/footer are fully visible in the current client area. */
+            const contentVisiblyFits = (clientW: number, clientH: number) => {
+                if (window.innerWidth < clientW || window.innerHeight < clientH) {
+                    return false;
+                }
+                const toolbarRight = toolbarEl.getBoundingClientRect().right;
+                if (toolbarRight > window.innerWidth + 1) {
+                    return false;
+                }
+                const footer = footerEl();
+                if (footer && footer.scrollWidth > footer.clientWidth + 1) {
+                    return false;
+                }
+                return true;
+            };
+
+            const readOuterSize = async (): Promise<{ w: number; h: number; } | null> => {
                 try {
                     const size = await WindowGetSize();
-                    if (size?.w && size?.h) {
-                        lastOuterRef.current = { w: size.w, h: size.h };
-                        return;
+                    if (size && isValidSize(size.w) && isValidSize(size.h)) {
+                        return { w: size.w, h: size.h };
                     }
                 } catch {
                     // fall through
                 }
-                lastOuterRef.current = { w: window.outerWidth, h: window.outerHeight };
+                if (isValidSize(window.outerWidth) && isValidSize(window.outerHeight)) {
+                    return { w: window.outerWidth, h: window.outerHeight };
+                }
+                return null;
+            };
+
+            const setOuterSize = (w: number, h: number) => {
+                if (!isValidSize(w) || !isValidSize(h)) {
+                    return false;
+                }
+                WindowSetSize(Math.round(w), Math.round(h));
+                return true;
             };
 
             const applySize = async () => {
@@ -177,10 +209,14 @@ export function Header() {
                     return;
                 }
 
-                const zoomFactor = Math.pow(1.2, zoomLevel);
+                const zoomFactor = Number.isFinite(zoomLevel) ? Math.pow(1.2, zoomLevel) : 1;
                 const { layoutW, layoutH, clientW, clientH } = measureClientNeed(zoomFactor);
 
-                if (layoutW < MIN_CONTENT_W || layoutH < MIN_CONTENT_H) {
+                if (
+                    !isValidSize(layoutW) || !isValidSize(layoutH)
+                    || !isValidSize(clientW) || !isValidSize(clientH)
+                    || layoutW < MIN_CONTENT_W || layoutH < MIN_CONTENT_H
+                ) {
                     // Transient bad layout (e.g. mid-resize). Keep any good size; retry only if none yet.
                     if (!lastOuterRef.current) {
                         timer = window.setTimeout(() => { void applySize(); }, 100);
@@ -192,7 +228,7 @@ export function Header() {
                 const contentUnchanged = prevContent
                     && prevContent.w === layoutW
                     && prevContent.h === layoutH;
-                const clientFits = window.innerWidth >= clientW && window.innerHeight >= clientH;
+                const clientFits = contentVisiblyFits(clientW, clientH);
 
                 // Skip re-apply when toolbar content is unchanged and still fully visible.
                 // This stops the DPAgent 1s poll / header width RO from collapsing the window.
@@ -202,7 +238,8 @@ export function Header() {
 
                 // Restored / backend size already fits — adopt it; do not resize (avoids launch jitter).
                 if (clientFits && !lastOuterRef.current) {
-                    await adoptCurrentOuter(layoutW, layoutH);
+                    lastContentRef.current = { w: layoutW, h: layoutH };
+                    lastOuterRef.current = await readOuterSize();
                     return;
                 }
 
@@ -221,12 +258,18 @@ export function Header() {
                     }
                 }
 
+                if (!isValidSize(w) || !isValidSize(h)) {
+                    return;
+                }
+
                 applyingRef.current = true;
                 lastContentRef.current = { w: layoutW, h: layoutH };
                 lastOuterRef.current = { w, h };
 
                 try {
-                    WindowSetSize(w, h);
+                    if (!setOuterSize(w, h)) {
+                        return;
+                    }
 
                     await new Promise<void>((resolve) => {
                         requestAnimationFrame(() => {
@@ -237,25 +280,18 @@ export function Header() {
                         return;
                     }
 
-                    // Grow-only feedback if the client area still clips the toolbar.
+                    // Grow-only feedback if the client area still clips the toolbar/footer.
                     const shortW = Math.max(0, clientW - window.innerWidth);
                     const shortH = Math.max(0, clientH - window.innerHeight);
                     if (shortW > 0 || shortH > 0) {
-                        let outerW = w;
-                        let outerH = h;
-                        try {
-                            const size = await WindowGetSize();
-                            if (size?.w && size?.h) {
-                                outerW = size.w;
-                                outerH = size.h;
-                            }
-                        } catch {
-                            // keep last set size
-                        }
+                        const outer = await readOuterSize();
+                        const outerW = outer?.w ?? w;
+                        const outerH = outer?.h ?? h;
                         const nextW = outerW + shortW;
                         const nextH = outerH + shortH;
-                        lastOuterRef.current = { w: nextW, h: nextH };
-                        WindowSetSize(nextW, nextH);
+                        if (setOuterSize(nextW, nextH)) {
+                            lastOuterRef.current = { w: nextW, h: nextH };
+                        }
                     }
                 } catch {
                     // Wails runtime unavailable (e.g. Vite-only browser dev).
@@ -277,14 +313,16 @@ export function Header() {
             };
 
             schedule();
-            // Observe only the toolbar content — not the header. The header is width:100%
-            // and fires on every WindowSetSize, which previously re-ran sizing and collapsed.
+            // Footer text width depends on webfonts; remeasure once they settle.
+            void document.fonts?.ready?.then(() => {
+                if (!cancelled) {
+                    schedule();
+                }
+            });
+            // Observe only the toolbar content — not the header (width:100%) or footer
+            // (also width:100%). Those fire on every WindowSetSize and loop into NaN sizes.
             const ro = new ResizeObserver(schedule);
             ro.observe(toolbarEl);
-            const footer = footerEl();
-            if (footer) {
-                ro.observe(footer);
-            }
 
             return () => {
                 cancelled = true;
