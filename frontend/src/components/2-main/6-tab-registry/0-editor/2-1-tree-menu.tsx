@@ -55,4 +55,5 @@ export function TreeViewMenu({ className, ...rest }: ComponentProps<typeof Butto
 const ADD_ITEMS: { kind: AddRegKind; label: string; shortcut?: string; }[] = [
     { kind: "item", label: "Add Registry Value", shortcut: "Ctrl+N" },
     { kind: "group", label: "Add Group" },
+    { kind: "separator", label: "Add Separator" },
 ];

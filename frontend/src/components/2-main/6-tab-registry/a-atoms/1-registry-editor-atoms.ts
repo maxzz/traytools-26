@@ -7,15 +7,19 @@ import {
     type RegGroup,
     type RegItem,
     type RegNode,
+    type RegSeparator,
     cloneGroup,
     cloneItem,
+    cloneSeparator,
     containsGroup,
     createGroup,
     createItem,
+    createSeparator,
     ensureNodeUids,
     findByUid,
     isRegGroup,
     isRegItem,
+    isRegSeparator,
     itemLabel,
 } from "./9-types-registry";
 import { registryEditorStore, fileBaseNameNoExt, reportRegImport } from "./0-registry-local-storage";
@@ -47,8 +51,8 @@ export function addNode(kind: AddRegKind): void {
             if (loc?.kind === "group") {
                 // Nest inside the selected group.
                 loc.group.items.push(group);
-            } else if (loc?.kind === "item") {
-                // Sibling after the selected item in the same parent list.
+            } else if (loc?.kind === "item" || loc?.kind === "separator") {
+                // Sibling after the selected leaf in the same parent list.
                 loc.siblings.splice(loc.index + 1, 0, group);
             } else {
                 config.groups.push(group);
@@ -57,6 +61,13 @@ export function addNode(kind: AddRegKind): void {
             config.groups.push(group);
         }
         registryEditorStore.selectedUid = group.uid!;
+        return;
+    }
+
+    if (kind === "separator") {
+        const separator = createSeparator();
+        placeLeafNode(config, selUid, separator);
+        registryEditorStore.selectedUid = separator.uid!;
         return;
     }
 
@@ -72,6 +83,8 @@ export function addNode(kind: AddRegKind): void {
             item.keyPath = loc.item.keyPath;
             item.view = loc.item.view;
             loc.siblings.splice(loc.index + 1, 0, item);
+        } else if (loc?.kind === "separator") {
+            loc.siblings.splice(loc.index + 1, 0, item);
         } else {
             ensureGroupThenPush(config, item);
         }
@@ -81,14 +94,30 @@ export function addNode(kind: AddRegKind): void {
     registryEditorStore.selectedUid = item.uid!;
 }
 
-function ensureGroupThenPush(config: RegConfig, item: RegItem): void {
+/** Place a leaf (item/separator) inside the selection, or under the last root group. */
+function placeLeafNode(config: RegConfig, selUid: string | null, node: RegItem | RegSeparator): void {
+    if (selUid && !isRootUid(selUid)) {
+        const loc = findByUid(config, selUid);
+        if (loc?.kind === "group") {
+            loc.group.items.push(node);
+            return;
+        }
+        if (loc?.kind === "item" || loc?.kind === "separator") {
+            loc.siblings.splice(loc.index + 1, 0, node);
+            return;
+        }
+    }
+    ensureGroupThenPush(config, node);
+}
+
+function ensureGroupThenPush(config: RegConfig, node: RegItem | RegSeparator): void {
     if (config.groups.length === 0) {
         const group = createGroup();
-        group.items = [item];
+        group.items = [node];
         config.groups.push(group);
         return;
     }
-    config.groups[config.groups.length - 1].items.push(item);
+    config.groups[config.groups.length - 1].items.push(node);
 }
 
 export function removeNode(uid: string): void {
@@ -114,6 +143,7 @@ export function removeNode(uid: string): void {
         registryEditorStore.selectedUid = loc.parent?.uid ?? registryEditorStore.rootUid;
         return;
     }
+    // item or separator — select the parent group
     registryEditorStore.selectedUid = loc.group.uid ?? registryEditorStore.rootUid;
 }
 
@@ -130,7 +160,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         return false;
     }
 
-    // Dropping on root: groups append at root; items need a group.
+    // Dropping on root: groups append at root; leaves need a group.
     if (isRootUid(targetUid)) {
         if (drag.kind === "group") {
             if (drag.parent) {
@@ -144,7 +174,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
             return true;
         }
         const [moved] = drag.siblings.splice(drag.index, 1);
-        if (!isRegItem(moved)) {
+        if (!isRegItem(moved) && !isRegSeparator(moved)) {
             return false;
         }
         if (config.groups.length === 0) {
@@ -166,7 +196,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         if (target.kind === "group" && containsGroup(drag.group, target.group)) {
             return false;
         }
-        if (target.kind === "item" && containsGroup(drag.group, target.group)) {
+        if ((target.kind === "item" || target.kind === "separator") && containsGroup(drag.group, target.group)) {
             return false;
         }
 
@@ -201,9 +231,9 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
             return true;
         }
 
-        // target is item — place as sibling in the same list.
+        // target is item/separator — place as sibling in the same list.
         const after = findByUid(config, targetUid);
-        if (!after || after.kind !== "item") {
+        if (!after || (after.kind !== "item" && after.kind !== "separator")) {
             drag.siblings.splice(drag.index, 0, moved);
             return false;
         }
@@ -212,9 +242,9 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         return true;
     }
 
-    // drag is item
+    // drag is item or separator (leaf)
     const [moved] = drag.siblings.splice(drag.index, 1);
-    if (!isRegItem(moved)) {
+    if (!isRegItem(moved) && !isRegSeparator(moved)) {
         return false;
     }
 
@@ -229,7 +259,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
     }
 
     const after = findByUid(config, targetUid);
-    if (!after || after.kind !== "item") {
+    if (!after || (after.kind !== "item" && after.kind !== "separator")) {
         drag.siblings.splice(drag.index, 0, moved);
         return false;
     }
@@ -255,6 +285,12 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
             const cloned = cloneGroup(drag.group);
             uniquifyGroupName(cloned, config.groups);
             config.groups.push(cloned);
+            registryEditorStore.selectedUid = cloned.uid!;
+            return true;
+        }
+        if (drag.kind === "separator") {
+            const cloned = cloneSeparator(drag.separator);
+            ensureGroupThenPush(config, cloned);
             registryEditorStore.selectedUid = cloned.uid!;
             return true;
         }
@@ -301,6 +337,23 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
         }
         uniquifyGroupName(cloned, target.siblings);
         const insertAt = position === "after" ? target.index + 1 : target.index;
+        target.siblings.splice(insertAt, 0, cloned);
+        registryEditorStore.selectedUid = cloned.uid!;
+        return true;
+    }
+
+    if (drag.kind === "separator") {
+        const cloned = cloneSeparator(drag.separator);
+        if (target.kind === "group") {
+            if (position === "before") {
+                target.group.items.unshift(cloned);
+            } else {
+                target.group.items.push(cloned);
+            }
+            registryEditorStore.selectedUid = cloned.uid!;
+            return true;
+        }
+        const insertAt = position === "before" ? target.index : target.index + 1;
         target.siblings.splice(insertAt, 0, cloned);
         registryEditorStore.selectedUid = cloned.uid!;
         return true;
@@ -393,7 +446,11 @@ async function importRegistryFileAsGroup(path: string): Promise<void> {
 function countItems(group: RegGroup): number {
     let n = 0;
     for (const node of group.items ?? []) {
-        n += isRegGroup(node) ? countItems(node) : 1;
+        if (isRegGroup(node)) {
+            n += countItems(node);
+        } else if (isRegItem(node)) {
+            n += 1;
+        }
     }
     return n;
 }

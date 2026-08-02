@@ -112,6 +112,16 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
     </>);
 }
 
+export function PropsFor_Separator() {
+    return (<>
+        <Field_TypeIcon kind="separator" />
+
+        <p className="text-muted-foreground">
+            A separator draws a horizontal divider line in the tree and in the quick actions list.
+        </p>
+    </>);
+}
+
 export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup; }) {
     const readItem = useSetAtom(doAsyncRegReadItemAtom);
     const writeItem = useSetAtom(doAsyncRegWriteItemAtom);
@@ -504,16 +514,18 @@ function LabelAndField({ label, labelHint, children }: { label: string; labelHin
 
 const typeIconLabelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
 
-function Field_TypeIcon({ kind }: { kind: "group" | "item"; }) {
-    const isGroup = kind === "group";
+function Field_TypeIcon({ kind }: { kind: "group" | "item" | "separator"; }) {
+    const label = kind === "group" ? "Group" : kind === "separator" ? "Separator" : "Registry value";
 
     return (
         <div className={classNames(typeIconLabelClasses, "px-2 py-1 w-fit bg-muted border rounded inline-flex items-center gap-1")}>
-            {isGroup
+            {kind === "group"
                 ? <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
-                : <SymbolAppRegedit className="shrink-0 size-3.5 opacity-70" />
+                : kind === "item"
+                    ? <SymbolAppRegedit className="shrink-0 size-3.5 opacity-70" />
+                    : null
             }
-            {isGroup ? "Group" : "Registry value"}
+            {label}
         </div>
     );
 }

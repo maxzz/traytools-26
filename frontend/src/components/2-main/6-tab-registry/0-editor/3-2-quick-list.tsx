@@ -14,6 +14,7 @@ import {
     VALUE_TYPE_LABELS,
     collectGroupItems,
     isRegGroup,
+    isRegSeparator,
     itemLabel,
     valueDisplayName,
 } from "../a-atoms/9-types-registry";
@@ -57,9 +58,9 @@ function QuickAccessItems({ nodes, depth }: { nodes: readonly RegNode[]; depth: 
     return (
         <div className="flex flex-col gap-1">
             {nodes.map(
-                (node) => (
+                (node, index) => (
                     <QuickAccessItem
-                        key={node.uid ?? (isRegGroup(node) ? node.name : itemLabel(node))}
+                        key={node.uid ?? (isRegGroup(node) ? node.name : isRegSeparator(node) ? `sep-${index}` : itemLabel(node))}
                         node={node}
                         depth={depth}
                     />
@@ -71,6 +72,14 @@ function QuickAccessItems({ nodes, depth }: { nodes: readonly RegNode[]; depth: 
 
 function QuickAccessItem({ node, depth }: { node: RegNode; depth: number; }) {
     const indentStyle = { paddingLeft: depth * CHILD_INDENT };
+
+    if (isRegSeparator(node)) {
+        return (
+            <div className="w-full min-h-1 flex items-center" style={indentStyle}>
+                <span className="w-full border-t border-foreground/40" />
+            </div>
+        );
+    }
 
     if (isRegGroup(node)) {
         return (

@@ -1,12 +1,13 @@
 import { useSnapshot } from "valtio";
-import { type RegGroup, type RegItem, type RegNodeKind, findByUid } from "./9-types-registry";
+import { type RegGroup, type RegItem, type RegNodeKind, type RegSeparator, findByUid } from "./9-types-registry";
 import { isRootUid } from "./1-registry-editor-atoms";
 import { registryEditorStore } from "./0-registry-local-storage";
 
 export type SelectedRegNode =
     | { kind: "root"; uid: string; }
     | { kind: "group"; uid: string; group: RegGroup; }
-    | { kind: "item"; uid: string; item: RegItem; group: RegGroup; };
+    | { kind: "item"; uid: string; item: RegItem; group: RegGroup; }
+    | { kind: "separator"; uid: string; separator: RegSeparator; group: RegGroup; };
 
 export function useSelectedNode(): SelectedRegNode | null {
     // sync: true — controlled inputs (key path, value, names) keep caret position.
@@ -27,6 +28,9 @@ export function useSelectedNode(): SelectedRegNode | null {
 
     if (loc.kind === "group") {
         return { kind: "group", uid, group: loc.group as RegGroup };
+    }
+    if (loc.kind === "separator") {
+        return { kind: "separator", uid, separator: loc.separator as RegSeparator, group: loc.group as RegGroup };
     }
     return { kind: "item", uid, item: loc.item as RegItem, group: loc.group as RegGroup };
 }

@@ -4,6 +4,7 @@ import {
     type RegGroup,
     type RegItem,
     type RegNode,
+    type RegSeparator,
     REG_HIVES,
     REG_VALUE_TYPES,
     derivedItemLabel,
@@ -86,12 +87,19 @@ function normalizeNode(raw: unknown): RegNode {
     if (!raw || typeof raw !== "object") {
         throw new Error("Invalid registry.json: item must be an object");
     }
-    const node = raw as RegNode & { items?: unknown; keyPath?: unknown; };
+    const node = raw as RegNode & { items?: unknown; keyPath?: unknown; separator?: unknown; };
+    if (node.separator === true) {
+        return normalizeSeparator(node);
+    }
     // Nested group: has items[] and is not a registry item.
     if (Array.isArray(node.items) && !("keyPath" in node)) {
         return normalizeGroup(node);
     }
     return normalizeItem(node);
+}
+
+function normalizeSeparator(_raw: object): RegSeparator {
+    return { separator: true };
 }
 
 function normalizeItem(raw: object): RegItem {

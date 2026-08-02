@@ -1,6 +1,6 @@
 // Editable model for registry.json. Top-level groups sit under a fixed "Groups"
-// root. Each group's `items` is an ordered list of registry values and/or
-// nested groups.
+// root. Each group's `items` is an ordered list of registry values, nested
+// groups, and/or separators ({ separator: true }).
 
 import { type RegHive, type RegValueType, type RegView } from "@/bridge";
 
@@ -56,29 +56,39 @@ export type RegItem = {
 export type RegGroup = {
     name: string;
     requireElevated?: boolean;
-    /** Ordered children: registry items and/or nested groups. */
+    /** Ordered children: registry items, nested groups, and/or separators. */
     items: RegNode[];
     uid?: string;
 };
 
-/** A child of a group: either a registry item or a nested group. */
-export type RegNode = RegItem | RegGroup;
+/** Visual divider in a group's item list. Persists as `{ "separator": true }`. */
+export type RegSeparator = {
+    separator: true;
+    uid?: string;
+};
+
+/** A child of a group: registry item, nested group, or separator. */
+export type RegNode = RegItem | RegGroup | RegSeparator;
+
+export function isRegSeparator(node: RegNode): node is RegSeparator {
+    return (node as RegSeparator).separator === true;
+}
 
 export function isRegGroup(node: RegNode): node is RegGroup {
-    return Array.isArray((node as RegGroup).items) && !("keyPath" in node);
+    return !isRegSeparator(node) && Array.isArray((node as RegGroup).items) && !("keyPath" in node);
 }
 
 export function isRegItem(node: RegNode): node is RegItem {
-    return "keyPath" in node;
+    return !isRegSeparator(node) && "keyPath" in node;
 }
 
 export type RegConfig = {
     groups: RegGroup[];
 };
 
-export type RegNodeKind = "root" | "group" | "item";
+export type RegNodeKind = "root" | "group" | "item" | "separator";
 
-export type AddRegKind = "group" | "item";
+export type AddRegKind = "group" | "item" | "separator";
 
 export type RegSource = "default" | "file" | "storage" | "import";
 
@@ -199,6 +209,13 @@ export function createItem(): RegItem {
     };
 }
 
+export function createSeparator(): RegSeparator {
+    return {
+        uid: newUid(),
+        separator: true,
+    };
+}
+
 /** Deep-clone a group (and nested nodes) with fresh runtime uids. */
 export function cloneGroup(group: RegGroup): RegGroup {
     // JSON round-trip: structuredClone cannot clone valtio proxies.
@@ -224,13 +241,18 @@ export function cloneItem(item: RegItem): RegItem {
     return clone;
 }
 
+/** Clone a separator with a fresh runtime uid. */
+export function cloneSeparator(_separator: RegSeparator): RegSeparator {
+    return createSeparator();
+}
+
 /** Flatten all registry items under a group, including nested groups (depth-first). */
 export function collectGroupItems(group: RegGroup): RegItem[] {
     const out: RegItem[] = [];
     for (const node of group.items ?? []) {
         if (isRegItem(node)) {
             out.push(node);
-        } else {
+        } else if (isRegGroup(node)) {
             out.push(...collectGroupItems(node));
         }
     }
@@ -271,7 +293,15 @@ export type RegItemLocation = {
     index: number;
 };
 
-export type RegLocation = RegGroupLocation | RegItemLocation;
+export type RegSeparatorLocation = {
+    kind: "separator";
+    separator: RegSeparator;
+    group: RegGroup;
+    siblings: RegNode[];
+    index: number;
+};
+
+export type RegLocation = RegGroupLocation | RegItemLocation | RegSeparatorLocation;
 
 export function findByUid(config: RegConfig, uid: string): RegLocation | null {
     // Root list is RegGroup[]; nested lists are RegNode[]. Both are spliced via siblings.
@@ -287,6 +317,9 @@ function findInNodes(siblings: RegNode[], uid: string, parent: RegGroup | null):
             }
             if (!parent) {
                 return null;
+            }
+            if (isRegSeparator(node)) {
+                return { kind: "separator", separator: node, group: parent, siblings, index };
             }
             return { kind: "item", item: node, group: parent, siblings, index };
         }
@@ -310,7 +343,8 @@ function findInNodes(siblings: RegNode[], uid: string, parent: RegGroup | null):
 export type RegSelectionPath =
     | { kind: "root"; }
     | { kind: "group"; path: number[]; }
-    | { kind: "item"; path: number[]; };
+    | { kind: "item"; path: number[]; }
+    | { kind: "separator"; path: number[]; };
 
 export function selectionPathFromUid(config: RegConfig, rootUid: string, uid: string | null | undefined): RegSelectionPath {
     if (!uid || uid === rootUid) {
@@ -324,9 +358,13 @@ function walkSelectionPath(nodes: RegNode[], uid: string, path: number[]): RegSe
         const node = nodes[index];
         const next = [...path, index];
         if (node.uid === uid) {
-            return isRegGroup(node)
-                ? { kind: "group", path: next }
-                : { kind: "item", path: next };
+            if (isRegGroup(node)) {
+                return { kind: "group", path: next };
+            }
+            if (isRegSeparator(node)) {
+                return { kind: "separator", path: next };
+            }
+            return { kind: "item", path: next };
         }
         if (isRegGroup(node)) {
             const found = walkSelectionPath(node.items, uid, next);
@@ -363,6 +401,9 @@ export function uidFromSelectionPath(config: RegConfig, rootUid: string, path: R
     if (path.kind === "group") {
         return isRegGroup(node) ? (node.uid ?? rootUid) : rootUid;
     }
+    if (path.kind === "separator") {
+        return isRegSeparator(node) ? (node.uid ?? rootUid) : rootUid;
+    }
     return isRegItem(node) ? (node.uid ?? rootUid) : rootUid;
 }
 
@@ -375,7 +416,7 @@ export function parseRegSelectionPath(value: unknown): RegSelectionPath | null {
         return { kind: "root" };
     }
     if (
-        (path.kind === "group" || path.kind === "item")
+        (path.kind === "group" || path.kind === "item" || path.kind === "separator")
         && Array.isArray(path.path)
         && path.path.every((n) => Number.isInteger(n) && n >= 0)
     ) {
