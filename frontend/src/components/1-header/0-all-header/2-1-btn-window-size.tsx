@@ -4,7 +4,7 @@ import { classNames } from "@/utils/classnames";
 import { IconAppMini } from "@/ui/icons/normal";
 import { Button } from "@/ui/shadcn/button";
 import { settingsBus } from "@/bridge/groups/settings";
-import { windowSizeKeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
+import { cacheWindowSizeKey, windowSizeKeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 
 /**
  * Toggles between the "mini" and "normal" named window geometries.
@@ -20,6 +20,7 @@ export function ButtonWindowSize() {
             settingsBus.getWindowSizeKey()
                 .then((key) => {
                     if (!cancelled && key) {
+                        cacheWindowSizeKey(key);
                         setSizeKey(key);
                     }
                 })
@@ -36,7 +37,10 @@ export function ButtonWindowSize() {
             size="icon"
             onClick={() => {
                 settingsBus.toggleWindowSize()
-                    .then(setSizeKey)
+                    .then((key) => {
+                        cacheWindowSizeKey(key);
+                        setSizeKey(key);
+                    })
                     .catch(console.error);
             }}
             title={isMini ? "Expand to normal size" : "Collapse to mini size"}

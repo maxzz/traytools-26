@@ -72,8 +72,33 @@ const settingsRunElevatedBaseAtom = atom(false);
 /** Current process elevation (admin token). Independent of DpAgent integrity polling. */
 export const appIsElevatedAtom = atom<boolean | null>(null);
 
-/** Active named window geometry key (`normal` / `mini` / …). Persisted by the backend. */
-export const windowSizeKeyAtom = atom<WindowSizeKey>("normal");
+const WINDOW_SIZE_KEY_CACHE = "traytools-window-size-key";
+
+function readCachedWindowSizeKey(): WindowSizeKey {
+    try {
+        const cached = localStorage.getItem(WINDOW_SIZE_KEY_CACHE);
+        if (cached === "mini" || cached === "normal") {
+            return cached;
+        }
+    } catch {
+        // ignore quota / private mode
+    }
+    return "normal";
+}
+
+export function cacheWindowSizeKey(key: WindowSizeKey) {
+    try {
+        localStorage.setItem(WINDOW_SIZE_KEY_CACHE, key);
+    } catch {
+        // ignore quota / private mode
+    }
+}
+
+/**
+ * Active named window geometry key (`normal` / `mini` / …).
+ * Seeded from a local cache so mini chrome applies on first paint; backend remains source of truth.
+ */
+export const windowSizeKeyAtom = atom<WindowSizeKey>(readCachedWindowSizeKey());
 
 
 export const refreshAppIsElevatedAtom = atom(

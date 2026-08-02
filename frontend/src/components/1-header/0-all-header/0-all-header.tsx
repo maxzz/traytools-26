@@ -30,7 +30,7 @@ const CLIENT_PAD_W = 4;
 const CLIENT_PAD_H = 2;
 
 export function Header() {
-    const { showMainTabs, showThemeToggle } = useSnapshot(appSettings);
+    const { showMainTabs, showThemeToggle, showFooter } = useSnapshot(appSettings);
     const sizeKey = useAtomValue(windowSizeKeyAtom);
     const zoomLevel = useAtomValue(zoomLevelAtom);
     const isMini = sizeKey === "mini";
@@ -75,41 +75,72 @@ export function Header() {
             let timer = 0;
             let cancelled = false;
 
-            /** Content size in CSS layout px (pre-zoom), from the toolbar + header chrome. */
+            const footerEl = () =>
+                headerEl.parentElement?.querySelector<HTMLElement>("[data-app-footer]") ?? null;
+
+            /** Footer is width:100% of the window — measure children for intrinsic width. */
+            const measureFooterIntrinsic = (footer: HTMLElement) => {
+                let childrenW = 0;
+                for (const child of footer.children) {
+                    childrenW += (child as HTMLElement).offsetWidth;
+                }
+                // scrollWidth catches overflow when the window is already too narrow.
+                return {
+                    footerW: Math.max(childrenW, footer.scrollWidth > footer.clientWidth ? footer.scrollWidth : 0),
+                    footerH: footer.offsetHeight,
+                };
+            };
+
+            /** Content size in CSS layout px (pre-zoom), from toolbar + optional footer. */
             const measureLayoutContent = () => {
                 const styles = getComputedStyle(headerEl);
                 const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
-                const contentW = Math.max(toolbarEl.offsetWidth, toolbarEl.scrollWidth) + padX;
-                // Prefer header box; fall back to toolbar + vertical padding/border if header collapsed.
+                const toolbarW = Math.max(toolbarEl.offsetWidth, toolbarEl.scrollWidth) + padX;
                 const padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
                 const borderY = (parseFloat(styles.borderTopWidth) || 0) + (parseFloat(styles.borderBottomWidth) || 0);
-                const contentH = Math.max(
+                const headerH = Math.max(
                     headerEl.offsetHeight,
                     toolbarEl.offsetHeight + padY + borderY,
                 );
-                return { contentW, contentH };
+
+                const footer = footerEl();
+                const { footerW, footerH } = footer
+                    ? measureFooterIntrinsic(footer)
+                    : { footerW: 0, footerH: 0 };
+
+                return {
+                    contentW: Math.max(toolbarW, footerW),
+                    contentH: headerH + footerH,
+                    headerH,
+                    footerH,
+                    footerW,
+                    padX,
+                };
             };
 
             /**
-             * Client-pixel size needed for the toolbar at the current zoom.
+             * Client-pixel size needed for the toolbar (+ footer) at the current zoom.
              * Uses max(layout×zoom, getBoundingClientRect) so both CSS-zoom and
              * native WebView zoom are covered without under-sizing.
              */
             const measureClientNeed = (zoomFactor: number) => {
-                const { contentW, contentH } = measureLayoutContent();
+                const { contentW, contentH, headerH, footerH, footerW, padX } = measureLayoutContent();
                 const toolbarRect = toolbarEl.getBoundingClientRect();
                 const headerRect = headerEl.getBoundingClientRect();
-                const styles = getComputedStyle(headerEl);
-                const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+                const footer = footerEl();
+                const footerRect = footer?.getBoundingClientRect();
 
                 const clientW = Math.max(
                     contentW * zoomFactor,
                     toolbarRect.width + padX * zoomFactor,
+                    footerW * zoomFactor,
                 );
                 const clientH = Math.max(
                     contentH * zoomFactor,
-                    headerRect.height,
-                    toolbarRect.height + (contentH - toolbarEl.offsetHeight) * zoomFactor,
+                    headerRect.height + (footerRect?.height ?? 0),
+                    toolbarRect.height
+                        + (headerH - toolbarEl.offsetHeight) * zoomFactor
+                        + footerH * zoomFactor,
                 );
                 return {
                     layoutW: contentW,
@@ -125,6 +156,20 @@ export function Header() {
                 const chromeH = window.innerHeight >= MIN_CONTENT_H && rawH > 0 ? rawH : FRAME_FALLBACK_H;
                 const chromeW = window.innerWidth >= MIN_CONTENT_W && rawW >= 0 ? rawW : FRAME_FALLBACK_W;
                 return { chromeW, chromeH };
+            };
+
+            const adoptCurrentOuter = async (layoutW: number, layoutH: number) => {
+                lastContentRef.current = { w: layoutW, h: layoutH };
+                try {
+                    const size = await WindowGetSize();
+                    if (size?.w && size?.h) {
+                        lastOuterRef.current = { w: size.w, h: size.h };
+                        return;
+                    }
+                } catch {
+                    // fall through
+                }
+                lastOuterRef.current = { w: window.outerWidth, h: window.outerHeight };
             };
 
             const applySize = async () => {
@@ -155,11 +200,17 @@ export function Header() {
                     return;
                 }
 
+                // Restored / backend size already fits — adopt it; do not resize (avoids launch jitter).
+                if (clientFits && !lastOuterRef.current) {
+                    await adoptCurrentOuter(layoutW, layoutH);
+                    return;
+                }
+
                 const { chromeW, chromeH } = frameChrome();
                 let w = clientW + chromeW;
                 let h = clientH + chromeH;
 
-                // Never shrink while staying in mini — only grow for larger toolbar / zoom.
+                // Never shrink while staying in mini — only grow for larger toolbar / zoom / footer.
                 const prevOuter = lastOuterRef.current;
                 if (prevOuter) {
                     w = Math.max(w, prevOuter.w);
@@ -215,14 +266,14 @@ export function Header() {
 
             const schedule = () => {
                 window.clearTimeout(timer);
-                // Wait for mini CSS + DPAgent expand animation before first measure.
+                // Double-rAF: wait for mini CSS + DPAgent (no-anim in mini) to commit layout.
                 timer = window.setTimeout(
                     () => {
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => { void applySize(); });
                         });
                     },
-                    220);
+                    0);
             };
 
             schedule();
@@ -230,6 +281,10 @@ export function Header() {
             // and fires on every WindowSetSize, which previously re-ran sizing and collapsed.
             const ro = new ResizeObserver(schedule);
             ro.observe(toolbarEl);
+            const footer = footerEl();
+            if (footer) {
+                ro.observe(footer);
+            }
 
             return () => {
                 cancelled = true;
@@ -237,7 +292,7 @@ export function Header() {
                 ro.disconnect();
             };
         },
-        [isMini, zoomLevel]);
+        [isMini, zoomLevel, showFooter]);
 
     return (
         <header

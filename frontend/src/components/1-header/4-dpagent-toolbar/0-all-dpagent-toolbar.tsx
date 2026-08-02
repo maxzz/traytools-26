@@ -93,11 +93,19 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
             <AnimatePresence initial={false}>
                 {controlsVisible && (
                     <motion.div
-                        layout
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "auto", transition: { duration: 0.2, ease: "easeIn" } }}
-                        exit={{ opacity: 0, width: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        layout={!isMini}
+                        // Mini locks controls open — skip width animation so the first
+                        // toolbar measure matches the final size (avoids window jitter).
+                        initial={isMini ? false : { opacity: 0, width: 0 }}
+                        animate={{
+                            opacity: 1,
+                            width: "auto",
+                            transition: isMini
+                                ? { duration: 0 }
+                                : { duration: 0.2, ease: "easeIn" },
+                        }}
+                        exit={isMini ? undefined : { opacity: 0, width: 0 }}
+                        transition={{ duration: isMini ? 0 : 0.2, ease: "easeInOut" }}
                         className="overflow-hidden inline-flex items-center gap-px"
                     >
                         <Button

@@ -12,7 +12,11 @@ export function Section3_Footer({ className, ...rest }: HTMLAttributes<HTMLDivEl
     }
     
     return (
-        <div className={classNames("py-0.5 text-xs text-foreground bg-background border-t border-border flex items-center justify-center", className)} {...rest}>
+        <div
+            data-app-footer
+            className={classNames("py-0.5 text-xs text-foreground bg-background border-t border-border flex items-center justify-center shrink-0 whitespace-nowrap", className)}
+            {...rest}
+        >
 
             <a className={urlClasses} href="https://github.com/maxzz" target="_blank" rel="noopener">
                 Created by Max Zakharzhevskiy

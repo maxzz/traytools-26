@@ -5,7 +5,7 @@ import { Toaster } from "@/ui/shadcn/sonner";
 import { UISymbolDefs } from "@/ui/icons";
 import { appSettings } from "@/store/1-ui-settings";
 import { settingsBus } from "@/bridge/groups/settings";
-import { windowSizeKeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
+import { cacheWindowSizeKey, windowSizeKeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { Header } from "../1-header/0-all-header/0-all-header";
 import { Section3_Footer } from "../3-footer";
 import { AllDialogs } from "./9-globals";
@@ -21,6 +21,7 @@ export function App() {
             settingsBus.getWindowSizeKey()
                 .then((key) => {
                     if (!cancelled && key) {
+                        cacheWindowSizeKey(key);
                         setWindowSizeKey(key);
                     }
                 })
@@ -35,7 +36,7 @@ export function App() {
         <AllDialogs />
 
         <main
-            className="@container h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto] mini:h-auto mini:min-h-0 mini:overflow-hidden mini:grid-rows-[auto]"
+            className="@container h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto] mini:h-auto mini:min-h-0 mini:overflow-hidden mini:grid-rows-[auto_auto]"
             data-app-size={appSize}
             style={{ "--app-size": appSize } as CSSProperties}
         >
@@ -45,7 +46,7 @@ export function App() {
                 <MainBody />
             </div>
 
-            <Section3_Footer className="mini:hidden" />
+            <Section3_Footer />
         </main>
     </>);
 }
