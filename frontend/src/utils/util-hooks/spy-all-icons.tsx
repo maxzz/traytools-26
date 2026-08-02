@@ -7,20 +7,7 @@ export function SpyAllIcons({ includeSvgSymbols }: { includeSvgSymbols?: boolean
     // Build inside the component (memoized) so a circular `@/utils` ↔ icons import
     // cannot read icon exports at module init while they are still in the TDZ.
     const allIcons = useMemo(
-        () => {
-            const icons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {};
-            for (const key of Object.keys(allIconsModule)) {
-                try {
-                    const value = (allIconsModule as Record<string, unknown>)[key];
-                    if (typeof value === "function") {
-                        icons[key] = value as ComponentType<SVGProps<SVGSVGElement>>;
-                    }
-                } catch {
-                    // Skip bindings that are still uninitialized due to circular imports.
-                }
-            }
-            return icons;
-        },
+        () => filterIconComponents(allIconsModule as Record<string, unknown>),
         []);
 
     return (
@@ -35,4 +22,21 @@ export function SpyAllIcons({ includeSvgSymbols }: { includeSvgSymbols?: boolean
             </>}
         </div>
     );
+}
+
+type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
+
+function filterIconComponents(icons: Record<string, unknown>): Record<string, IconComponent> {
+    const filtered: Record<string, IconComponent> = {};
+    for (const key of Object.keys(icons)) {
+        try {
+            const value = icons[key];
+            if (typeof value === "function") {
+                filtered[key] = value as IconComponent;
+            }
+        } catch {
+            // Skip bindings that are still uninitialized due to circular imports.
+        }
+    }
+    return filtered;
 }
