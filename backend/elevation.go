@@ -39,6 +39,7 @@ func EnsureElevatedIfRequested() {
 
 // RequestElevationRestart relaunches the current executable elevated and exits
 // the current process. No-op when already elevated.
+// Callers must persist window geometry first (os.Exit skips BeforeClose).
 func RequestElevationRestart() error {
 	if winlaunch.IsElevated() {
 		return nil
@@ -57,6 +58,7 @@ func RequestElevationRestart() error {
 
 // RequestUnelevatedRestart relaunches the current executable at normal
 // (medium) integrity and exits. No-op when not elevated.
+// Callers must persist window geometry first (os.Exit skips BeforeClose).
 func RequestUnelevatedRestart() error {
 	if !winlaunch.IsElevated() {
 		return nil

@@ -159,9 +159,15 @@ func (a *App) registerHandlers() {
 		return nil, nil
 	})
 	a.bus.Register("settings", "requestElevationRestart", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		// os.Exit skips BeforeClose; persist geometry so the relaunched
+		// elevated window restores the same size and position.
+		a.saveWindowOptions(ctx)
 		return nil, RequestElevationRestart()
 	})
 	a.bus.Register("settings", "requestUnelevatedRestart", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		// os.Exit skips BeforeClose; persist geometry so the relaunched
+		// unelevated window restores the same size and position.
+		a.saveWindowOptions(ctx)
 		return nil, RequestUnelevatedRestart()
 	})
 	a.bus.Register("settings", "isElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
