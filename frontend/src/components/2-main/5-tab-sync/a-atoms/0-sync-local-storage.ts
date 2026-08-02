@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { proxy, subscribe } from "valtio";
 import { appBus, syncOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
@@ -42,6 +43,21 @@ subscribe(syncEditorStore, () => {
     writeCache(syncEditorStore.config, syncEditorStore.rootUid, syncEditorStore.selectedUid);
     syncDirty(syncEditorStore);
 });
+
+/**
+ * Hydrate from disk once for the app lifetime. Mounted from AllDialogs so the
+ * Sync page can remount on tab switches without reloading and wiping edits.
+ * Explicit Reload in the toolbar still calls SyncConfig_Load({ notify: true }).
+ */
+export function SyncConfigSync() {
+    useEffect(
+        () => {
+            void SyncConfig_Load();
+        },
+        [],
+    );
+    return null;
+}
 
 // Cache functions
 

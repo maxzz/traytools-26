@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { proxy, subscribe } from "valtio";
 import { appBus, copyOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
@@ -42,6 +43,21 @@ subscribe(copyEditorStore, () => {
     writeCache(copyEditorStore.config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
     syncDirty(copyEditorStore);
 });
+
+/**
+ * Hydrate from disk once for the app lifetime. Mounted from AllDialogs so the
+ * Copy Operations page can remount on tab switches without reloading and wiping edits.
+ * Explicit Reload in the toolbar still calls CopyConfig_Load({ notify: true }).
+ */
+export function CopyConfigSync() {
+    useEffect(
+        () => {
+            void CopyConfig_Load();
+        },
+        [],
+    );
+    return null;
+}
 
 // Cache functions
 

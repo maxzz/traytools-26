@@ -1,6 +1,6 @@
 // Editable model for sync.json. Top-level groups sit under a fixed "Groups"
-// root. Each group's `items` is an ordered list of sync-operation items and/or
-// nested groups (source folder ↔ destination folder).
+// root. Each group's `items` is an ordered list of sync-operation items, nested
+// groups, and/or separators (source folder ↔ destination folder).
 
 export type SyncOpItem = {
     sourceFolder: string;
@@ -13,28 +13,38 @@ export type SyncOpItem = {
 
 export type SyncGroup = {
     name: string;
-    /** Ordered children: sync items and/or nested groups. */
+    /** Ordered children: sync items, nested groups, and/or separators. */
     items: SyncNode[];
     uid?: string;
 };
 
-/** A child of a group: either a sync item or a nested group. */
-export type SyncNode = SyncOpItem | SyncGroup;
+/** Visual divider in a group's item list. Persists as `{ "separator": true }`. */
+export type SyncSeparator = {
+    separator: true;
+    uid?: string;
+};
+
+/** A child of a group: sync item, nested group, or separator. */
+export type SyncNode = SyncOpItem | SyncGroup | SyncSeparator;
+
+export function isSyncSeparator(node: SyncNode): node is SyncSeparator {
+    return (node as SyncSeparator).separator === true;
+}
 
 export function isSyncGroup(node: SyncNode): node is SyncGroup {
-    return Array.isArray((node as SyncGroup).items) && !("sourceFolder" in node);
+    return !isSyncSeparator(node) && Array.isArray((node as SyncGroup).items) && !("sourceFolder" in node);
 }
 
 export function isSyncOpItem(node: SyncNode): node is SyncOpItem {
-    return "sourceFolder" in node;
+    return !isSyncSeparator(node) && "sourceFolder" in node;
 }
 
 export type SyncConfig = {
     groups: SyncGroup[];
 };
 
-export type SyncNodeKind = "root" | "group" | "item";
-export type AddSyncKind = "group" | "item";
+export type SyncNodeKind = "root" | "group" | "item" | "separator";
+export type AddSyncKind = "group" | "item" | "separator";
 export type SyncSource = "default" | "file" | "storage" | "import";
 
 export type SyncEditorStore = {
@@ -113,7 +123,7 @@ export function ensureUids(config: SyncConfig, rootUidHolder: { rootUid: string;
     assignUids(config.groups, used);
 }
 
-export function createGroup(items?: SyncOpItem[]): SyncGroup {
+export function createGroup(items?: SyncNode[]): SyncGroup {
     return {
         uid: newUid(),
         name: "New Group",
@@ -126,6 +136,13 @@ export function createItem(): SyncOpItem {
         uid: newUid(),
         sourceFolder: "",
         destFolder: "",
+    };
+}
+
+export function createSeparator(): SyncSeparator {
+    return {
+        uid: newUid(),
+        separator: true,
     };
 }
 
@@ -154,13 +171,18 @@ export function cloneItem(item: SyncOpItem): SyncOpItem {
     return clone;
 }
 
+/** Clone a separator with a fresh runtime uid. */
+export function cloneSeparator(_separator: SyncSeparator): SyncSeparator {
+    return createSeparator();
+}
+
 /** Flatten all sync items under a group, including nested groups (depth-first). */
 export function collectGroupItems(group: SyncGroup): SyncOpItem[] {
     const out: SyncOpItem[] = [];
     for (const node of group.items ?? []) {
         if (isSyncOpItem(node)) {
             out.push(node);
-        } else {
+        } else if (isSyncGroup(node)) {
             out.push(...collectGroupItems(node));
         }
     }
@@ -199,7 +221,15 @@ export type ItemLocation = {
     index: number;
 };
 
-export type SyncLocation = GroupLocation | ItemLocation;
+export type SeparatorLocation = {
+    kind: "separator";
+    separator: SyncSeparator;
+    group: SyncGroup;
+    siblings: SyncNode[];
+    index: number;
+};
+
+export type SyncLocation = GroupLocation | ItemLocation | SeparatorLocation;
 
 export function findByUid(config: SyncConfig, uid: string): SyncLocation | null {
     // Root list is SyncGroup[]; nested lists are SyncNode[]. Both are spliced via siblings.
@@ -225,6 +255,9 @@ function findInNodes(siblings: SyncNode[], uid: string, parent: SyncGroup | null
             if (!parent) {
                 return null;
             }
+            if (isSyncSeparator(node)) {
+                return { kind: "separator", separator: node, group: parent, siblings, index };
+            }
             return { kind: "item", item: node, group: parent, siblings, index };
         }
         if (isSyncGroup(node)) {
@@ -247,7 +280,8 @@ function findInNodes(siblings: SyncNode[], uid: string, parent: SyncGroup | null
 export type SyncSelectionPath =
     | { kind: "root"; }
     | { kind: "group"; path: number[]; }
-    | { kind: "item"; path: number[]; };
+    | { kind: "item"; path: number[]; }
+    | { kind: "separator"; path: number[]; };
 
 export function selectionPathFromUid(config: SyncConfig, rootUid: string, uid: string | null | undefined): SyncSelectionPath {
     if (!uid || uid === rootUid) {
@@ -261,9 +295,13 @@ function walkSelectionPath(nodes: SyncNode[], uid: string, path: number[]): Sync
         const node = nodes[index];
         const next = [...path, index];
         if (node.uid === uid) {
-            return isSyncGroup(node)
-                ? { kind: "group", path: next }
-                : { kind: "item", path: next };
+            if (isSyncGroup(node)) {
+                return { kind: "group", path: next };
+            }
+            if (isSyncSeparator(node)) {
+                return { kind: "separator", path: next };
+            }
+            return { kind: "item", path: next };
         }
         if (isSyncGroup(node)) {
             const found = walkSelectionPath(node.items, uid, next);
@@ -300,6 +338,9 @@ export function uidFromSelectionPath(config: SyncConfig, rootUid: string, path: 
     if (path.kind === "group") {
         return isSyncGroup(node) ? (node.uid ?? rootUid) : rootUid;
     }
+    if (path.kind === "separator") {
+        return isSyncSeparator(node) ? (node.uid ?? rootUid) : rootUid;
+    }
     return isSyncOpItem(node) ? (node.uid ?? rootUid) : rootUid;
 }
 
@@ -325,7 +366,11 @@ export function parseSyncSelectionPath(value: unknown): SyncSelectionPath | null
                 ? path.groupPath
                 : null;
 
-    if ((path.kind === "group" || path.kind === "item") && indexPath && indexPath.every((n) => Number.isInteger(n) && n >= 0)) {
+    if (
+        (path.kind === "group" || path.kind === "item" || path.kind === "separator")
+        && indexPath
+        && indexPath.every((n) => Number.isInteger(n) && n >= 0)
+    ) {
         return { kind: path.kind, path: indexPath };
     }
 

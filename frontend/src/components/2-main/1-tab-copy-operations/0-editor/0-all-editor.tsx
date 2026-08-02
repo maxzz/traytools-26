@@ -10,17 +10,17 @@ import { CopyOperationsToolbar } from "./1-1-ops-toolbar";
 import { TreeViewMenu } from "./2-1-tree-menu";
 import { CopyReportPanel } from "./4-0-report-copy";
 import { initPathDropListener } from "@/components/2-main/a-shared/path-input";
-import { CopyConfig_Load } from "../a-atoms/0-copy-local-storage";
 
 export function Page_CopyOperations() {
     const { panelSizes } = useSnapshot(appSettings);
     const mainLayout = panelSizes[PANEL_GROUPS.copyEditorMain];
     const verticalLayout = panelSizes[PANEL_GROUPS.copyEditorVertical];
 
+    // File hydration lives in CopyConfigSync (app-level) so switching away
+    // and back only remounts this UI against the preserved valtio store.
     useEffect(
         () => {
             initPathDropListener();
-            CopyConfig_Load();
         },
         []);
 

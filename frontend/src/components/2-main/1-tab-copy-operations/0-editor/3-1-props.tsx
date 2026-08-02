@@ -86,6 +86,16 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
     </>);
 }
 
+export function PropsFor_Separator() {
+    return (<>
+        <Field_TypeIcon kind="separator" />
+
+        <p className="text-muted-foreground">
+            A separator draws a horizontal divider line in the tree and in the quick actions list.
+        </p>
+    </>);
+}
+
 export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGroup; }) {
     const topLevel = item.uid ? findTopLevelGroup(copyEditorStore.config, item.uid) : null;
     const parentHasItems = collectGroupItems(group).length > 0;
@@ -267,22 +277,18 @@ function LabelAndField({ label, children }: { label: string; children: ReactNode
 
 const typeIconLabelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
 
-function Field_TypeIcon({ kind }: { kind: "group" | "item"; }) {
-    const isGroup = kind === "group";
-    const iconClass = classNames(
-        "shrink-0 size-3.5",
-        isGroup
-            ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
-            : "text-foreground/70",
-    );
+function Field_TypeIcon({ kind }: { kind: "group" | "item" | "separator"; }) {
+    const label = kind === "group" ? "Group" : kind === "separator" ? "Separator" : "Copy item";
 
     return (
         <div className={classNames(typeIconLabelClasses, "px-2 py-1 w-fit bg-muted border rounded inline-flex items-center gap-1")}>
-            {isGroup
-                ? <Folder className={iconClass} />
-                : <FileIcon className={iconClass} />
+            {kind === "group"
+                ? <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
+                : kind === "item"
+                    ? <FileIcon className="shrink-0 size-3.5 text-foreground/70" />
+                    : null
             }
-            {isGroup ? "Group" : "Copy item"}
+            {label}
         </div>
     );
 }

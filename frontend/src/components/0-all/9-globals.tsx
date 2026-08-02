@@ -17,7 +17,9 @@ import {
 } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { sendUnloadHookNotification } from "@/components/1-header/3-send-unload-msg-notice/3-2-unload-hook-action";
 import { syncToolsHotkeys, toolsHotkeysStore } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/2-tools-hotkeys";
+import { CopyConfigSync } from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
 import { RegistryConfigSync } from "@/components/2-main/6-tab-registry/a-atoms/0-registry-local-storage";
+import { SyncConfigSync } from "@/components/2-main/5-tab-sync/a-atoms/0-sync-local-storage";
 import { zoomLevelAtom } from "@/store/4-atoms-zoom";
 import { matchesHotkey, parseHotkey } from "@/ui/local-ui/9-hotkey";
 import { notice } from "@/ui/local-ui/7-toaster";
@@ -37,7 +39,9 @@ export function AllDialogs() {
         <SettingsRunElevatedSync />
         <SettingsQuitOnCloseSync />
         <SettingsUnloadHookHotkeySync />
+        <CopyConfigSync />
         <RegistryConfigSync />
+        <SyncConfigSync />
 
         <QuitRequestedListener />
         <ConfirmationDialog />

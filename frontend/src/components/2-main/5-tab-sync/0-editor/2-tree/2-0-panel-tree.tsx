@@ -35,11 +35,20 @@ type SnapGroup = {
     readonly items: readonly SnapNode[];
 };
 
-/** Child of a group: a sync item or a nested group. */
-type SnapNode = SnapItem | SnapGroup;
+type SnapSeparator = {
+    readonly separator: true;
+    readonly uid?: string;
+};
+
+/** Child of a group: a sync item, nested group, or separator. */
+type SnapNode = SnapItem | SnapGroup | SnapSeparator;
+
+function isSnapSeparator(node: SnapNode): node is SnapSeparator {
+    return (node as SnapSeparator).separator === true;
+}
 
 function isSnapGroup(node: SnapNode): node is SnapGroup {
-    return Array.isArray((node as SnapGroup).items) && !("sourceFolder" in node);
+    return !isSnapSeparator(node) && Array.isArray((node as SnapGroup).items) && !("sourceFolder" in node);
 }
 
 function isInternalTreeDrag(dt: DataTransfer): boolean {
@@ -56,7 +65,7 @@ function fileDropDestUid(rowUid: string): string {
         return rowUid;
     }
     const loc = findByUid(syncEditorStore.config, rowUid);
-    if (loc?.kind === "item" && loc.group.uid) {
+    if ((loc?.kind === "item" || loc?.kind === "separator") && loc.group.uid) {
         return loc.group.uid;
     }
     return rowUid;
@@ -455,6 +464,18 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                             />
                         );
                     }
+                    if (isSnapSeparator(node)) {
+                        return (
+                            <SeparatorRow
+                                key={node.uid}
+                                separator={node}
+                                depth={depth + 1}
+                                isLast={childIsLast}
+                                ancestors={childAncestors}
+                                onActivate={onActivate}
+                            />
+                        );
+                    }
                     return (
                         <ItemRow
                             key={node.uid}
@@ -467,6 +488,61 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                     );
                 }
             )}
+        </div>
+    );
+}
+
+function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { separator: SnapSeparator; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
+    const snap = useSnapshot(syncEditorStore);
+    const dnd = useDnd();
+    const uid = separator.uid ?? "";
+    const selected = snap.selectedUid === uid;
+    const isDragging = dnd.dragUid === uid;
+    const isDropTarget = dnd.dropUid === uid;
+    const showBefore = isDropTarget && dnd.dropPos === "before";
+    const showAfter = isDropTarget && dnd.dropPos === "after";
+    // OS folder drops on a separator land in the parent group.
+    const fileDropParentUid = fileDropDestUid(uid);
+
+    return (
+        <div
+            className="relative"
+            draggable
+            data-tree-drop-uid={fileDropParentUid}
+            onDragStart={(e) => dnd.onDragStart(e, uid)}
+            onDragOver={(e) => dnd.onDragOver(e, uid, false, false)}
+            onDrop={(e) => dnd.onDrop(e, uid)}
+            onDragEnd={dnd.onDragEnd}
+            onDragLeave={() => dnd.onDragLeaveRow(uid)}
+        >
+            {showBefore && <DragAndDropTargetLine style={{ left: guideX(depth), top: -1 }} />}
+            {showAfter && <DragAndDropTargetLine style={{ left: guideX(depth), bottom: -1 }} />}
+
+            <div
+                className={cn(
+                    "group relative px-1 h-5 rounded-none select-none flex items-center gap-1 cursor-pointer",
+                    !selected && "hover:bg-accent/50",
+                    selected && ROW_SELECTED,
+                    isDragging && "opacity-40",
+                )}
+                style={{ paddingLeft: (depth + 1) * INDENT + 8 }}
+                onClick={() => {
+                    onActivate();
+                    syncEditorStore.selectedUid = uid;
+                }}
+            >
+                <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={false} />
+
+                {/* Same expander slot as ItemRow so content starts at the icon column. */}
+                <span className="shrink-0 relative w-4 h-4" />
+
+                {/*
+                  Divider starts at the icon column (no negative margin) so it does
+                  not cross the vertical guide. -translate-y-px matches TreeGuides'
+                  horizontal tick; scoped to this span only.
+                */}
+                <span className="flex-1 relative -ml-2 mr-2 max-w-40 border-t border-foreground/40 -translate-y-px" />
+            </div>
         </div>
     );
 }

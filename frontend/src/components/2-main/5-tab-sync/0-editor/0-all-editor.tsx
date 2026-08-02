@@ -11,17 +11,17 @@ import { TreeViewMenu } from "./2-tree/2-1-tree-menu";
 import { SyncReportPanel } from "./4-report/4-0-report-sync";
 import { CheckDetailsDialog } from "./4-report/4-2-check-details-dialog";
 import { initPathDropListener } from "@/components/2-main/a-shared/path-input";
-import { SyncConfig_Load } from "../a-atoms/0-sync-local-storage";
 
 export function Page_Sync() {
     const { panelSizes } = useSnapshot(appSettings);
     const mainLayout = panelSizes[PANEL_GROUPS.syncEditorMain];
     const verticalLayout = panelSizes[PANEL_GROUPS.syncEditorVertical];
 
+    // File hydration lives in SyncConfigSync (app-level) so switching away
+    // and back only remounts this UI against the preserved valtio store.
     useEffect(
         () => {
             initPathDropListener();
-            SyncConfig_Load();
         },
         []);
 

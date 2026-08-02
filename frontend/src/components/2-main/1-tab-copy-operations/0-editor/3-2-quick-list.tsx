@@ -9,6 +9,7 @@ import {
     collectGroupItems,
     findByUid,
     isCopyGroup,
+    isCopySeparator,
     itemLabel,
 } from "../a-atoms/9-types-copy";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
@@ -44,9 +45,9 @@ function QuickAccessItems({ nodes, depth }: { nodes: readonly CopyNode[]; depth:
     return (
         <div className="flex flex-col gap-1">
             {nodes.map(
-                (node) => (
+                (node, index) => (
                     <QuickAccessItem
-                        key={node.uid ?? (isCopyGroup(node) ? node.name : itemLabel(node))}
+                        key={node.uid ?? (isCopyGroup(node) ? node.name : isCopySeparator(node) ? `sep-${index}` : itemLabel(node))}
                         node={node}
                         depth={depth}
                     />
@@ -58,6 +59,14 @@ function QuickAccessItems({ nodes, depth }: { nodes: readonly CopyNode[]; depth:
 
 function QuickAccessItem({ node, depth }: { node: CopyNode; depth: number; }) {
     const indentStyle = { paddingLeft: depth * CHILD_INDENT };
+
+    if (isCopySeparator(node)) {
+        return (
+            <div className="w-full min-h-1 flex items-center" style={indentStyle}>
+                <span className="w-full border-t border-foreground/40" />
+            </div>
+        );
+    }
 
     if (isCopyGroup(node)) {
         return (

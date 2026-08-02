@@ -1,7 +1,7 @@
 import { MousePointerClick } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { useSelectedNode } from "../../a-atoms/use-selected-node";
-import { PropsFor_Root } from "./3-1-props-root";
+import { PropsFor_Root, PropsFor_Separator } from "./3-1-props-root";
 import { PropsFor_Group } from "./3-2-props-group";
 import { PropsFor_Item } from "./3-3-props-item";
 
@@ -18,7 +18,9 @@ export function Panel_Props() {
                             ? <PropsFor_Root />
                             : selected.kind === "group"
                                 ? <PropsFor_Group group={selected.group} />
-                                : <PropsFor_Item item={selected.item} group={selected.group} />
+                                : selected.kind === "separator"
+                                    ? <PropsFor_Separator />
+                                    : <PropsFor_Item item={selected.item} group={selected.group} />
                     }
                 </div>
             </ScrollArea>

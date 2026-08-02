@@ -5,14 +5,18 @@ import {
     type SyncGroup,
     type SyncNode,
     type SyncOpItem,
+    type SyncSeparator,
     cloneGroup,
     cloneItem,
+    cloneSeparator,
     containsGroup,
     createGroup,
     createItem,
+    createSeparator,
     findByUid,
     isSyncGroup,
     isSyncOpItem,
+    isSyncSeparator,
     itemLabel,
 } from "./9-types-sync";
 import { syncEditorStore } from "./0-sync-local-storage";
@@ -42,8 +46,8 @@ export function addNode(kind: AddSyncKind): void {
             if (loc?.kind === "group") {
                 // Nest inside the selected group.
                 loc.group.items.push(group);
-            } else if (loc?.kind === "item") {
-                // Sibling after the selected item in the same parent list.
+            } else if (loc?.kind === "item" || loc?.kind === "separator") {
+                // Sibling after the selected leaf in the same parent list.
                 loc.siblings.splice(loc.index + 1, 0, group);
             } else {
                 config.groups.push(group);
@@ -55,13 +59,20 @@ export function addNode(kind: AddSyncKind): void {
         return;
     }
 
+    if (kind === "separator") {
+        const separator = createSeparator();
+        placeLeafNode(config, selUid, separator);
+        syncEditorStore.selectedUid = separator.uid!;
+        return;
+    }
+
     // Add sync item
     const item = createItem();
     if (selUid && !isRootUid(selUid)) {
         const loc = findByUid(config, selUid);
         if (loc?.kind === "group") {
             loc.group.items.push(item);
-        } else if (loc?.kind === "item") {
+        } else if (loc?.kind === "item" || loc?.kind === "separator") {
             loc.siblings.splice(loc.index + 1, 0, item);
         } else {
             ensureGroupThenPush(config, item);
@@ -72,14 +83,30 @@ export function addNode(kind: AddSyncKind): void {
     syncEditorStore.selectedUid = item.uid!;
 }
 
-function ensureGroupThenPush(config: SyncConfig, item: SyncOpItem): void {
+/** Place a leaf (item/separator) inside the selection, or under the last root group. */
+function placeLeafNode(config: SyncConfig, selUid: string | null, node: SyncOpItem | SyncSeparator): void {
+    if (selUid && !isRootUid(selUid)) {
+        const loc = findByUid(config, selUid);
+        if (loc?.kind === "group") {
+            loc.group.items.push(node);
+            return;
+        }
+        if (loc?.kind === "item" || loc?.kind === "separator") {
+            loc.siblings.splice(loc.index + 1, 0, node);
+            return;
+        }
+    }
+    ensureGroupThenPush(config, node);
+}
+
+function ensureGroupThenPush(config: SyncConfig, node: SyncOpItem | SyncSeparator): void {
     if (config.groups.length === 0) {
         const group = createGroup();
-        group.items = [item];
+        group.items = [node];
         config.groups.push(group);
         return;
     }
-    config.groups[config.groups.length - 1].items.push(item);
+    config.groups[config.groups.length - 1].items.push(node);
 }
 
 export function removeNode(uid: string): void {
@@ -105,6 +132,7 @@ export function removeNode(uid: string): void {
         syncEditorStore.selectedUid = loc.parent?.uid ?? syncEditorStore.rootUid;
         return;
     }
+    // item or separator — select the parent group
     syncEditorStore.selectedUid = loc.group.uid ?? syncEditorStore.rootUid;
 }
 
@@ -121,7 +149,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         return false;
     }
 
-    // Dropping on root: groups append at root; items need a group.
+    // Dropping on root: groups append at root; leaves need a group.
     if (isRootUid(targetUid)) {
         if (position !== "inside" && position !== "after" && position !== "before") {
             return false;
@@ -138,7 +166,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
             return true;
         }
         const [moved] = drag.siblings.splice(drag.index, 1);
-        if (!isSyncOpItem(moved)) {
+        if (!isSyncOpItem(moved) && !isSyncSeparator(moved)) {
             return false;
         }
         if (config.groups.length === 0) {
@@ -160,7 +188,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         if (target.kind === "group" && containsGroup(drag.group, target.group)) {
             return false;
         }
-        if (target.kind === "item" && containsGroup(drag.group, target.group)) {
+        if ((target.kind === "item" || target.kind === "separator") && containsGroup(drag.group, target.group)) {
             return false;
         }
 
@@ -195,9 +223,9 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
             return true;
         }
 
-        // target is item — place as sibling in the same list.
+        // target is item/separator — place as sibling in the same list.
         const after = findByUid(config, targetUid);
-        if (!after || after.kind !== "item") {
+        if (!after || (after.kind !== "item" && after.kind !== "separator")) {
             drag.siblings.splice(drag.index, 0, moved);
             return false;
         }
@@ -206,9 +234,9 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
         return true;
     }
 
-    // drag is item
+    // drag is item or separator (leaf)
     const [moved] = drag.siblings.splice(drag.index, 1);
-    if (!isSyncOpItem(moved)) {
+    if (!isSyncOpItem(moved) && !isSyncSeparator(moved)) {
         return false;
     }
 
@@ -223,7 +251,7 @@ export function moveNode(dragUid: string, targetUid: string, position: DropPosit
     }
 
     const after = findByUid(config, targetUid);
-    if (!after || after.kind !== "item") {
+    if (!after || (after.kind !== "item" && after.kind !== "separator")) {
         drag.siblings.splice(drag.index, 0, moved);
         return false;
     }
@@ -252,6 +280,12 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
             const cloned = cloneGroup(drag.group);
             uniquifyGroupName(cloned, config.groups);
             config.groups.push(cloned);
+            syncEditorStore.selectedUid = cloned.uid!;
+            return true;
+        }
+        if (drag.kind === "separator") {
+            const cloned = cloneSeparator(drag.separator);
+            ensureGroupThenPush(config, cloned);
             syncEditorStore.selectedUid = cloned.uid!;
             return true;
         }
@@ -303,6 +337,23 @@ export function copyNode(dragUid: string, targetUid: string, position: DropPosit
         return true;
     }
 
+    if (drag.kind === "separator") {
+        const cloned = cloneSeparator(drag.separator);
+        if (target.kind === "group") {
+            if (position === "before") {
+                target.group.items.unshift(cloned);
+            } else {
+                target.group.items.push(cloned);
+            }
+            syncEditorStore.selectedUid = cloned.uid!;
+            return true;
+        }
+        const insertAt = position === "before" ? target.index : target.index + 1;
+        target.siblings.splice(insertAt, 0, cloned);
+        syncEditorStore.selectedUid = cloned.uid!;
+        return true;
+    }
+
     const cloned = cloneItem(drag.item);
     if (target.kind === "group") {
         uniquifyItemName(cloned, target.group.items);
@@ -336,7 +387,7 @@ function uniquifyItemName(item: SyncOpItem, siblings: SyncNode[]): void {
  * Add OS-dropped source folders into the tree:
  * - root → new group containing the items
  * - group → append items to that group
- * - item → append items to the parent group
+ * - item/separator → append items to the parent group
  */
 export function addDroppedFolders(targetUid: string, sourceFolders: string[]): boolean {
     const paths = sourceFolders.map((p) => p.trim()).filter(Boolean);
@@ -369,7 +420,8 @@ export function addDroppedFolders(targetUid: string, sourceFolders: string[]): b
 
     const items = makeItemsFromPaths(paths, loc.siblings);
     loc.siblings.push(...items);
-    syncEditorStore.selectedUid = items[0]?.uid ?? loc.item.uid!;
+    const fallbackUid = loc.kind === "item" ? loc.item.uid : loc.separator.uid;
+    syncEditorStore.selectedUid = items[0]?.uid ?? fallbackUid ?? loc.group.uid!;
     return true;
 }
 

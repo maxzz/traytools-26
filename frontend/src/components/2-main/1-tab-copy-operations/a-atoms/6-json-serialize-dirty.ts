@@ -4,6 +4,7 @@ import {
     type CopyGroup,
     type CopyNode,
     type CopyOpItem,
+    type CopySeparator,
     isCopyOpItem,
     sourceFileBaseName,
 } from "./9-types-copy";
@@ -90,12 +91,19 @@ function normalizeNode(raw: unknown): CopyNode {
     if (!raw || typeof raw !== "object") {
         throw new Error("Invalid copy.json: item must be an object");
     }
-    const node = raw as CopyNode & { items?: unknown; sourceFile?: unknown; };
+    const node = raw as CopyNode & { items?: unknown; sourceFile?: unknown; separator?: unknown; };
+    if (node.separator === true) {
+        return normalizeSeparator(node);
+    }
     // Nested group: has items[] and is not a copy item.
     if (Array.isArray(node.items) && !("sourceFile" in node)) {
         return normalizeGroup(node);
     }
     return normalizeItem(node);
+}
+
+function normalizeSeparator(_raw: object): CopySeparator {
+    return { separator: true };
 }
 
 function normalizeItem(raw: object): CopyOpItem {

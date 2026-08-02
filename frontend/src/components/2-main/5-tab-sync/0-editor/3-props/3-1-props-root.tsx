@@ -13,11 +13,21 @@ export function PropsFor_Root() {
     return (<>
         <p className="text-muted-foreground">
             Root of the sync operations tree. Add groups here. Groups can contain sync items
-            (folder pairs) and nested groups in one ordered list. Groups and items can be
-            reordered by drag-and-drop. This node cannot be moved or deleted.
+            (folder pairs), nested groups, and separators in one ordered list. Groups and items
+            can be reordered by drag-and-drop. This node cannot be moved or deleted.
         </p>
 
         <QuickAccessList nodes={groups} />
+    </>);
+}
+
+export function PropsFor_Separator() {
+    return (<>
+        <Field_TypeIcon kind="separator" />
+
+        <p className="text-muted-foreground">
+            A separator draws a horizontal divider line in the tree and in the quick actions list.
+        </p>
     </>);
 }
 
@@ -36,22 +46,18 @@ export function LabelAndField({ label, children }: { label: string; children: Re
 
 const typeIconLabelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
 
-export function Field_TypeIcon({ kind }: { kind: "group" | "item"; }) {
-    const isGroup = kind === "group";
-    const iconClass = classNames(
-        "shrink-0 size-3.5",
-        isGroup
-            ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
-            : "text-foreground/70",
-    );
+export function Field_TypeIcon({ kind }: { kind: "group" | "item" | "separator"; }) {
+    const label = kind === "group" ? "Group" : kind === "separator" ? "Separator" : "Sync item";
 
     return (
         <div className={classNames(typeIconLabelClasses, "px-2 py-1 w-fit bg-muted border rounded inline-flex items-center gap-1")}>
-            {isGroup
-                ? <Folder className={iconClass} />
-                : <FileIcon className={iconClass} />
+            {kind === "group"
+                ? <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
+                : kind === "item"
+                    ? <FileIcon className="shrink-0 size-3.5 text-foreground/70" />
+                    : null
             }
-            {isGroup ? "Group" : "Sync item"}
+            {label}
         </div>
     );
 }

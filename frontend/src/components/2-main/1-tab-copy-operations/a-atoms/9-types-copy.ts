@@ -1,6 +1,6 @@
 // Editable model for copy.json. Top-level groups sit under a fixed "Groups"
-// root. Each group's `items` is an ordered list of copy-operation items and/or
-// nested groups (source file → destination folder).
+// root. Each group's `items` is an ordered list of copy-operation items, nested
+// groups, and/or separators (source file → destination folder).
 
 export type CopyOpItem = {
     sourceFile: string;
@@ -21,29 +21,39 @@ export type CopyGroup = {
     requireElevated?: boolean;
     /** On Access Denied, rename locked dest to name_locked_N.ext and retry. */
     renameLocked?: boolean;
-    /** Ordered children: copy items and/or nested groups. */
+    /** Ordered children: copy items, nested groups, and/or separators. */
     items: CopyNode[];
     uid?: string;
 };
 
-/** A child of a group: either a copy item or a nested group. */
-export type CopyNode = CopyOpItem | CopyGroup;
+/** Visual divider in a group's item list. Persists as `{ "separator": true }`. */
+export type CopySeparator = {
+    separator: true;
+    uid?: string;
+};
+
+/** A child of a group: copy item, nested group, or separator. */
+export type CopyNode = CopyOpItem | CopyGroup | CopySeparator;
+
+export function isCopySeparator(node: CopyNode): node is CopySeparator {
+    return (node as CopySeparator).separator === true;
+}
 
 export function isCopyGroup(node: CopyNode): node is CopyGroup {
-    return Array.isArray((node as CopyGroup).items) && !("sourceFile" in node);
+    return !isCopySeparator(node) && Array.isArray((node as CopyGroup).items) && !("sourceFile" in node);
 }
 
 export function isCopyOpItem(node: CopyNode): node is CopyOpItem {
-    return "sourceFile" in node;
+    return !isCopySeparator(node) && "sourceFile" in node;
 }
 
 export type CopyConfig = {
     groups: CopyGroup[];
 };
 
-export type CopyNodeKind = "root" | "group" | "item";
+export type CopyNodeKind = "root" | "group" | "item" | "separator";
 
-export type AddCopyKind = "group" | "item";
+export type AddCopyKind = "group" | "item" | "separator";
 
 export type CopySource = "default" | "file" | "storage" | "import";
 
@@ -123,7 +133,7 @@ export function ensureUids(config: CopyConfig, rootUidHolder: { rootUid: string;
     assignUids(config.groups, used);
 }
 
-export function createGroup(items?: CopyOpItem[]): CopyGroup {
+export function createGroup(items?: CopyNode[]): CopyGroup {
     return {
         uid: newUid(),
         name: "New Group",
@@ -142,6 +152,13 @@ export function createItem(): CopyOpItem {
         stopDpAgent: false,
         requireElevated: false,
         renameLocked: false,
+    };
+}
+
+export function createSeparator(): CopySeparator {
+    return {
+        uid: newUid(),
+        separator: true,
     };
 }
 
@@ -170,13 +187,18 @@ export function cloneItem(item: CopyOpItem): CopyOpItem {
     return clone;
 }
 
+/** Clone a separator with a fresh runtime uid. */
+export function cloneSeparator(_separator: CopySeparator): CopySeparator {
+    return createSeparator();
+}
+
 /** Flatten all copy items under a group, including nested groups (depth-first). */
 export function collectGroupItems(group: CopyGroup): CopyOpItem[] {
     const out: CopyOpItem[] = [];
     for (const node of group.items ?? []) {
         if (isCopyOpItem(node)) {
             out.push(node);
-        } else {
+        } else if (isCopyGroup(node)) {
             out.push(...collectGroupItems(node));
         }
     }
@@ -217,7 +239,15 @@ export type ItemLocation = {
     index: number;
 };
 
-export type CopyLocation = GroupLocation | ItemLocation;
+export type SeparatorLocation = {
+    kind: "separator";
+    separator: CopySeparator;
+    group: CopyGroup;
+    siblings: CopyNode[];
+    index: number;
+};
+
+export type CopyLocation = GroupLocation | ItemLocation | SeparatorLocation;
 
 export function findByUid(config: CopyConfig, uid: string): CopyLocation | null {
     // Root list is CopyGroup[]; nested lists are CopyNode[]. Both are spliced via siblings.
@@ -247,6 +277,9 @@ function findInNodes(
             if (!parent) {
                 return null;
             }
+            if (isCopySeparator(node)) {
+                return { kind: "separator", separator: node, group: parent, siblings, index };
+            }
             return { kind: "item", item: node, group: parent, siblings, index };
         }
         if (isCopyGroup(node)) {
@@ -269,7 +302,8 @@ function findInNodes(
 export type CopySelectionPath =
     | { kind: "root"; }
     | { kind: "group"; path: number[]; }
-    | { kind: "item"; path: number[]; };
+    | { kind: "item"; path: number[]; }
+    | { kind: "separator"; path: number[]; };
 
 export function selectionPathFromUid(
     config: CopyConfig,
@@ -291,9 +325,13 @@ function walkSelectionPath(
         const node = nodes[index];
         const next = [...path, index];
         if (node.uid === uid) {
-            return isCopyGroup(node)
-                ? { kind: "group", path: next }
-                : { kind: "item", path: next };
+            if (isCopyGroup(node)) {
+                return { kind: "group", path: next };
+            }
+            if (isCopySeparator(node)) {
+                return { kind: "separator", path: next };
+            }
+            return { kind: "item", path: next };
         }
         if (isCopyGroup(node)) {
             const found = walkSelectionPath(node.items, uid, next);
@@ -334,6 +372,9 @@ export function uidFromSelectionPath(
     if (path.kind === "group") {
         return isCopyGroup(node) ? (node.uid ?? rootUid) : rootUid;
     }
+    if (path.kind === "separator") {
+        return isCopySeparator(node) ? (node.uid ?? rootUid) : rootUid;
+    }
     return isCopyOpItem(node) ? (node.uid ?? rootUid) : rootUid;
 }
 
@@ -358,7 +399,7 @@ export function parseCopySelectionPath(value: unknown): CopySelectionPath | null
             : null;
 
     if (
-        (path.kind === "group" || path.kind === "item")
+        (path.kind === "group" || path.kind === "item" || path.kind === "separator")
         && indexPath
         && indexPath.every((n) => Number.isInteger(n) && n >= 0)
     ) {

@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Check, FileIcon, Folder, ListTree } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { type SyncNode, type SyncOpItem, findByUid, isSyncGroup, itemLabel, syncDirectionName } from "../../a-atoms/9-types-sync";
+import { type SyncNode, type SyncOpItem, findByUid, isSyncGroup, isSyncSeparator, itemLabel, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
 
@@ -33,8 +33,12 @@ function QuickAccessItems({ nodes, depth }: { nodes: readonly SyncNode[]; depth:
     return (
         <div className="flex flex-col gap-1">
             {nodes.map(
-                (node) => (
-                    <QuickAccessItem node={node} depth={depth} key={node.uid ?? (isSyncGroup(node) ? node.name : itemLabel(node))} />
+                (node, index) => (
+                    <QuickAccessItem
+                        key={node.uid ?? (isSyncGroup(node) ? node.name : isSyncSeparator(node) ? `sep-${index}` : itemLabel(node))}
+                        node={node}
+                        depth={depth}
+                    />
                 )
             )}
         </div>
@@ -43,6 +47,14 @@ function QuickAccessItems({ nodes, depth }: { nodes: readonly SyncNode[]; depth:
 
 function QuickAccessItem({ node, depth }: { node: SyncNode; depth: number; }) {
     const indentStyle = { paddingLeft: depth * CHILD_INDENT };
+
+    if (isSyncSeparator(node)) {
+        return (
+            <div className="w-full min-h-1 flex items-center" style={indentStyle}>
+                <span className="w-full border-t border-foreground/40" />
+            </div>
+        );
+    }
 
     if (isSyncGroup(node)) {
         return (

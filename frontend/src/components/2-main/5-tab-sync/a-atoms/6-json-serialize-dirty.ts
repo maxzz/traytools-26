@@ -4,6 +4,7 @@ import {
     type SyncGroup,
     type SyncNode,
     type SyncOpItem,
+    type SyncSeparator,
     folderBaseName,
     isSyncOpItem,
 } from "./9-types-sync";
@@ -98,12 +99,19 @@ function normalizeNode(raw: unknown): SyncNode {
     if (!raw || typeof raw !== "object") {
         throw new Error("Invalid sync.json: item must be an object");
     }
-    const node = raw as SyncNode & { items?: unknown; sourceFolder?: unknown; };
+    const node = raw as SyncNode & { items?: unknown; sourceFolder?: unknown; separator?: unknown; };
+    if (node.separator === true) {
+        return normalizeSeparator(node);
+    }
     // Nested group: has items[] and is not a sync item.
     if (Array.isArray(node.items) && !("sourceFolder" in node)) {
         return normalizeGroup(node);
     }
     return normalizeItem(node);
+}
+
+function normalizeSeparator(_raw: object): SyncSeparator {
+    return { separator: true };
 }
 
 function normalizeItem(raw: object): SyncOpItem {

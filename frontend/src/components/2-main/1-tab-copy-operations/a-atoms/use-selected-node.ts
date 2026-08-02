@@ -1,12 +1,13 @@
 import { useSnapshot } from "valtio";
-import { type CopyGroup, type CopyNodeKind, type CopyOpItem, findByUid } from "./9-types-copy";
+import { type CopyGroup, type CopyNodeKind, type CopyOpItem, type CopySeparator, findByUid } from "./9-types-copy";
 import { isRootUid } from "./1-copy-editor-atoms";
 import { copyEditorStore } from "./0-copy-local-storage";
 
 export type SelectedCopyNode =
     | { kind: "root"; uid: string; }
     | { kind: "group"; uid: string; group: CopyGroup; }
-    | { kind: "item"; uid: string; item: CopyOpItem; group: CopyGroup; };
+    | { kind: "item"; uid: string; item: CopyOpItem; group: CopyGroup; }
+    | { kind: "separator"; uid: string; separator: CopySeparator; group: CopyGroup; };
 
 export function useSelectedNode(): SelectedCopyNode | null {
     // sync: true — controlled inputs (group/operation name, paths) keep caret position.
@@ -28,6 +29,9 @@ export function useSelectedNode(): SelectedCopyNode | null {
     if (loc.kind === "group") {
         return { kind: "group", uid, group: loc.group as CopyGroup };
     }
+    if (loc.kind === "separator") {
+        return { kind: "separator", uid, separator: loc.separator as CopySeparator, group: loc.group as CopyGroup };
+    }
     return { kind: "item", uid, item: loc.item as CopyOpItem, group: loc.group as CopyGroup };
 }
 
@@ -40,7 +44,7 @@ export function patchSelectedGroup(fn: (group: CopyGroup) => void) {
     if (!uid || isRootUid(uid)) {
         return;
     }
-    
+
     const loc = findByUid(copyEditorStore.config, uid);
     if (loc?.kind === "group") {
         fn(loc.group);
