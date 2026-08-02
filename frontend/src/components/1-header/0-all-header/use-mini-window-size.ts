@@ -14,6 +14,159 @@ type UseMiniWindowSizeResult = {
     toolbarRef: RefObject<HTMLDivElement | null>;
 };
 
+type ApplySizeCtx = {
+    headerEl: HTMLElement;
+    toolbarEl: HTMLElement;
+    zoomLevel: number;
+    isCancelled: () => boolean;
+    applyingRef: RefObject<boolean>;
+    lastOuterRef: RefObject<measure.Size2 | null>;
+    lastContentRef: RefObject<measure.Size2 | null>;
+};
+
+/** Result of one apply pass — effect owns retry timing. */
+type ApplySizeResult = "done" | "retry" | "skipped";
+
+async function readOuterSize(): Promise<measure.Size2 | null> {
+    try {
+        const size = await WindowGetSize();
+        if (size && measure.isValidSize(size.w) && measure.isValidSize(size.h)) {
+            return { w: size.w, h: size.h };
+        }
+    } catch {
+        // fall through
+    }
+    if (measure.isValidSize(window.outerWidth) && measure.isValidSize(window.outerHeight)) {
+        return { w: window.outerWidth, h: window.outerHeight };
+    }
+    return null;
+}
+
+function setOuterSize(w: number, h: number): boolean {
+    if (!measure.isValidSize(w) || !measure.isValidSize(h)) {
+        return false;
+    }
+    WindowSetSize(Math.round(w), Math.round(h));
+    return true;
+}
+
+function waitTwoFrames(): Promise<void> {
+    return new Promise((resolve) => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve());
+        });
+    });
+}
+
+/**
+ * One pass of mini-window content-fit sizing.
+ * Side-effectful (reads DOM / window, calls WindowSetSize); effect owns observe/schedule/cleanup.
+ */
+async function applyMiniWindowSize(ctx: ApplySizeCtx): Promise<ApplySizeResult> {
+    const {
+        headerEl,
+        toolbarEl,
+        zoomLevel,
+        isCancelled,
+        applyingRef,
+        lastOuterRef,
+        lastContentRef,
+    } = ctx;
+
+    if (isCancelled() || applyingRef.current) {
+        return "skipped";
+    }
+
+    const zoomFactor = measure.zoomFactorFromLevel(zoomLevel);
+    const { layoutW, layoutH, clientW, clientH } = measure.measureClientNeed(
+        headerEl,
+        toolbarEl,
+        zoomFactor,
+    );
+
+    if (
+        !measure.isValidSize(layoutW) || !measure.isValidSize(layoutH)
+        || !measure.isValidSize(clientW) || !measure.isValidSize(clientH)
+        || layoutW < measure.MIN_CONTENT_W || layoutH < measure.MIN_CONTENT_H
+    ) {
+        return lastOuterRef.current ? "skipped" : "retry";
+    }
+
+    const prevContent = lastContentRef.current;
+    const contentUnchanged = prevContent
+        && prevContent.w === layoutW
+        && prevContent.h === layoutH;
+    const clientFits = measure.contentVisiblyFits(headerEl, toolbarEl, clientW, clientH);
+    const oversized = measure.isClientOversized(clientW, clientH);
+
+    if (contentUnchanged && clientFits && !oversized && lastOuterRef.current) {
+        return "skipped";
+    }
+
+    if (clientFits && !oversized && !lastOuterRef.current) {
+        lastContentRef.current = { w: layoutW, h: layoutH };
+        lastOuterRef.current = await readOuterSize();
+        return "done";
+    }
+
+    const { chromeW, chromeH } = measure.frameChrome();
+    const w = clientW + chromeW;
+    const h = clientH + chromeH;
+    const nextOuter = { w, h };
+
+    const prevOuter = lastOuterRef.current;
+    if (
+        prevOuter
+        && measure.sizesClose(prevOuter, nextOuter)
+        && clientFits
+        && !oversized
+    ) {
+        lastContentRef.current = { w: layoutW, h: layoutH };
+        return "skipped";
+    }
+
+    if (!measure.isValidSize(w) || !measure.isValidSize(h)) {
+        return "skipped";
+    }
+
+    applyingRef.current = true;
+    lastContentRef.current = { w: layoutW, h: layoutH };
+    lastOuterRef.current = nextOuter;
+
+    try {
+        if (!setOuterSize(w, h)) {
+            return "skipped";
+        }
+
+        await waitTwoFrames();
+        if (isCancelled()) {
+            return "skipped";
+        }
+
+        // Correct residual client mismatch (grow if clipped, shrink if oversized).
+        const deltaW = clientW - window.innerWidth;
+        const deltaH = clientH - window.innerHeight;
+        if (Math.abs(deltaW) > measure.SIZE_TOL_PX || Math.abs(deltaH) > measure.SIZE_TOL_PX) {
+            const outer = await readOuterSize();
+            const outerW = outer?.w ?? w;
+            const outerH = outer?.h ?? h;
+            const corrected = {
+                w: Math.max(measure.MIN_CONTENT_W + measure.FRAME_FALLBACK_W, outerW + deltaW),
+                h: Math.max(measure.MIN_CONTENT_H + measure.FRAME_FALLBACK_H, outerH + deltaH),
+            };
+            if (setOuterSize(corrected.w, corrected.h)) {
+                lastOuterRef.current = corrected;
+            }
+        }
+        return "done";
+    } catch {
+        // Wails runtime unavailable (e.g. Vite-only browser dev).
+        return "skipped";
+    } finally {
+        applyingRef.current = false;
+    }
+}
+
 /**
  * Fits the OS window to the mini toolbar (+ optional footer).
  * No-op outside mini mode or when the Wails backend is unavailable.
@@ -69,126 +222,20 @@ export function useMiniWindowSize({
             lastContentRef.current = null;
             applyingRef.current = false;
 
-            const readOuterSize = async (): Promise<measure.Size2 | null> => {
-                try {
-                    const size = await WindowGetSize();
-                    if (size && measure.isValidSize(size.w) && measure.isValidSize(size.h)) {
-                        return { w: size.w, h: size.h };
-                    }
-                } catch {
-                    // fall through
-                }
-                if (measure.isValidSize(window.outerWidth) && measure.isValidSize(window.outerHeight)) {
-                    return { w: window.outerWidth, h: window.outerHeight };
-                }
-                return null;
+            const ctx: ApplySizeCtx = {
+                headerEl,
+                toolbarEl,
+                zoomLevel,
+                isCancelled: () => cancelled,
+                applyingRef,
+                lastOuterRef,
+                lastContentRef,
             };
 
-            const setOuterSize = (w: number, h: number) => {
-                if (!measure.isValidSize(w) || !measure.isValidSize(h)) {
-                    return false;
-                }
-                WindowSetSize(Math.round(w), Math.round(h));
-                return true;
-            };
-
-            const applySize = async () => {
-                if (cancelled || applyingRef.current) {
-                    return;
-                }
-
-                const zoomFactor = measure.zoomFactorFromLevel(zoomLevel);
-                const { layoutW, layoutH, clientW, clientH } = measure.measureClientNeed(
-                    headerEl,
-                    toolbarEl,
-                    zoomFactor,
-                );
-
-                if (
-                    !measure.isValidSize(layoutW) || !measure.isValidSize(layoutH)
-                    || !measure.isValidSize(clientW) || !measure.isValidSize(clientH)
-                    || layoutW < measure.MIN_CONTENT_W || layoutH < measure.MIN_CONTENT_H
-                ) {
-                    if (!lastOuterRef.current) {
-                        timer = window.setTimeout(() => { void applySize(); }, 100);
-                    }
-                    return;
-                }
-
-                const prevContent = lastContentRef.current;
-                const contentUnchanged = prevContent
-                    && prevContent.w === layoutW
-                    && prevContent.h === layoutH;
-                const clientFits = measure.contentVisiblyFits(headerEl, toolbarEl, clientW, clientH);
-                const oversized = measure.isClientOversized(clientW, clientH);
-
-                if (contentUnchanged && clientFits && !oversized && lastOuterRef.current) {
-                    return;
-                }
-
-                if (clientFits && !oversized && !lastOuterRef.current) {
-                    lastContentRef.current = { w: layoutW, h: layoutH };
-                    lastOuterRef.current = await readOuterSize();
-                    return;
-                }
-
-                const { chromeW, chromeH } = measure.frameChrome();
-                const w = clientW + chromeW;
-                const h = clientH + chromeH;
-                const nextOuter = { w, h };
-
-                const prevOuter = lastOuterRef.current;
-                if (
-                    prevOuter
-                    && measure.sizesClose(prevOuter, nextOuter)
-                    && clientFits
-                    && !oversized
-                ) {
-                    lastContentRef.current = { w: layoutW, h: layoutH };
-                    return;
-                }
-
-                if (!measure.isValidSize(w) || !measure.isValidSize(h)) {
-                    return;
-                }
-
-                applyingRef.current = true;
-                lastContentRef.current = { w: layoutW, h: layoutH };
-                lastOuterRef.current = nextOuter;
-
-                try {
-                    if (!setOuterSize(w, h)) {
-                        return;
-                    }
-
-                    await new Promise<void>((resolve) => {
-                        requestAnimationFrame(() => {
-                            requestAnimationFrame(() => resolve());
-                        });
-                    });
-                    if (cancelled) {
-                        return;
-                    }
-
-                    // Correct residual client mismatch (grow if clipped, shrink if oversized).
-                    const deltaW = clientW - window.innerWidth;
-                    const deltaH = clientH - window.innerHeight;
-                    if (Math.abs(deltaW) > measure.SIZE_TOL_PX || Math.abs(deltaH) > measure.SIZE_TOL_PX) {
-                        const outer = await readOuterSize();
-                        const outerW = outer?.w ?? w;
-                        const outerH = outer?.h ?? h;
-                        const corrected = {
-                            w: Math.max(measure.MIN_CONTENT_W + measure.FRAME_FALLBACK_W, outerW + deltaW),
-                            h: Math.max(measure.MIN_CONTENT_H + measure.FRAME_FALLBACK_H, outerH + deltaH),
-                        };
-                        if (setOuterSize(corrected.w, corrected.h)) {
-                            lastOuterRef.current = corrected;
-                        }
-                    }
-                } catch {
-                    // Wails runtime unavailable (e.g. Vite-only browser dev).
-                } finally {
-                    applyingRef.current = false;
+            const runApply = async () => {
+                const result = await applyMiniWindowSize(ctx);
+                if (result === "retry" && !cancelled) {
+                    timer = window.setTimeout(() => { void runApply(); }, 100);
                 }
             };
 
@@ -197,7 +244,7 @@ export function useMiniWindowSize({
                 timer = window.setTimeout(
                     () => {
                         requestAnimationFrame(() => {
-                            requestAnimationFrame(() => { void applySize(); });
+                            requestAnimationFrame(() => { void runApply(); });
                         });
                     },
                     0);
