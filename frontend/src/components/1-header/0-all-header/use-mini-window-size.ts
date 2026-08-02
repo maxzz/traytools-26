@@ -1,21 +1,7 @@
 import { type RefObject, useEffect, useRef } from "react";
 import { WindowGetSize, WindowSetSize } from "@/../wailsjs/runtime/runtime";
 import { isBackendAvailable } from "@/wails/is-wails";
-import {
-    FRAME_FALLBACK_H,
-    FRAME_FALLBACK_W,
-    MIN_CONTENT_H,
-    MIN_CONTENT_W,
-    SIZE_TOL_PX,
-    contentVisiblyFits,
-    frameChrome,
-    isClientOversized,
-    isValidSize,
-    measureClientNeed,
-    sizesClose,
-    zoomFactorFromLevel,
-    type Size2,
-} from "./mini-window-measure";
+import * as measure from "./use-mini-window-measure";
 
 type UseMiniWindowSizeArgs = {
     isMini: boolean;
@@ -39,8 +25,8 @@ export function useMiniWindowSize({
 }: UseMiniWindowSizeArgs): UseMiniWindowSizeResult {
     const headerRef = useRef<HTMLElement>(null);
     const toolbarRef = useRef<HTMLDivElement>(null);
-    const lastOuterRef = useRef<Size2 | null>(null);
-    const lastContentRef = useRef<Size2 | null>(null);
+    const lastOuterRef = useRef<measure.Size2 | null>(null);
+    const lastContentRef = useRef<measure.Size2 | null>(null);
     const applyingRef = useRef(false);
 
     useEffect(
@@ -83,23 +69,23 @@ export function useMiniWindowSize({
             lastContentRef.current = null;
             applyingRef.current = false;
 
-            const readOuterSize = async (): Promise<Size2 | null> => {
+            const readOuterSize = async (): Promise<measure.Size2 | null> => {
                 try {
                     const size = await WindowGetSize();
-                    if (size && isValidSize(size.w) && isValidSize(size.h)) {
+                    if (size && measure.isValidSize(size.w) && measure.isValidSize(size.h)) {
                         return { w: size.w, h: size.h };
                     }
                 } catch {
                     // fall through
                 }
-                if (isValidSize(window.outerWidth) && isValidSize(window.outerHeight)) {
+                if (measure.isValidSize(window.outerWidth) && measure.isValidSize(window.outerHeight)) {
                     return { w: window.outerWidth, h: window.outerHeight };
                 }
                 return null;
             };
 
             const setOuterSize = (w: number, h: number) => {
-                if (!isValidSize(w) || !isValidSize(h)) {
+                if (!measure.isValidSize(w) || !measure.isValidSize(h)) {
                     return false;
                 }
                 WindowSetSize(Math.round(w), Math.round(h));
@@ -111,17 +97,17 @@ export function useMiniWindowSize({
                     return;
                 }
 
-                const zoomFactor = zoomFactorFromLevel(zoomLevel);
-                const { layoutW, layoutH, clientW, clientH } = measureClientNeed(
+                const zoomFactor = measure.zoomFactorFromLevel(zoomLevel);
+                const { layoutW, layoutH, clientW, clientH } = measure.measureClientNeed(
                     headerEl,
                     toolbarEl,
                     zoomFactor,
                 );
 
                 if (
-                    !isValidSize(layoutW) || !isValidSize(layoutH)
-                    || !isValidSize(clientW) || !isValidSize(clientH)
-                    || layoutW < MIN_CONTENT_W || layoutH < MIN_CONTENT_H
+                    !measure.isValidSize(layoutW) || !measure.isValidSize(layoutH)
+                    || !measure.isValidSize(clientW) || !measure.isValidSize(clientH)
+                    || layoutW < measure.MIN_CONTENT_W || layoutH < measure.MIN_CONTENT_H
                 ) {
                     if (!lastOuterRef.current) {
                         timer = window.setTimeout(() => { void applySize(); }, 100);
@@ -133,8 +119,8 @@ export function useMiniWindowSize({
                 const contentUnchanged = prevContent
                     && prevContent.w === layoutW
                     && prevContent.h === layoutH;
-                const clientFits = contentVisiblyFits(headerEl, toolbarEl, clientW, clientH);
-                const oversized = isClientOversized(clientW, clientH);
+                const clientFits = measure.contentVisiblyFits(headerEl, toolbarEl, clientW, clientH);
+                const oversized = measure.isClientOversized(clientW, clientH);
 
                 if (contentUnchanged && clientFits && !oversized && lastOuterRef.current) {
                     return;
@@ -146,7 +132,7 @@ export function useMiniWindowSize({
                     return;
                 }
 
-                const { chromeW, chromeH } = frameChrome();
+                const { chromeW, chromeH } = measure.frameChrome();
                 const w = clientW + chromeW;
                 const h = clientH + chromeH;
                 const nextOuter = { w, h };
@@ -154,7 +140,7 @@ export function useMiniWindowSize({
                 const prevOuter = lastOuterRef.current;
                 if (
                     prevOuter
-                    && sizesClose(prevOuter, nextOuter)
+                    && measure.sizesClose(prevOuter, nextOuter)
                     && clientFits
                     && !oversized
                 ) {
@@ -162,7 +148,7 @@ export function useMiniWindowSize({
                     return;
                 }
 
-                if (!isValidSize(w) || !isValidSize(h)) {
+                if (!measure.isValidSize(w) || !measure.isValidSize(h)) {
                     return;
                 }
 
@@ -187,13 +173,13 @@ export function useMiniWindowSize({
                     // Correct residual client mismatch (grow if clipped, shrink if oversized).
                     const deltaW = clientW - window.innerWidth;
                     const deltaH = clientH - window.innerHeight;
-                    if (Math.abs(deltaW) > SIZE_TOL_PX || Math.abs(deltaH) > SIZE_TOL_PX) {
+                    if (Math.abs(deltaW) > measure.SIZE_TOL_PX || Math.abs(deltaH) > measure.SIZE_TOL_PX) {
                         const outer = await readOuterSize();
                         const outerW = outer?.w ?? w;
                         const outerH = outer?.h ?? h;
                         const corrected = {
-                            w: Math.max(MIN_CONTENT_W + FRAME_FALLBACK_W, outerW + deltaW),
-                            h: Math.max(MIN_CONTENT_H + FRAME_FALLBACK_H, outerH + deltaH),
+                            w: Math.max(measure.MIN_CONTENT_W + measure.FRAME_FALLBACK_W, outerW + deltaW),
+                            h: Math.max(measure.MIN_CONTENT_H + measure.FRAME_FALLBACK_H, outerH + deltaH),
                         };
                         if (setOuterSize(corrected.w, corrected.h)) {
                             lastOuterRef.current = corrected;
