@@ -35,7 +35,7 @@ export function App() {
         <AllDialogs />
 
         <main
-            className="@container h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto] mini:h-auto mini:grid-rows-[auto]"
+            className="@container h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto] mini:h-auto mini:min-h-0 mini:overflow-hidden mini:grid-rows-[auto]"
             data-app-size={appSize}
             style={{ "--app-size": appSize } as CSSProperties}
         >

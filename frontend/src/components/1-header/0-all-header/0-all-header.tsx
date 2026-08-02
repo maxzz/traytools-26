@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
-import { WindowSetSize } from "@/../wailsjs/runtime/runtime";
+import { WindowGetSize, WindowSetSize } from "@/../wailsjs/runtime/runtime";
 import { appSettings } from "@/store/1-ui-settings";
 import { zoomLevelAtom } from "@/store/4-atoms-zoom";
 import { windowSizeKeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
@@ -17,11 +17,16 @@ import { ButtonSettings } from "./2-2-btn-settings";
 import { ButtonThemeToggle } from "./2-3-btn-theme-toggle";
 import { BadgeSelfIntegrity, ButtonExit } from "./5-btn-exit-self-integrity";
 
-/** Approx. Win title-bar + borders when outer/inner chrome cannot be trusted. */
-const FRAME_FALLBACK_H = 40;
+/**
+ * Win10+ outer frame includes invisible resize borders (~7px L/R/B) plus title bar.
+ * Used when outer−inner cannot be trusted (already-collapsed mini window).
+ */
+const FRAME_FALLBACK_H = 48;
 const FRAME_FALLBACK_W = 16;
 const MIN_CONTENT_W = 80;
 const MIN_CONTENT_H = 24;
+/** Extra client pixels so subpixel / DPI rounding does not clip controls. */
+const CLIENT_PAD = 6;
 
 export function Header() {
     const { showMainTabs, showThemeToggle } = useSnapshot(appSettings);
@@ -31,6 +36,26 @@ export function Header() {
     const headerRef = useRef<HTMLElement>(null);
     const toolbarRef = useRef<HTMLDivElement>(null);
     const lastSizeRef = useRef<{ w: number; h: number; } | null>(null);
+    const applyingRef = useRef(false);
+
+    useEffect(
+        () => {
+            const html = document.documentElement;
+            const body = document.body;
+            if (!isMini) {
+                html.style.overflow = "";
+                body.style.overflow = "";
+                return;
+            }
+            // Prevent scrollbar gutters from stealing client space while we fit the window.
+            html.style.overflow = "hidden";
+            body.style.overflow = "hidden";
+            return () => {
+                html.style.overflow = "";
+                body.style.overflow = "";
+            };
+        },
+        [isMini]);
 
     useEffect(
         () => {
@@ -48,68 +73,117 @@ export function Header() {
             let timer = 0;
             let cancelled = false;
 
-            const frameChrome = () => {
-                // When the window is already collapsed, outer≈inner (or inner is ~0)
-                // and cannot be used to infer the title-bar size.
-                const rawH = window.outerHeight - window.innerHeight;
-                const rawW = window.outerWidth - window.innerWidth;
-                const chromeH = window.innerHeight >= MIN_CONTENT_H && rawH > 0
-                    ? rawH
-                    : FRAME_FALLBACK_H;
-                const chromeW = window.innerWidth >= MIN_CONTENT_W && rawW >= 0
-                    ? rawW
-                    : FRAME_FALLBACK_W;
-                return { chromeW, chromeH };
-            };
-
-            const applySize = () => {
-                if (cancelled) {
-                    return;
-                }
-
-                const zoomFactor = Math.pow(1.2, zoomLevel);
+            const measureContent = () => {
                 const styles = getComputedStyle(headerEl);
                 const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
                 const padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
                 const borderY = (parseFloat(styles.borderTopWidth) || 0) + (parseFloat(styles.borderBottomWidth) || 0);
 
-                // Width from the right-side controls; height from toolbar + header chrome.
-                const contentW = toolbarEl.offsetWidth + padX;
-                const contentH = Math.max(toolbarEl.offsetHeight + padY + borderY, headerEl.scrollHeight);
+                const contentW = Math.max(toolbarEl.offsetWidth, toolbarEl.scrollWidth) + padX;
+                const contentH = Math.max(
+                    toolbarEl.offsetHeight + padY + borderY,
+                    headerEl.offsetHeight,
+                    headerEl.scrollHeight,
+                );
+                return { contentW, contentH };
+            };
 
-                if (contentW < MIN_CONTENT_W || contentH < MIN_CONTENT_H) {
-                    // Layout not ready yet — retry shortly without locking lastSize.
-                    timer = window.setTimeout(applySize, 100);
+            const frameChrome = () => {
+                const rawH = window.outerHeight - window.innerHeight;
+                const rawW = window.outerWidth - window.innerWidth;
+                // Prefer live chrome only when the client area is already large enough to trust.
+                const chromeH = window.innerHeight >= MIN_CONTENT_H && rawH > 0
+                    ? Math.max(rawH, FRAME_FALLBACK_H)
+                    : FRAME_FALLBACK_H;
+                const chromeW = window.innerWidth >= MIN_CONTENT_W && rawW >= 0
+                    ? Math.max(rawW, FRAME_FALLBACK_W)
+                    : FRAME_FALLBACK_W;
+                return { chromeW, chromeH };
+            };
+
+            const applySize = async () => {
+                if (cancelled || applyingRef.current) {
                     return;
                 }
 
+                const zoomFactor = Math.pow(1.2, zoomLevel);
+                const { contentW, contentH } = measureContent();
+
+                if (contentW < MIN_CONTENT_W || contentH < MIN_CONTENT_H) {
+                    timer = window.setTimeout(() => { void applySize(); }, 100);
+                    return;
+                }
+
+                const clientW = Math.ceil(contentW * zoomFactor) + CLIENT_PAD;
+                const clientH = Math.ceil(contentH * zoomFactor) + CLIENT_PAD;
                 const { chromeW, chromeH } = frameChrome();
-                const w = Math.max(1, Math.ceil(contentW * zoomFactor) + chromeW);
-                const h = Math.max(1, Math.ceil(contentH * zoomFactor) + chromeH);
+                let w = clientW + chromeW;
+                let h = clientH + chromeH;
 
                 const prev = lastSizeRef.current;
                 if (prev && prev.w === w && prev.h === h) {
-                    return;
+                    // Still verify the client actually fits — scrollbars may remain.
+                    const needW = Math.max(0, clientW - window.innerWidth);
+                    const needH = Math.max(0, clientH - window.innerHeight);
+                    if (needW === 0 && needH === 0) {
+                        return;
+                    }
+                    w = (prev.w) + needW;
+                    h = (prev.h) + needH;
                 }
+
+                applyingRef.current = true;
                 lastSizeRef.current = { w, h };
 
                 try {
                     WindowSetSize(w, h);
+
+                    // Feedback pass: grow by any remaining client shortfall after the resize.
+                    await new Promise<void>((resolve) => {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => resolve());
+                        });
+                    });
+                    if (cancelled) {
+                        return;
+                    }
+
+                    const shortW = Math.max(0, clientW - window.innerWidth);
+                    const shortH = Math.max(0, clientH - window.innerHeight);
+                    if (shortW > 0 || shortH > 0) {
+                        let outerW = w;
+                        let outerH = h;
+                        try {
+                            const size = await WindowGetSize();
+                            if (size?.w && size?.h) {
+                                outerW = size.w;
+                                outerH = size.h;
+                            }
+                        } catch {
+                            // keep last set size
+                        }
+                        const nextW = outerW + shortW + CLIENT_PAD;
+                        const nextH = outerH + shortH + CLIENT_PAD;
+                        lastSizeRef.current = { w: nextW, h: nextH };
+                        WindowSetSize(nextW, nextH);
+                    }
                 } catch {
                     // Wails runtime unavailable (e.g. Vite-only browser dev).
+                } finally {
+                    applyingRef.current = false;
                 }
             };
 
             const schedule = () => {
                 window.clearTimeout(timer);
-                // Double rAF: wait for mini CSS (hide left/body) + DPAgent expand layout.
+                // Wait for mini CSS + DPAgent expand animation (~200ms) before measuring.
                 timer = window.setTimeout(
                     () => {
                         requestAnimationFrame(() => {
-                            requestAnimationFrame(applySize);
+                            requestAnimationFrame(() => { void applySize(); });
                         });
                     },
-                    80);
+                    220);
             };
 
             schedule();
@@ -139,7 +213,7 @@ export function Header() {
                 </div>
             </div>
 
-            <div ref={toolbarRef} className="flex items-center gap-1">
+            <div ref={toolbarRef} className="shrink-0 flex items-center gap-1">
                 <ButtonWindowSize />
                 <ButtonStayOnTop />
                 <ButtonSettings />
