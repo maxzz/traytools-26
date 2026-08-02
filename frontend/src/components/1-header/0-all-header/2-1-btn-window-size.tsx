@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useAtom } from "jotai";
 import { classNames } from "@/utils/classnames";
 import { IconAppMini } from "@/ui/icons/normal";
 import { Button } from "@/ui/shadcn/button";
-import { settingsBus, type WindowSizeKey } from "@/bridge/groups/settings";
+import { settingsBus } from "@/bridge/groups/settings";
+import { windowSizeKeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 
 /**
  * Toggles between the "mini" and "normal" named window geometries.
@@ -10,19 +12,20 @@ import { settingsBus, type WindowSizeKey } from "@/bridge/groups/settings";
  * Later this can become a dropdown that calls setWindowSizeKey with other keys.
  */
 export function ButtonWindowSize() {
-    const [sizeKey, setSizeKey] = useState<WindowSizeKey>("normal");
+    const [sizeKey, setSizeKey] = useAtom(windowSizeKeyAtom);
 
-    useEffect(() => {
-        let cancelled = false;
-        settingsBus.getWindowSizeKey()
-            .then((key) => {
-                if (!cancelled && key) {
-                    setSizeKey(key);
-                }
-            })
-            .catch(console.error);
-        return () => { cancelled = true; };
-    }, []);
+    useEffect(
+        () => {
+            let cancelled = false;
+            settingsBus.getWindowSizeKey()
+                .then((key) => {
+                    if (!cancelled && key) {
+                        setSizeKey(key);
+                    }
+                })
+                .catch(console.error);
+            return () => { cancelled = true; };
+        }, [setSizeKey]);
 
     const isMini = sizeKey === "mini";
 

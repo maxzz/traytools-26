@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { atom, useSetAtom } from "jotai";
-import { settingsBus } from "@/bridge/groups/settings";
+import { settingsBus, type WindowSizeKey } from "@/bridge/groups/settings";
 import { resolveDirtyTabsBeforeDestructiveAction } from "@/components/0-all/a-quit-unsaved";
 import { appSettings } from "@/store/1-ui-settings";
 import { notice } from "@/ui/local-ui/7-toaster";
@@ -71,6 +71,10 @@ const settingsRunElevatedBaseAtom = atom(false);
 
 /** Current process elevation (admin token). Independent of DpAgent integrity polling. */
 export const appIsElevatedAtom = atom<boolean | null>(null);
+
+/** Active named window geometry key (`normal` / `mini` / …). Persisted by the backend. */
+export const windowSizeKeyAtom = atom<WindowSizeKey>("normal");
+
 
 export const refreshAppIsElevatedAtom = atom(
     null,
