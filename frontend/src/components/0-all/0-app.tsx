@@ -13,7 +13,9 @@ import { getValidTabComponent } from "./8-pages-array";
 
 export function App() {
     const [windowSizeKey, setWindowSizeKey] = useAtom(windowSizeKeyAtom);
+    const { showFooter } = useSnapshot(appSettings);
     const appSize = windowSizeKey === "mini" ? "mini" : "normal";
+    const isMini = appSize === "mini";
 
     useEffect(
         () => {
@@ -36,9 +38,16 @@ export function App() {
         <AllDialogs />
 
         <main
-            className="@container h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto] mini:h-auto mini:min-h-0 mini:overflow-hidden mini:grid-rows-[auto_auto]"
+            // Mini: content-sized shell. content-start prevents CSS grid from stretching
+            // auto rows into leftover window space (which previously inflated height).
+            className="@container h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto] mini:h-auto mini:min-h-0 mini:overflow-hidden mini:content-start mini:items-start"
             data-app-size={appSize}
-            style={{ "--app-size": appSize } as CSSProperties}
+            style={{
+                "--app-size": appSize,
+                ...(isMini
+                    ? { gridTemplateRows: showFooter ? "auto auto" : "auto" }
+                    : undefined),
+            } as CSSProperties}
         >
             <Header />
 

@@ -69,6 +69,7 @@ export function Header() {
             if (!isMini || !isBackendAvailable()) {
                 lastOuterRef.current = null;
                 lastContentRef.current = null;
+                applyingRef.current = false;
                 return;
             }
 
@@ -80,6 +81,10 @@ export function Header() {
 
             let timer = 0;
             let cancelled = false;
+            // Footer toggle / zoom change — allow a fresh exact fit (including shrink).
+            lastOuterRef.current = null;
+            lastContentRef.current = null;
+            applyingRef.current = false;
 
             const footerEl = () =>
                 headerEl.parentElement?.querySelector<HTMLElement>("[data-app-footer]") ?? null;
@@ -100,17 +105,17 @@ export function Header() {
                 return { footerW, footerH };
             };
 
-            /** Content size in CSS layout px (pre-zoom), from toolbar + optional footer. */
+            /**
+             * Intrinsic content size (pre-zoom). Height comes from toolbar + padding/border
+             * only — never header.offsetHeight, which grid stretch can inflate.
+             */
             const measureLayoutContent = () => {
                 const styles = getComputedStyle(headerEl);
                 const padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
-                const toolbarW = Math.max(toolbarEl.offsetWidth, toolbarEl.scrollWidth) + padX;
                 const padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
                 const borderY = (parseFloat(styles.borderTopWidth) || 0) + (parseFloat(styles.borderBottomWidth) || 0);
-                const headerH = Math.max(
-                    headerEl.offsetHeight,
-                    toolbarEl.offsetHeight + padY + borderY,
-                );
+                const toolbarW = Math.max(toolbarEl.offsetWidth, toolbarEl.scrollWidth) + padX;
+                const headerH = toolbarEl.offsetHeight + padY + borderY;
 
                 const footer = footerEl();
                 const { footerW, footerH } = footer
@@ -129,27 +134,20 @@ export function Header() {
 
             /**
              * Client-pixel size needed for the toolbar (+ footer) at the current zoom.
-             * Uses max(layout×zoom, getBoundingClientRect) so both CSS-zoom and
-             * native WebView zoom are covered without under-sizing.
              */
             const measureClientNeed = (zoomFactor: number) => {
                 const { contentW, contentH, headerH, footerH, footerW, padX } = measureLayoutContent();
                 const toolbarRect = toolbarEl.getBoundingClientRect();
-                const headerRect = headerEl.getBoundingClientRect();
-                const footer = footerEl();
-                const footerRect = footer?.getBoundingClientRect();
 
                 const clientW = Math.max(
                     contentW * zoomFactor,
                     toolbarRect.width + padX * zoomFactor,
                     footerW * zoomFactor,
                 );
+                // Height: intrinsic layout only (no stretched header rect).
                 const clientH = Math.max(
                     contentH * zoomFactor,
-                    headerRect.height + (footerRect?.height ?? 0),
-                    toolbarRect.height
-                        + (headerH - toolbarEl.offsetHeight) * zoomFactor
-                        + footerH * zoomFactor,
+                    toolbarRect.height + (headerH - toolbarEl.offsetHeight) * zoomFactor + footerH * zoomFactor,
                 );
                 return {
                     layoutW: contentW,
@@ -219,7 +217,6 @@ export function Header() {
                     || !isValidSize(clientW) || !isValidSize(clientH)
                     || layoutW < MIN_CONTENT_W || layoutH < MIN_CONTENT_H
                 ) {
-                    // Transient bad layout (e.g. mid-resize). Keep any good size; retry only if none yet.
                     if (!lastOuterRef.current) {
                         timer = window.setTimeout(() => { void applySize(); }, 100);
                     }
@@ -231,18 +228,14 @@ export function Header() {
                     && prevContent.w === layoutW
                     && prevContent.h === layoutH;
                 const clientFits = contentVisiblyFits(clientW, clientH);
-                // Extra client space left after hiding footer (or similar) — must shrink.
                 const oversized =
                     window.innerWidth > clientW + SIZE_TOL_PX
                     || window.innerHeight > clientH + SIZE_TOL_PX;
 
-                // Skip re-apply when content is unchanged, visible, and not oversized.
-                // This stops the DPAgent 1s poll / header width RO from thrashing the window.
                 if (contentUnchanged && clientFits && !oversized && lastOuterRef.current) {
                     return;
                 }
 
-                // Restored / backend size already matches — adopt it (avoids launch jitter).
                 if (clientFits && !oversized && !lastOuterRef.current) {
                     lastContentRef.current = { w: layoutW, h: layoutH };
                     lastOuterRef.current = await readOuterSize();
@@ -287,15 +280,15 @@ export function Header() {
                         return;
                     }
 
-                    // Grow-only feedback if the client area still clips the toolbar/footer.
-                    const shortW = Math.max(0, clientW - window.innerWidth);
-                    const shortH = Math.max(0, clientH - window.innerHeight);
-                    if (shortW > 0 || shortH > 0) {
+                    // Correct residual client mismatch (grow if clipped, shrink if oversized).
+                    const deltaW = clientW - window.innerWidth;
+                    const deltaH = clientH - window.innerHeight;
+                    if (Math.abs(deltaW) > SIZE_TOL_PX || Math.abs(deltaH) > SIZE_TOL_PX) {
                         const outer = await readOuterSize();
                         const outerW = outer?.w ?? w;
                         const outerH = outer?.h ?? h;
-                        const nextW = outerW + shortW;
-                        const nextH = outerH + shortH;
+                        const nextW = Math.max(MIN_CONTENT_W + FRAME_FALLBACK_W, outerW + deltaW);
+                        const nextH = Math.max(MIN_CONTENT_H + FRAME_FALLBACK_H, outerH + deltaH);
                         if (setOuterSize(nextW, nextH)) {
                             lastOuterRef.current = { w: nextW, h: nextH };
                         }
@@ -309,7 +302,6 @@ export function Header() {
 
             const schedule = () => {
                 window.clearTimeout(timer);
-                // Double-rAF: wait for mini CSS + DPAgent (no-anim in mini) to commit layout.
                 timer = window.setTimeout(
                     () => {
                         requestAnimationFrame(() => {
@@ -320,19 +312,17 @@ export function Header() {
             };
 
             schedule();
-            // Footer text width depends on webfonts; remeasure once they settle.
             void document.fonts?.ready?.then(() => {
                 if (!cancelled) {
                     schedule();
                 }
             });
-            // Observe only the toolbar content — not the header (width:100%) or footer
-            // (also width:100%). Those fire on every WindowSetSize and loop into NaN sizes.
             const ro = new ResizeObserver(schedule);
             ro.observe(toolbarEl);
 
             return () => {
                 cancelled = true;
+                applyingRef.current = false;
                 window.clearTimeout(timer);
                 ro.disconnect();
             };
@@ -342,7 +332,7 @@ export function Header() {
     return (
         <header
             ref={headerRef}
-            className="px-3 py-1 bg-background border-b border-border flex items-center justify-between mini:justify-end mini:min-h-8"
+            className="px-3 py-1 bg-background border-b border-border flex items-center justify-between mini:justify-end mini:self-start mini:min-h-8 mini:w-full"
         >
             <div className="min-w-0 flex items-center gap-3 mini:hidden">
                 <AppMenubar />
