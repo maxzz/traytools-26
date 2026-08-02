@@ -3,6 +3,7 @@ import { appBus, traceManagerBus, type SectionDescription } from "@/bridge";
 import { doAsyncUnsavedQuitDialogAtom } from "@/components/4-dialogs/8-1-confirmation/1-unsaved-quit-dialog";
 import { copyEditorStore, CopyConfig_Apply } from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
 import { syncEditorStore, SyncConfig_Apply } from "@/components/2-main/5-tab-sync/a-atoms/0-sync-local-storage";
+import { registryEditorStore, RegistryConfig_Apply } from "@/components/2-main/6-tab-registry/a-atoms/0-registry-local-storage";
 import { toolsEditorStore, ToolsConfig_Apply } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { setSections, traceStore } from "@/store/3-trace-manager";
 import { notice } from "@/ui/local-ui/7-toaster";
@@ -31,6 +32,16 @@ function collectDirtyTabs(): DirtyTab[] {
             save: async () => {
                 await SyncConfig_Apply();
                 return !syncEditorStore.dirty && !syncEditorStore.error;
+            },
+        });
+    }
+
+    if (registryEditorStore.dirty) {
+        tabs.push({
+            label: "Registry",
+            save: async () => {
+                await RegistryConfig_Apply();
+                return !registryEditorStore.dirty && !registryEditorStore.error;
             },
         });
     }

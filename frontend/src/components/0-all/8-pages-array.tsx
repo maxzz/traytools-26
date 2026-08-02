@@ -9,6 +9,7 @@ import { Page_ToolsMenuEditor } from "../2-main/7-2-tab-tools-menu-editor/0-edit
 import { Page_ActiveMonitor } from "../2-main/4-tab-active-monitor/0-all-active-monitor";
 import { Page_CopyOperations } from "../2-main/1-tab-copy-operations/0-editor/0-all-editor";
 import { Page_Sync } from "../2-main/5-tab-sync/0-editor/0-all-editor";
+import { Page_Registry } from "../2-main/6-tab-registry/0-editor/0-all-editor";
 
 // Pages definitions.
 
@@ -20,6 +21,7 @@ const MAIN_PAGES = [
     { id: "tools-menu-editor", label: "Tools", Page: Page_ToolsMenuEditor },
     { id: "copy-operations", label: "Copy Operations", Page: Page_CopyOperations },
     { id: "sync", label: "Sync", Page: Page_Sync },
+    { id: "registry", label: "Registry", Page: Page_Registry },
     // { id: "demos", label: "Demos", Page: Page_XYZdemos },
     // { id: "test-a", label: "Test A", Page: PageTestTabA },
     // { id: "test-b", label: "Test B", Page: PageTestTabB },
@@ -29,9 +31,9 @@ export type MainTabId = (typeof MAIN_PAGES)[number]["id"];
 
 // Top menu view pages.
 
-const ID_FOR_TOPMENU: MainTabId[] = ["copy-operations", "sync", "tools-menu-editor", "windows-tree", "active-monitor", "trace-bits", "welcome"];
-const ID_FOR_QUICKTABS: MainTabId[] = ["copy-operations", "sync", "tools-menu-editor", "windows-tree"];
-const ID_FOR_WELCOME: MainTabId[] = ["copy-operations", "sync", "tools-menu-editor", "windows-tree", "trace-bits", "active-monitor"];
+const ID_FOR_TOPMENU: MainTabId[] = ["copy-operations", "sync", "registry", "tools-menu-editor", "windows-tree", "active-monitor", "trace-bits", "welcome"];
+const ID_FOR_QUICKTABS: MainTabId[] = ["copy-operations", "sync", "registry", "tools-menu-editor", "windows-tree"];
+const ID_FOR_WELCOME: MainTabId[] = ["copy-operations", "sync", "registry", "tools-menu-editor", "windows-tree", "trace-bits", "active-monitor"];
 
 export const TOPMENU_VIEW_PAGES = ID_FOR_TOPMENU.map((id) => MAIN_PAGES.find((page) => page.id === id)!);
 export const QUICKTABS_VIEW_PAGES = ID_FOR_QUICKTABS.map((id) => MAIN_PAGES.find((page) => page.id === id)!);

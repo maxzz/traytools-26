@@ -14,6 +14,7 @@ import (
 	tracemanager "traytools-26-go/backend/tab-3-tracemanager"
 	toolsmenu "traytools-26-go/backend/tab-4-toolsmenu"
 	syncops "traytools-26-go/backend/tab-5-syncops"
+	registryops "traytools-26-go/backend/tab-6-registry"
 	"traytools-26-go/backend/winapp"
 	"traytools-26-go/backend/winhighlight"
 	"traytools-26-go/backend/winlaunch"
@@ -36,6 +37,7 @@ type App struct {
 	highlight     *winhighlight.Manager
 	copyops       *copyops.Manager
 	syncops       *syncops.Manager
+	registryops   *registryops.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -57,6 +59,8 @@ func NewApp() *App {
 		highlight: winhighlight.New(),
 		copyops:   copyops.New(),
 		syncops:   syncops.New(),
+
+		registryops: registryops.New(),
 	}
 	a.registerHandlers()
 	a.trace.Register(a.bus)
@@ -66,6 +70,7 @@ func NewApp() *App {
 	a.highlight.Register(a.bus)
 	a.copyops.Register(a.bus)
 	a.syncops.Register(a.bus)
+	a.registryops.Register(a.bus)
 	return a
 }
 
@@ -83,6 +88,7 @@ func (a *App) Startup(ctx context.Context) {
 	a.trace.Start(ctx)
 	a.copyops.Start(ctx)
 	a.syncops.Start(ctx)
+	a.registryops.Start(ctx)
 	a.tools.Start(ctx)
 	a.startTray()
 }

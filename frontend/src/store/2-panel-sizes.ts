@@ -15,6 +15,8 @@ export const PANEL_GROUPS = {
     copyEditorVertical: 'copy-editor.vertical',
     syncEditorMain: 'sync-editor.main',
     syncEditorVertical: 'sync-editor.vertical',
+    registryEditorMain: 'registry-editor.main',
+    registryEditorVertical: 'registry-editor.vertical',
 } as const;
 
 export type PanelGroupKey = (typeof PANEL_GROUPS)[keyof typeof PANEL_GROUPS];
@@ -30,6 +32,8 @@ const PANEL_GROUP_DEFAULTS: PanelSizes = {
     [PANEL_GROUPS.copyEditorVertical]: { editor: 72, report: 28 },
     [PANEL_GROUPS.syncEditorMain]: { tree: 42, props: 58 },
     [PANEL_GROUPS.syncEditorVertical]: { editor: 72, report: 28 },
+    [PANEL_GROUPS.registryEditorMain]: { tree: 42, props: 58 },
+    [PANEL_GROUPS.registryEditorVertical]: { editor: 72, report: 28 },
 };
 
 export function getValidPanelSizes(parsedSizes?: unknown): PanelSizes {
