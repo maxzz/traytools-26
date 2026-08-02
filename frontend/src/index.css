@@ -20,6 +20,7 @@
 /* Standard shadcn https://zippystarter.com/tools/shadcn-ui-theme-generator */
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant mini (@container style(--app-size: mini));
 
 @theme inline {
     --font-heading: var(--font-sans);

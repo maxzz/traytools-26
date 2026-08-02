@@ -3,6 +3,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { AnimatePresence, motion } from "motion/react";
 import { appSettings } from "@/store/1-ui-settings";
+import { windowSizeKeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { Button } from "@/ui/shadcn/button";
 import { classNames } from "@/utils";
@@ -15,9 +16,11 @@ const POLL_MS = 1000;
 /**
  * DPAgent toolbar: status icon toggle, Start/Stop, integrity glyphs.
  * `appSettings.showDpAgentToolbar` expands controls and gates the 1s run monitor.
+ * In mini window mode, controls stay expanded and the monitor stays active.
  */
 export function DpAgentToolbar({ className }: { className?: string; }) {
     const settings = useSnapshot(appSettings);
+    const isMini = useAtomValue(windowSizeKeyAtom) === "mini";
     const status = useAtomValue(dpAgentStatusAtom);
     const busy = useAtomValue(dpAgentBusyAtom);
     const poll = useSetAtom(pollDpAgentStatusAtom);
@@ -25,7 +28,7 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
     const stopAgent = useSetAtom(stopDpAgentAtom);
 
     const running = status?.running ?? false;
-    const controlsVisible = settings.showDpAgentToolbar;
+    const controlsVisible = isMini || settings.showDpAgentToolbar;
 
     useEffect(
         () => {
@@ -55,9 +58,11 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
     }
 
     const statusTitle = running ? "DPAgent is running" : "DPAgent not started";
-    const toggleTitle = controlsVisible
-        ? `Hide controls — ${statusTitle}`
-        : `Show controls — ${statusTitle}`;
+    const toggleTitle = isMini
+        ? `Controls locked open in mini mode — ${statusTitle}`
+        : controlsVisible
+            ? `Hide controls — ${statusTitle}`
+            : `Show controls — ${statusTitle}`;
 
     return (
         <div
@@ -67,10 +72,16 @@ export function DpAgentToolbar({ className }: { className?: string; }) {
             <button
                 type="button"
                 className="shrink-0 focus-visible:ring-1 focus-visible:ring-ring outline-hidden rounded"
-                onClick={() => { appSettings.showDpAgentToolbar = !appSettings.showDpAgentToolbar; }}
+                onClick={() => {
+                    if (isMini) {
+                        return;
+                    }
+                    appSettings.showDpAgentToolbar = !appSettings.showDpAgentToolbar;
+                }}
                 title={toggleTitle}
                 aria-label={toggleTitle}
                 aria-expanded={controlsVisible}
+                aria-disabled={isMini || undefined}
             >
                 <IconDpAgentStatus
                     running={running}
