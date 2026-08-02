@@ -28,6 +28,8 @@ const MIN_CONTENT_H = 24;
 /** Extra client pixels so subpixel / DPI rounding does not clip controls. */
 const CLIENT_PAD_W = 4;
 const CLIENT_PAD_H = 2;
+/** Ignore subpixel / chrome noise when deciding the window already matches. */
+const SIZE_TOL_PX = 2;
 
 function isValidSize(n: number): boolean {
     return Number.isFinite(n) && n > 0;
@@ -229,33 +231,38 @@ export function Header() {
                     && prevContent.w === layoutW
                     && prevContent.h === layoutH;
                 const clientFits = contentVisiblyFits(clientW, clientH);
+                // Extra client space left after hiding footer (or similar) — must shrink.
+                const oversized =
+                    window.innerWidth > clientW + SIZE_TOL_PX
+                    || window.innerHeight > clientH + SIZE_TOL_PX;
 
-                // Skip re-apply when toolbar content is unchanged and still fully visible.
-                // This stops the DPAgent 1s poll / header width RO from collapsing the window.
-                if (contentUnchanged && clientFits && lastOuterRef.current) {
+                // Skip re-apply when content is unchanged, visible, and not oversized.
+                // This stops the DPAgent 1s poll / header width RO from thrashing the window.
+                if (contentUnchanged && clientFits && !oversized && lastOuterRef.current) {
                     return;
                 }
 
-                // Restored / backend size already fits — adopt it; do not resize (avoids launch jitter).
-                if (clientFits && !lastOuterRef.current) {
+                // Restored / backend size already matches — adopt it (avoids launch jitter).
+                if (clientFits && !oversized && !lastOuterRef.current) {
                     lastContentRef.current = { w: layoutW, h: layoutH };
                     lastOuterRef.current = await readOuterSize();
                     return;
                 }
 
                 const { chromeW, chromeH } = frameChrome();
-                let w = clientW + chromeW;
-                let h = clientH + chromeH;
+                const w = clientW + chromeW;
+                const h = clientH + chromeH;
 
-                // Never shrink while staying in mini — only grow for larger toolbar / zoom / footer.
                 const prevOuter = lastOuterRef.current;
-                if (prevOuter) {
-                    w = Math.max(w, prevOuter.w);
-                    h = Math.max(h, prevOuter.h);
-                    if (w === prevOuter.w && h === prevOuter.h && clientFits) {
-                        lastContentRef.current = { w: layoutW, h: layoutH };
-                        return;
-                    }
+                if (
+                    prevOuter
+                    && Math.abs(prevOuter.w - w) <= SIZE_TOL_PX
+                    && Math.abs(prevOuter.h - h) <= SIZE_TOL_PX
+                    && clientFits
+                    && !oversized
+                ) {
+                    lastContentRef.current = { w: layoutW, h: layoutH };
+                    return;
                 }
 
                 if (!isValidSize(w) || !isValidSize(h)) {
