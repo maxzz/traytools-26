@@ -10,17 +10,17 @@ import { Panel_Props } from "./3-0-panel-props";
 import { RegistryToolbar } from "./1-1-registry-toolbar";
 import { TreeViewMenu } from "./2-1-tree-menu";
 import { RegistryReportPanel } from "./4-0-report-registry";
-import { RegistryConfig_Load } from "../a-atoms/0-registry-local-storage";
 
 export function Page_Registry() {
     const { panelSizes } = useSnapshot(appSettings);
     const mainLayout = panelSizes[PANEL_GROUPS.registryEditorMain];
     const verticalLayout = panelSizes[PANEL_GROUPS.registryEditorVertical];
 
+    // File hydration lives in RegistryConfigSync (app-level) so switching away
+    // and back only remounts this UI against the preserved valtio store.
     useEffect(
         () => {
             initPathDropListener();
-            RegistryConfig_Load();
         },
         []);
 

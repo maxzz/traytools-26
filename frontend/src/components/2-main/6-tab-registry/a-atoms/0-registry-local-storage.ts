@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { proxy, subscribe } from "valtio";
 import { appBus, registryOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
@@ -54,6 +55,21 @@ subscribe(registryEditorStore, () => {
     writeCache(registryEditorStore.config, registryEditorStore.rootUid, registryEditorStore.selectedUid);
     syncDirty(registryEditorStore);
 });
+
+/**
+ * Hydrate from disk once for the app lifetime. Mounted from AllDialogs so the
+ * Registry page can remount on tab switches without reloading and wiping edits.
+ * Explicit Reload in the toolbar still calls RegistryConfig_Load({ notify: true }).
+ */
+export function RegistryConfigSync() {
+    useEffect(
+        () => {
+            void RegistryConfig_Load();
+        },
+        [],
+    );
+    return null;
+}
 
 // Cache functions
 
