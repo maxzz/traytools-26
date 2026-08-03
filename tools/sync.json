@@ -11,6 +11,9 @@
                     "reverseName": "test to org"
                 },
                 {
+                    "separator": true
+                },
+                {
                     "sourceFolder": "C:/Users/maxzz/Desktop/page-qa2-test",
                     "destFolder": "C:/Users/maxzz/Desktop/org page-qa2-test",
                     "name": "page-qa2-test 1"

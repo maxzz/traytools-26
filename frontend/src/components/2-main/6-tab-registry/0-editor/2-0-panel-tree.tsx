@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, PencilLine } from "lucid
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { type RegItem, itemLabel } from "../a-atoms/9-types-registry";
+import { type RegItem, fullKeyPath, itemLabel } from "../a-atoms/9-types-registry";
 import { type DropPosition, addDroppedRegistryFiles, copyNode, moveNode } from "../a-atoms/1-registry-editor-atoms";
 import { doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../a-atoms/2-run-registry";
 import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
@@ -556,7 +556,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <SymbolAppRegedit className="shrink-0 relative size-3.5 opacity-70" />
 
-                <span className="flex-1 relative min-w-0 truncate" title={`${item.hive}\\${item.keyPath}`}>
+                <span className="flex-1 relative min-w-0 truncate" title={fullKeyPath(item as RegItem)}>
                     {label}
                 </span>
 

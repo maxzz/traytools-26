@@ -10,6 +10,7 @@ import {
     REG_VALUE_TYPES,
     derivedItemLabel,
     isRegItem,
+    normalizeRegKeyPath,
 } from "./9-types-registry";
 
 export function buildRegistryFileText(config: RegConfig): string {
@@ -117,7 +118,7 @@ function normalizeSeparator(raw: object): RegSeparator {
 function normalizeItem(raw: object): RegItem {
     const item = raw as RegItem;
     item.hive = REG_HIVES.includes(item.hive) ? item.hive : "HKCU";
-    item.keyPath = typeof item.keyPath === "string" ? item.keyPath : "";
+    item.keyPath = typeof item.keyPath === "string" ? normalizeRegKeyPath(item.keyPath) : "";
     item.valueName = typeof item.valueName === "string" ? item.valueName : "";
     item.valueType = REG_VALUE_TYPES.includes(item.valueType) ? item.valueType : "REG_SZ";
     item.newValue = typeof item.newValue === "string" ? item.newValue : "";

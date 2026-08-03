@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
@@ -14,19 +14,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import {
     type RegGroup,
-    type RegHive,
     type RegItem,
     type RegSeparator,
     type RegValueType,
     type RegView,
-    HIVE_LONG_NAMES,
-    REG_HIVES,
     REG_VALUE_TYPES,
     VALUE_TYPE_LABELS,
     collectGroupItems,
     derivedItemLabel,
+    formatItemKeyPath,
     fullKeyPath,
     hiveNeedsElevation,
+    parseItemKeyPath,
 } from "../a-atoms/9-types-registry";
 import { patchSelectedGroup, patchSelectedItem, patchSelectedSeparator } from "../a-atoms/use-selected-node";
 import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
@@ -179,10 +178,7 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
             onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
         />
 
-        <div className="grid grid-cols-[auto_1fr] gap-2">
-            <Field_Hive item={item} />
-            <Field_KeyPath item={item} onJump={() => uid && void jump(uid)} />
-        </div>
+        <Field_KeyPath item={item} onJump={() => uid && void jump(uid)} />
 
         <div className="grid grid-cols-[1fr_auto_auto] gap-2">
             <Field_ValueName item={item} />
@@ -211,40 +207,37 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
 // ---------------------------------------------------------------------------
 // Item fields
 
-function Field_Hive({ item }: { item: RegItem; }) {
-    return (
-        <LabelAndField label="Root key">
-            <Select
-                value={item.hive}
-                onValueChange={(v) => patchSelectedItem((it) => { it.hive = v as RegHive; })}
-            >
-                <SelectTrigger className="w-full h-7! min-w-44 text-[0.72rem]">
-                    <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent>
-                    {REG_HIVES.map(
-                        (hive) => (
-                            <SelectItem key={hive} value={hive}>
-                                {HIVE_LONG_NAMES[hive]}
-                            </SelectItem>
-                        )
-                    )}
-                </SelectContent>
-            </Select>
-        </LabelAndField>
-    );
-}
-
 function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; }) {
+    // Draft while focused so typing short hives / trailing separators is not
+    // immediately rewritten to the canonical long form.
+    const [draft, setDraft] = useState<string | null>(null);
+    const display = draft ?? formatItemKeyPath(item);
+
+    useEffect(() => {
+        setDraft(null);
+    }, [item.uid]);
+
     return (
-        <LabelAndField label="Key path">
+        <LabelAndField
+            label="Key path"
+            labelHint="Hive plus subkey. Accepts HKCU or HKEY_CURRENT_USER; backslashes are shown singly."
+        >
             <div className="w-full flex items-center gap-1">
                 <Input
-                    className="h-7"
-                    value={item.keyPath}
-                    placeholder="SOFTWARE\\Vendor\\Product"
-                    onChange={(e) => patchSelectedItem((it) => { it.keyPath = e.target.value; })}
+                    className="h-7 font-mono text-[0.72rem]"
+                    value={display}
+                    placeholder="HKEY_CURRENT_USER\SOFTWARE\Vendor\Product"
+                    onFocus={() => setDraft(formatItemKeyPath(item))}
+                    onChange={(e) => {
+                        const text = e.target.value;
+                        setDraft(text);
+                        const parsed = parseItemKeyPath(text, item.hive);
+                        patchSelectedItem((it) => {
+                            it.hive = parsed.hive;
+                            it.keyPath = parsed.keyPath;
+                        });
+                    }}
+                    onBlur={() => setDraft(null)}
                     {...turnOffAutoComplete}
                 />
                 <Button

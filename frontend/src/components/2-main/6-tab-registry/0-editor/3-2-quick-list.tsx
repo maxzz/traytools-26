@@ -10,9 +10,9 @@ import {
     type RegGroup,
     type RegItem,
     type RegNode,
-    HIVE_LONG_NAMES,
     VALUE_TYPE_LABELS,
     collectGroupItems,
+    formatItemKeyPath,
     isRegGroup,
     isRegSeparator,
     itemLabel,
@@ -267,7 +267,7 @@ function quickAccessItemPropertyRows(item: RegItem): { label: string; value: str
         }
     }
 
-    add("Key", `${HIVE_LONG_NAMES[item.hive]}\\${item.keyPath}`);
+    add("Key", formatItemKeyPath(item));
     rows.push({ label: "Value", value: valueDisplayName(item.valueName) });
     rows.push({ label: "Type", value: VALUE_TYPE_LABELS[item.valueType] });
     add("New value", item.newValue);
