@@ -17,7 +17,10 @@ import {
     findByUid,
     fullKeyPath,
     hiveNeedsElevation,
+    itemHasSubKey,
+    itemHive,
     itemLabel,
+    itemSubKeyPath,
     valueDisplayName,
 } from "./9-types-registry";
 import { registryEditorStore } from "./0-registry-local-storage";
@@ -119,8 +122,8 @@ export const confirmRegistryWritesAtom = atomWithStorage("reg.confirmWrites", tr
 
 function toSpec(item: RegItem): RegValueSpec {
     return {
-        hive: item.hive,
-        keyPath: item.keyPath,
+        hive: itemHive(item),
+        keyPath: itemSubKeyPath(item),
         valueName: item.valueName,
         valueType: item.valueType,
         value: item.newValue,
@@ -148,7 +151,7 @@ function partitionRunnable(items: RegItem[]): { runnable: RegItem[]; invalid: Re
     const runnable: RegItem[] = [];
     const invalid: RegItem[] = [];
     for (const item of items) {
-        if (item.keyPath.trim()) {
+        if (itemHasSubKey(item)) {
             runnable.push(item);
         } else {
             invalid.push(item);
@@ -335,7 +338,7 @@ async function runWrite(items: RegItem[], label: string, groupRequiresElevation:
     // Elevation is needed when any item says so, or targets a machine-wide hive.
     const needsElevation =
         groupRequiresElevation
-        || runnable.some((item) => item.requireElevated || hiveNeedsElevation(item.hive));
+        || runnable.some((item) => item.requireElevated || hiveNeedsElevation(itemHive(item)));
 
     if (!(await ensureElevatedOrPrompt(needsElevation))) {
         return;
@@ -451,12 +454,12 @@ export const doAsyncRegJumpItemAtom = atom(
     null,
     async (_get, _set, uid: string): Promise<void> => {
         const item = liveItem(uid);
-        if (!item?.keyPath.trim()) {
+        if (!item || !itemHasSubKey(item)) {
             notice.warning("Set a key path first");
             return;
         }
         try {
-            await registryOpsBus.jump(item.hive, item.keyPath);
+            await registryOpsBus.jump(itemHive(item), itemSubKeyPath(item));
         } catch (e) {
             notice.error(`Failed to open regedit:<br/>${String(e)}`);
         }

@@ -15,6 +15,7 @@ import {
     formatItemKeyPath,
     isRegGroup,
     isRegSeparator,
+    itemHasSubKey,
     itemLabel,
     valueDisplayName,
 } from "../a-atoms/9-types-registry";
@@ -190,7 +191,7 @@ function QuickAccessItemButtons({ item }: { item: RegItem; }) {
     const readItem = useSetAtom(doAsyncRegReadItemAtom);
     const writeItem = useSetAtom(doAsyncRegWriteItemAtom);
     const uid = item.uid;
-    const enabled = !!item.keyPath.trim() && !!uid;
+    const enabled = itemHasSubKey(item) && !!uid;
 
     return (
         <div className="shrink-0 flex items-center gap-1">

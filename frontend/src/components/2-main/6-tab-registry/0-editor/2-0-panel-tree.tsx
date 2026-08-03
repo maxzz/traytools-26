@@ -22,7 +22,6 @@ import {
 const TREE_UID_MIME = "application/x-traytools-registry-tree-uid";
 
 type SnapItem = {
-    readonly hive: string;
     readonly keyPath: string;
     readonly valueName: string;
     readonly name?: string;

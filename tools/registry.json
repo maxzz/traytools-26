@@ -1,0 +1,58 @@
+{
+    "groups": [
+        {
+            "name": "Example",
+            "items": [
+                {
+                    "name": "New Group",
+                    "items": [
+                        {
+                            "separator": true
+                        },
+                        {
+                            "keyPath": "HKCU\\SOFTWARE\\_tm_test12",
+                            "valueName": "",
+                            "valueType": "REG_SZ",
+                            "newValue": "",
+                            "name": "(no key)1"
+                        },
+                        {
+                            "keyPath": "HKCU",
+                            "valueName": "",
+                            "valueType": "REG_SZ",
+                            "newValue": "",
+                            "name": "(no key) 1"
+                        },
+                        {
+                            "separator": true
+                        },
+                        {
+                            "keyPath": "HKCU",
+                            "valueName": "",
+                            "valueType": "REG_SZ",
+                            "newValue": "",
+                            "name": "(no key) 2"
+                        },
+                        {
+                            "keyPath": "HKLM\\SOFTWARE\\_tm_test",
+                            "valueName": "tm_test",
+                            "valueType": "REG_DWORD",
+                            "newValue": "12345"
+                        }
+                    ]
+                },
+                {
+                    "name": "New Group",
+                    "items": [
+                        {
+                            "keyPath": "HKCU",
+                            "valueName": "",
+                            "valueType": "REG_SZ",
+                            "newValue": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

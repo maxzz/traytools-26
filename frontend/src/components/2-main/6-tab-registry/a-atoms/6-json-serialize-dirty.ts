@@ -6,11 +6,10 @@ import {
     type RegItem,
     type RegNode,
     type RegSeparator,
-    REG_HIVES,
     REG_VALUE_TYPES,
     derivedItemLabel,
     isRegItem,
-    normalizeRegKeyPath,
+    normalizeItemKeyPath,
 } from "./9-types-registry";
 
 export function buildRegistryFileText(config: RegConfig): string {
@@ -18,7 +17,8 @@ export function buildRegistryFileText(config: RegConfig): string {
 }
 
 function jsonReplacer(this: RegGroup | RegItem, key: string, value: unknown): unknown {
-    if (key === "uid") {
+    if (key === "uid" || key === "hive") {
+        // hive lives inside keyPath; never persist a separate field.
         return undefined;
     }
     if (key === "requireElevated") {
@@ -116,9 +116,10 @@ function normalizeSeparator(raw: object): RegSeparator {
 }
 
 function normalizeItem(raw: object): RegItem {
-    const item = raw as RegItem;
-    item.hive = REG_HIVES.includes(item.hive) ? item.hive : "HKCU";
-    item.keyPath = typeof item.keyPath === "string" ? normalizeRegKeyPath(item.keyPath) : "";
+    const item = raw as RegItem & { hive?: unknown; };
+    item.keyPath = typeof item.keyPath === "string" ? normalizeItemKeyPath(item.keyPath) : "HKCU";
+    // Hive is part of keyPath; drop any leftover separate field.
+    delete item.hive;
     item.valueName = typeof item.valueName === "string" ? item.valueName : "";
     item.valueType = REG_VALUE_TYPES.includes(item.valueType) ? item.valueType : "REG_SZ";
     item.newValue = typeof item.newValue === "string" ? item.newValue : "";

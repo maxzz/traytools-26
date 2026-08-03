@@ -25,7 +25,9 @@ import {
     formatItemKeyPath,
     fullKeyPath,
     hiveNeedsElevation,
-    parseItemKeyPath,
+    itemHasSubKey,
+    itemHive,
+    normalizeItemKeyPath,
 } from "../a-atoms/9-types-registry";
 import { patchSelectedGroup, patchSelectedItem, patchSelectedSeparator } from "../a-atoms/use-selected-node";
 import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
@@ -145,8 +147,9 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
     const jump = useSetAtom(doAsyncRegJumpItemAtom);
 
     const uid = item.uid;
-    const hasKey = !!item.keyPath.trim();
+    const hasKey = itemHasSubKey(item);
     const parentHasItems = collectGroupItems(group).length > 0;
+    const hive = itemHive(item);
 
     return (<>
         <div className="flex items-center justify-between gap-2">
@@ -194,8 +197,8 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
             <FlagSwitch
                 label="Require elevated privileges"
                 hint="Prompt to relaunch as administrator before writing this value. Machine-wide hives always require it."
-                checked={!!item.requireElevated || hiveNeedsElevation(item.hive)}
-                disabled={hiveNeedsElevation(item.hive)}
+                checked={!!item.requireElevated || hiveNeedsElevation(hive)}
+                disabled={hiveNeedsElevation(hive)}
                 onCheckedChange={(v) => patchSelectedItem((it) => { it.requireElevated = v; })}
             />
         </div>
@@ -231,10 +234,8 @@ function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; })
                     onChange={(e) => {
                         const text = e.target.value;
                         setDraft(text);
-                        const parsed = parseItemKeyPath(text, item.hive);
                         patchSelectedItem((it) => {
-                            it.hive = parsed.hive;
-                            it.keyPath = parsed.keyPath;
+                            it.keyPath = normalizeItemKeyPath(text, itemHive(it));
                         });
                     }}
                     onBlur={() => setDraft(null)}
@@ -245,7 +246,7 @@ function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; })
                     variant="outline"
                     size="icon-xs"
                     type="button"
-                    disabled={!item.keyPath.trim()}
+                    disabled={!itemHasSubKey(item)}
                     title={`Open regedit at ${fullKeyPath(item)}`}
                     onClick={onJump}
                 >

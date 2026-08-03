@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type RegItem } from "./9-types-registry";
+import { type RegItem, itemHive, itemSubKeyPath } from "./9-types-registry";
 import { buildRegFileText, parseRegFile } from "./7-reg-file-format";
 
 /** Sample covering every value form regedit emits, including wrapped hex. */
@@ -73,11 +73,12 @@ describe("parseRegFile", () => {
         expect(byName("Multi").newValue).toBe("a\nb");
     });
 
-    it("tracks the hive of each section", () => {
-        expect(byName("Text").hive).toBe("HKCU");
-        expect(byName("Text").keyPath).toBe("SOFTWARE\\Traytools\\Sample");
-        expect(byName("Flag").hive).toBe("HKLM");
-        expect(byName("Flag").keyPath).toBe("SOFTWARE\\Traytools\\Other");
+    it("stores hive as part of keyPath", () => {
+        expect(byName("Text").keyPath).toBe("HKCU\\SOFTWARE\\Traytools\\Sample");
+        expect(itemHive(byName("Text"))).toBe("HKCU");
+        expect(itemSubKeyPath(byName("Text"))).toBe("SOFTWARE\\Traytools\\Sample");
+        expect(byName("Flag").keyPath).toBe("HKLM\\SOFTWARE\\Traytools\\Other");
+        expect(itemHive(byName("Flag"))).toBe("HKLM");
     });
 
     it("warns about deletions instead of importing them", () => {
@@ -94,7 +95,7 @@ describe("parseRegFile", () => {
     it("accepts the legacy REGEDIT4 header", () => {
         const legacy = parseRegFile('REGEDIT4\r\n\r\n[HKEY_USERS\\Foo]\r\n"A"="b"\r\n', "legacy");
         expect(legacy.group.items).toHaveLength(1);
-        expect((legacy.group.items[0] as RegItem).hive).toBe("HKU");
+        expect((legacy.group.items[0] as RegItem).keyPath).toBe("HKU\\Foo");
     });
 
     it("does not mistake a trailing backslash in a path for a continuation", () => {
@@ -112,13 +113,11 @@ describe("buildRegFileText", () => {
         expect(reparsed).toHaveLength(original.length);
         for (let i = 0; i < original.length; i++) {
             expect({
-                hive: reparsed[i].hive,
                 keyPath: reparsed[i].keyPath,
                 valueName: reparsed[i].valueName,
                 valueType: reparsed[i].valueType,
                 newValue: reparsed[i].newValue,
             }).toEqual({
-                hive: original[i].hive,
                 keyPath: original[i].keyPath,
                 valueName: original[i].valueName,
                 valueType: original[i].valueType,
@@ -143,15 +142,15 @@ describe("buildRegFileText", () => {
 
     it("skips items that have no key path", () => {
         const item: RegItem = {
-            hive: "HKCU", keyPath: "  ", valueName: "X", valueType: "REG_SZ", newValue: "y",
+            keyPath: "HKCU", valueName: "X", valueType: "REG_SZ", newValue: "y",
         };
         expect(buildRegFileText([item])).not.toContain("HKEY_CURRENT_USER");
     });
 
     it("accepts 0x-prefixed numbers for DWORD and QWORD", () => {
         const items: RegItem[] = [
-            { hive: "HKCU", keyPath: "Foo", valueName: "D", valueType: "REG_DWORD", newValue: "0x1f" },
-            { hive: "HKCU", keyPath: "Foo", valueName: "Q", valueType: "REG_QWORD", newValue: "0x1f" },
+            { keyPath: "HKCU\\Foo", valueName: "D", valueType: "REG_DWORD", newValue: "0x1f" },
+            { keyPath: "HKCU\\Foo", valueName: "Q", valueType: "REG_QWORD", newValue: "0x1f" },
         ];
         const reparsed = parseRegFile(buildRegFileText(items), "x").group.items as RegItem[];
         expect(reparsed[0].newValue).toBe("31");

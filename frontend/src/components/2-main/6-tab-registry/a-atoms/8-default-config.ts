@@ -7,8 +7,7 @@ export const DEFAULT_REGISTRY_CONFIG: RegConfig = {
             requireElevated: false,
             items: [
                 {
-                    hive: "HKCU",
-                    keyPath: "",
+                    keyPath: "HKCU",
                     valueName: "",
                     valueType: "REG_SZ",
                     newValue: "",

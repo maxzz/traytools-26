@@ -6,8 +6,6 @@ import { type RegHive, type RegValueType, type RegView } from "@/bridge";
 
 export type { RegHive, RegValueType, RegView };
 
-export const REG_HIVES: readonly RegHive[] = ["HKCU", "HKLM", "HKCR", "HKU", "HKCC"] as const;
-
 export const REG_VALUE_TYPES: readonly RegValueType[] = [
     "REG_SZ",
     "REG_EXPAND_SZ",
@@ -45,14 +43,6 @@ export function parseHiveAlias(head: string): RegHive | null {
     return HIVE_ALIASES[head.trim().toUpperCase()] ?? null;
 }
 
-/**
- * Collapse path separators to single backslashes.
- * JSON may store escaped doubles; the UI and model use singles.
- */
-export function normalizeRegKeyPath(path: string): string {
-    return path.trim().replace(/\//g, "\\").replace(/\\+/g, "\\").replace(/^\\+|\\+$/g, "");
-}
-
 /** Short labels for the type selector. */
 export const VALUE_TYPE_LABELS: Record<RegValueType, string> = {
     REG_SZ: "String",
@@ -64,8 +54,11 @@ export const VALUE_TYPE_LABELS: Record<RegValueType, string> = {
 };
 
 export type RegItem = {
-    hive: RegHive;
-    /** Sub-key below the hive, e.g. SOFTWARE\DigitalPersona\Tracing. */
+    /**
+     * Full key including the hive, e.g. HKCU\SOFTWARE\Vendor\Product.
+     * Short (HKCU) or long (HKEY_CURRENT_USER) hive names are accepted; the
+     * model canonicalizes to the short form with single backslashes.
+     */
     keyPath: string;
     /** Empty string means the key's (Default) value. */
     valueName: string;
@@ -235,8 +228,7 @@ export function createGroup(items?: RegNode[]): RegGroup {
 export function createItem(): RegItem {
     return {
         uid: newUid(),
-        hive: "HKCU",
-        keyPath: "",
+        keyPath: "HKCU",
         valueName: "",
         valueType: "REG_SZ",
         newValue: "",
@@ -465,16 +457,70 @@ export function parseRegSelectionPath(value: unknown): RegSelectionPath | null {
 }
 
 // ---------------------------------------------------------------------------
+// Key path helpers (hive is part of keyPath)
+
+/**
+ * Split a typed "HKCU\path" or "HKEY_CURRENT_USER\path" into hive + subkey.
+ * Unknown first segment keeps `fallbackHive` and treats the whole string as the subkey.
+ */
+export function parseItemKeyPath(text: string, fallbackHive: RegHive = "HKCU"): { hive: RegHive; subKey: string; } {
+    const normalized = text.trim().replace(/\//g, "\\").replace(/\\+/g, "\\").replace(/^\\+/, "");
+    if (!normalized) {
+        return { hive: fallbackHive, subKey: "" };
+    }
+    const slash = normalized.indexOf("\\");
+    const head = slash < 0 ? normalized : normalized.slice(0, slash);
+    const hive = parseHiveAlias(head);
+    if (!hive) {
+        return { hive: fallbackHive, subKey: normalized.replace(/\\+$/g, "") };
+    }
+    const rest = slash < 0 ? "" : normalized.slice(slash + 1).replace(/\\+$/g, "");
+    return { hive, subKey: rest };
+}
+
+/** Canonical short-hive form stored in registry.json, e.g. HKCU\SOFTWARE\Vendor. */
+export function normalizeItemKeyPath(text: string, fallbackHive: RegHive = "HKCU"): string {
+    const { hive, subKey } = parseItemKeyPath(text, fallbackHive);
+    return subKey ? `${hive}\\${subKey}` : hive;
+}
+
+export function itemHive(item: Pick<RegItem, "keyPath">): RegHive {
+    return parseItemKeyPath(item.keyPath).hive;
+}
+
+/** Sub-key below the hive (no hive prefix). Empty when only the hive is set. */
+export function itemSubKeyPath(item: Pick<RegItem, "keyPath">): string {
+    return parseItemKeyPath(item.keyPath).subKey;
+}
+
+/** True when the path names a key under a hive (not hive-root alone). */
+export function itemHasSubKey(item: Pick<RegItem, "keyPath">): boolean {
+    return !!itemSubKeyPath(item);
+}
+
+/** Full short "HKCU\subkey" path, as used in reports and the regedit jump. */
+export function fullKeyPath(item: Pick<RegItem, "keyPath">): string {
+    return normalizeItemKeyPath(item.keyPath);
+}
+
+/** Long-hive form for the props editor: HKEY_CURRENT_USER\SOFTWARE\Vendor\Product */
+export function formatItemKeyPath(item: Pick<RegItem, "keyPath">): string {
+    const { hive, subKey } = parseItemKeyPath(item.keyPath);
+    const long = HIVE_LONG_NAMES[hive];
+    return subKey ? `${long}\\${subKey}` : long;
+}
+
+// ---------------------------------------------------------------------------
 // Labels
 
-/** Last segment of a key path, used when an item has no explicit name. */
+/** Last segment of the sub-key, used when an item has no explicit name. */
 export function keyLeafName(keyPath: string): string {
-    const key = normalizeRegKeyPath(keyPath);
-    if (!key) {
+    const sub = itemSubKeyPath({ keyPath });
+    if (!sub) {
         return "";
     }
-    const parts = key.split("\\");
-    return parts[parts.length - 1] || key;
+    const parts = sub.split("\\");
+    return parts[parts.length - 1] || sub;
 }
 
 /** Name shown for an item's value: the value name, or "(Default)". */
@@ -498,36 +544,4 @@ export function itemLabel(item: Pick<RegItem, "keyPath" | "valueName" | "name">)
         return custom;
     }
     return derivedItemLabel(item);
-}
-
-/** Full short "HKCU\subkey" path, as used in reports and the regedit jump. */
-export function fullKeyPath(item: Pick<RegItem, "hive" | "keyPath">): string {
-    const sub = normalizeRegKeyPath(item.keyPath);
-    return sub ? `${item.hive}\\${sub}` : item.hive;
-}
-
-/** Combined path for the props editor: HKEY_CURRENT_USER\SOFTWARE\Vendor\Product */
-export function formatItemKeyPath(item: Pick<RegItem, "hive" | "keyPath">): string {
-    const sub = normalizeRegKeyPath(item.keyPath);
-    const hive = HIVE_LONG_NAMES[item.hive];
-    return sub ? `${hive}\\${sub}` : hive;
-}
-
-/**
- * Split a typed "HKCU\path" or "HKEY_CURRENT_USER\path" into hive + subkey.
- * Unknown first segment keeps `fallbackHive` and treats the whole string as the subkey.
- */
-export function parseItemKeyPath(text: string, fallbackHive: RegHive): { hive: RegHive; keyPath: string; } {
-    const normalized = text.trim().replace(/\//g, "\\").replace(/\\+/g, "\\").replace(/^\\+/, "");
-    if (!normalized) {
-        return { hive: fallbackHive, keyPath: "" };
-    }
-    const slash = normalized.indexOf("\\");
-    const head = slash < 0 ? normalized : normalized.slice(0, slash);
-    const hive = parseHiveAlias(head);
-    if (!hive) {
-        return { hive: fallbackHive, keyPath: normalized.replace(/\\+$/g, "") };
-    }
-    const rest = slash < 0 ? "" : normalized.slice(slash + 1).replace(/\\+$/g, "");
-    return { hive, keyPath: rest };
 }

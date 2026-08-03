@@ -79,7 +79,6 @@ export function addNode(kind: AddRegKind): void {
             loc.group.items.push(item);
         } else if (loc?.kind === "item") {
             // Start from the selected item's key so adding sibling values is quick.
-            item.hive = loc.item.hive;
             item.keyPath = loc.item.keyPath;
             item.view = loc.item.view;
             loc.siblings.splice(loc.index + 1, 0, item);

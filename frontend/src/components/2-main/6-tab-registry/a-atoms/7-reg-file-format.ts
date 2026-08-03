@@ -12,9 +12,9 @@ import {
     type RegHive,
     type RegItem,
     type RegValueType,
-    HIVE_LONG_NAMES,
     createItem,
-    fullKeyPath,
+    formatItemKeyPath,
+    itemHasSubKey,
 } from "./9-types-registry";
 
 const REG_HEADER = "Windows Registry Editor Version 5.00";
@@ -112,8 +112,7 @@ export function parseRegFile(text: string, groupName: string): ParsedRegFile {
         }
 
         const item = createItem();
-        item.hive = hive;
-        item.keyPath = keyPath;
+        item.keyPath = keyPath ? `${hive}\\${keyPath}` : hive;
         item.valueName = entry.valueName;
         item.valueType = entry.valueType;
         item.newValue = entry.value;
@@ -373,10 +372,10 @@ function truncate(s: string): string {
 export function buildRegFileText(items: readonly RegItem[]): string {
     const byKey = new Map<string, RegItem[]>();
     for (const item of items) {
-        if (!item.keyPath.trim()) {
+        if (!itemHasSubKey(item)) {
             continue;
         }
-        const key = longKeyPath(item);
+        const key = formatItemKeyPath(item);
         const bucket = byKey.get(key);
         if (bucket) {
             bucket.push(item);
@@ -394,14 +393,6 @@ export function buildRegFileText(items: readonly RegItem[]): string {
         lines.push("");
     }
     return lines.join("\n");
-}
-
-/** "HKEY_LOCAL_MACHINE\SOFTWARE\Foo" — .reg always uses the long hive name. */
-function longKeyPath(item: RegItem): string {
-    const short = fullKeyPath(item);
-    const slash = short.indexOf("\\");
-    const hive = HIVE_LONG_NAMES[item.hive];
-    return slash < 0 ? hive : `${hive}${short.slice(slash)}`;
 }
 
 function formatValueLine(item: RegItem): string {
