@@ -3,11 +3,12 @@ import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { useDebouncedValue } from "@/utils/util-hooks";
-import { ExternalLink } from "lucide-react";
+import { Copy, SquareArrowOutUpRight, X } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
-import { Button } from "@/ui/shadcn/button";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import {
     Field_TypeIcon,
@@ -120,6 +121,8 @@ function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; })
     const debouncedPath = useDebouncedValue(item.keyPath, KEY_PATH_VALIDATE_DELAY_MS);
     const pathToValidate = strictKeyPathValidation ? item.keyPath : debouncedPath;
     const error = validateItemKeyPath(pathToValidate);
+    const hasText = item.keyPath.length > 0;
+    const canJump = itemHasSubKey(item);
 
     return (
         <LabelAndField
@@ -127,9 +130,9 @@ function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; })
             labelHint="Hive plus subkey, stored as typed (HKCU or HKEY_CURRENT_USER, \\ or /). Normalized only when reading, writing, or opening in regedit."
             error={error}
         >
-            <div className="w-full flex items-center gap-1">
-                <Input
-                    className="h-7 font-mono text-[0.72rem]"
+            <InputGroup>
+                <InputGroupInput
+                    className="font-mono text-[0.72rem]"
                     value={item.keyPath}
                     placeholder="HKEY_CURRENT_USER\SOFTWARE\Vendor\Product"
                     aria-invalid={!!error}
@@ -140,18 +143,63 @@ function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; })
                     }}
                     {...turnOffAutoComplete}
                 />
-                <Button
-                    className="shrink-0 size-7"
-                    variant="outline"
-                    size="icon-xs"
-                    type="button"
-                    disabled={!itemHasSubKey(item)}
-                    title={`Open regedit at ${fullKeyPath(item)}`}
-                    onClick={onJump}
-                >
-                    <ExternalLink className="size-3" />
-                </Button>
-            </div>
+
+                <InputGroupAddon className="p-0 pr-1.5 gap-0.5" align="inline-end">
+                    <InputGroupButton
+                        // aria-disabled (not disabled): InputGroup's has-disabled:opacity-50
+                        // would dim the whole field.
+                        className={!hasText ? "opacity-50" : undefined}
+                        size="icon-xs"
+                        title={hasText ? "Copy key path" : "Nothing to copy"}
+                        aria-label="Copy key path"
+                        aria-disabled={!hasText}
+                        onClick={() => {
+                            if (!hasText) {
+                                return;
+                            }
+                            void navigator.clipboard.writeText(item.keyPath).catch((e) => {
+                                notice.error(`Failed to copy key path:<br/>${String(e)}`);
+                            });
+                        }}
+                        tabIndex={-1}
+                    >
+                        <Copy className="size-3.5 stroke-[1.5px]" />
+                    </InputGroupButton>
+
+                    <InputGroupButton
+                        className={!hasText ? "opacity-50" : undefined}
+                        size="icon-xs"
+                        title={hasText ? "Clear key path" : "Already empty"}
+                        aria-label="Clear key path"
+                        aria-disabled={!hasText}
+                        onClick={() => {
+                            if (!hasText) {
+                                return;
+                            }
+                            patchSelectedItem((it) => { it.keyPath = ""; });
+                        }}
+                        tabIndex={-1}
+                    >
+                        <X className="size-3.5 stroke-[1.5px]" />
+                    </InputGroupButton>
+
+                    <InputGroupButton
+                        className={!canJump ? "opacity-50" : undefined}
+                        size="icon-xs"
+                        title={canJump ? `Open regedit at ${fullKeyPath(item)}` : "Set a key path first"}
+                        aria-label="Open in regedit"
+                        aria-disabled={!canJump}
+                        onClick={() => {
+                            if (canJump) {
+                                onJump();
+                            }
+                        }}
+                        tabIndex={-1}
+                    >
+                        <SquareArrowOutUpRight className="size-3.5 stroke-[1.5px]" />
+                    </InputGroupButton>
+                </InputGroupAddon>
+            </InputGroup>
         </LabelAndField>
     );
 }
