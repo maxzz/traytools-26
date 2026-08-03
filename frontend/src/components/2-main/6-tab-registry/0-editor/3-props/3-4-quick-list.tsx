@@ -18,7 +18,7 @@ import {
     itemHasSubKey,
     itemLabel,
     valueDisplayName,
-} from "../a-atoms/9-types-registry";
+} from "../../a-atoms/9-types-registry";
 import {
     type RegReadState,
     doAsyncRegReadGroupAtom,
@@ -27,7 +27,7 @@ import {
     doAsyncRegWriteItemAtom,
     readMatchesDesired,
     registryReadStore,
-} from "../a-atoms/2-run-registry";
+} from "../../a-atoms/2-run-registry";
 
 const CHILD_INDENT = 16;
 const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";

@@ -1,13 +1,10 @@
-import { type ReactNode, useEffect, useState } from "react";
-import { useAtom, useSetAtom } from "jotai";
+import { useEffect, useState } from "react";
+import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
-import { ExternalLink, Folder } from "lucide-react";
-import { SymbolAppRegedit } from "@/ui/icons/symbols";
+import { ExternalLink } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
-import { Label } from "@/ui/shadcn/label";
-import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Button } from "@/ui/shadcn/button";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
@@ -15,7 +12,6 @@ import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-
 import {
     type RegGroup,
     type RegItem,
-    type RegSeparator,
     type RegValueType,
     type RegView,
     REG_VALUE_TYPES,
@@ -28,117 +24,17 @@ import {
     itemHasSubKey,
     itemHive,
     normalizeItemKeyPath,
-} from "../a-atoms/9-types-registry";
-import { patchSelectedGroup, patchSelectedItem, patchSelectedSeparator } from "../a-atoms/use-selected-node";
-import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
+} from "../../a-atoms/9-types-registry";
+import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import {
-    confirmRegistryWritesAtom,
     doAsyncRegJumpItemAtom,
-    doAsyncRegReadAllAtom,
-    doAsyncRegReadGroupAtom,
     doAsyncRegReadItemAtom,
     doAsyncRegWriteGroupAtom,
     doAsyncRegWriteItemAtom,
     readMatchesDesired,
     registryReadStore,
-} from "../a-atoms/2-run-registry";
-import { QuickAccessList } from "./3-2-quick-list";
-
-export function PropsFor_Root() {
-    const { config } = useSnapshot(registryEditorStore, { sync: true });
-    const groups = config.groups as RegGroup[];
-    const readAll = useSetAtom(doAsyncRegReadAllAtom);
-    const hasItems = groups.some((group) => collectGroupItems(group).length > 0);
-
-    return (<>
-        <div className="flex items-center justify-between gap-2">
-            <p className="text-muted-foreground">
-                Root of the registry operations tree. Add groups here, or drop a .reg or .json file onto the tree
-                to import one as a new group. Groups and values can be reordered by drag-and-drop.
-                This node cannot be moved or deleted.
-            </p>
-        </div>
-
-        <Field_Comment
-            value={config.comment ?? ""}
-            onChange={(next) => applyComment(registryEditorStore.config, next)}
-        />
-
-        <div className="flex items-center gap-2">
-            <RegActionButton label="Read all current values" disabled={!hasItems} onClick={() => void readAll()} />
-            <ConfirmWritesToggle />
-        </div>
-
-        <QuickAccessList nodes={groups} />
-    </>);
-}
-
-export function PropsFor_Group({ group }: { group: RegGroup; }) {
-    const readGroup = useSetAtom(doAsyncRegReadGroupAtom);
-    const writeGroup = useSetAtom(doAsyncRegWriteGroupAtom);
-    const hasItems = collectGroupItems(group).length > 0;
-    const uid = group.uid;
-
-    return (<>
-        <div className="flex items-center justify-between gap-2">
-            <Field_TypeIcon kind="group" />
-            <div className="flex items-center gap-2">
-                <RegActionButton
-                    label="Read group"
-                    disabled={!hasItems || !uid}
-                    title="Read the current value of every item in this group"
-                    onClick={() => uid && void readGroup(uid)}
-                />
-                <RegActionButton
-                    label="Write group"
-                    disabled={!hasItems || !uid}
-                    title="Write every value in this group (including nested groups) to the registry"
-                    onClick={() => uid && void writeGroup(uid)}
-                />
-            </div>
-        </div>
-
-        <LabelAndField label="Group name">
-            <Input
-                className="h-7"
-                value={group.name}
-                onChange={(e) => patchSelectedGroup((g) => { g.name = e.target.value; })}
-                {...turnOffAutoComplete}
-            />
-        </LabelAndField>
-
-        <Field_Comment
-            value={group.comment ?? ""}
-            onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
-        />
-
-        <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <FlagSwitch
-                label="Require elevated privileges"
-                hint="Prompt to relaunch as administrator before writing any value in this group."
-                checked={!!group.requireElevated}
-                onCheckedChange={(v) => patchSelectedGroup((g) => { g.requireElevated = v; })}
-            />
-        </div>
-
-        <QuickAccessList nodes={[group]} />
-    </>);
-}
-
-export function PropsFor_Separator({ separator }: { separator: RegSeparator; }) {
-    return (<>
-        <Field_TypeIcon kind="separator" />
-
-        <p className="text-muted-foreground">
-            A separator draws a horizontal divider line in the tree and in the quick actions list.
-        </p>
-
-        <Field_Comment
-            value={separator.comment ?? ""}
-            onChange={(next) => patchSelectedSeparator((s) => applyComment(s, next))}
-        />
-    </>);
-}
+} from "../../a-atoms/2-run-registry";
+import { Field_TypeIcon, FlagSwitch, LabelAndField, RegActionButton } from "./3-1-props-root";
 
 export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup; }) {
     const readItem = useSetAtom(doAsyncRegReadItemAtom);
@@ -465,83 +361,5 @@ function Field_ItemName({ item }: { item: RegItem; }) {
                 {...turnOffAutoComplete}
             />
         </LabelAndField>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// Shared UI
-
-function ConfirmWritesToggle() {
-    const [confirm, setConfirm] = useAtom(confirmRegistryWritesAtom);
-
-    return (
-        <FlagSwitch
-            label="Confirm before writing"
-            hint="Show a confirmation dialog before any registry write. Registry edits cannot be undone from here."
-            checked={confirm}
-            onCheckedChange={setConfirm}
-        />
-    );
-}
-
-function RegActionButton({ label, disabled, title, onClick }: { label: string; disabled: boolean; title?: string; onClick: () => void; }) {
-    return (
-        <Button
-            className="font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60"
-            variant="secondary"
-            size="xs"
-            disabled={disabled}
-            title={title}
-            onClick={onClick}
-            type="button"
-        >
-            {label}
-        </Button>
-    );
-}
-
-function FlagSwitch({ label, hint, checked, disabled, onCheckedChange, }: { label: string; hint: string; checked: boolean; disabled?: boolean; onCheckedChange: (v: boolean) => void; }) {
-    return (
-        <Label
-            className={classNames(
-                "font-normal text-[0.65rem] text-muted-foreground flex items-center gap-1",
-                disabled ? "opacity-70 cursor-default" : "cursor-pointer",
-            )}
-            title={hint}
-        >
-            <Checkbox checked={checked} disabled={disabled} onCheckedChange={(v) => onCheckedChange(v === true)} />
-            <span className="mt-0.5">{label}</span>
-        </Label>
-    );
-}
-
-function LabelAndField({ label, labelHint, children }: { label: string; labelHint?: string; children: ReactNode; }) {
-    // Keep Label and Input as siblings — Label's select-none must not wrap the input
-    // or caret placement breaks when typing at the start of the value.
-    return (
-        <Label className="text-xs font-normal whitespace-nowrap flex flex-col items-start gap-0.5">
-            <div className="text-[0.65rem] text-muted-foreground whitespace-nowrap" title={labelHint}>
-                {label}
-            </div>
-            {children}
-        </Label>
-    );
-}
-
-const typeIconLabelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
-
-function Field_TypeIcon({ kind }: { kind: "group" | "item" | "separator"; }) {
-    const label = kind === "group" ? "Group" : kind === "separator" ? "Separator" : "Registry value";
-
-    return (
-        <div className={classNames(typeIconLabelClasses, "px-2 py-1 w-fit bg-muted border rounded inline-flex items-center gap-1")}>
-            {kind === "group"
-                ? <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
-                : kind === "item"
-                    ? <SymbolAppRegedit className="shrink-0 size-3.5 opacity-70" />
-                    : null
-            }
-            {label}
-        </div>
     );
 }
