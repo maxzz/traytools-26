@@ -1,3 +1,4 @@
+import { type ClipboardEvent } from "react";
 import { useSnapshot } from "valtio";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { useDebouncedValue } from "@/utils/util-hooks";
@@ -5,17 +6,9 @@ import { Copy, SquareArrowOutUpRight, X } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
-import {
-    type RegItem,
-    fullKeyPath,
-    itemHasSubKey,
-    validateItemKeyPath,
-} from "../../a-atoms/9-types-registry";
+import { type RegItem, fullKeyPath, itemHasSubKey, parseHiveAlias, validateItemKeyPath } from "../../a-atoms/9-types-registry";
 import { registryEditorStore } from "../../a-atoms/0-registry-local-storage";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
-
-/** Delay before showing key-path errors while typing (ms). */
-const KEY_PATH_VALIDATE_DELAY_MS = 400;
 
 export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; }) {
     const { strictKeyPathValidation } = useSnapshot(registryEditorStore);
@@ -42,6 +35,7 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
                             it.keyPath = e.target.value;
                         });
                     }}
+                    onPaste={onKeyPathPaste}
                     {...turnOffAutoComplete}
                 />
 
@@ -103,4 +97,73 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
             </InputGroup>
         </LabelAndField>
     );
+}
+
+const KEY_PATH_VALIDATE_DELAY_MS = 400; // Delay before showing key-path errors while typing (ms).
+
+// --------------------------------------------------------------------------
+// Helper functions
+
+function onKeyPathPaste(e: ClipboardEvent<HTMLInputElement>) {
+    const raw = e.clipboardData.getData("text");
+    const pasted = stripRegeditAddressPrefix(raw);
+    if (pasted === raw) {
+        return;
+    }
+
+    e.preventDefault();
+    const input = e.currentTarget;
+    const current = input.value;
+    const start = input.selectionStart ?? current.length;
+    const end = input.selectionEnd ?? start;
+    const next = current.slice(0, start) + pasted + current.slice(end);
+    patchSelectedItem((it) => { it.keyPath = next; });
+
+    const caret = start + pasted.length;
+    requestAnimationFrame(() => {
+        input.setSelectionRange(caret, caret);
+    });
+}
+
+/**
+ * Strip a regedit address-bar root so only hive\subkey remains.
+ * Handles `Computer\…`, `HOSTNAME\…`, `1.2.3.4\…`, and `\\HOSTNAME\…`
+ * when the following segment is a known hive.
+ */
+export function stripRegeditAddressPrefix(text: string): string {
+    let s = text.trim();
+    if (!s) {
+        return s;
+    }
+
+    // UNC-style remote root: \\server\HKEY_…
+    const unc = /^\\\\([^\\/]+)[\\/]/.exec(s);
+    if (unc) {
+        const rest = s.slice(unc[0].length);
+        if (segmentIsHive(rest)) {
+            s = rest;
+        }
+    }
+
+    // Local regedit root, or remote shown as Computer\HOST\HKEY_…
+    s = stripLeadingSegment(s, (head) => head.toUpperCase() === "COMPUTER");
+
+    // Remaining host / IP before a hive: MYPC\HKEY_… or 192.168.0.1\HKLM\…
+    s = stripLeadingSegment(s, (head, rest) => !parseHiveAlias(head) && segmentIsHive(rest));
+
+    return s;
+}
+
+function segmentIsHive(path: string): boolean {
+    const head = path.split(/[\\/]/, 1)[0] ?? "";
+    return !!parseHiveAlias(head);
+}
+
+function stripLeadingSegment(path: string, shouldStrip: (head: string, rest: string) => boolean): string {
+    const match = /^([^\\/]+)[\\/]([\s\S]*)$/.exec(path);
+    if (!match) {
+        return path;
+    }
+    const [, head, rest] = match;
+    return shouldStrip(head, rest) ? rest : path;
 }
