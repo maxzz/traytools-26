@@ -2,6 +2,7 @@ import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
+import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
@@ -9,6 +10,7 @@ import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-
 import {
     Field_TypeIcon,
     FlagSwitch,
+    InfoTooltip,
     LabelAndField,
     PropsActionButton,
     typeBadgeIcons,
@@ -78,12 +80,14 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
             onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
         />
 
-        <Field_KeyPath item={item} onJump={() => uid && void jump(uid)} />
+        <div className="grid grid-cols-[1fr_auto] gap-1 items-end">
+            <Field_KeyPath item={item} onJump={() => uid && void jump(uid)} />
+            <Field_View item={item} />
+        </div>
 
-        <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+        <div className="grid grid-cols-[1fr_auto] gap-2">
             <Field_ValueName item={item} />
             <Field_ValueType item={item} />
-            <Field_View item={item} />
         </div>
 
         <Field_NewValue item={item} />
@@ -146,29 +150,48 @@ function Field_ValueType({ item }: { item: RegItem; }) {
     );
 }
 
+const VIEW_CYCLE = ["curr", "32", "64"] as const;
+type ViewCycle = (typeof VIEW_CYCLE)[number];
+
 function Field_View({ item }: { item: RegItem; }) {
+    const current: ViewCycle = item.view === "32" || item.view === "64" ? item.view : "curr";
+    const label = current === "curr" ? "Default" : current;
+
     return (
-        <LabelAndField label="Registry view" labelHint="Which of the 32-/64-bit registry views to use.">
-            <Select
-                value={item.view ?? "curr"}
-                onValueChange={(v) => patchSelectedItem((it) => {
-                    if (v === "curr") {
+        <LabelAndField
+            className="flex flex-col"
+            label="View"
+            labelHint={(
+                <InfoTooltip label="View help" contentClasses="max-w-72 font-light">
+                    <div className="flex flex-col gap-0.5 text-xs">
+                        <p>Which registry view to use when reading or writing.</p>
+                        <p><span className="font-medium">Default</span> — process native view</p>
+                        <p><span className="font-medium">32</span> — 32-bit (WOW6432Node) view</p>
+                        <p><span className="font-medium">64</span> — 64-bit view</p>
+                        <p>Click the control to cycle.</p>
+                    </div>
+                </InfoTooltip>
+            )}
+        >
+            <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                className="h-7 font-normal rounded"
+                title={`${label} — click to cycle view`}
+                aria-label={`Registry view: ${label}. Click to cycle.`}
+                onClick={() => patchSelectedItem((it) => {
+                    const cur: ViewCycle = it.view === "32" || it.view === "64" ? it.view : "curr";
+                    const next = VIEW_CYCLE[(VIEW_CYCLE.indexOf(cur) + 1) % VIEW_CYCLE.length];
+                    if (next === "curr") {
                         delete it.view;
                     } else {
-                        it.view = v as RegView;
+                        it.view = next as RegView;
                     }
                 })}
             >
-                <SelectTrigger className="w-full h-7! min-w-24 text-[0.72rem]">
-                    <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent>
-                    <SelectItem value="curr">Default</SelectItem>
-                    <SelectItem value="32">32-bit</SelectItem>
-                    <SelectItem value="64">64-bit</SelectItem>
-                </SelectContent>
-            </Select>
+                {label}
+            </Button>
         </LabelAndField>
     );
 }

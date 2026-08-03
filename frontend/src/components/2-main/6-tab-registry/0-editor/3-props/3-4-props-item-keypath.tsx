@@ -26,7 +26,7 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
         >
             <InputGroup>
                 <InputGroupInput
-                    className="font-mono text-[0.72rem]"
+                    className=""
                     value={item.keyPath}
                     placeholder="HKEY_CURRENT_USER\SOFTWARE\Vendor\Product"
                     aria-invalid={!!error}
