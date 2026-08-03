@@ -45,7 +45,7 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
                     {...turnOffAutoComplete}
                 />
 
-                <InputGroupAddon className="p-0 pr-1.5 gap-0.5" align="inline-end">
+                <InputGroupAddon className="p-0 pr-1.5 gap-0" align="inline-end">
                     <InputGroupButton
                         // aria-disabled (not disabled): InputGroup's has-disabled:opacity-50
                         // would dim the whole field.
