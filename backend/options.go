@@ -43,14 +43,37 @@ type IniOptions struct {
 	ZoomLevel float64 `json:"zoomLevel,omitempty"`
 }
 
-func getIniFilePath() (string, error) {
+// AppConfigDirName is the per-user folder under %AppData% (Roaming on Windows).
+const AppConfigDirName = "traytools-26-go"
+
+// appConfigDir returns %AppData%\Roaming\<AppConfigDirName>, creating it if needed.
+func appConfigDir() (string, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	appDir := filepath.Join(configDir, "traytools-26-go")
-	// Make sure the directory exists
+	appDir := filepath.Join(configDir, AppConfigDirName)
 	if err := os.MkdirAll(appDir, 0755); err != nil {
+		return "", err
+	}
+	return appDir, nil
+}
+
+// appLaunchDir returns the folder that contains the running executable.
+func appLaunchDir() (string, error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	if resolved, err := filepath.EvalSymlinks(exe); err == nil {
+		exe = resolved
+	}
+	return filepath.Dir(exe), nil
+}
+
+func getIniFilePath() (string, error) {
+	appDir, err := appConfigDir()
+	if err != nil {
 		return "", err
 	}
 	return filepath.Join(appDir, "init.json"), nil

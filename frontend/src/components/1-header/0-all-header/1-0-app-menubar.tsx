@@ -6,6 +6,7 @@ import { getValidMainTab, TOPMENU_VIEW_PAGES } from "@/components/0-all/8-pages-
 import { appSettings } from "@/store/1-ui-settings";
 import { refreshWindowTree } from "@/components/2-main/2-tab-windows-tree/a-windows-tree-calls";
 import { isOpenSettingsDialogAtom, settingsUnloadHookHotkeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { formatHotkey } from "@/ui/local-ui/9-hotkey";
 import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarRadioGroup, MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger } from "@/ui/shadcn/menubar";
 import { ToolsMenu } from "./1-1-menu-tools";
@@ -27,6 +28,30 @@ export function AppMenubar() {
                 </MenubarTrigger>
 
                 <MenubarContent>
+                    <MenubarItem
+                        title="Open File Explorer to the folder containing this application"
+                        onSelect={() => {
+                            void appBus.openLaunchFolder().catch((e) => {
+                                notice.error(`Failed to open launch folder:<br/>${String(e)}`);
+                            });
+                        }}
+                    >
+                        Open Launch Folder
+                    </MenubarItem>
+
+                    <MenubarItem
+                        title="Open File Explorer to AppData\Roaming\traytools-26-go (default JSON / settings folder)"
+                        onSelect={() => {
+                            void appBus.openConfigFolder().catch((e) => {
+                                notice.error(`Failed to open data folder:<br/>${String(e)}`);
+                            });
+                        }}
+                    >
+                        Open Data Folder
+                    </MenubarItem>
+
+                    <MenubarSeparator />
+
                     <MenubarSub>
                         <MenubarSubTrigger>
                             Preferences

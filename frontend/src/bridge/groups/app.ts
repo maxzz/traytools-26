@@ -15,6 +15,8 @@ const GROUP = "app";
  * - revealInExplorer opens File Explorer with the given path highlighted;
  * - openInExplorer opens File Explorer navigated into the folder (or the
  *   parent folder when path is a file);
+ * - openLaunchFolder opens the folder that contains the running executable;
+ * - openConfigFolder opens %AppData%\Roaming\<app> (default JSON / init.json home);
  * - sendUnloadHookNotification broadcasts the DigitalPersona unhook message
  *   (View → Send unload hook notification).
  */
@@ -27,5 +29,7 @@ export const appBus = {
     toggle: () => dispatch(GROUP, "toggle"),
     revealInExplorer: (path: string) => dispatch(GROUP, "revealInExplorer", { path }),
     openInExplorer: (path: string) => dispatch(GROUP, "openInExplorer", { path }),
+    openLaunchFolder: () => dispatch(GROUP, "openLaunchFolder"),
+    openConfigFolder: () => dispatch(GROUP, "openConfigFolder"),
     sendUnloadHookNotification: () => dispatch(GROUP, "sendUnloadHookNotification"),
 };

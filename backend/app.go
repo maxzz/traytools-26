@@ -141,6 +141,20 @@ func (a *App) registerHandlers() {
 		}
 		return nil, winlaunch.OpenInExplorer(req.Path)
 	})
+	a.bus.Register("app", "openLaunchFolder", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		dir, err := appLaunchDir()
+		if err != nil {
+			return nil, err
+		}
+		return nil, winlaunch.OpenInExplorer(dir)
+	})
+	a.bus.Register("app", "openConfigFolder", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		dir, err := appConfigDir()
+		if err != nil {
+			return nil, err
+		}
+		return nil, winlaunch.OpenInExplorer(dir)
+	})
 	a.bus.Register("settings", "getRunElevated", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return GetRunElevatedOption(), nil
 	})
