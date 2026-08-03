@@ -2,22 +2,13 @@ import { Fragment } from "react";
 import { FileIcon, Folder, Info } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import {
-    type CopyGroup,
-    type CopyNode,
-    type CopyOpItem,
-    collectGroupItems,
-    findByUid,
-    isCopyGroup,
-    isCopySeparator,
-    itemLabel,
-} from "../a-atoms/9-types-copy";
+import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
+import { type CopyGroup, type CopyNode, type CopyOpItem, collectGroupItems, findByUid, isCopyGroup, isCopySeparator, itemLabel } from "../a-atoms/9-types-copy";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 
 const CHILD_INDENT = 16;
-const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
-const copyButtonClass =
+const copyButtonClasses =
     "px-1.5 h-4.5 font-normal text-[0.65rem] text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
 
 export function QuickAccessList({ nodes }: { nodes: readonly CopyNode[]; }) {
@@ -111,7 +102,7 @@ function QuickAccessCopyGroupButton({ group }: { group: CopyGroup; }) {
 
     return (
         <Button
-            className={copyButtonClass}
+            className={copyButtonClasses}
             variant="secondary"
             size="xs"
             type="button"
@@ -140,7 +131,7 @@ function QuickAccessCopyItemButton({ item }: { item: CopyOpItem; }) {
 
     return (
         <Button
-            className={copyButtonClass}
+            className={copyButtonClasses}
             variant="secondary"
             size="xs"
             type="button"

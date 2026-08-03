@@ -1,14 +1,15 @@
-import { type ReactNode } from "react";
 import { useSnapshot } from "valtio";
-import { classNames } from "@/utils/classnames";
-import { FileIcon, Folder } from "lucide-react";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
-import { Label } from "@/ui/shadcn/label";
-import { Checkbox } from "@/ui/shadcn/checkbox";
-import { Button } from "@/ui/shadcn/button";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
+import {
+    Field_TypeIcon,
+    FlagSwitch,
+    LabelAndField,
+    PropsActionButton,
+    typeBadgeIcons,
+} from "@/components/2-main/a-shared/props-field-ui";
 import {
     type CopyGroup,
     type CopyOpItem,
@@ -55,11 +56,11 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
 
     return (<>
         <div className="flex items-center justify-between gap-2">
-            <Field_TypeIcon kind="group" />
+            <Field_TypeIcon label="Group" icon={typeBadgeIcons.folder} />
             {(showTopLevel || showParent) && (
                 <div className="flex items-center gap-2">
                     {showTopLevel && (
-                        <CopyActionButton
+                        <PropsActionButton
                             label="Copy top-level group"
                             disabled={!topLevelHasItems}
                             title="Copy all items in the root-level group that contains this group"
@@ -67,7 +68,7 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
                         />
                     )}
                     {showParent && (
-                        <CopyActionButton
+                        <PropsActionButton
                             label="Copy parent group"
                             disabled={!parentHasItems}
                             title="Copy all items in this group's parent (including nested groups)"
@@ -100,7 +101,7 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
 
 export function PropsFor_Separator({ separator }: { separator: CopySeparator; }) {
     return (<>
-        <Field_TypeIcon kind="separator" />
+        <Field_TypeIcon label="Separator" />
 
         <p className="text-muted-foreground">
             A separator draws a horizontal divider line in the tree and in the quick actions list.
@@ -122,23 +123,23 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
 
     return (<>
         <div className="flex items-center justify-between gap-2">
-            <Field_TypeIcon kind="item" />
+            <Field_TypeIcon label="Copy item" icon={typeBadgeIcons.file} />
             <div className="flex items-center gap-2">
                 {showTopLevel && (
-                    <CopyActionButton
+                    <PropsActionButton
                         label="Copy top-level group"
                         disabled={!topLevelHasItems}
                         title="Copy all items in the root-level group that contains this item"
                         onClick={() => copyLiveGroup(topLevel?.uid)}
                     />
                 )}
-                <CopyActionButton
+                <PropsActionButton
                     label="Copy parent group"
                     disabled={!parentHasItems}
                     title="Copy all items in this item's parent group (including nested groups)"
                     onClick={() => copyLiveGroup(group.uid)}
                 />
-                <CopyActionButton
+                <PropsActionButton
                     label="Copy file"
                     disabled={!item.sourceFile.trim() || !item.destFolder.trim()}
                     onClick={() => copyLiveItem(item.uid)}
@@ -198,22 +199,6 @@ function copyLiveItem(uid?: string) {
     }
 }
 
-function CopyActionButton({ label, disabled, title, onClick }: { label: string; disabled: boolean; title?: string; onClick: () => void; }) {
-    return (
-        <Button
-            className="font-normal text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60"
-            variant="secondary"
-            size="xs"
-            disabled={disabled}
-            title={title}
-            onClick={onClick}
-            type="button"
-        >
-            {label}
-        </Button>
-    );
-}
-
 // Copy run flags
 
 type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated" | "renameLocked">;
@@ -245,15 +230,6 @@ function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: 
     );
 }
 
-function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
-    return (
-        <Label className="font-normal text-[0.65rem] text-muted-foreground flex items-center gap-1 cursor-pointer" title={hint}>
-            <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
-            <span className="mt-0.5">{label}</span>
-        </Label>
-    );
-}
-
 function OperationNameField({ item }: { item: CopyOpItem; }) {
     const baseName = sourceFileBaseName(item.sourceFile);
 
@@ -281,36 +257,5 @@ function OperationNameField({ item }: { item: CopyOpItem; }) {
                 {...turnOffAutoComplete}
             />
         </LabelAndField>
-    );
-}
-
-function LabelAndField({ label, children }: { label: string; children: ReactNode; }) {
-    // Keep Label and Input as siblings — Label's select-none must not wrap the input
-    // or caret placement breaks when typing at the start of the value.
-    return (
-        <Label className="text-xs font-normal whitespace-nowrap flex flex-col items-start gap-0.5">
-            <div className="text-[0.65rem] text-muted-foreground whitespace-nowrap">
-                {label}
-            </div>
-            {children}
-        </Label >
-    );
-}
-
-const typeIconLabelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
-
-function Field_TypeIcon({ kind }: { kind: "group" | "item" | "separator"; }) {
-    const label = kind === "group" ? "Group" : kind === "separator" ? "Separator" : "Copy item";
-
-    return (
-        <div className={classNames(typeIconLabelClasses, "px-2 py-1 w-fit bg-muted border rounded inline-flex items-center gap-1")}>
-            {kind === "group"
-                ? <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
-                : kind === "item"
-                    ? <FileIcon className="shrink-0 size-3.5 text-foreground/70" />
-                    : null
-            }
-            {label}
-        </div>
     );
 }
