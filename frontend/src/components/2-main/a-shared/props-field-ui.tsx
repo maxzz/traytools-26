@@ -58,11 +58,18 @@ export function InfoTooltipTrigger({ className, ...rest }: ComponentProps<"butto
     );
 }
 
-export function FlagSwitch({ label, hint, checked, disabled, onCheckedChange, }: { label: string; hint?: ReactNode; checked: boolean; disabled?: boolean; onCheckedChange: (v: boolean) => void; }) {
-    // Plain string hints use the native title tooltip; rich ReactNode hints get an info icon.
-    const titleHint = typeof hint === "string" ? hint : undefined;
-    const richHint = hint != null && typeof hint !== "string" ? hint : undefined;
-
+/**
+ * title: Native HTML title tooltip on the label.
+ * titleRich: Info-icon trigger for a shadcn tooltip (string or rich content).
+ */
+export function FlagSwitch({ label, title, titleRich, checked, disabled, onCheckedChange }: {
+    label: string; 
+    title?: string; 
+    titleRich?: ReactNode; 
+    checked: boolean; 
+    disabled?: boolean; 
+    onCheckedChange: (v: boolean) => void;
+}) {
     return (
         <div className="inline-flex items-center gap-0.5">
             <Label
@@ -71,15 +78,15 @@ export function FlagSwitch({ label, hint, checked, disabled, onCheckedChange, }:
                     "flex items-center gap-1",
                     disabled ? "opacity-70 cursor-default" : "cursor-pointer",
                 )}
-                title={titleHint}
+                title={title}
             >
                 <Checkbox checked={checked} disabled={disabled} onCheckedChange={(v) => onCheckedChange(v === true)} />
                 <span className="mt-0.5">{label}</span>
             </Label>
 
-            {richHint != null && (
+            {titleRich != null && titleRich !== "" && (
                 <InfoTooltip label={`${label} help`}>
-                    {richHint}
+                    {typeof titleRich === "string" ? <p className="text-xs">{titleRich}</p> : titleRich}
                 </InfoTooltip>
             )}
         </div>
