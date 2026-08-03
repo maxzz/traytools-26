@@ -10,6 +10,7 @@ import {
     type RegSource,
     collectGroupItems,
     ensureUids,
+    findInvalidKeyPathItems,
     parseRegSelectionPath,
     selectionPathFromUid,
     uidFromSelectionPath,
@@ -49,6 +50,7 @@ export const registryEditorStore = proxy<RegEditorStore>({
     status: "",
     error: "",
     selectedUid: initialSelectedUid,
+    strictKeyPathValidation: false,
 });
 
 subscribe(registryEditorStore, () => {
@@ -181,6 +183,21 @@ function RegistryConfig_Set(config: RegConfig, source: RegSource, path = "", fil
 }
 
 export async function RegistryConfig_Save(): Promise<void> {
+    const invalid = findInvalidKeyPathItems(registryEditorStore.config);
+    if (invalid.length) {
+        registryEditorStore.strictKeyPathValidation = true;
+        const first = invalid[0].item;
+        if (first.uid) {
+            registryEditorStore.selectedUid = first.uid;
+        }
+        const msg = invalid.length === 1
+            ? "Cannot save registry.json — a key path is invalid. Correct it and try again."
+            : `Cannot save registry.json — ${invalid.length} key paths are invalid. Correct them and try again.`;
+        registryEditorStore.error = msg;
+        notice.error(msg);
+        return;
+    }
+
     try {
         const text = buildRegistryFileText(registryEditorStore.config);
         const res = await registryOpsBus.save(text);
@@ -191,6 +208,7 @@ export async function RegistryConfig_Save(): Promise<void> {
         registryEditorStore.dirty = false;
         registryEditorStore.error = "";
         registryEditorStore.status = "";
+        registryEditorStore.strictKeyPathValidation = false;
         writeCache(registryEditorStore.config, registryEditorStore.rootUid, registryEditorStore.selectedUid);
         notice.success(`Saved to<br/>${registryEditorStore.path}`);
     } catch (e) {

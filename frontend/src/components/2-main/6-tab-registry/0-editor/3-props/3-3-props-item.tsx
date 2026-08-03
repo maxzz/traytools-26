@@ -2,6 +2,7 @@ import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
+import { useDebouncedValue } from "@/utils/util-hooks";
 import { ExternalLink } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Button } from "@/ui/shadcn/button";
@@ -28,7 +29,9 @@ import {
     hiveNeedsElevation,
     itemHasSubKey,
     itemHive,
+    validateItemKeyPath,
 } from "../../a-atoms/9-types-registry";
+import { registryEditorStore } from "../../a-atoms/0-registry-local-storage";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import {
     doAsyncRegJumpItemAtom,
@@ -109,17 +112,27 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
 // ---------------------------------------------------------------------------
 // Item fields
 
+/** Delay before showing key-path errors while typing (ms). */
+const KEY_PATH_VALIDATE_DELAY_MS = 400;
+
 function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; }) {
+    const { strictKeyPathValidation } = useSnapshot(registryEditorStore);
+    const debouncedPath = useDebouncedValue(item.keyPath, KEY_PATH_VALIDATE_DELAY_MS);
+    const pathToValidate = strictKeyPathValidation ? item.keyPath : debouncedPath;
+    const error = validateItemKeyPath(pathToValidate);
+
     return (
         <LabelAndField
             label="Key path"
             labelHint="Hive plus subkey, stored as typed (HKCU or HKEY_CURRENT_USER, \\ or /). Normalized only when reading, writing, or opening in regedit."
+            error={error}
         >
             <div className="w-full flex items-center gap-1">
                 <Input
                     className="h-7 font-mono text-[0.72rem]"
                     value={item.keyPath}
                     placeholder="HKEY_CURRENT_USER\SOFTWARE\Vendor\Product"
+                    aria-invalid={!!error}
                     onChange={(e) => {
                         patchSelectedItem((it) => {
                             it.keyPath = e.target.value;

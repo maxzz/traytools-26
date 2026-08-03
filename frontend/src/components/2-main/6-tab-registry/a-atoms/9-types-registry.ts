@@ -131,6 +131,11 @@ export type RegEditorStore = {
     status: string;
     error: string;
     selectedUid: string | null;
+    /**
+     * After a failed save due to invalid key paths, validate immediately
+     * (skip the typing debounce) until the next successful save.
+     */
+    strictKeyPathValidation: boolean;
 };
 
 /** Hives whose writes normally need an elevated process. */
@@ -485,6 +490,63 @@ export function parseItemKeyPath(text: string, fallbackHive: RegHive = "HKCU"): 
 export function normalizeItemKeyPath(text: string, fallbackHive: RegHive = "HKCU"): string {
     const { hive, subKey } = parseItemKeyPath(text, fallbackHive);
     return subKey ? `${hive}\\${subKey}` : hive;
+}
+
+const KEY_NAME_MAX = 255;
+
+/**
+ * Validate a stored keyPath spelling. Returns an error message, or null when ok.
+ * Separators may be `\`, `\\`, or `/`; hive may be short or long. Structural
+ * checks run on a normalized form without rewriting the stored value.
+ */
+export function validateItemKeyPath(text: string): string | null {
+    if (!text.trim()) {
+        return "Key path is required.";
+    }
+
+    const normalized = text.trim().replace(/\//g, "\\").replace(/\\+/g, "\\").replace(/^\\+/, "").replace(/\\+$/g, "");
+    if (!normalized) {
+        return "Key path is required.";
+    }
+
+    const slash = normalized.indexOf("\\");
+    const head = slash < 0 ? normalized : normalized.slice(0, slash);
+    if (!parseHiveAlias(head)) {
+        return "Key path must start with a registry hive (HKCU, HKLM, HKEY_CURRENT_USER, …).";
+    }
+
+    const rest = slash < 0 ? "" : normalized.slice(slash + 1);
+    if (!rest) {
+        return null;
+    }
+
+    for (const segment of rest.split("\\")) {
+        if (!segment) {
+            return "Key path has an empty segment.";
+        }
+        if (segment.length > KEY_NAME_MAX) {
+            return `Each key name must be ${KEY_NAME_MAX} characters or fewer.`;
+        }
+        if (/[\u0000-\u001F]/.test(segment)) {
+            return "Key path contains invalid control characters.";
+        }
+    }
+
+    return null;
+}
+
+/** All registry items whose keyPath fails validation. */
+export function findInvalidKeyPathItems(config: RegConfig): { item: RegItem; error: string; }[] {
+    const out: { item: RegItem; error: string; }[] = [];
+    for (const group of config.groups) {
+        for (const item of collectGroupItems(group)) {
+            const error = validateItemKeyPath(item.keyPath);
+            if (error) {
+                out.push({ item, error });
+            }
+        }
+    }
+    return out;
 }
 
 export function itemHive(item: Pick<RegItem, "keyPath">): RegHive {

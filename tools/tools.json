@@ -15,35 +15,10 @@
         "menuName": "Tools",
         "menuItems": [
             {
-                "menuName": "Registry",
-                "menuItems": [
-                    {
-                        "menuName": "Regedit: DP Tracing",
-                        "cmdLine": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing",
-                        "cmdPlat": "both",
-                        "cmdWhat": "reg"
-                    },
-                    {
-                        "menuName": "Regedit: DP Tracing VirtualStore",
-                        "cmdLine": "HKCU\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\DigitalPersona\\Tracing",
-                        "cmdPlat": "both",
-                        "cmdWhat": "reg"
-                    },
-                    {
-                        "menuName": "Regedit: Run keys",
-                        "cmdLine": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-                        "cmdWhat": "reg"
-                    }
-                ]
-            },
-            {
-                "menuName": "-"
-            },
-            {
                 "menuName": "Folders",
                 "menuItems": [
                     {
-                        "menuName": "Open tools folder",
+                        "menuName": "Open traytools folder",
                         "cmdLine": "./",
                         "cmdWhat": "rel"
                     },
@@ -96,6 +71,31 @@
                         ]
                     }
                 ]
+            },
+            {
+                "menuName": "Registry",
+                "menuItems": [
+                    {
+                        "menuName": "Regedit: DP Tracing",
+                        "cmdLine": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing",
+                        "cmdPlat": "both",
+                        "cmdWhat": "reg"
+                    },
+                    {
+                        "menuName": "Regedit: DP Tracing VirtualStore",
+                        "cmdLine": "HKCU\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\DigitalPersona\\Tracing",
+                        "cmdPlat": "both",
+                        "cmdWhat": "reg"
+                    },
+                    {
+                        "menuName": "Regedit: Run keys",
+                        "cmdLine": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+                        "cmdWhat": "reg"
+                    }
+                ]
+            },
+            {
+                "menuName": "-"
             },
             {
                 "menuName": "-"

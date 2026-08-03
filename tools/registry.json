@@ -10,7 +10,7 @@
                             "separator": true
                         },
                         {
-                            "keyPath": "HKLM\\SOFTWARE\\_tm_test",
+                            "keyPath": "HKLM/SOFTWARE/_tm_test",
                             "valueName": "",
                             "valueType": "REG_SZ",
                             "newValue": "",

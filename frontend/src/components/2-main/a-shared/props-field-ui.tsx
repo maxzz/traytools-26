@@ -1,6 +1,6 @@
 import { type ComponentProps, type ReactNode } from "react";
 import { classNames, cn } from "@/utils/classnames";
-import { FileIcon, Folder, Info } from "lucide-react";
+import { AlertCircle, FileIcon, Folder, Info } from "lucide-react";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { Button } from "@/ui/shadcn/button";
@@ -18,14 +18,23 @@ export const typeBadgeIcons = {
     command: <IconTerminalHero className="shrink-0 size-3.5 text-foreground/70 fill-foreground/10!" />,
 } as const;
 
-export function LabelAndField({ label, labelHint, children, ...props }: { label: string; labelHint?: ReactNode; } & ComponentProps<"div">) {
+export function LabelAndField({ label, labelHint, error, children, ...props }: {
+    label: string;
+    labelHint?: ReactNode;
+    /** When set, the label turns red and an error icon replaces the help tooltip. */
+    error?: string | null;
+} & ComponentProps<"div">) {
     return (
         <div className="flex flex-col gap-0.5" {...props}>
             <div className="inline-flex items-center gap-0.5">
-                <Label className={labelClasses}>{label}</Label>
-                {typeof labelHint === "string"
-                    ? <InfoTooltip label={`${label} help`}>{labelHint}</InfoTooltip>
-                    : labelHint
+                <Label className={cn(labelClasses, error && "text-destructive")}>{label}</Label>
+                {error
+                    ? (
+                        <ErrorTooltip label={`${label} error`}>{error}</ErrorTooltip>
+                    )
+                    : typeof labelHint === "string"
+                        ? <InfoTooltip label={`${label} help`}>{labelHint}</InfoTooltip>
+                        : labelHint
                 }
             </div>
             {children}
@@ -55,6 +64,35 @@ export function InfoTooltipTrigger({ className, ...rest }: ComponentProps<"butto
         <button className={cn("ml-px text-muted-foreground/70 hover:text-muted-foreground inline-flex items-center", className)} type="button" tabIndex={-1} {...rest}>
             <Info className="size-2.5" />
         </button>
+    );
+}
+
+/** Destructive alert-icon trigger with tooltip content for field validation errors. */
+export function ErrorTooltip({ label, children, side, contentClasses }: {
+    label: string;
+    children: ReactNode;
+    side?: ComponentProps<typeof TooltipContent>["side"];
+    contentClasses?: string;
+}) {
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button
+                        className="ml-px text-destructive hover:text-destructive/80 inline-flex items-center"
+                        type="button"
+                        tabIndex={-1}
+                        aria-label={label}
+                    >
+                        <AlertCircle className="size-2.5" />
+                    </button>
+                </TooltipTrigger>
+
+                <TooltipContent side={side} className={cn("max-w-64 text-xs", contentClasses)}>
+                    {children}
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     );
 }
 
