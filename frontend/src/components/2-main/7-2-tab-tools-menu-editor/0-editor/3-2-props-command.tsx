@@ -1,14 +1,11 @@
-import { type ReactNode } from "react";
-import { classNames } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
-import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Input } from "@/ui/shadcn/input";
-import { Label } from "@/ui/shadcn/label";
 import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
 import { PathInput, isProbablyURL } from "@/components/2-main/a-shared/path-input";
+import { FlagSwitch, InfoTooltip, LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
 import { patchSelectedNode } from "../a-atoms/use-selected-node";
 import { effectiveRunElevated } from "../a-atoms/9-types-menu";
-import { type NodeProps, ExecuteCommandButton, Field_Comment, Field_HotKey, Field_MenuName, Field_TypeIcon, InfoTooltip, LabelAndField, labelClasses } from "./3-4-props-shared-ui";
+import { type NodeProps, ExecuteCommandButton, Field_Comment, Field_HotKey, Field_MenuName, Field_TypeIcon } from "./3-4-props-shared-ui";
 
 export function PropsFor_Command({ node }: NodeProps) {
     return (<>
@@ -72,7 +69,7 @@ function CommandPathFlags({ node }: NodeProps) {
         <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
             <FlagSwitch
                 label="Relative path"
-                hint={(
+                titleRich={(
                     <div className="text-xs font-light grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
                         <span className="font-medium">Relative</span>
                         <span>Path relative to the folder containing tools.json.</span>
@@ -86,25 +83,10 @@ function CommandPathFlags({ node }: NodeProps) {
 
             <FlagSwitch
                 label="Run elevated"
-                hint={<p className="text-xs">Launch this command with administrator privileges.</p>}
+                titleRich={<p className="text-xs">Launch this command with administrator privileges.</p>}
                 checked={effectiveRunElevated(node)}
                 onCheckedChange={(v) => patchSelectedNode((n) => { n.runElevated = v; })}
             />
-        </div>
-    );
-}
-
-function FlagSwitch({ label, hint, checked, onCheckedChange, }: { label: string; hint: ReactNode; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
-    return (
-        <div className="inline-flex items-center gap-0.5">
-            <Label className={classNames(labelClasses, "flex items-center gap-1 cursor-pointer")}>
-                <Checkbox checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
-                <span className="mt-0.5">{label}</span>
-            </Label>
-
-            <InfoTooltip label={`${label} help`}>
-                {hint}
-            </InfoTooltip>
         </div>
     );
 }

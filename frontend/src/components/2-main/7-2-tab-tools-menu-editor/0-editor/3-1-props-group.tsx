@@ -7,7 +7,8 @@ import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
-import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon, labelClasses, InfoTooltipTrigger } from "./3-4-props-shared-ui";
+import { InfoTooltipTrigger, labelClasses } from "@/components/2-main/a-shared/props-field-ui";
+import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon } from "./3-4-props-shared-ui";
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>

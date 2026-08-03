@@ -10,6 +10,13 @@ import { Textarea } from "@/ui/shadcn/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import {
+    Field_TypeIcon,
+    FlagSwitch,
+    LabelAndField,
+    PropsActionButton,
+    typeBadgeIcons,
+} from "@/components/2-main/a-shared/props-field-ui";
+import {
     type RegGroup,
     type RegItem,
     type RegValueType,
@@ -34,7 +41,6 @@ import {
     readMatchesDesired,
     registryReadStore,
 } from "../../a-atoms/2-run-registry";
-import { Field_TypeIcon, FlagSwitch, LabelAndField, RegActionButton } from "./3-1-props-root";
 
 export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup; }) {
     const readItem = useSetAtom(doAsyncRegReadItemAtom);
@@ -49,21 +55,21 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
 
     return (<>
         <div className="flex items-center justify-between gap-2">
-            <Field_TypeIcon kind="item" />
+            <Field_TypeIcon label="Registry value" icon={typeBadgeIcons.registry} />
             <div className="flex items-center gap-2">
-                <RegActionButton
+                <PropsActionButton
                     label="Write parent group"
                     disabled={!parentHasItems || !group.uid}
                     title="Write every value in this item's parent group"
                     onClick={() => group.uid && void writeGroup(group.uid)}
                 />
-                <RegActionButton
+                <PropsActionButton
                     label="Read current"
                     disabled={!hasKey || !uid}
                     title="Read this value from the registry"
                     onClick={() => uid && void readItem(uid)}
                 />
-                <RegActionButton
+                <PropsActionButton
                     label="Write"
                     disabled={!hasKey || !uid}
                     title="Write the new value to the registry"
@@ -92,7 +98,7 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
         <div className="-mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
             <FlagSwitch
                 label="Require elevated privileges"
-                hint="Prompt to relaunch as administrator before writing this value. Machine-wide hives always require it."
+                title="Prompt to relaunch as administrator before writing this value. Machine-wide hives always require it."
                 checked={!!item.requireElevated || hiveNeedsElevation(hive)}
                 disabled={hiveNeedsElevation(hive)}
                 onCheckedChange={(v) => patchSelectedItem((it) => { it.requireElevated = v; })}

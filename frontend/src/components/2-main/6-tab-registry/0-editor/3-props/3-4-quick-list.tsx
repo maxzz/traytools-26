@@ -6,6 +6,7 @@ import { Folder, Info } from "lucide-react";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
 import {
     type RegGroup,
     type RegItem,
@@ -30,7 +31,6 @@ import {
 } from "../../a-atoms/2-run-registry";
 
 const CHILD_INDENT = 16;
-const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
 const actionButtonClass =
     "px-1.5 h-4.5 font-normal text-[0.65rem] text-sky-800 bg-sky-200 dark:text-sky-400 dark:bg-sky-800/40 dark:border-sky-700 hover:bg-sky-300/80 dark:hover:bg-sky-800/80 border-sky-500/60";
 

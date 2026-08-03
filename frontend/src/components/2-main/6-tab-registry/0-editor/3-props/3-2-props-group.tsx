@@ -2,10 +2,16 @@ import { useSetAtom } from "jotai";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
+import {
+    Field_TypeIcon,
+    FlagSwitch,
+    LabelAndField,
+    PropsActionButton,
+    typeBadgeIcons,
+} from "@/components/2-main/a-shared/props-field-ui";
 import { type RegGroup, collectGroupItems } from "../../a-atoms/9-types-registry";
 import { patchSelectedGroup } from "../../a-atoms/use-selected-node";
 import { doAsyncRegReadGroupAtom, doAsyncRegWriteGroupAtom } from "../../a-atoms/2-run-registry";
-import { Field_TypeIcon, FlagSwitch, LabelAndField, RegActionButton } from "./3-1-props-root";
 import { QuickAccessList } from "./3-4-quick-list";
 
 export function PropsFor_Group({ group }: { group: RegGroup; }) {
@@ -16,15 +22,15 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
 
     return (<>
         <div className="flex items-center justify-between gap-2">
-            <Field_TypeIcon kind="group" />
+            <Field_TypeIcon label="Group" icon={typeBadgeIcons.folder} />
             <div className="flex items-center gap-2">
-                <RegActionButton
+                <PropsActionButton
                     label="Read group"
                     disabled={!hasItems || !uid}
                     title="Read the current value of every item in this group"
                     onClick={() => uid && void readGroup(uid)}
                 />
-                <RegActionButton
+                <PropsActionButton
                     label="Write group"
                     disabled={!hasItems || !uid}
                     title="Write every value in this group (including nested groups) to the registry"
@@ -50,7 +56,7 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
         <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
             <FlagSwitch
                 label="Require elevated privileges"
-                hint="Prompt to relaunch as administrator before writing any value in this group."
+                title="Prompt to relaunch as administrator before writing any value in this group."
                 checked={!!group.requireElevated}
                 onCheckedChange={(v) => patchSelectedGroup((g) => { g.requireElevated = v; })}
             />

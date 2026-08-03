@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Check, FileIcon, Folder, ListTree } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
 import { type SyncNode, type SyncOpItem, findByUid, isSyncGroup, isSyncSeparator, itemLabel, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
@@ -22,8 +23,6 @@ export function QuickAccessList({ nodes }: { nodes: readonly SyncNode[]; }) {
         </div>
     );
 }
-
-const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
 
 function QuickAccessItems({ nodes, depth }: { nodes: readonly SyncNode[]; depth: number; }) {
     if (nodes.length === 0) {

@@ -9,12 +9,12 @@ import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirecti
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
-import { Field_TypeIcon, LabelAndField } from "./3-1-props-root";
+import { Field_TypeIcon, LabelAndField, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
 
 export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; }) {
     return (<>
         <div className="flex items-center justify-between gap-2">
-            <Field_TypeIcon kind="item" />
+            <Field_TypeIcon label="Sync item" icon={typeBadgeIcons.file} />
             <ItemActionButtons item={item} />
         </div>
 

@@ -208,21 +208,21 @@ function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: 
         <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
             <FlagSwitch
                 label="Stop DpAgent before copy"
-                hint="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
+                title="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
                 checked={!!flags.stopDpAgent}
                 onCheckedChange={(v) => onPatch((t) => { t.stopDpAgent = v; })}
             />
 
             <FlagSwitch
                 label="Require elevated privileges"
-                hint="Use when destinations include protected folders such as Program Files."
+                title="Use when destinations include protected folders such as Program Files."
                 checked={!!flags.requireElevated}
                 onCheckedChange={(v) => onPatch((t) => { t.requireElevated = v; })}
             />
 
             <FlagSwitch
                 label="Rename destination if locked"
-                hint="If copy fails with Access Denied, rename the locked destination to name_locked_N.ext and retry the copy."
+                title="If copy fails with 'Access Denied', rename the locked destination to name_locked_N.ext and retry the copy."
                 checked={!!flags.renameLocked}
                 onCheckedChange={(v) => onPatch((t) => { t.renameLocked = v; })}
             />
