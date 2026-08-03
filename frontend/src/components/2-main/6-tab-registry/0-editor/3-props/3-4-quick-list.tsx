@@ -13,7 +13,6 @@ import {
     type RegNode,
     VALUE_TYPE_LABELS,
     collectGroupItems,
-    formatItemKeyPath,
     isRegGroup,
     isRegSeparator,
     itemHasSubKey,
@@ -268,7 +267,7 @@ function quickAccessItemPropertyRows(item: RegItem): { label: string; value: str
         }
     }
 
-    add("Key", formatItemKeyPath(item));
+    add("Key", item.keyPath);
     rows.push({ label: "Value", value: valueDisplayName(item.valueName) });
     rows.push({ label: "Type", value: VALUE_TYPE_LABELS[item.valueType] });
     add("New value", item.newValue);

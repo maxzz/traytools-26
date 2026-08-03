@@ -10,18 +10,18 @@
                             "separator": true
                         },
                         {
-                            "keyPath": "HKCU\\SOFTWARE\\_tm_test12",
+                            "keyPath": "HKLM\\SOFTWARE\\_tm_test",
                             "valueName": "",
                             "valueType": "REG_SZ",
                             "newValue": "",
-                            "name": "(no key)1"
+                            "name": "tm test short"
                         },
                         {
-                            "keyPath": "HKCU",
+                            "keyPath": "HKEY_LOCAL_MACHINE\\SOFTWARE\\_tm_test",
                             "valueName": "",
                             "valueType": "REG_SZ",
                             "newValue": "",
-                            "name": "(no key) 1"
+                            "name": "tm test long"
                         },
                         {
                             "separator": true

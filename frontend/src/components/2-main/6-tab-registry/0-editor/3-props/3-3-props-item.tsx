@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils/classnames";
@@ -25,12 +24,10 @@ import {
     VALUE_TYPE_LABELS,
     collectGroupItems,
     derivedItemLabel,
-    formatItemKeyPath,
     fullKeyPath,
     hiveNeedsElevation,
     itemHasSubKey,
     itemHive,
-    normalizeItemKeyPath,
 } from "../../a-atoms/9-types-registry";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import {
@@ -113,34 +110,21 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
 // Item fields
 
 function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; }) {
-    // Draft while focused so typing short hives / trailing separators is not
-    // immediately rewritten to the canonical long form.
-    const [draft, setDraft] = useState<string | null>(null);
-    const display = draft ?? formatItemKeyPath(item);
-
-    useEffect(() => {
-        setDraft(null);
-    }, [item.uid]);
-
     return (
         <LabelAndField
             label="Key path"
-            labelHint="Hive plus subkey. Accepts HKCU or HKEY_CURRENT_USER; backslashes are shown singly."
+            labelHint="Hive plus subkey, stored as typed (HKCU or HKEY_CURRENT_USER, \\ or /). Normalized only when reading, writing, or opening in regedit."
         >
             <div className="w-full flex items-center gap-1">
                 <Input
                     className="h-7 font-mono text-[0.72rem]"
-                    value={display}
+                    value={item.keyPath}
                     placeholder="HKEY_CURRENT_USER\SOFTWARE\Vendor\Product"
-                    onFocus={() => setDraft(formatItemKeyPath(item))}
                     onChange={(e) => {
-                        const text = e.target.value;
-                        setDraft(text);
                         patchSelectedItem((it) => {
-                            it.keyPath = normalizeItemKeyPath(text, itemHive(it));
+                            it.keyPath = e.target.value;
                         });
                     }}
-                    onBlur={() => setDraft(null)}
                     {...turnOffAutoComplete}
                 />
                 <Button

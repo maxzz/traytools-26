@@ -9,7 +9,6 @@ import {
     REG_VALUE_TYPES,
     derivedItemLabel,
     isRegItem,
-    normalizeItemKeyPath,
 } from "./9-types-registry";
 
 export function buildRegistryFileText(config: RegConfig): string {
@@ -117,7 +116,9 @@ function normalizeSeparator(raw: object): RegSeparator {
 
 function normalizeItem(raw: object): RegItem {
     const item = raw as RegItem & { hive?: unknown; };
-    item.keyPath = typeof item.keyPath === "string" ? normalizeItemKeyPath(item.keyPath) : "HKCU";
+    // Keep the author's spelling (HKLM vs HKEY_LOCAL_MACHINE, \\ vs \, / vs \).
+    // Ops normalize via parseItemKeyPath / normalizeItemKeyPath at use time.
+    item.keyPath = typeof item.keyPath === "string" && item.keyPath.length > 0 ? item.keyPath : "HKCU";
     // Hive is part of keyPath; drop any leftover separate field.
     delete item.hive;
     item.valueName = typeof item.valueName === "string" ? item.valueName : "";

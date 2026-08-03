@@ -24,7 +24,7 @@ export const HIVE_LONG_NAMES: Record<RegHive, string> = {
     HKCC: "HKEY_CURRENT_CONFIG",
 };
 
-/** Short and long hive aliases (uppercase) → stored short form. */
+/** Short and long hive aliases (uppercase) → canonical short hive for ops. */
 const HIVE_ALIASES: Record<string, RegHive> = {
     HKCU: "HKCU",
     HKLM: "HKLM",
@@ -38,7 +38,7 @@ const HIVE_ALIASES: Record<string, RegHive> = {
     HKEY_CURRENT_CONFIG: "HKCC",
 };
 
-/** Resolve HKCU / HKEY_CURRENT_USER (any case) to the stored short hive. */
+/** Resolve HKCU / HKEY_CURRENT_USER (any case) to the short hive used by ops. */
 export function parseHiveAlias(head: string): RegHive | null {
     return HIVE_ALIASES[head.trim().toUpperCase()] ?? null;
 }
@@ -55,9 +55,9 @@ export const VALUE_TYPE_LABELS: Record<RegValueType, string> = {
 
 export type RegItem = {
     /**
-     * Full key including the hive, e.g. HKCU\SOFTWARE\Vendor\Product.
-     * Short (HKCU) or long (HKEY_CURRENT_USER) hive names are accepted; the
-     * model canonicalizes to the short form with single backslashes.
+     * Full key including the hive, stored exactly as typed/loaded
+     * (e.g. HKCU\SOFTWARE\…, HKEY_LOCAL_MACHINE\…, HKLM\\SOFTWARE\\…, HKLM/SOFTWARE\…).
+     * Normalized only when used for registry read/write or regedit jump.
      */
     keyPath: string;
     /** Empty string means the key's (Default) value. */
@@ -478,7 +478,10 @@ export function parseItemKeyPath(text: string, fallbackHive: RegHive = "HKCU"): 
     return { hive, subKey: rest };
 }
 
-/** Canonical short-hive form stored in registry.json, e.g. HKCU\SOFTWARE\Vendor. */
+/**
+ * Canonical short-hive form for registry ops / reports, e.g. HKCU\SOFTWARE\Vendor.
+ * Not used for persistence — `keyPath` keeps the author's original spelling.
+ */
 export function normalizeItemKeyPath(text: string, fallbackHive: RegHive = "HKCU"): string {
     const { hive, subKey } = parseItemKeyPath(text, fallbackHive);
     return subKey ? `${hive}\\${subKey}` : hive;
@@ -503,7 +506,7 @@ export function fullKeyPath(item: Pick<RegItem, "keyPath">): string {
     return normalizeItemKeyPath(item.keyPath);
 }
 
-/** Long-hive form for the props editor: HKEY_CURRENT_USER\SOFTWARE\Vendor\Product */
+/** Long-hive form for .reg export: HKEY_CURRENT_USER\SOFTWARE\Vendor\Product */
 export function formatItemKeyPath(item: Pick<RegItem, "keyPath">): string {
     const { hive, subKey } = parseItemKeyPath(item.keyPath);
     const long = HIVE_LONG_NAMES[hive];
