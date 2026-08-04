@@ -494,7 +494,7 @@ export function isNumericRegType(type: RegValueType): boolean {
 }
 
 /** Parse a DWORD/QWORD text field; null when the text is empty or not a whole number. */
-export function tryParseRegNumber(text: string): bigint | null {
+export function tryParseRegNumber(text: string, opts?: { bareHex?: boolean; }): bigint | null {
     const s = text.trim();
     if (!s) {
         return null;
@@ -502,6 +502,13 @@ export function tryParseRegNumber(text: string): bigint | null {
     try {
         if (/^0[xX][0-9a-fA-F]+$/.test(s)) {
             return BigInt(s);
+        }
+        // In bare-hex UI mode, digit-only strings are hex (so "10" means 16), not decimal.
+        if (opts?.bareHex) {
+            if (/^[0-9a-fA-F]+$/.test(s)) {
+                return BigInt(`0x${s}`);
+            }
+            return null;
         }
         if (/^\d+$/.test(s)) {
             return BigInt(s);
@@ -514,10 +521,11 @@ export function tryParseRegNumber(text: string): bigint | null {
 
 /**
  * Show a numeric registry value in the requested radix.
- * Leaves the text alone when it is already in that form (avoids cursor jumps while editing)
- * or when it cannot be parsed.
+ * Parses canonical storage only (decimal or 0x) — never bare hex — so a stored
+ * "255" stays decimal 255 when switching the column to hex display.
+ * `hexPrefix: "none"` omits the 0x in the returned string for display/typing.
  */
-export function formatRegNumericText(text: string, radix: 10 | 16): string {
+export function formatRegNumericText(text: string, radix: 10 | 16, hexPrefix: "0x" | "none" = "0x"): string {
     const s = text.trim();
     if (!s) {
         return text;
@@ -527,13 +535,27 @@ export function formatRegNumericText(text: string, radix: 10 | 16): string {
         return text;
     }
     if (radix === 16) {
-        if (/^0[xX][0-9a-fA-F]+$/.test(s)) {
-            return text;
-        }
-        return `0x${n.toString(16)}`;
+        const hex = n.toString(16);
+        return hexPrefix === "0x" ? `0x${hex}` : hex;
     }
-    if (/^\d+$/.test(s)) {
+    return n.toString(10);
+}
+
+/**
+ * Canonical store form: decimal, or 0x-prefixed hex whenever hex mode is active.
+ * When the UI is in bare-hex mode (`hexPrefix: "none"`), digit strings are read as hex.
+ */
+export function toStoredRegNumericText(text: string, radix: 10 | 16, hexPrefix: "0x" | "none" = "0x"): string {
+    const s = text.trim();
+    if (!s) {
         return text;
+    }
+    const n = tryParseRegNumber(s, { bareHex: radix === 16 && hexPrefix === "none" });
+    if (n === null) {
+        return text;
+    }
+    if (radix === 16) {
+        return `0x${n.toString(16)}`;
     }
     return n.toString(10);
 }

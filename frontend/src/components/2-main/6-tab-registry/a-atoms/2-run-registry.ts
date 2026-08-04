@@ -135,8 +135,13 @@ export const confirmRegistryWritesAtom = atomWithStorage("reg.confirmWrites", tr
 /** Display radix for DWORD/QWORD in the Values table "New value" column. */
 export type RegNumericRadix = 10 | 16;
 
+/** Whether hex is shown with a 0x prefix, or bare (`"--"` in the UI). */
+export type RegHexPrefixMode = "0x" | "none";
+
 export const newValueRadixAtom = atomWithStorage<RegNumericRadix>("reg.newValueRadix", 10);
 export const currentValueRadixAtom = atomWithStorage<RegNumericRadix>("reg.currentValueRadix", 10);
+export const newValueHexPrefixAtom = atomWithStorage<RegHexPrefixMode>("reg.newValueHexPrefix", "0x");
+export const currentValueHexPrefixAtom = atomWithStorage<RegHexPrefixMode>("reg.currentValueHexPrefix", "0x");
 
 // ---------------------------------------------------------------------------
 // Helpers
