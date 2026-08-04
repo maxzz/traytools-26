@@ -150,7 +150,7 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
                 {...turnOffAutoComplete}
             />
 
-            <ValueTypeSelect uid={uid} valueType={value.valueType} />
+            <Column_Type uid={uid} valueType={value.valueType} />
 
             {multiline
                 ? (
@@ -167,69 +167,21 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
                     />
                 )
                 : (
-                    <NewValueInput uid={uid} value={value} />
+                    <Column_NewValue uid={uid} value={value} />
                 )
             }
 
-            <CurrentValueCell value={value} />
+            <Column_CurrentValue value={value} />
 
-            <ValueRowActions uid={uid} item={item} />
+            <Column_RowActions uid={uid} item={item} />
         </Reorder.Item>
     );
 }
 
-function ValueRowActions({ uid, item }: { uid: string; item: RegItem; }) {
-    const readValue = useSetAtom(doAsyncRegReadValueAtom);
-    const writeValue = useSetAtom(doAsyncRegWriteValueAtom);
-    const runnable = itemHasSubKey(item) && !!uid;
-    const canDelete = (item.values?.length ?? 0) > 1;
-
-    return (
-        <div className={cn(COL.actions, "h-7 flex items-center justify-end gap-0.5")}>
-            <Button
-                variant="ghost"
-                size="icon-xs"
-                type="button"
-                className="size-6"
-                disabled={!runnable}
-                title={runnable ? "Read this value from the registry" : "Set a key path first"}
-                aria-label="Read current value"
-                onClick={() => void readValue(uid)}
-            >
-                <ArrowDownToLine className="size-3" />
-            </Button>
-
-            <Button
-                variant="ghost"
-                size="icon-xs"
-                type="button"
-                className="size-6"
-                disabled={!runnable}
-                title={runnable ? "Write this value to the registry" : "Set a key path first"}
-                aria-label="Write this value"
-                onClick={() => void writeValue(uid)}
-            >
-                <PencilLine className="size-3" />
-            </Button>
-
-            <Button
-                variant="ghost"
-                size="icon-xs"
-                type="button"
-                className="size-6 text-muted-foreground hover:text-destructive"
-                disabled={!canDelete}
-                title={canDelete ? "Delete this value" : "A key keeps at least one value"}
-                aria-label="Delete this value"
-                onClick={() => removeSelectedItemValue(uid)}
-            >
-                <Trash2 className="size-3" />
-            </Button>
-        </div>
-    );
-}
+// ---------------------------------------------------------------------------
 
 /** Formats DWORD/QWORD for the column radix only when unfocused, so typing stays stable. */
-function NewValueInput({ uid, value }: { uid: string; value: RegValue; }) {
+function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
     const radix = useAtomValue(newValueRadixAtom);
     const hexPrefix = useAtomValue(newValueHexPrefixAtom);
     const hexPad = useAtomValue(newValueHexPadAtom);
@@ -288,34 +240,33 @@ function NewValueInput({ uid, value }: { uid: string; value: RegValue; }) {
     );
 }
 
-function ValueTypeSelect({ uid, valueType }: { uid: string; valueType: RegValueType; }) {
-    return (
-        <Select value={valueType} onValueChange={(next) => patchSelectedValue(uid, (v) => { v.valueType = next as RegValueType; })}>
-            <SelectTrigger
-                className={cn(COL.type, "px-1.5 w-18 h-7! text-[0.72rem] [&>svg]:size-2.5")}
-                title={VALUE_TYPE_LONG_LABELS[valueType]}
-                aria-label="Value type"
-                onPointerDown={(e) => e.stopPropagation()}
-            >
-                <span className="truncate">{VALUE_TYPE_SHORT_LABELS[valueType]}</span>
-            </SelectTrigger>
-
-            {/* popper: item-aligned mispositions the list inside Motion Reorder rows */}
-            <SelectContent position="popper" align="start">
-                {REG_VALUE_TYPES.map(
-                    (type) => (
-                        <SelectItem key={type} value={type}>
-                            {VALUE_TYPE_LONG_LABELS[type]}
-                        </SelectItem>
-                    )
-                )}
-            </SelectContent>
-        </Select>
-    );
+/** Placeholder text showing the canonical form expected for each value type. */
+function numericPlaceholder(type: RegValueType, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode): string {
+    if (!isNumericRegType(type)) {
+        return VALUE_PLACEHOLDERS[type];
+    }
+    if (radix !== 16) {
+        return "0";
+    }
+    const width = type === "REG_QWORD" ? 16 : 8;
+    const lo = hexPad === "pad" ? "0".padStart(width, "0") : "0";
+    const hi = "f".repeat(width);
+    return hexPrefix === "none" ? `${lo} or ${hi}` : `0x${lo} or 0x${hi}`;
 }
 
+const VALUE_PLACEHOLDERS: Record<RegValueType, string> = {
+    REG_SZ: "Some text",
+    REG_EXPAND_SZ: "%SystemRoot%\\System32",
+    REG_DWORD: "0 or 0x0000ffff",
+    REG_QWORD: "0 or 0x00000000ffffffff",
+    REG_BINARY: "de,ad,be,ef",
+    REG_MULTI_SZ: "One string per line",
+};
+
+// ---------------------------------------------------------------------------
+
 /** Last value read back from the machine for this row, with a match indicator. */
-function CurrentValueCell({ value }: { value: RegValue; }) {
+function Column_CurrentValue({ value }: { value: RegValue; }) {
     const currentRadix = useAtomValue(currentValueRadixAtom);
     const hexPrefix = useAtomValue(currentValueHexPrefixAtom);
     const hexPad = useAtomValue(currentValueHexPadAtom);
@@ -334,13 +285,7 @@ function CurrentValueCell({ value }: { value: RegValue; }) {
     );
 }
 
-function currentValueLook(
-    read: RegReadState | undefined,
-    value: RegValue,
-    radix: RegNumericRadix,
-    hexPrefix: RegHexPrefixMode,
-    hexPad: RegHexPadMode,
-): { text: string; title: string; className: string; } {
+function currentValueLook(read: RegReadState | undefined, value: RegValue, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode,): { text: string; title: string; className: string; } {
     if (!read) {
         return { text: "not read", title: "Use the read button to query the registry", className: "text-muted-foreground/60 italic" };
     }
@@ -360,9 +305,7 @@ function currentValueLook(
 
     const matches = readMatchesDesired(read, value);
     const current = read.value ?? "";
-    const shown = isNumericRegType(value.valueType)
-        ? formatRegNumericText(current, radix, hexPrefix, hexPad, value.valueType)
-        : current;
+    const shown = isNumericRegType(value.valueType) ? formatRegNumericText(current, radix, hexPrefix, hexPad, value.valueType) : current;
     const typeNote = read.valueType && read.valueType !== value.valueType ? `\nOn machine: ${read.valueType}` : "";
 
     return {
@@ -372,29 +315,6 @@ function currentValueLook(
             ? "text-emerald-700 dark:text-emerald-400"
             : "text-orange-700 dark:text-orange-400",
     };
-}
-
-/** Placeholder text showing the canonical form expected for each value type. */
-const VALUE_PLACEHOLDERS: Record<RegValueType, string> = {
-    REG_SZ: "Some text",
-    REG_EXPAND_SZ: "%SystemRoot%\\System32",
-    REG_DWORD: "0 or 0x0000ffff",
-    REG_QWORD: "0 or 0x00000000ffffffff",
-    REG_BINARY: "de,ad,be,ef",
-    REG_MULTI_SZ: "One string per line",
-};
-
-function numericPlaceholder(type: RegValueType, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode): string {
-    if (!isNumericRegType(type)) {
-        return VALUE_PLACEHOLDERS[type];
-    }
-    if (radix !== 16) {
-        return "0";
-    }
-    const width = type === "REG_QWORD" ? 16 : 8;
-    const lo = hexPad === "pad" ? "0".padStart(width, "0") : "0";
-    const hi = "f".repeat(width);
-    return hexPrefix === "none" ? `${lo} or ${hi}` : `0x${lo} or 0x${hi}`;
 }
 
 function valueHint(type: RegValueType, radix?: RegNumericRadix, hexPrefix?: RegHexPrefixMode, hexPad?: RegHexPadMode): string {
@@ -420,4 +340,82 @@ function valueHint(type: RegValueType, radix?: RegNumericRadix, hexPrefix?: RegH
         default:
             return "Stored as written.";
     }
+}
+
+// ---------------------------------------------------------------------------
+
+function Column_Type({ uid, valueType }: { uid: string; valueType: RegValueType; }) {
+    return (
+        <Select value={valueType} onValueChange={(next) => patchSelectedValue(uid, (v) => { v.valueType = next as RegValueType; })}>
+            <SelectTrigger
+                className={cn(COL.type, "px-1.5 w-18 h-7! text-[0.72rem] [&>svg]:size-2.5")}
+                title={VALUE_TYPE_LONG_LABELS[valueType]}
+                aria-label="Value type"
+                onPointerDown={(e) => e.stopPropagation()}
+            >
+                <span className="truncate">{VALUE_TYPE_SHORT_LABELS[valueType]}</span>
+            </SelectTrigger>
+
+            {/* popper: item-aligned mispositions the list inside Motion Reorder rows */}
+            <SelectContent position="popper" align="start">
+                {REG_VALUE_TYPES.map(
+                    (type) => (
+                        <SelectItem key={type} value={type}>
+                            {VALUE_TYPE_LONG_LABELS[type]}
+                        </SelectItem>
+                    )
+                )}
+            </SelectContent>
+        </Select>
+    );
+}
+
+function Column_RowActions({ uid, item }: { uid: string; item: RegItem; }) {
+    const readValue = useSetAtom(doAsyncRegReadValueAtom);
+    const writeValue = useSetAtom(doAsyncRegWriteValueAtom);
+    const runnable = itemHasSubKey(item) && !!uid;
+    const canDelete = (item.values?.length ?? 0) > 1;
+
+    return (
+        <div className={cn(COL.actions, "h-7 flex items-center justify-end gap-0.5")}>
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="size-6"
+                disabled={!runnable}
+                title={runnable ? "Read this value from the registry" : "Set a key path first"}
+                aria-label="Read current value"
+                onClick={() => void readValue(uid)}
+            >
+                <ArrowDownToLine className="size-3" />
+            </Button>
+
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="size-6"
+                disabled={!runnable}
+                title={runnable ? "Write this value to the registry" : "Set a key path first"}
+                aria-label="Write this value"
+                onClick={() => void writeValue(uid)}
+            >
+                <PencilLine className="size-3" />
+            </Button>
+
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="size-6 text-muted-foreground hover:text-destructive"
+                disabled={!canDelete}
+                title={canDelete ? "Delete this value" : "A key keeps at least one value"}
+                aria-label="Delete this value"
+                onClick={() => removeSelectedItemValue(uid)}
+            >
+                <Trash2 className="size-3" />
+            </Button>
+        </div>
+    );
 }
