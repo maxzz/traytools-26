@@ -5,7 +5,7 @@ import { notice } from "@/ui/local-ui/7-toaster";
 import {
     type RegConfig,
     type RegEditorStore,
-    type RegItem,
+    type RegGroup,
     type RegSelectionPath,
     type RegSource,
     collectGroupItems,
@@ -275,14 +275,15 @@ export async function RegistryConfig_Import(): Promise<void> {
     }
 }
 
-/** Export the current editor tree as JSON via SaveFileDialog. */
+/** Export JSON via SaveFileDialog — selected group, or the whole tree at root. */
 export async function RegistryConfig_Export(): Promise<void> {
     try {
-        const pick = await registryOpsBus.exportPath(exportDefaultFilename("json"), "json");
+        const scope = exportScope();
+        const pick = await registryOpsBus.exportPath(`${scope.baseName}.json`, "json");
         if (pick.canceled || !pick.path) {
             return;
         }
-        const text = buildRegistryFileText(registryEditorStore.config);
+        const text = buildRegistryFileText(scope.config);
         await registryOpsBus.writeTextFile(pick.path, text);
         registryEditorStore.status = "";
         registryEditorStore.error = "";
@@ -295,17 +296,22 @@ export async function RegistryConfig_Export(): Promise<void> {
 }
 
 /**
- * Export the desired values as a Windows .reg file. The backend re-encodes to
- * UTF-16LE with CRLF so regedit accepts the result.
+ * Export a Windows .reg file of the selected group's values (or the whole tree
+ * at root). The backend re-encodes to UTF-16LE with CRLF so regedit accepts it.
  */
 export async function RegistryConfig_ExportReg(): Promise<void> {
     try {
-        const items = collectAllItems();
+        const scope = exportScope();
+        const items = scope.config.groups.flatMap((group) => collectGroupItems(group));
         if (!items.length) {
-            notice.warning("Nothing to export — the tree has no registry values");
+            notice.warning(
+                scope.group
+                    ? `Nothing to export — "${scope.group.name}" has no registry values`
+                    : "Nothing to export — the tree has no registry values",
+            );
             return;
         }
-        const pick = await registryOpsBus.exportPath(exportDefaultFilename("reg"), "reg");
+        const pick = await registryOpsBus.exportPath(`${scope.baseName}.reg`, "reg");
         if (pick.canceled || !pick.path) {
             return;
         }
@@ -320,28 +326,38 @@ export async function RegistryConfig_ExportReg(): Promise<void> {
     }
 }
 
-function collectAllItems(): RegItem[] {
-    return registryEditorStore.config.groups.flatMap((group) => collectGroupItems(group));
-}
-
-/** Save-dialog default name: selected group's name, else `registry.<ext>`. */
-function exportDefaultFilename(ext: "json" | "reg"): string {
-    return `${selectedExportBaseName()}.${ext}`;
-}
+type ExportScope = {
+    /** Filename stem: group name, or "registry" for the whole tree. */
+    baseName: string;
+    /** Config to serialize — one group, or the full editor tree. */
+    config: RegConfig;
+    group: RegGroup | null;
+};
 
 /**
- * Basename for export dialogs. Uses the selected group (or the parent group of
- * a selected key/separator). Root selection falls back to "registry".
+ * When a group (or a key/separator inside one) is selected, export that group
+ * alone. Root selection exports the entire tree as `registry.*`.
  */
-function selectedExportBaseName(): string {
+function exportScope(): ExportScope {
+    const group = selectedExportGroup();
+    if (!group) {
+        return { baseName: "registry", config: registryEditorStore.config, group: null };
+    }
+    const baseName = sanitizeFilenameBase(group.name) || "registry";
+    return {
+        baseName,
+        config: { groups: [group] },
+        group,
+    };
+}
+
+/** Selected group, or the parent group of a selected key/separator. */
+function selectedExportGroup(): RegGroup | null {
     const uid = registryEditorStore.selectedUid;
     if (!uid || uid === registryEditorStore.rootUid) {
-        return "registry";
+        return null;
     }
-    const loc = findByUid(registryEditorStore.config, uid);
-    // Group selection → that group; key/separator → its parent group.
-    const name = loc?.group.name;
-    return sanitizeFilenameBase(name ?? "") || "registry";
+    return findByUid(registryEditorStore.config, uid)?.group ?? null;
 }
 
 /** Strip characters Windows rejects in a file name. */

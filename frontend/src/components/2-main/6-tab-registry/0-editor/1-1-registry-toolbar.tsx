@@ -218,11 +218,11 @@ function ActionsMenu() {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onSelect={() => RegistryConfig_Export()} title="Export the tree as JSON">
+                <DropdownMenuItem onSelect={() => RegistryConfig_Export()} title="Export the selected group as JSON (whole tree when Groups is selected)">
                     Export JSON…
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onSelect={() => RegistryConfig_ExportReg()} title="Export the new values as a Windows .reg file">
+                <DropdownMenuItem onSelect={() => RegistryConfig_ExportReg()} title="Export the selected group's values as a Windows .reg file (whole tree when Groups is selected)">
                     Export .reg…
                 </DropdownMenuItem>
 
