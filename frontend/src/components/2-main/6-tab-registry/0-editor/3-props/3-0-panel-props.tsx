@@ -2,8 +2,8 @@ import { MousePointerClick } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { useSelectedNode } from "../../a-atoms/use-selected-node";
 import { PropsFor_Root, PropsFor_Separator } from "./3-1-props-root";
-import { PropsFor_Group } from "./3-2-props-group";
-import { PropsFor_Item } from "./3-3-props-item";
+import { PropsFor_Group } from "./3-2-0-props-group";
+import { PropsFor_Item } from "./3-3-0-props-item";
 
 export function Panel_Props() {
     const selected = useSelectedNode();

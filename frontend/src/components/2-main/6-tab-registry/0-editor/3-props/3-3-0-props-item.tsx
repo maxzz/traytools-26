@@ -28,8 +28,8 @@ import {
     doAsyncRegWriteGroupAtom,
     doAsyncRegWriteItemAtom,
 } from "../../a-atoms/2-run-registry";
-import { Field_KeyPath } from "./3-4-props-item-keypath";
-import { Field_ItemValues } from "./3-5-props-item-values";
+import { Field_KeyPath } from "./3-3-1-props-item-keypath";
+import { Field_ItemValues } from "./3-3-2-props-item-values";
 
 export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup; }) {
     const readItem = useSetAtom(doAsyncRegReadItemAtom);

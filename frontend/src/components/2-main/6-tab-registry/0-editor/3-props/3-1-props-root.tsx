@@ -6,7 +6,7 @@ import { type RegGroup, type RegSeparator, countGroupValues } from "../../a-atom
 import { patchSelectedSeparator } from "../../a-atoms/use-selected-node";
 import { registryEditorStore } from "../../a-atoms/0-registry-local-storage";
 import { confirmRegistryWritesAtom, doAsyncRegReadAllAtom } from "../../a-atoms/2-run-registry";
-import { QuickAccessList } from "./3-4-quick-list";
+import { QuickAccessList } from "./3-2-1-quick-list";
 
 export function PropsFor_Root() {
     const { config } = useSnapshot(registryEditorStore, { sync: true });
