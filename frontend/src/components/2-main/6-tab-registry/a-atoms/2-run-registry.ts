@@ -138,10 +138,15 @@ export type RegNumericRadix = 10 | 16;
 /** Whether hex is shown with a 0x prefix, or bare (`"--"` in the UI). */
 export type RegHexPrefixMode = "0x" | "none";
 
+/** Whether hex is zero-padded to the type width (`"00"` in the UI), or not (`"--"`). */
+export type RegHexPadMode = "none" | "pad";
+
 export const newValueRadixAtom = atomWithStorage<RegNumericRadix>("reg.newValueRadix", 10);
 export const currentValueRadixAtom = atomWithStorage<RegNumericRadix>("reg.currentValueRadix", 10);
 export const newValueHexPrefixAtom = atomWithStorage<RegHexPrefixMode>("reg.newValueHexPrefix", "0x");
 export const currentValueHexPrefixAtom = atomWithStorage<RegHexPrefixMode>("reg.currentValueHexPrefix", "0x");
+export const newValueHexPadAtom = atomWithStorage<RegHexPadMode>("reg.newValueHexPad", "none");
+export const currentValueHexPadAtom = atomWithStorage<RegHexPadMode>("reg.currentValueHexPad", "none");
 
 // ---------------------------------------------------------------------------
 // Helpers

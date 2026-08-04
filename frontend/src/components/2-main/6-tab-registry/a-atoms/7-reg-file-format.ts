@@ -519,13 +519,24 @@ export function tryParseRegNumber(text: string, opts?: { bareHex?: boolean; }): 
     }
 }
 
+/** Hex digit width for zero-padding: DWORD = 8, QWORD = 16. */
+export function regHexPadWidth(valueType: RegValueType): number {
+    return valueType === "REG_QWORD" ? 16 : 8;
+}
+
 /**
  * Show a numeric registry value in the requested radix.
  * Parses canonical storage only (decimal or 0x) — never bare hex — so a stored
  * "255" stays decimal 255 when switching the column to hex display.
- * `hexPrefix: "none"` omits the 0x in the returned string for display/typing.
+ * `hexPrefix: "none"` omits the 0x; `hexPad: "pad"` left-pads to the type width.
  */
-export function formatRegNumericText(text: string, radix: 10 | 16, hexPrefix: "0x" | "none" = "0x"): string {
+export function formatRegNumericText(
+    text: string,
+    radix: 10 | 16,
+    hexPrefix: "0x" | "none" = "0x",
+    hexPad: "none" | "pad" = "none",
+    valueType?: RegValueType,
+): string {
     const s = text.trim();
     if (!s) {
         return text;
@@ -535,7 +546,12 @@ export function formatRegNumericText(text: string, radix: 10 | 16, hexPrefix: "0
         return text;
     }
     if (radix === 16) {
-        const hex = n.toString(16);
+        let hex = n.toString(16);
+        if (hexPad === "pad" && valueType && isNumericRegType(valueType)) {
+            const width = regHexPadWidth(valueType);
+            const mask = valueType === "REG_QWORD" ? 0xffffffffffffffffn : 0xffffffffn;
+            hex = (n & mask).toString(16).padStart(width, "0");
+        }
         return hexPrefix === "0x" ? `0x${hex}` : hex;
     }
     return n.toString(10);

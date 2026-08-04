@@ -25,13 +25,16 @@ import {
     valueDisplayName,
 } from "../../a-atoms/9-types-registry";
 import {
+    type RegHexPadMode,
     type RegHexPrefixMode,
     type RegNumericRadix,
     type RegReadState,
+    currentValueHexPadAtom,
     currentValueHexPrefixAtom,
     currentValueRadixAtom,
     doAsyncRegReadValueAtom,
     doAsyncRegWriteValueAtom,
+    newValueHexPadAtom,
     newValueHexPrefixAtom,
     newValueRadixAtom,
     readMatchesDesired,
@@ -119,34 +122,69 @@ function HeaderRow() {
     const [currentRadix, setCurrentRadix] = useAtom(currentValueRadixAtom);
     const [newHexPrefix, setNewHexPrefix] = useAtom(newValueHexPrefixAtom);
     const [currentHexPrefix, setCurrentHexPrefix] = useAtom(currentValueHexPrefixAtom);
+    const [newHexPad, setNewHexPad] = useAtom(newValueHexPadAtom);
+    const [currentHexPad, setCurrentHexPad] = useAtom(currentValueHexPadAtom);
 
     return (
         <div className={cn(labelClasses, "px-1 py-0.5 bg-muted/50 border-b rounded-t flex items-center gap-1")}>
             <span className={COL.handle} />
             <span className={COL.name}>Value name</span>
             <span className={COL.type}>Type</span>
-            <span className={cn(COL.newValue, "inline-flex items-center gap-0.5")}>
-                New value
-                <RadixToggle radix={newRadix} onRadixChange={setNewRadix} column="New value" />
-                <HexPrefixToggle
-                    mode={newHexPrefix}
-                    onModeChange={setNewHexPrefix}
-                    disabled={newRadix === 10}
-                    column="New value"
-                />
-            </span>
-            <span className={cn(COL.current, "inline-flex items-center gap-0.5")}>
-                Current value
-                <RadixToggle radix={currentRadix} onRadixChange={setCurrentRadix} column="Current value" />
-                <HexPrefixToggle
-                    mode={currentHexPrefix}
-                    onModeChange={setCurrentHexPrefix}
-                    disabled={currentRadix === 10}
-                    column="Current value"
-                />
-            </span>
+            <FormatColumnHeader
+                className={COL.newValue}
+                label="New value"
+                radix={newRadix}
+                onRadixChange={setNewRadix}
+                hexPrefix={newHexPrefix}
+                onHexPrefixChange={setNewHexPrefix}
+                hexPad={newHexPad}
+                onHexPadChange={setNewHexPad}
+            />
+            <FormatColumnHeader
+                className={COL.current}
+                label="Current value"
+                radix={currentRadix}
+                onRadixChange={setCurrentRadix}
+                hexPrefix={currentHexPrefix}
+                onHexPrefixChange={setCurrentHexPrefix}
+                hexPad={currentHexPad}
+                onHexPadChange={setCurrentHexPad}
+            />
             <span className={COL.actions} />
         </div>
+    );
+}
+
+/** Column title on the left; the three format toggles stay right-aligned in the column. */
+function FormatColumnHeader({
+    className,
+    label,
+    radix,
+    onRadixChange,
+    hexPrefix,
+    onHexPrefixChange,
+    hexPad,
+    onHexPadChange,
+}: {
+    className: string;
+    label: string;
+    radix: RegNumericRadix;
+    onRadixChange: (next: RegNumericRadix) => void;
+    hexPrefix: RegHexPrefixMode;
+    onHexPrefixChange: (next: RegHexPrefixMode) => void;
+    hexPad: RegHexPadMode;
+    onHexPadChange: (next: RegHexPadMode) => void;
+}) {
+    const hexOff = radix === 10;
+    return (
+        <span className={cn(className, "min-w-0 flex items-center gap-0.5")}>
+            <span className="truncate">{label}</span>
+            <span className="ml-auto inline-flex items-center gap-0.5 shrink-0">
+                <RadixToggle radix={radix} onRadixChange={onRadixChange} column={label} />
+                <HexPrefixToggle mode={hexPrefix} onModeChange={onHexPrefixChange} disabled={hexOff} column={label} />
+                <HexPadToggle mode={hexPad} onModeChange={onHexPadChange} disabled={hexOff} column={label} />
+            </span>
+        </span>
     );
 }
 
@@ -189,6 +227,31 @@ function HexPrefixToggle({ mode, onModeChange, disabled, column }: {
                 ? `${column}: hex shows 0x — click to hide the prefix`
                 : `${column}: hex without 0x — click to show the prefix`}
             aria-label={`${column} hex prefix ${label}, switch to ${next === "0x" ? "0x" : "none"}`}
+            onClick={() => onModeChange(next)}
+        >
+            {label}
+        </button>
+    );
+}
+
+/** Tiny 00 ↔ -- toggle: zero-pad hex to DWORD (8) / QWORD (16) width. */
+function HexPadToggle({ mode, onModeChange, disabled, column }: {
+    mode: RegHexPadMode;
+    onModeChange: (next: RegHexPadMode) => void;
+    disabled?: boolean;
+    column: string;
+}) {
+    const next: RegHexPadMode = mode === "pad" ? "none" : "pad";
+    const label = mode === "pad" ? "00" : "--";
+    return (
+        <button
+            type="button"
+            className={headerToggleClass}
+            disabled={disabled}
+            title={mode === "pad"
+                ? `${column}: hex zero-padded — click for unpadded`
+                : `${column}: hex unpadded — click to pad to type width`}
+            aria-label={`${column} hex padding ${label}, switch to ${next === "pad" ? "00" : "none"}`}
             onClick={() => onModeChange(next)}
         >
             {label}
@@ -315,11 +378,13 @@ function ValueRow({ value, canDelete, hasKey, isLast }: { value: RegValue; canDe
 function NewValueInput({ uid, value }: { uid: string; value: RegValue; }) {
     const radix = useAtomValue(newValueRadixAtom);
     const hexPrefix = useAtomValue(newValueHexPrefixAtom);
+    const hexPad = useAtomValue(newValueHexPadAtom);
     const [focused, setFocused] = useState(false);
     const [draft, setDraft] = useState<string | null>(null);
     const numeric = isNumericRegType(value.valueType);
+    const display = () => formatRegNumericText(value.newValue, radix, hexPrefix, hexPad, value.valueType);
     const shown = numeric
-        ? (focused && draft !== null ? draft : formatRegNumericText(value.newValue, radix, hexPrefix))
+        ? (focused && draft !== null ? draft : display())
         : value.newValue;
 
     function commitStored(text: string) {
@@ -336,15 +401,15 @@ function NewValueInput({ uid, value }: { uid: string; value: RegValue; }) {
         <Input
             className={cn(COL.newValue, "px-1.5 h-7 text-[0.72rem]", numeric && "font-mono")}
             value={shown}
-            placeholder={numericPlaceholder(value.valueType, radix, hexPrefix)}
-            title={valueHint(value.valueType, radix, hexPrefix)}
+            placeholder={numericPlaceholder(value.valueType, radix, hexPrefix, hexPad)}
+            title={valueHint(value.valueType, radix, hexPrefix, hexPad)}
             aria-label="New value"
             onFocus={() => {
                 if (!numeric) {
                     return;
                 }
                 setFocused(true);
-                setDraft(formatRegNumericText(value.newValue, radix, hexPrefix));
+                setDraft(display());
             }}
             onBlur={(e) => {
                 if (!numeric) {
@@ -399,9 +464,10 @@ function ValueTypeSelect({ uid, valueType }: { uid: string; valueType: RegValueT
 function CurrentValueCell({ value }: { value: RegValue; }) {
     const currentRadix = useAtomValue(currentValueRadixAtom);
     const hexPrefix = useAtomValue(currentValueHexPrefixAtom);
+    const hexPad = useAtomValue(currentValueHexPadAtom);
     const { byUid } = useSnapshot(registryReadStore);
     const read: RegReadState | undefined = value.uid ? byUid[value.uid] : undefined;
-    const { text, title, className } = currentValueLook(read, value, currentRadix, hexPrefix);
+    const { text, title, className } = currentValueLook(read, value, currentRadix, hexPrefix, hexPad);
 
     return (
         <div
@@ -419,6 +485,7 @@ function currentValueLook(
     value: RegValue,
     radix: RegNumericRadix,
     hexPrefix: RegHexPrefixMode,
+    hexPad: RegHexPadMode,
 ): { text: string; title: string; className: string; } {
     if (!read) {
         return { text: "not read", title: "Use the read button to query the registry", className: "text-muted-foreground/60 italic" };
@@ -439,7 +506,9 @@ function currentValueLook(
 
     const matches = readMatchesDesired(read, value);
     const current = read.value ?? "";
-    const shown = isNumericRegType(value.valueType) ? formatRegNumericText(current, radix, hexPrefix) : current;
+    const shown = isNumericRegType(value.valueType)
+        ? formatRegNumericText(current, radix, hexPrefix, hexPad, value.valueType)
+        : current;
     const typeNote = read.valueType && read.valueType !== value.valueType ? `\nOn machine: ${read.valueType}` : "";
 
     return {
@@ -461,27 +530,31 @@ const VALUE_PLACEHOLDERS: Record<RegValueType, string> = {
     REG_MULTI_SZ: "One string per line",
 };
 
-function numericPlaceholder(type: RegValueType, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode): string {
+function numericPlaceholder(type: RegValueType, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode): string {
     if (!isNumericRegType(type)) {
         return VALUE_PLACEHOLDERS[type];
     }
-    if (radix === 16) {
-        if (hexPrefix === "none") {
-            return type === "REG_QWORD" ? "0 or ffffffffffffffff" : "0 or ffffffff";
-        }
-        return type === "REG_QWORD" ? "0x0 or 0xffffffffffffffff" : "0x0 or 0xffffffff";
+    if (radix !== 16) {
+        return "0";
     }
-    return "0";
+    const width = type === "REG_QWORD" ? 16 : 8;
+    const lo = hexPad === "pad" ? "0".padStart(width, "0") : "0";
+    const hi = "f".repeat(width);
+    return hexPrefix === "none" ? `${lo} or ${hi}` : `0x${lo} or 0x${hi}`;
 }
 
-function valueHint(type: RegValueType, radix?: RegNumericRadix, hexPrefix?: RegHexPrefixMode): string {
+function valueHint(type: RegValueType, radix?: RegNumericRadix, hexPrefix?: RegHexPrefixMode, hexPad?: RegHexPadMode): string {
     switch (type) {
         case "REG_DWORD":
         case "REG_QWORD":
             if (radix === 16) {
-                return hexPrefix === "none"
-                    ? "Hexadecimal digits without 0x (stored with a 0x prefix)."
-                    : "Hexadecimal with a 0x prefix.";
+                const parts = [
+                    hexPrefix === "none" ? "without 0x (stored with a 0x prefix)" : "with a 0x prefix",
+                    hexPad === "pad"
+                        ? `zero-padded to ${type === "REG_QWORD" ? 16 : 8} digits`
+                        : "unpadded",
+                ];
+                return `Hexadecimal ${parts.join(", ")}.`;
             }
             return "Decimal, or hexadecimal with a 0x prefix.";
         case "REG_BINARY":
