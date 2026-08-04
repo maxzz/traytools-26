@@ -153,22 +153,8 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             <Column_Type uid={uid} valueType={value.valueType} />
 
             {multiline
-                ? (
-                    // field-sizing-content grows the box with the text; max-h keeps rows compact.
-                    <Textarea
-                        className={cn(COL.newValue, "px-1.5 py-1 min-h-7 max-h-24 font-mono text-[0.72rem] resize-none")}
-                        rows={1}
-                        value={value.newValue}
-                        placeholder={VALUE_PLACEHOLDERS[value.valueType]}
-                        title={valueHint(value.valueType)}
-                        aria-label="New value"
-                        onChange={(e) => patchSelectedValue(uid, (v) => { v.newValue = e.target.value; })}
-                        {...turnOffAutoComplete}
-                    />
-                )
-                : (
-                    <Column_NewValue uid={uid} value={value} />
-                )
+                ? <Column_NewValueMultiline uid={uid} value={value} />
+                : <Column_NewValue uid={uid} value={value} />
             }
 
             <Column_CurrentValue value={value} />
@@ -179,6 +165,22 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
 }
 
 // ---------------------------------------------------------------------------
+
+/** Multi-line new value (REG_MULTI_SZ / REG_BINARY); max-h keeps rows compact. */
+function Column_NewValueMultiline({ uid, value }: { uid: string; value: RegValue; }) {
+    return (
+        <Textarea
+            className={cn(COL.newValue, "px-1.5 py-1 min-h-7 max-h-24 font-mono text-[0.72rem] resize-none")}
+            rows={1}
+            value={value.newValue}
+            placeholder={VALUE_PLACEHOLDERS[value.valueType]}
+            title={valueHint(value.valueType)}
+            aria-label="New value"
+            onChange={(e) => patchSelectedValue(uid, (v) => { v.newValue = e.target.value; })}
+            {...turnOffAutoComplete}
+        />
+    );
+}
 
 /** Formats DWORD/QWORD for the column radix only when unfocused, so typing stays stable. */
 function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
