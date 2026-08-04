@@ -9,7 +9,7 @@ import { Button } from "@/ui/shadcn/button";
 import { fullKeyPath, itemLabel, valueDisplayName } from "../a-atoms/9-types-registry";
 import { type DropPosition, addDroppedRegistryFiles, copyNode, moveNode } from "../a-atoms/1-registry-editor-atoms";
 import { doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../a-atoms/2-run-registry";
-import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
+import { registryEditorStore, toggleRegistryCollapsed } from "../a-atoms/0-registry-local-storage";
 import {
     DROP_TARGET_STYLE,
     isFileDrag,
@@ -260,7 +260,7 @@ export function Panel_Tree() {
 function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: readonly SnapGroup[]; onActivate: () => void; }) {
     const snap = useSnapshot(registryEditorStore);
     const dnd = useDnd();
-    const [collapsed, setCollapsed] = useState(false);
+    const collapsed = snap.collapsedUids.includes(rootUid);
     const selected = snap.selectedUid === rootUid;
     const showInside = dnd.dropUid === rootUid && dnd.dropPos === "inside";
 
@@ -292,7 +292,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                         title={collapsed ? "Expand" : "Collapse"}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setCollapsed((v) => !v);
+                            toggleRegistryCollapsed(rootUid);
                         }}
                     >
                         {collapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
@@ -335,12 +335,12 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
 }
 
 function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: SnapGroup; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
-    const { selectedUid } = useSnapshot(registryEditorStore);
+    const snap = useSnapshot(registryEditorStore);
     const writeGroup = useSetAtom(doAsyncRegWriteGroupAtom);
     const dnd = useDnd();
-    const [collapsed, setCollapsed] = useState(false);
     const uid = group.uid ?? "";
-    const selected = selectedUid === uid;
+    const collapsed = snap.collapsedUids.includes(uid);
+    const selected = snap.selectedUid === uid;
     const isDragging = dnd.dragUid === uid;
     const isDropTarget = dnd.dropUid === uid;
     const showBefore = isDropTarget && dnd.dropPos === "before";
@@ -385,7 +385,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center"
                         onClick={(e) => {
                             e.stopPropagation();
-                            setCollapsed((v) => !v);
+                            toggleRegistryCollapsed(uid);
                         }}
                         title={collapsed ? "Expand" : "Collapse"}
                         type="button"

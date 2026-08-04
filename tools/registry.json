@@ -1,6 +1,83 @@
 {
     "groups": [
         {
+            "name": "DpTracing-org",
+            "requireElevated": true,
+            "items": [
+                {
+                    "keyPath": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing",
+                    "values": [
+                        {
+                            "valueName": "TracePath",
+                            "valueType": "REG_SZ",
+                            "newValue": "C:\\Users\\makzak\\Desktop\\DPTrace"
+                        },
+                        {
+                            "valueName": "TracePath2",
+                            "valueType": "REG_SZ",
+                            "newValue": "C:\\ProgramData\\DigitalPersona\\Tracing"
+                        },
+                        {
+                            "valueName": "DoTrace",
+                            "valueType": "REG_DWORD",
+                            "newValue": "0"
+                        },
+                        {
+                            "valueName": "OtsTrace",
+                            "valueType": "REG_DWORD",
+                            "newValue": "1"
+                        },
+                        {
+                            "valueName": "ots_dpofeedb",
+                            "valueType": "REG_DWORD",
+                            "newValue": "1023"
+                        },
+                        {
+                            "valueName": "ots_dpfbview",
+                            "valueType": "REG_DWORD",
+                            "newValue": "536805439"
+                        },
+                        {
+                            "valueName": "ots_dpfillin",
+                            "valueType": "REG_DWORD",
+                            "newValue": "4128831"
+                        },
+                        {
+                            "valueName": "ots_dpocache",
+                            "valueType": "REG_DWORD",
+                            "newValue": "0"
+                        },
+                        {
+                            "valueName": "ots_dpffcli",
+                            "valueType": "REG_DWORD",
+                            "newValue": "2047"
+                        },
+                        {
+                            "valueName": "TraceToFile",
+                            "valueType": "REG_DWORD",
+                            "newValue": "1"
+                        },
+                        {
+                            "valueName": "NewFileAlways",
+                            "valueType": "REG_DWORD",
+                            "newValue": "0"
+                        },
+                        {
+                            "valueName": "Verbosity",
+                            "valueType": "REG_DWORD",
+                            "newValue": "4"
+                        },
+                        {
+                            "valueName": "DeleteAtEnd",
+                            "valueType": "REG_DWORD",
+                            "newValue": "1"
+                        }
+                    ],
+                    "requireElevated": true
+                }
+            ]
+        },
+        {
             "name": "Example",
             "items": [
                 {
@@ -13,6 +90,11 @@
                             "keyPath": "HKLM/SOFTWARE/_tm_test",
                             "name": "tm test short",
                             "values": [
+                                {
+                                    "valueName": "3212",
+                                    "valueType": "REG_SZ",
+                                    "newValue": "123"
+                                },
                                 {
                                     "valueName": "",
                                     "valueType": "REG_SZ",
@@ -54,16 +136,64 @@
                             "keyPath": "HKLM\\SOFTWARE\\_tm_test",
                             "values": [
                                 {
-                                    "valueName": "tm_test",
-                                    "valueType": "REG_DWORD",
-                                    "newValue": "12345"
-                                },
-                                {
                                     "valueName": "tm_text",
                                     "valueType": "REG_SZ",
                                     "newValue": "Some text"
+                                },
+                                {
+                                    "valueName": "tm_test",
+                                    "valueType": "REG_QWORD",
+                                    "newValue": "12345"
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    "name": "tm_test",
+                    "requireElevated": true,
+                    "items": [
+                        {
+                            "keyPath": "HKLM\\SOFTWARE\\_tm_test",
+                            "values": [
+                                {
+                                    "valueName": "",
+                                    "valueType": "REG_SZ",
+                                    "newValue": "111"
+                                },
+                                {
+                                    "valueName": "tm_test",
+                                    "valueType": "REG_DWORD",
+                                    "newValue": "12345"
+                                }
+                            ],
+                            "requireElevated": true
+                        },
+                        {
+                            "keyPath": "HKLM\\SOFTWARE\\_tm_test\\sub_key",
+                            "values": [
+                                {
+                                    "valueName": "",
+                                    "valueType": "REG_SZ",
+                                    "newValue": "def"
+                                },
+                                {
+                                    "valueName": "key_a",
+                                    "valueType": "REG_DWORD",
+                                    "newValue": "2"
+                                },
+                                {
+                                    "valueName": "key_str",
+                                    "valueType": "REG_SZ",
+                                    "newValue": "abc"
+                                },
+                                {
+                                    "valueName": "key_str_long",
+                                    "valueType": "REG_SZ",
+                                    "newValue": "the is some long string. the is some long string. the is some long string. the is some long string. the is some long string."
+                                }
+                            ],
+                            "requireElevated": true
                         }
                     ]
                 },

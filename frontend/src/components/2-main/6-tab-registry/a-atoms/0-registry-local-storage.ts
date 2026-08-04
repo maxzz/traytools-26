@@ -8,10 +8,13 @@ import {
     type RegGroup,
     type RegSelectionPath,
     type RegSource,
+    collapsedPathsFromUids,
+    collapsedUidsFromPaths,
     collectGroupItems,
     ensureUids,
     findByUid,
     findInvalidKeyPathItems,
+    parseCollapsedPaths,
     parseRegSelectionPath,
     selectionPathFromUid,
     uidFromSelectionPath,
@@ -28,6 +31,7 @@ type RegCache = {
     config: RegConfig;
     rootUid: string;
     selectedPath: RegSelectionPath | null;
+    collapsedPaths: string[];
 };
 
 const cached = readCache();
@@ -38,6 +42,11 @@ const initialSelectedUid = uidFromSelectionPath(
     initialConfig,
     rootHolder.rootUid,
     cached?.selectedPath ?? { kind: "root" },
+);
+const initialCollapsedUids = collapsedUidsFromPaths(
+    initialConfig,
+    rootHolder.rootUid,
+    cached?.collapsedPaths ?? [],
 );
 
 export const registryEditorStore = proxy<RegEditorStore>({
@@ -51,11 +60,17 @@ export const registryEditorStore = proxy<RegEditorStore>({
     status: "",
     error: "",
     selectedUid: initialSelectedUid,
+    collapsedUids: initialCollapsedUids,
     strictKeyPathValidation: false,
 });
 
 subscribe(registryEditorStore, () => {
-    writeCache(registryEditorStore.config, registryEditorStore.rootUid, registryEditorStore.selectedUid);
+    writeCache(
+        registryEditorStore.config,
+        registryEditorStore.rootUid,
+        registryEditorStore.selectedUid,
+        registryEditorStore.collapsedUids,
+    );
     syncDirty(registryEditorStore);
 });
 
@@ -90,6 +105,7 @@ export function readCache(): RegCache | null {
             config?: RegConfig;
             rootUid?: string;
             selectedPath?: unknown;
+            collapsedPaths?: unknown;
         };
         if (parsed?.config && Array.isArray(parsed.config.groups)) {
             return {
@@ -98,6 +114,7 @@ export function readCache(): RegCache | null {
                 config: normalizeRegConfig(parsed.config),
                 rootUid: parsed.rootUid ?? "",
                 selectedPath: parseRegSelectionPath(parsed.selectedPath),
+                collapsedPaths: parseCollapsedPaths(parsed.collapsedPaths),
             };
         }
     } catch (e) {
@@ -106,12 +123,32 @@ export function readCache(): RegCache | null {
     return null;
 }
 
-export function writeCache(config: RegConfig, rootUid: string, selectedUid: string | null = registryEditorStore.selectedUid) {
+export function writeCache(
+    config: RegConfig,
+    rootUid: string,
+    selectedUid: string | null = registryEditorStore.selectedUid,
+    collapsedUids: string[] = registryEditorStore.collapsedUids,
+) {
     try {
         const selectedPath = selectionPathFromUid(config, rootUid, selectedUid);
-        localStorage.setItem(STORAGE_ID, JSON.stringify({ config, rootUid, selectedPath }));
+        const collapsedPaths = collapsedPathsFromUids(config, rootUid, collapsedUids);
+        localStorage.setItem(STORAGE_ID, JSON.stringify({ config, rootUid, selectedPath, collapsedPaths }));
     } catch (e) {
         console.error("Failed to cache registry config", e);
+    }
+}
+
+/** Toggle expand/collapse for the Groups root or a group; persists via subscribe. */
+export function toggleRegistryCollapsed(uid: string): void {
+    if (!uid) {
+        return;
+    }
+    const uids = registryEditorStore.collapsedUids;
+    const index = uids.indexOf(uid);
+    if (index >= 0) {
+        uids.splice(index, 1);
+    } else {
+        uids.push(uid);
     }
 }
 
@@ -165,11 +202,16 @@ export async function RegistryConfig_Load(options?: { notify?: boolean; }): Prom
 }
 
 function RegistryConfig_Set(config: RegConfig, source: RegSource, path = "", fileExists = source === "file") {
-    // Capture selection as an index path before ensureUids reassigns runtime uids.
+    // Capture selection / collapse as index paths before ensureUids reassigns runtime uids.
     const pathToRestore = selectionPathFromUid(
         registryEditorStore.config,
         registryEditorStore.rootUid,
         registryEditorStore.selectedUid,
+    );
+    const collapsedPathsToRestore = collapsedPathsFromUids(
+        registryEditorStore.config,
+        registryEditorStore.rootUid,
+        registryEditorStore.collapsedUids,
     );
 
     const holder = { rootUid: registryEditorStore.rootUid };
@@ -183,6 +225,11 @@ function RegistryConfig_Set(config: RegConfig, source: RegSource, path = "", fil
     registryEditorStore.dirty = false;
     registryEditorStore.error = "";
     registryEditorStore.selectedUid = uidFromSelectionPath(config, holder.rootUid, pathToRestore);
+    registryEditorStore.collapsedUids = collapsedUidsFromPaths(
+        config,
+        holder.rootUid,
+        collapsedPathsToRestore,
+    );
 }
 
 export async function RegistryConfig_Save(): Promise<void> {

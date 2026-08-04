@@ -158,6 +158,12 @@ export type RegEditorStore = {
     error: string;
     selectedUid: string | null;
     /**
+     * Uids of collapsed folders in the tree UI (root + groups).
+     * Persisted as index paths in localStorage so state survives remounts
+     * and uid reassignment on reload.
+     */
+    collapsedUids: string[];
+    /**
      * After a failed save due to invalid key paths, validate immediately
      * (skip the typing debounce) until the next successful save.
      */
@@ -570,6 +576,86 @@ export function parseRegSelectionPath(value: unknown): RegSelectionPath | null {
         return { kind: path.kind, path: path.path };
     }
     return null;
+}
+
+// ---------------------------------------------------------------------------
+// Collapsed tree paths (survive remounts and uid reassignment)
+//
+// Live state uses uids (reorder-safe). Persistence uses the same index-path
+// scheme as selection: "root" for Groups, or dotted paths ("0", "0.2").
+
+const ROOT_COLLAPSE_KEY = "root";
+
+/** Stable collapse key for the Groups root or a group uid; null for leaves. */
+export function collapseKeyFromUid(config: RegConfig, rootUid: string, uid: string | null | undefined): string | null {
+    if (!uid) {
+        return null;
+    }
+    if (uid === rootUid) {
+        return ROOT_COLLAPSE_KEY;
+    }
+    const path = selectionPathFromUid(config, rootUid, uid);
+    if (path.kind !== "group") {
+        return null;
+    }
+    return path.path.join(".");
+}
+
+/** Map a persisted collapse key back to a runtime uid after ensureUids. */
+export function uidFromCollapseKey(config: RegConfig, rootUid: string, key: string): string | null {
+    if (key === ROOT_COLLAPSE_KEY) {
+        return rootUid;
+    }
+    if (!isValidCollapseKey(key)) {
+        return null;
+    }
+    const path = key.split(".").map(Number);
+    const uid = uidFromSelectionPath(config, rootUid, { kind: "group", path });
+    return uid === rootUid ? null : uid;
+}
+
+export function parseCollapsedPaths(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return value.filter((key): key is string => typeof key === "string" && isValidCollapseKey(key));
+}
+
+function isValidCollapseKey(key: string): boolean {
+    if (key === ROOT_COLLAPSE_KEY) {
+        return true;
+    }
+    if (!key) {
+        return false;
+    }
+    return key.split(".").every((part) => {
+        const n = Number(part);
+        return Number.isInteger(n) && n >= 0 && String(n) === part;
+    });
+}
+
+/** Persistable keys for the current collapsed uids (skips leaves / missing nodes). */
+export function collapsedPathsFromUids(config: RegConfig, rootUid: string, uids: string[]): string[] {
+    const keys: string[] = [];
+    for (const uid of uids) {
+        const key = collapseKeyFromUid(config, rootUid, uid);
+        if (key && !keys.includes(key)) {
+            keys.push(key);
+        }
+    }
+    return keys;
+}
+
+/** Restore collapsed uids from persisted index paths after ensureUids. */
+export function collapsedUidsFromPaths(config: RegConfig, rootUid: string, paths: string[]): string[] {
+    const uids: string[] = [];
+    for (const key of paths) {
+        const uid = uidFromCollapseKey(config, rootUid, key);
+        if (uid && !uids.includes(uid)) {
+            uids.push(uid);
+        }
+    }
+    return uids;
 }
 
 // ---------------------------------------------------------------------------
