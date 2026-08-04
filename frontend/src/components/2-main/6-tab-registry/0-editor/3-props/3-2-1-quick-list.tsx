@@ -12,7 +12,7 @@ import {
     type RegItem,
     type RegNode,
     type RegValue,
-    VALUE_TYPE_LABELS,
+    VALUE_TYPE_LONG_LABELS,
     countGroupValues,
     isRegGroup,
     isRegSeparator,
@@ -381,7 +381,7 @@ function quickAccessItemPropertyRows(item: RegItem): { label: string; value: str
     for (const value of item.values ?? []) {
         rows.push({
             label: valueDisplayName(value.valueName),
-            value: `${VALUE_TYPE_LABELS[value.valueType]}${value.newValue.trim() ? ` = ${value.newValue}` : ""}`,
+            value: `${VALUE_TYPE_LONG_LABELS[value.valueType]}${value.newValue.trim() ? ` = ${value.newValue}` : ""}`,
         });
     }
     add("Comment", item.comment);

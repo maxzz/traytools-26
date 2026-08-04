@@ -7,15 +7,6 @@ import { type RegHive, type RegValueType, type RegView } from "@/bridge";
 
 export type { RegHive, RegValueType, RegView };
 
-export const REG_VALUE_TYPES: readonly RegValueType[] = [
-    "REG_SZ",
-    "REG_EXPAND_SZ",
-    "REG_DWORD",
-    "REG_QWORD",
-    "REG_BINARY",
-    "REG_MULTI_SZ",
-] as const;
-
 /** Long hive names as they appear in .reg files and in regedit. */
 export const HIVE_LONG_NAMES: Record<RegHive, string> = {
     HKCU: "HKEY_CURRENT_USER",
@@ -44,8 +35,20 @@ export function parseHiveAlias(head: string): RegHive | null {
     return HIVE_ALIASES[head.trim().toUpperCase()] ?? null;
 }
 
+// ---------------------------------------------------------------------------
+// Value types
+
+export const REG_VALUE_TYPES: readonly RegValueType[] = [
+    "REG_SZ",
+    "REG_EXPAND_SZ",
+    "REG_DWORD",
+    "REG_QWORD",
+    "REG_BINARY",
+    "REG_MULTI_SZ",
+] as const;
+
 /** Short labels for the type selector. */
-export const VALUE_TYPE_LABELS: Record<RegValueType, string> = {
+export const VALUE_TYPE_LONG_LABELS: Record<RegValueType, string> = {
     REG_SZ: "String",
     REG_EXPAND_SZ: "Expandable string",
     REG_DWORD: "DWORD (32-bit)",
@@ -63,6 +66,8 @@ export const VALUE_TYPE_SHORT_LABELS: Record<RegValueType, string> = {
     REG_BINARY: "Binary",
     REG_MULTI_SZ: "Multi",
 };
+
+// ---------------------------------------------------------------------------
 
 /** One named value under a key. Many values can share a single RegItem key. */
 export type RegValue = {

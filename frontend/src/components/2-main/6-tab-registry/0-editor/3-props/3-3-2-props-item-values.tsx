@@ -19,7 +19,7 @@ import {
     type RegValue,
     type RegValueType,
     REG_VALUE_TYPES,
-    VALUE_TYPE_LABELS,
+    VALUE_TYPE_LONG_LABELS,
     VALUE_TYPE_SHORT_LABELS,
     itemHasSubKey,
     valueDisplayName,
@@ -162,30 +162,7 @@ function ValueRow({ value, canDelete, hasKey }: { value: RegValue; canDelete: bo
                 {...turnOffAutoComplete}
             />
 
-            <Select
-                value={value.valueType}
-                onValueChange={(next) => patchSelectedValue(uid, (v) => { v.valueType = next as RegValueType; })}
-            >
-                <SelectTrigger
-                    className={cn(COL.type, "px-1.5 h-7! text-[0.72rem]")}
-                    title={VALUE_TYPE_LABELS[value.valueType]}
-                    aria-label="Value type"
-                    onPointerDown={(e) => e.stopPropagation()}
-                >
-                    <span className="truncate">{VALUE_TYPE_SHORT_LABELS[value.valueType]}</span>
-                </SelectTrigger>
-
-                {/* popper: item-aligned mispositions the list inside Motion Reorder rows */}
-                <SelectContent position="popper" align="start">
-                    {REG_VALUE_TYPES.map(
-                        (type) => (
-                            <SelectItem key={type} value={type}>
-                                {VALUE_TYPE_LABELS[type]}
-                            </SelectItem>
-                        )
-                    )}
-                </SelectContent>
-            </Select>
+            <ValueTypeSelect uid={uid} valueType={value.valueType} />
 
             {multiline
                 ? (
@@ -257,6 +234,32 @@ function ValueRow({ value, canDelete, hasKey }: { value: RegValue; canDelete: bo
                 </Button>
             </div>
         </Reorder.Item>
+    );
+}
+
+function ValueTypeSelect({ uid, valueType }: { uid: string; valueType: RegValueType; }) {
+    return (
+        <Select value={valueType} onValueChange={(next) => patchSelectedValue(uid, (v) => { v.valueType = next as RegValueType; })}>
+            <SelectTrigger
+                className={cn(COL.type, "px-1.5 w-18 h-7! text-[0.72rem] [&>svg]:size-2.5")}
+                title={VALUE_TYPE_LONG_LABELS[valueType]}
+                aria-label="Value type"
+                onPointerDown={(e) => e.stopPropagation()}
+            >
+                <span className="truncate">{VALUE_TYPE_SHORT_LABELS[valueType]}</span>
+            </SelectTrigger>
+
+            {/* popper: item-aligned mispositions the list inside Motion Reorder rows */}
+            <SelectContent position="popper" align="start">
+                {REG_VALUE_TYPES.map(
+                    (type) => (
+                        <SelectItem key={type} value={type}>
+                            {VALUE_TYPE_LONG_LABELS[type]}
+                        </SelectItem>
+                    )
+                )}
+            </SelectContent>
+        </Select>
     );
 }
 
