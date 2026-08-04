@@ -150,12 +150,9 @@ function Field_ValueType({ item }: { item: RegItem; }) {
     );
 }
 
-const VIEW_CYCLE = ["curr", "32", "64"] as const;
-type ViewCycle = (typeof VIEW_CYCLE)[number];
-
 function Field_View({ item }: { item: RegItem; }) {
     const current: ViewCycle = item.view === "32" || item.view === "64" ? item.view : "curr";
-    const label = current === "curr" ? "Default" : current;
+    const label = current === "curr" ? "--" : current;
 
     return (
         <LabelAndField
@@ -165,9 +162,9 @@ function Field_View({ item }: { item: RegItem; }) {
                 <InfoTooltip label="View help" contentClasses="max-w-72 font-light">
                     <div className="flex flex-col gap-0.5 text-xs">
                         <p>Which registry view to use when reading or writing.</p>
-                        <p><span className="font-medium">Default</span> — process native view</p>
-                        <p><span className="font-medium">32</span> — 32-bit (WOW6432Node) view</p>
-                        <p><span className="font-medium">64</span> — 64-bit view</p>
+                        <p><span className="font-mono tracking-tighter font-medium">--</span> — process native view (i.e. default)</p>
+                        <p><span className="font-mono tracking-tighter font-medium">32</span> — 32-bit (WOW6432Node) view</p>
+                        <p><span className="font-mono tracking-tighter font-medium">64</span> — 64-bit view</p>
                         <p>Click the control to cycle.</p>
                     </div>
                 </InfoTooltip>
@@ -180,21 +177,26 @@ function Field_View({ item }: { item: RegItem; }) {
                 className="h-7 font-normal rounded"
                 title={`${label} — click to cycle view`}
                 aria-label={`Registry view: ${label}. Click to cycle.`}
-                onClick={() => patchSelectedItem((it) => {
-                    const cur: ViewCycle = it.view === "32" || it.view === "64" ? it.view : "curr";
-                    const next = VIEW_CYCLE[(VIEW_CYCLE.indexOf(cur) + 1) % VIEW_CYCLE.length];
-                    if (next === "curr") {
-                        delete it.view;
-                    } else {
-                        it.view = next as RegView;
+                onClick={
+                    () => patchSelectedItem((it) => {
+                        const cur: ViewCycle = it.view === "32" || it.view === "64" ? it.view : "curr";
+                        const next = VIEW_CYCLE[(VIEW_CYCLE.indexOf(cur) + 1) % VIEW_CYCLE.length];
+                        if (next === "curr") {
+                            delete it.view;
+                        } else {
+                            it.view = next as RegView;
+                        }
                     }
-                })}
+                    )}
             >
                 {label}
             </Button>
         </LabelAndField>
     );
 }
+
+const VIEW_CYCLE = ["curr", "32", "64"] as const;
+type ViewCycle = (typeof VIEW_CYCLE)[number];
 
 /** Placeholder text showing the canonical form expected for each value type. */
 const VALUE_PLACEHOLDERS: Record<RegValueType, string> = {
