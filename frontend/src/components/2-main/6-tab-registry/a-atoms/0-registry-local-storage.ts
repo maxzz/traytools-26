@@ -302,8 +302,8 @@ export async function RegistryConfig_Export(): Promise<void> {
 export async function RegistryConfig_ExportReg(): Promise<void> {
     try {
         const scope = exportScope();
-        const items = scope.config.groups.flatMap((group) => collectGroupItems(group));
-        if (!items.length) {
+        const hasValues = scope.config.groups.some((group) => collectGroupItems(group).length > 0);
+        if (!hasValues) {
             notice.warning(
                 scope.group
                     ? `Nothing to export — "${scope.group.name}" has no registry values`
@@ -315,7 +315,7 @@ export async function RegistryConfig_ExportReg(): Promise<void> {
         if (pick.canceled || !pick.path) {
             return;
         }
-        await registryOpsBus.writeTextFile(pick.path, buildRegFileText(items));
+        await registryOpsBus.writeTextFile(pick.path, buildRegFileText(scope.config.groups));
         registryEditorStore.status = "";
         registryEditorStore.error = "";
         notice.success(`Exported to<br/>${pick.path}`);

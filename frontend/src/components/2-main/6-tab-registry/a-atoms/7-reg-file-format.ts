@@ -5,7 +5,8 @@
 // backend handles the UTF-16LE encoding of the file itself, so this module only
 // ever sees UTF-8 text with LF line endings.
 //
-// Serialization writes the desired values authored in the tree, grouped by key.
+// Serialization walks the group tree: each subgroup is emitted as its own block
+// (with a `; name` comment) so same-key values from different subgroups stay apart.
 
 import {
     type RegGroup,
@@ -16,6 +17,8 @@ import {
     createItem,
     createValue,
     formatItemKeyPath,
+    isRegGroup,
+    isRegItem,
     itemHasSubKey,
 } from "./9-types-registry";
 
@@ -379,11 +382,61 @@ function truncate(s: string): string {
 // Serialization
 
 /**
- * Render keys as .reg text. Keys are emitted in first-seen order, and separate
- * items that name the same key share one section so the output reads like a
- * regedit export. The backend re-encodes to UTF-16LE with CRLF on write.
+ * Render the group tree as .reg text. Each subgroup gets a `; name` comment and
+ * its own key sections — values are never merged across subgroup boundaries.
+ * Within one group, sibling items that name the same key still share a section.
+ * The backend re-encodes to UTF-16LE with CRLF on write.
  */
-export function buildRegFileText(items: readonly RegItem[]): string {
+export function buildRegFileText(groups: readonly RegGroup[]): string {
+    const lines: string[] = [REG_HEADER, ""];
+    for (const group of groups) {
+        appendGroup(group, lines);
+    }
+    return lines.join("\n");
+}
+
+function appendGroup(group: RegGroup, lines: string[]): void {
+    if (!groupHasExportableContent(group)) {
+        return;
+    }
+
+    const name = group.name.trim();
+    if (name) {
+        lines.push(`; ${name}`);
+    }
+
+    // Flush pending items before each nested group so keys don't merge across it.
+    let pending: RegItem[] = [];
+    const flush = () => {
+        appendItemSections(pending, lines);
+        pending = [];
+    };
+
+    for (const node of group.items ?? []) {
+        if (isRegItem(node)) {
+            pending.push(node);
+        } else if (isRegGroup(node)) {
+            flush();
+            appendGroup(node, lines);
+        }
+    }
+    flush();
+}
+
+function groupHasExportableContent(group: RegGroup): boolean {
+    for (const node of group.items ?? []) {
+        if (isRegItem(node) && itemHasSubKey(node)) {
+            return true;
+        }
+        if (isRegGroup(node) && groupHasExportableContent(node)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** Merge same-key sibling items into sections, preserving first-seen key order. */
+function appendItemSections(items: readonly RegItem[], lines: string[]): void {
     const byKey = new Map<string, RegValue[]>();
     for (const item of items) {
         if (!itemHasSubKey(item)) {
@@ -398,7 +451,6 @@ export function buildRegFileText(items: readonly RegItem[]): string {
         }
     }
 
-    const lines: string[] = [REG_HEADER, ""];
     for (const [key, values] of byKey) {
         lines.push(`[${key}]`);
         for (const value of values) {
@@ -406,7 +458,6 @@ export function buildRegFileText(items: readonly RegItem[]): string {
         }
         lines.push("");
     }
-    return lines.join("\n");
 }
 
 function formatValueLine(value: RegValue): string {

@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { type RegItem, type RegValueRef, itemHive, itemSubKeyPath, itemValueRefs } from "./9-types-registry";
+import {
+    type RegGroup,
+    type RegItem,
+    type RegValueRef,
+    itemHive,
+    itemSubKeyPath,
+    itemValueRefs,
+} from "./9-types-registry";
 import { buildRegFileText, parseRegFile } from "./7-reg-file-format";
+
+/** Wrap flat items in a nameless group so buildRegFileText can walk them. */
+function asGroups(items: readonly RegItem[], name = ""): RegGroup[] {
+    return [{ name, items: [...items] }];
+}
 
 /** Sample covering every value form regedit emits, including wrapped hex. */
 const SAMPLE = [
@@ -137,7 +149,7 @@ describe("parseRegFile", () => {
 describe("buildRegFileText", () => {
     it("round-trips every value type back through the parser", () => {
         const original = valueRefs(parseRegFile(SAMPLE, "sample").group.items as RegItem[]);
-        const text = buildRegFileText(parseRegFile(SAMPLE, "sample").group.items as RegItem[]);
+        const text = buildRegFileText(asGroups(parseRegFile(SAMPLE, "sample").group.items as RegItem[]));
         const reparsed = valueRefs(parseRegFile(text, "sample").group.items as RegItem[]);
 
         expect(reparsed).toHaveLength(original.length);
@@ -157,7 +169,7 @@ describe("buildRegFileText", () => {
     });
 
     it("writes the 5.00 header and long hive names, grouping by key", () => {
-        const text = buildRegFileText(parseRegFile(SAMPLE, "sample").group.items as RegItem[]);
+        const text = buildRegFileText(asGroups(parseRegFile(SAMPLE, "sample").group.items as RegItem[]));
         expect(text.startsWith("Windows Registry Editor Version 5.00")).toBe(true);
         expect(text).toContain("[HKEY_CURRENT_USER\\SOFTWARE\\Traytools\\Sample]");
         expect(text).toContain("[HKEY_LOCAL_MACHINE\\SOFTWARE\\Traytools\\Other]");
@@ -166,19 +178,50 @@ describe("buildRegFileText", () => {
     });
 
     it("emits the (Default) value as @", () => {
-        const text = buildRegFileText(parseRegFile(SAMPLE, "sample").group.items as RegItem[]);
+        const text = buildRegFileText(asGroups(parseRegFile(SAMPLE, "sample").group.items as RegItem[]));
         expect(text).toContain('@="default value"');
     });
 
-    it("merges separate items that name the same key into one section", () => {
+    it("merges sibling items that name the same key into one section", () => {
         const items: RegItem[] = [
             { keyPath: "HKCU\\Foo", values: [{ valueName: "A", valueType: "REG_SZ", newValue: "1" }] },
             { keyPath: "HKCU\\Foo", values: [{ valueName: "B", valueType: "REG_SZ", newValue: "2" }] },
         ];
-        const text = buildRegFileText(items);
+        const text = buildRegFileText(asGroups(items));
         expect(text.split("[HKEY_CURRENT_USER").length - 1).toBe(1);
         expect(text).toContain('"A"="1"');
         expect(text).toContain('"B"="2"');
+    });
+
+    it("emits subgroup names as comments and keeps their keys separate", () => {
+        const groups: RegGroup[] = [
+            {
+                name: "Parent",
+                items: [
+                    {
+                        name: "Alpha",
+                        items: [
+                            { keyPath: "HKCU\\Foo", values: [{ valueName: "A", valueType: "REG_SZ", newValue: "1" }] },
+                        ],
+                    },
+                    {
+                        name: "Beta",
+                        items: [
+                            { keyPath: "HKCU\\Foo", values: [{ valueName: "B", valueType: "REG_SZ", newValue: "2" }] },
+                        ],
+                    },
+                ],
+            },
+        ];
+        const text = buildRegFileText(groups);
+        expect(text).toContain("; Parent");
+        expect(text).toContain("; Alpha");
+        expect(text).toContain("; Beta");
+        // Same key appears once per subgroup — not merged across them.
+        expect(text.split("[HKEY_CURRENT_USER\\Foo]").length - 1).toBe(2);
+        expect(text.indexOf("; Alpha")).toBeLessThan(text.indexOf('"A"="1"'));
+        expect(text.indexOf("; Beta")).toBeLessThan(text.indexOf('"B"="2"'));
+        expect(text.indexOf('"A"="1"')).toBeLessThan(text.indexOf("; Beta"));
     });
 
     it("skips items that have no key path", () => {
@@ -186,7 +229,7 @@ describe("buildRegFileText", () => {
             keyPath: "HKCU",
             values: [{ valueName: "X", valueType: "REG_SZ", newValue: "y" }],
         };
-        expect(buildRegFileText([item])).not.toContain("HKEY_CURRENT_USER");
+        expect(buildRegFileText(asGroups([item]))).not.toContain("HKEY_CURRENT_USER");
     });
 
     it("accepts 0x-prefixed numbers for DWORD and QWORD", () => {
@@ -199,7 +242,7 @@ describe("buildRegFileText", () => {
                 ],
             },
         ];
-        const reparsed = valueRefs(parseRegFile(buildRegFileText(items), "x").group.items as RegItem[]);
+        const reparsed = valueRefs(parseRegFile(buildRegFileText(asGroups(items)), "x").group.items as RegItem[]);
         expect(reparsed[0].value.newValue).toBe("31");
         expect(reparsed[1].value.newValue).toBe("31");
     });
