@@ -10,6 +10,7 @@ import {
     type RegSource,
     collectGroupItems,
     ensureUids,
+    findByUid,
     findInvalidKeyPathItems,
     parseRegSelectionPath,
     selectionPathFromUid,
@@ -277,7 +278,7 @@ export async function RegistryConfig_Import(): Promise<void> {
 /** Export the current editor tree as JSON via SaveFileDialog. */
 export async function RegistryConfig_Export(): Promise<void> {
     try {
-        const pick = await registryOpsBus.exportPath("registry.json", "json");
+        const pick = await registryOpsBus.exportPath(exportDefaultFilename("json"), "json");
         if (pick.canceled || !pick.path) {
             return;
         }
@@ -304,7 +305,7 @@ export async function RegistryConfig_ExportReg(): Promise<void> {
             notice.warning("Nothing to export — the tree has no registry values");
             return;
         }
-        const pick = await registryOpsBus.exportPath("registry.reg", "reg");
+        const pick = await registryOpsBus.exportPath(exportDefaultFilename("reg"), "reg");
         if (pick.canceled || !pick.path) {
             return;
         }
@@ -321,6 +322,34 @@ export async function RegistryConfig_ExportReg(): Promise<void> {
 
 function collectAllItems(): RegItem[] {
     return registryEditorStore.config.groups.flatMap((group) => collectGroupItems(group));
+}
+
+/** Save-dialog default name: selected group's name, else `registry.<ext>`. */
+function exportDefaultFilename(ext: "json" | "reg"): string {
+    return `${selectedExportBaseName()}.${ext}`;
+}
+
+/**
+ * Basename for export dialogs. Uses the selected group (or the parent group of
+ * a selected key/separator). Root selection falls back to "registry".
+ */
+function selectedExportBaseName(): string {
+    const uid = registryEditorStore.selectedUid;
+    if (!uid || uid === registryEditorStore.rootUid) {
+        return "registry";
+    }
+    const loc = findByUid(registryEditorStore.config, uid);
+    // Group selection → that group; key/separator → its parent group.
+    const name = loc?.group.name;
+    return sanitizeFilenameBase(name ?? "") || "registry";
+}
+
+/** Strip characters Windows rejects in a file name. */
+function sanitizeFilenameBase(name: string): string {
+    return name
+        .trim()
+        .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_")
+        .replace(/[. ]+$/g, "");
 }
 
 export function fileBaseName(path: string): string {
