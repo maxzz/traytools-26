@@ -383,10 +383,9 @@ function truncate(s: string): string {
 // Serialization
 
 /**
- * Render the group tree as .reg text. Groups and key children each get a
- * `; name` comment; each child is emitted as its own key section (even when
- * siblings share a path) so a child's values stay under its name.
- * The backend re-encodes to UTF-16LE with CRLF on write.
+ * Render the group tree as .reg text. Groups get `; Group: name` comments
+ * (with a blank line after each group); key children get `; name` comments and
+ * their own key sections. The backend re-encodes to UTF-16LE with CRLF on write.
  */
 export function buildRegFileText(groups: readonly RegGroup[]): string {
     const lines: string[] = [REG_HEADER, ""];
@@ -403,7 +402,7 @@ function appendGroup(group: RegGroup, lines: string[]): void {
 
     const name = group.name.trim();
     if (name) {
-        lines.push(`; ${name}`);
+        lines.push(`; Group: ${name}`);
     }
 
     for (const node of group.items ?? []) {
@@ -412,6 +411,11 @@ function appendGroup(group: RegGroup, lines: string[]): void {
         } else if (isRegGroup(node)) {
             appendGroup(node, lines);
         }
+    }
+
+    // One blank line after the group (items already end with one; don't double).
+    if (lines[lines.length - 1] !== "") {
+        lines.push("");
     }
 }
 

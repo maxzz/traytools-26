@@ -227,17 +227,19 @@ describe("buildRegFileText", () => {
             },
         ];
         const text = buildRegFileText(groups);
-        expect(text).toContain("; Parent");
-        expect(text).toContain("; Alpha");
+        expect(text).toContain("; Group: Parent");
+        expect(text).toContain("; Group: Alpha");
         expect(text).toContain("; Key A");
-        expect(text).toContain("; Beta");
+        expect(text).toContain("; Group: Beta");
         expect(text).toContain("; Key B");
         // Same key path once per child — not merged.
         expect(text.split("[HKEY_CURRENT_USER\\Foo]").length - 1).toBe(2);
         expect(text.indexOf("; Key A")).toBeLessThan(text.indexOf('"A"="1"'));
         expect(text.indexOf('"A"="1"')).toBeLessThan(text.indexOf('"C"="3"'));
-        expect(text.indexOf('"C"="3"')).toBeLessThan(text.indexOf("; Beta"));
+        expect(text.indexOf('"C"="3"')).toBeLessThan(text.indexOf("; Group: Beta"));
         expect(text.indexOf("; Key B")).toBeLessThan(text.indexOf('"B"="2"'));
+        // One blank line after each group before the next group comment.
+        expect(text).toMatch(/"C"="3"\n\n; Group: Beta/);
     });
 
     it("uses the key leaf as the child comment when no custom name is set", () => {
