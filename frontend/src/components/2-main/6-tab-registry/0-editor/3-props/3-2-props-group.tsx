@@ -9,7 +9,7 @@ import {
     PropsActionButton,
     typeBadgeIcons,
 } from "@/components/2-main/a-shared/props-field-ui";
-import { type RegGroup, collectGroupItems } from "../../a-atoms/9-types-registry";
+import { type RegGroup, countGroupValues } from "../../a-atoms/9-types-registry";
 import { patchSelectedGroup } from "../../a-atoms/use-selected-node";
 import { doAsyncRegReadGroupAtom, doAsyncRegWriteGroupAtom } from "../../a-atoms/2-run-registry";
 import { QuickAccessList } from "./3-4-quick-list";
@@ -17,7 +17,7 @@ import { QuickAccessList } from "./3-4-quick-list";
 export function PropsFor_Group({ group }: { group: RegGroup; }) {
     const readGroup = useSetAtom(doAsyncRegReadGroupAtom);
     const writeGroup = useSetAtom(doAsyncRegWriteGroupAtom);
-    const hasItems = collectGroupItems(group).length > 0;
+    const hasItems = countGroupValues(group) > 0;
     const uid = group.uid;
 
     return (<>

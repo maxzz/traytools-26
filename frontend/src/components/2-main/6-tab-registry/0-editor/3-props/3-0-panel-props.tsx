@@ -34,7 +34,7 @@ function NoSelectionView() {
             <div className="flex flex-col items-center gap-2">
                 <MousePointerClick className="size-6 opacity-50" />
                 <span>
-                    Select a group or registry value on the left to edit its properties.
+                    Select a group or registry key on the left to edit its properties.
                 </span>
             </div>
         </div>

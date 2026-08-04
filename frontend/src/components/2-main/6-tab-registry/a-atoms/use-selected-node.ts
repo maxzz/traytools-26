@@ -1,5 +1,13 @@
 import { useSnapshot } from "valtio";
-import { type RegGroup, type RegItem, type RegNodeKind, type RegSeparator, findByUid } from "./9-types-registry";
+import {
+    type RegGroup,
+    type RegItem,
+    type RegNodeKind,
+    type RegSeparator,
+    type RegValue,
+    createValue,
+    findByUid,
+} from "./9-types-registry";
 import { isRootUid } from "./1-registry-editor-atoms";
 import { registryEditorStore } from "./0-registry-local-storage";
 
@@ -52,14 +60,69 @@ export function patchSelectedGroup(fn: (group: RegGroup) => void) {
 }
 
 export function patchSelectedItem(fn: (item: RegItem) => void) {
+    const item = liveSelectedItem();
+    if (item) {
+        fn(item);
+    }
+}
+
+/** The selected key in the live (mutable) tree, not a snapshot. */
+function liveSelectedItem(): RegItem | null {
     const uid = registryEditorStore.selectedUid;
     if (!uid) {
-        return;
+        return null;
     }
     const loc = findByUid(registryEditorStore.config, uid);
-    if (loc?.kind === "item") {
-        fn(loc.item);
+    return loc?.kind === "item" ? loc.item : null;
+}
+
+/** Edit one value row of the selected key, addressed by the value's uid. */
+export function patchSelectedValue(valueUid: string, fn: (value: RegValue) => void) {
+    const value = liveSelectedItem()?.values.find((v) => v.uid === valueUid);
+    if (value) {
+        fn(value);
     }
+}
+
+/** Append a value row, continuing the type of the last row. */
+export function addSelectedItemValue(): void {
+    const item = liveSelectedItem();
+    if (!item) {
+        return;
+    }
+    const value = createValue();
+    const last = item.values[item.values.length - 1];
+    if (last) {
+        value.valueType = last.valueType;
+    }
+    item.values.push(value);
+}
+
+/** Remove a value row. A key always keeps at least one. */
+export function removeSelectedItemValue(valueUid: string): void {
+    const item = liveSelectedItem();
+    if (!item || item.values.length < 2) {
+        return;
+    }
+    const index = item.values.findIndex((v) => v.uid === valueUid);
+    if (index >= 0) {
+        item.values.splice(index, 1);
+    }
+}
+
+/** Apply a drag-and-drop row order given as the new sequence of value uids. */
+export function reorderSelectedItemValues(valueUids: readonly string[]): void {
+    const item = liveSelectedItem();
+    if (!item) {
+        return;
+    }
+    const reordered = valueUids
+        .map((uid) => item.values.find((v) => v.uid === uid))
+        .filter((v): v is RegValue => !!v);
+    if (reordered.length !== item.values.length) {
+        return;
+    }
+    item.values = reordered;
 }
 
 export function patchSelectedSeparator(fn: (separator: RegSeparator) => void) {

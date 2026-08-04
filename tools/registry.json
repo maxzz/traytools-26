@@ -11,33 +11,59 @@
                         },
                         {
                             "keyPath": "HKLM/SOFTWARE/_tm_test",
-                            "valueName": "",
-                            "valueType": "REG_SZ",
-                            "newValue": "",
-                            "name": "tm test short"
+                            "name": "tm test short",
+                            "values": [
+                                {
+                                    "valueName": "",
+                                    "valueType": "REG_SZ",
+                                    "newValue": ""
+                                }
+                            ]
                         },
                         {
                             "keyPath": "HKEY_LOCAL_MACHINE\\SOFTWARE\\_tm_test",
-                            "valueName": "",
-                            "valueType": "REG_SZ",
-                            "newValue": "",
-                            "name": "tm test long"
+                            "name": "tm test long",
+                            "values": [
+                                {
+                                    "valueName": "",
+                                    "valueType": "REG_SZ",
+                                    "newValue": ""
+                                },
+                                {
+                                    "valueName": "tm_test",
+                                    "valueType": "REG_DWORD",
+                                    "newValue": ""
+                                }
+                            ]
                         },
                         {
                             "separator": true
                         },
                         {
                             "keyPath": "HKCU",
-                            "valueName": "",
-                            "valueType": "REG_SZ",
-                            "newValue": "",
-                            "name": "(no key) 2"
+                            "name": "(no key) 2",
+                            "values": [
+                                {
+                                    "valueName": "",
+                                    "valueType": "REG_SZ",
+                                    "newValue": ""
+                                }
+                            ]
                         },
                         {
                             "keyPath": "HKLM\\SOFTWARE\\_tm_test",
-                            "valueName": "tm_test",
-                            "valueType": "REG_DWORD",
-                            "newValue": "12345"
+                            "values": [
+                                {
+                                    "valueName": "tm_test",
+                                    "valueType": "REG_DWORD",
+                                    "newValue": "12345"
+                                },
+                                {
+                                    "valueName": "tm_text",
+                                    "valueType": "REG_SZ",
+                                    "newValue": "Some text"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -46,9 +72,13 @@
                     "items": [
                         {
                             "keyPath": "HKCU",
-                            "valueName": "",
-                            "valueType": "REG_SZ",
-                            "newValue": ""
+                            "values": [
+                                {
+                                    "valueName": "",
+                                    "valueType": "REG_SZ",
+                                    "newValue": ""
+                                }
+                            ]
                         }
                     ]
                 }

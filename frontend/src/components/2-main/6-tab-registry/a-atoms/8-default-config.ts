@@ -8,9 +8,13 @@ export const DEFAULT_REGISTRY_CONFIG: RegConfig = {
             items: [
                 {
                     keyPath: "HKCU",
-                    valueName: "",
-                    valueType: "REG_SZ",
-                    newValue: "",
+                    values: [
+                        {
+                            valueName: "",
+                            valueType: "REG_SZ",
+                            newValue: "",
+                        },
+                    ],
                     requireElevated: false,
                 },
             ],

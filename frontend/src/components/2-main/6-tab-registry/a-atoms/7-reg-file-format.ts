@@ -11,8 +11,10 @@ import {
     type RegGroup,
     type RegHive,
     type RegItem,
+    type RegValue,
     type RegValueType,
     createItem,
+    createValue,
     formatItemKeyPath,
     itemHasSubKey,
 } from "./9-types-registry";
@@ -59,6 +61,9 @@ export type ParsedRegFile = {
 export function parseRegFile(text: string, groupName: string): ParsedRegFile {
     const warnings: string[] = [];
     const items: RegItem[] = [];
+    // One key section becomes one item; a key repeated later in the file keeps
+    // collecting values into the same item, matching how .reg files are merged.
+    const byKey = new Map<string, RegItem>();
 
     let hive: RegHive | null = null;
     let keyPath = "";
@@ -111,13 +116,22 @@ export function parseRegFile(text: string, groupName: string): ParsedRegFile {
             continue;
         }
 
-        const item = createItem();
-        item.keyPath = keyPath ? `${hive}\\${keyPath}` : hive;
-        item.valueName = entry.valueName;
-        item.valueType = entry.valueType;
-        item.newValue = entry.value;
-        item.requireElevated = hive !== "HKCU";
-        items.push(item);
+        const fullKey = keyPath ? `${hive}\\${keyPath}` : hive;
+        let item = byKey.get(fullKey);
+        if (!item) {
+            item = createItem();
+            item.keyPath = fullKey;
+            item.values = [];
+            item.requireElevated = hive !== "HKCU";
+            byKey.set(fullKey, item);
+            items.push(item);
+        }
+
+        const value = createValue();
+        value.valueName = entry.valueName;
+        value.valueType = entry.valueType;
+        value.newValue = entry.value;
+        item.values.push(value);
     }
 
     return {
@@ -365,12 +379,12 @@ function truncate(s: string): string {
 // Serialization
 
 /**
- * Render items as .reg text. Items are grouped by key in first-seen order so
- * the output reads like a regedit export. The backend re-encodes to UTF-16LE
- * with CRLF on write.
+ * Render keys as .reg text. Keys are emitted in first-seen order, and separate
+ * items that name the same key share one section so the output reads like a
+ * regedit export. The backend re-encodes to UTF-16LE with CRLF on write.
  */
 export function buildRegFileText(items: readonly RegItem[]): string {
-    const byKey = new Map<string, RegItem[]>();
+    const byKey = new Map<string, RegValue[]>();
     for (const item of items) {
         if (!itemHasSubKey(item)) {
             continue;
@@ -378,44 +392,44 @@ export function buildRegFileText(items: readonly RegItem[]): string {
         const key = formatItemKeyPath(item);
         const bucket = byKey.get(key);
         if (bucket) {
-            bucket.push(item);
+            bucket.push(...(item.values ?? []));
         } else {
-            byKey.set(key, [item]);
+            byKey.set(key, [...(item.values ?? [])]);
         }
     }
 
     const lines: string[] = [REG_HEADER, ""];
-    for (const [key, keyItems] of byKey) {
+    for (const [key, values] of byKey) {
         lines.push(`[${key}]`);
-        for (const item of keyItems) {
-            lines.push(formatValueLine(item));
+        for (const value of values) {
+            lines.push(formatValueLine(value));
         }
         lines.push("");
     }
     return lines.join("\n");
 }
 
-function formatValueLine(item: RegItem): string {
-    const name = item.valueName.trim() ? `"${escapeRegString(item.valueName)}"` : "@";
+function formatValueLine(value: RegValue): string {
+    const name = value.valueName.trim() ? `"${escapeRegString(value.valueName)}"` : "@";
 
-    switch (item.valueType) {
+    switch (value.valueType) {
         case "REG_SZ":
-            return `${name}="${escapeRegString(item.newValue)}"`;
+            return `${name}="${escapeRegString(value.newValue)}"`;
 
         case "REG_DWORD":
-            return `${name}=dword:${toHex(parseNumericValue(item.newValue), 8)}`;
+            return `${name}=dword:${toHex(parseNumericValue(value.newValue), 8)}`;
 
         case "REG_QWORD":
-            return `${name}=hex(b):${formatHexBytes(bigIntToLeBytes(parseBigIntValue(item.newValue), 8))}`;
+            return `${name}=hex(b):${formatHexBytes(bigIntToLeBytes(parseBigIntValue(value.newValue), 8))}`;
 
         case "REG_EXPAND_SZ":
-            return `${name}=hex(2):${formatHexBytes(utf16LeBytes(item.newValue, true))}`;
+            return `${name}=hex(2):${formatHexBytes(utf16LeBytes(value.newValue, true))}`;
 
         case "REG_MULTI_SZ":
-            return `${name}=hex(7):${formatHexBytes(multiSzBytes(item.newValue))}`;
+            return `${name}=hex(7):${formatHexBytes(multiSzBytes(value.newValue))}`;
 
         case "REG_BINARY":
-            return `${name}=hex:${formatHexBytes(parseBinaryText(item.newValue))}`;
+            return `${name}=hex:${formatHexBytes(parseBinaryText(value.newValue))}`;
     }
 }
 
