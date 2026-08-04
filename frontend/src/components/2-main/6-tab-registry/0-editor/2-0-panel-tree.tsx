@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, PencilLine } from "lucid
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { type RegItem, fullKeyPath, itemLabel } from "../a-atoms/9-types-registry";
+import { fullKeyPath, itemLabel, valueDisplayName } from "../a-atoms/9-types-registry";
 import { type DropPosition, addDroppedRegistryFiles, copyNode, moveNode } from "../a-atoms/1-registry-editor-atoms";
 import { doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../a-atoms/2-run-registry";
 import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
@@ -23,9 +23,9 @@ const TREE_UID_MIME = "application/x-traytools-registry-tree-uid";
 
 type SnapItem = {
     readonly keyPath: string;
-    readonly valueName: string;
     readonly name?: string;
     readonly uid?: string;
+    readonly values: readonly { readonly valueName: string; }[];
 };
 
 /** Nested group in the tree snap: same shape recursively via `items`. */
@@ -520,7 +520,8 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
     const isDropTarget = dnd.dropUid === uid;
     const showBefore = isDropTarget && dnd.dropPos === "before";
     const showAfter = isDropTarget && dnd.dropPos === "after";
-    const label = itemLabel(item as RegItem);
+    const label = itemLabel(item);
+    const values = item.values ?? [];
 
     return (
         <div
@@ -555,9 +556,15 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <SymbolAppRegedit className="shrink-0 relative size-3.5 opacity-70" />
 
-                <span className="flex-1 relative min-w-0 truncate" title={fullKeyPath(item as RegItem)}>
+                <span className="flex-1 relative min-w-0 truncate" title={itemRowTitle(item)}>
                     {label}
                 </span>
+
+                {values.length > 1 && (
+                    <span className="shrink-0 relative mr-5 text-[0.65rem] text-muted-foreground tabular-nums">
+                        {values.length}
+                    </span>
+                )}
 
                 <Button
                     className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
@@ -567,7 +574,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                         e.stopPropagation();
                         void writeItem(uid);
                     }}
-                    title="Write this value"
+                    title={values.length > 1 ? "Write all values of this key" : "Write this value"}
                     type="button"
                 >
                     <PencilLine className="size-3" />
@@ -575,6 +582,12 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
             </div>
         </div>
     );
+}
+
+/** Key path plus the names of the values it writes. */
+function itemRowTitle(item: SnapItem): string {
+    const names = (item.values ?? []).map((value) => valueDisplayName(value.valueName));
+    return [fullKeyPath(item), ...names.map((name) => `  ${name}`)].join("\n");
 }
 
 const FOLDER_ICON = "shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900";

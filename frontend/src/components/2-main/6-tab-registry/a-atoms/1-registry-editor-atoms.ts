@@ -12,6 +12,7 @@ import {
     cloneItem,
     cloneSeparator,
     containsGroup,
+    countGroupValues,
     createGroup,
     createItem,
     createSeparator,
@@ -71,16 +72,14 @@ export function addNode(kind: AddRegKind): void {
         return;
     }
 
-    // Add registry item
+    // Add registry key. Extra values under an existing key are added from the
+    // values table instead, so this always starts a fresh key.
     const item = createItem();
     if (selUid && !isRootUid(selUid)) {
         const loc = findByUid(config, selUid);
         if (loc?.kind === "group") {
             loc.group.items.push(item);
         } else if (loc?.kind === "item") {
-            // Start from the selected item's key so adding sibling values is quick.
-            item.keyPath = loc.item.keyPath;
-            item.view = loc.item.view;
             loc.siblings.splice(loc.index + 1, 0, item);
         } else if (loc?.kind === "separator") {
             loc.siblings.splice(loc.index + 1, 0, item);
@@ -436,22 +435,10 @@ async function importRegistryFileAsGroup(path: string): Promise<void> {
         registryEditorStore.config.groups.push(parsed.group);
         registryEditorStore.selectedUid = parsed.group.uid ?? registryEditorStore.selectedUid;
         registryEditorStore.error = "";
-        reportRegImport(countItems(parsed.group), parsed.warnings, path);
+        reportRegImport(countGroupValues(parsed.group), parsed.warnings, path);
     } catch (e) {
         notice.error(`Failed to import ${path}:<br/>${String(e)}`);
     }
-}
-
-function countItems(group: RegGroup): number {
-    let n = 0;
-    for (const node of group.items ?? []) {
-        if (isRegGroup(node)) {
-            n += countItems(node);
-        } else if (isRegItem(node)) {
-            n += 1;
-        }
-    }
-    return n;
 }
 
 /**

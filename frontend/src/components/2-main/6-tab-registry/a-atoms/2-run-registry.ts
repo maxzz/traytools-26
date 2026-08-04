@@ -13,15 +13,20 @@ import { notice } from "@/ui/local-ui/7-toaster";
 import {
     type RegGroup,
     type RegItem,
-    collectGroupItems,
+    type RegValue,
+    type RegValueRef,
+    collectGroupValueRefs,
     findByUid,
+    findValueByUid,
     fullKeyPath,
     hiveNeedsElevation,
     itemHasSubKey,
     itemHive,
     itemLabel,
     itemSubKeyPath,
+    itemValueRefs,
     valueDisplayName,
+    valueRefLabel,
 } from "./9-types-registry";
 import { registryEditorStore } from "./0-registry-local-storage";
 
@@ -48,9 +53,9 @@ export function clearRegistryReads(): void {
     registryReadStore.byUid = {};
 }
 
-/** True when the value on the machine already equals what the item would write. */
-export function readMatchesDesired(read: RegReadState | undefined, item: Pick<RegItem, "valueType" | "newValue">): boolean {
-    return !!read && !read.loading && read.exists && read.valueType === item.valueType && read.value === item.newValue;
+/** True when the value on the machine already equals what the editor would write. */
+export function readMatchesDesired(read: RegReadState | undefined, value: Pick<RegValue, "valueType" | "newValue">): boolean {
+    return !!read && !read.loading && read.exists && read.valueType === value.valueType && read.value === value.newValue;
 }
 
 // ---------------------------------------------------------------------------
@@ -120,41 +125,41 @@ export const confirmRegistryWritesAtom = atomWithStorage("reg.confirmWrites", tr
 // ---------------------------------------------------------------------------
 // Helpers
 
-function toSpec(item: RegItem): RegValueSpec {
+function toSpec({ item, value }: RegValueRef): RegValueSpec {
     return {
         hive: itemHive(item),
         keyPath: itemSubKeyPath(item),
-        valueName: item.valueName,
-        valueType: item.valueType,
-        value: item.newValue,
+        valueName: value.valueName,
+        valueType: value.valueType,
+        value: value.newValue,
         view: item.view,
     };
 }
 
-function newRow(item: RegItem): RegProgressRow {
+function newRow(ref: RegValueRef): RegProgressRow {
     return {
-        uid: item.uid,
-        label: itemLabel(item),
-        keyPath: fullKeyPath(item),
-        valueName: valueDisplayName(item.valueName),
-        valueType: item.valueType,
+        uid: ref.value.uid,
+        label: valueRefLabel(ref),
+        keyPath: fullKeyPath(ref.item),
+        valueName: valueDisplayName(ref.value.valueName),
+        valueType: ref.value.valueType,
         status: "pending",
     };
 }
 
 /**
- * Split items into those that can be sent to the backend and those that are
+ * Split targets into those that can be sent to the backend and those that are
  * incomplete. An empty key path would resolve to the hive root, so it is
  * rejected here rather than silently writing somewhere unexpected.
  */
-function partitionRunnable(items: RegItem[]): { runnable: RegItem[]; invalid: RegItem[]; } {
-    const runnable: RegItem[] = [];
-    const invalid: RegItem[] = [];
-    for (const item of items) {
-        if (itemHasSubKey(item)) {
-            runnable.push(item);
+function partitionRunnable(refs: RegValueRef[]): { runnable: RegValueRef[]; invalid: RegValueRef[]; } {
+    const runnable: RegValueRef[] = [];
+    const invalid: RegValueRef[] = [];
+    for (const ref of refs) {
+        if (itemHasSubKey(ref.item)) {
+            runnable.push(ref);
         } else {
-            invalid.push(item);
+            invalid.push(ref);
         }
     }
     return { runnable, invalid };
@@ -234,11 +239,20 @@ function liveGroup(uid: string | undefined): RegGroup | null {
     return loc?.kind === "group" ? loc.group : null;
 }
 
+/** Resolve a single value uid to the pair the runners operate on. */
+function liveValueRef(uid: string | undefined): RegValueRef | null {
+    if (!uid) {
+        return null;
+    }
+    const loc = findValueByUid(registryEditorStore.config, uid);
+    return loc ? { item: loc.item, value: loc.value } : null;
+}
+
 // ---------------------------------------------------------------------------
 // Read
 
-async function runRead(items: RegItem[], label: string): Promise<void> {
-    const { runnable, invalid } = partitionRunnable(items);
+async function runRead(refs: RegValueRef[], label: string): Promise<void> {
+    const { runnable, invalid } = partitionRunnable(refs);
     if (!runnable.length && !invalid.length) {
         notice.warning("Nothing to read");
         return;
@@ -252,9 +266,9 @@ async function runRead(items: RegItem[], label: string): Promise<void> {
 
     const jobUid = startJob("read", label, rows);
 
-    for (const item of runnable) {
-        if (item.uid) {
-            registryReadStore.byUid[item.uid] = { at: Date.now(), loading: true, exists: false };
+    for (const { value } of runnable) {
+        if (value.uid) {
+            registryReadStore.byUid[value.uid] = { at: Date.now(), loading: true, exists: false };
         }
     }
 
@@ -262,9 +276,9 @@ async function runRead(items: RegItem[], label: string): Promise<void> {
         const { results } = await registryOpsBus.readBatch(runnable.map(toSpec));
         applyReadResults(jobUid, runnable, results);
     } catch (e) {
-        for (const item of runnable) {
-            if (item.uid) {
-                registryReadStore.byUid[item.uid] = { at: Date.now(), loading: false, exists: false, error: String(e) };
+        for (const { value } of runnable) {
+            if (value.uid) {
+                registryReadStore.byUid[value.uid] = { at: Date.now(), loading: false, exists: false, error: String(e) };
             }
         }
         failJob(jobUid, String(e));
@@ -277,17 +291,17 @@ async function runRead(items: RegItem[], label: string): Promise<void> {
     }
 }
 
-function applyReadResults(jobUid: string, items: RegItem[], results: RegReadResult[]): void {
+function applyReadResults(jobUid: string, refs: RegValueRef[], results: RegReadResult[]): void {
     const live = findJob(jobUid);
 
     for (const result of results) {
-        const item = items[result.index];
-        if (!item) {
+        const ref = refs[result.index];
+        if (!ref) {
             continue;
         }
 
-        if (item.uid) {
-            registryReadStore.byUid[item.uid] = {
+        if (ref.value.uid) {
+            registryReadStore.byUid[ref.value.uid] = {
                 at: Date.now(),
                 loading: false,
                 exists: result.exists,
@@ -319,8 +333,8 @@ function applyReadResults(jobUid: string, items: RegItem[], results: RegReadResu
 // ---------------------------------------------------------------------------
 // Write
 
-async function runWrite(items: RegItem[], label: string, groupRequiresElevation: boolean): Promise<void> {
-    const { runnable, invalid } = partitionRunnable(items);
+async function runWrite(refs: RegValueRef[], label: string, groupRequiresElevation: boolean): Promise<void> {
+    const { runnable, invalid } = partitionRunnable(refs);
     if (!runnable.length) {
         notice.warning(invalid.length ? "Nothing to write — key paths are empty" : "Nothing to write");
         return;
@@ -335,10 +349,10 @@ async function runWrite(items: RegItem[], label: string, groupRequiresElevation:
         }
     }
 
-    // Elevation is needed when any item says so, or targets a machine-wide hive.
+    // Elevation is needed when any key says so, or targets a machine-wide hive.
     const needsElevation =
         groupRequiresElevation
-        || runnable.some((item) => item.requireElevated || hiveNeedsElevation(itemHive(item)));
+        || runnable.some(({ item }) => item.requireElevated || hiveNeedsElevation(itemHive(item)));
 
     if (!(await ensureElevatedOrPrompt(needsElevation))) {
         return;
@@ -358,7 +372,7 @@ async function runWrite(items: RegItem[], label: string, groupRequiresElevation:
         const live = findJob(jobUid);
 
         for (const result of results) {
-            const item = runnable[result.index];
+            const value = runnable[result.index]?.value;
             const row = live?.rows[result.index];
             if (!row) {
                 continue;
@@ -367,15 +381,15 @@ async function runWrite(items: RegItem[], label: string, groupRequiresElevation:
             row.previousValue = result.previousValue;
             row.error = result.error;
             if (result.status !== "failed") {
-                row.value = item?.newValue;
+                row.value = value?.newValue;
                 // The machine now matches what we wrote; keep the read-back in step.
-                if (item?.uid) {
-                    registryReadStore.byUid[item.uid] = {
+                if (value?.uid) {
+                    registryReadStore.byUid[value.uid] = {
                         at: Date.now(),
                         loading: false,
                         exists: true,
-                        valueType: item.valueType,
-                        value: item.newValue,
+                        valueType: value.valueType,
+                        value: value.newValue,
                     };
                 }
             }
@@ -401,12 +415,24 @@ async function runWrite(items: RegItem[], label: string, groupRequiresElevation:
 //
 // Discrete UI actions live in Jotai; the runners above own the Valtio stores.
 
+/** Read every value under one key. */
 export const doAsyncRegReadItemAtom = atom(
     null,
     async (_get, _set, uid: string): Promise<void> => {
         const item = liveItem(uid);
         if (item) {
-            await runRead([item], itemLabel(item));
+            await runRead(itemValueRefs(item), itemLabel(item));
+        }
+    },
+);
+
+/** Read a single value row, addressed by the value's own uid. */
+export const doAsyncRegReadValueAtom = atom(
+    null,
+    async (_get, _set, uid: string): Promise<void> => {
+        const ref = liveValueRef(uid);
+        if (ref) {
+            await runRead([ref], valueRefLabel(ref));
         }
     },
 );
@@ -416,7 +442,7 @@ export const doAsyncRegReadGroupAtom = atom(
     async (_get, _set, uid: string): Promise<void> => {
         const group = liveGroup(uid);
         if (group) {
-            await runRead(collectGroupItems(group), group.name || "Group");
+            await runRead(collectGroupValueRefs(group), group.name || "Group");
         }
     },
 );
@@ -424,17 +450,29 @@ export const doAsyncRegReadGroupAtom = atom(
 export const doAsyncRegReadAllAtom = atom(
     null,
     async (_get, _set): Promise<void> => {
-        const items = registryEditorStore.config.groups.flatMap((group) => collectGroupItems(group));
-        await runRead(items, "All groups");
+        const refs = registryEditorStore.config.groups.flatMap((group) => collectGroupValueRefs(group));
+        await runRead(refs, "All groups");
     },
 );
 
+/** Write every value under one key. */
 export const doAsyncRegWriteItemAtom = atom(
     null,
     async (_get, _set, uid: string): Promise<void> => {
         const item = liveItem(uid);
         if (item) {
-            await runWrite([item], itemLabel(item), !!item.requireElevated);
+            await runWrite(itemValueRefs(item), itemLabel(item), !!item.requireElevated);
+        }
+    },
+);
+
+/** Write a single value row, addressed by the value's own uid. */
+export const doAsyncRegWriteValueAtom = atom(
+    null,
+    async (_get, _set, uid: string): Promise<void> => {
+        const ref = liveValueRef(uid);
+        if (ref) {
+            await runWrite([ref], valueRefLabel(ref), !!ref.item.requireElevated);
         }
     },
 );
@@ -444,7 +482,7 @@ export const doAsyncRegWriteGroupAtom = atom(
     async (_get, _set, uid: string): Promise<void> => {
         const group = liveGroup(uid);
         if (group) {
-            await runWrite(collectGroupItems(group), group.name || "Group", !!group.requireElevated);
+            await runWrite(collectGroupValueRefs(group), group.name || "Group", !!group.requireElevated);
         }
     },
 );

@@ -1,6 +1,7 @@
 // Editable model for registry.json. Top-level groups sit under a fixed "Groups"
-// root. Each group's `items` is an ordered list of registry values, nested
-// groups, and/or separators ({ separator: true }).
+// root. Each group's `items` is an ordered list of registry keys, nested
+// groups, and/or separators ({ separator: true }). A key holds one or more
+// named values in `values`.
 
 import { type RegHive, type RegValueType, type RegView } from "@/bridge";
 
@@ -53,6 +54,28 @@ export const VALUE_TYPE_LABELS: Record<RegValueType, string> = {
     REG_MULTI_SZ: "Multi-string",
 };
 
+/** Abbreviated labels, for the narrow type column of the values table. */
+export const VALUE_TYPE_SHORT_LABELS: Record<RegValueType, string> = {
+    REG_SZ: "String",
+    REG_EXPAND_SZ: "Expand",
+    REG_DWORD: "DWORD",
+    REG_QWORD: "QWORD",
+    REG_BINARY: "Binary",
+    REG_MULTI_SZ: "Multi",
+};
+
+/** One named value under a key. Many values can share a single RegItem key. */
+export type RegValue = {
+    /** Empty string means the key's (Default) value. */
+    valueName: string;
+    valueType: RegValueType;
+    /** Desired value in canonical text form; see the bridge RegValueSpec docs. */
+    newValue: string;
+    // Runtime-only identity for read results / row reorder; stripped on serialize.
+    uid?: string;
+};
+
+/** A registry key plus the ordered list of values authored under it. */
 export type RegItem = {
     /**
      * Full key including the hive, stored exactly as typed/loaded
@@ -60,11 +83,8 @@ export type RegItem = {
      * Normalized only when used for registry read/write or regedit jump.
      */
     keyPath: string;
-    /** Empty string means the key's (Default) value. */
-    valueName: string;
-    valueType: RegValueType;
-    /** Desired value in canonical text form; see the bridge RegValueSpec docs. */
-    newValue: string;
+    /** At least one value; the editor never leaves this empty. */
+    values: RegValue[];
     /** Display name; omitted from registry.json when empty or equal to the derived label. */
     name?: string;
     view?: RegView;
@@ -73,6 +93,12 @@ export type RegItem = {
     comment?: string;
     // Runtime-only identity for selection / DnD; stripped on serialize.
     uid?: string;
+};
+
+/** A value together with the key that owns it — the unit registry ops act on. */
+export type RegValueRef = {
+    item: RegItem;
+    value: RegValue;
 };
 
 export type RegGroup = {
@@ -174,6 +200,12 @@ function collectExistingUids(nodes: RegNode[], into: string[]): void {
         }
         if (isRegGroup(node)) {
             collectExistingUids(node.items, into);
+        } else if (isRegItem(node)) {
+            for (const value of node.values ?? []) {
+                if (value.uid) {
+                    into.push(value.uid);
+                }
+            }
         }
     }
 }
@@ -186,6 +218,13 @@ function assignUids(nodes: RegNode[], used: Set<string>): void {
         used.add(node.uid);
         if (isRegGroup(node)) {
             assignUids(node.items, used);
+        } else if (isRegItem(node)) {
+            for (const value of node.values ?? []) {
+                if (!value.uid || used.has(value.uid)) {
+                    value.uid = newUid();
+                }
+                used.add(value.uid);
+            }
         }
     }
 }
@@ -201,6 +240,12 @@ export function ensureNodeUids(nodes: RegNode[]): void {
         }
         if (isRegGroup(node)) {
             ensureNodeUids(node.items);
+        } else if (isRegItem(node)) {
+            for (const value of node.values ?? []) {
+                if (!value.uid) {
+                    value.uid = newUid();
+                }
+            }
         }
     }
 }
@@ -234,10 +279,17 @@ export function createItem(): RegItem {
     return {
         uid: newUid(),
         keyPath: "HKCU",
+        values: [createValue()],
+        requireElevated: false,
+    };
+}
+
+export function createValue(): RegValue {
+    return {
+        uid: newUid(),
         valueName: "",
         valueType: "REG_SZ",
         newValue: "",
-        requireElevated: false,
     };
 }
 
@@ -262,14 +314,21 @@ function reassignNodeUids(node: RegNode): void {
         for (const child of node.items ?? []) {
             reassignNodeUids(child);
         }
+    } else if (isRegItem(node)) {
+        for (const value of node.values ?? []) {
+            value.uid = newUid();
+        }
     }
 }
 
-/** Deep-clone a registry item with a fresh runtime uid. */
+/** Deep-clone a registry item (with its values) using fresh runtime uids. */
 export function cloneItem(item: RegItem): RegItem {
     // JSON round-trip: structuredClone cannot clone valtio proxies.
     const clone = JSON.parse(JSON.stringify(item)) as RegItem;
     clone.uid = newUid();
+    for (const value of clone.values ?? []) {
+        value.uid = newUid();
+    }
     return clone;
 }
 
@@ -282,7 +341,7 @@ export function cloneSeparator(separator: RegSeparator): RegSeparator {
     return clone;
 }
 
-/** Flatten all registry items under a group, including nested groups (depth-first). */
+/** Flatten all registry keys under a group, including nested groups (depth-first). */
 export function collectGroupItems(group: RegGroup): RegItem[] {
     const out: RegItem[] = [];
     for (const node of group.items ?? []) {
@@ -293,6 +352,21 @@ export function collectGroupItems(group: RegGroup): RegItem[] {
         }
     }
     return out;
+}
+
+/** Every value of one key, paired with the key that owns it. */
+export function itemValueRefs(item: RegItem): RegValueRef[] {
+    return (item.values ?? []).map((value) => ({ item, value }));
+}
+
+/** Every value under a group, in tree order (depth-first through nested groups). */
+export function collectGroupValueRefs(group: RegGroup): RegValueRef[] {
+    return collectGroupItems(group).flatMap(itemValueRefs);
+}
+
+/** Total number of authored values under a group, including nested groups. */
+export function countGroupValues(group: RegGroup): number {
+    return collectGroupItems(group).reduce((n, item) => n + (item.values?.length ?? 0), 0);
 }
 
 /** True when `maybeAncestor` is `group` or contains it somewhere below. */
@@ -337,6 +411,15 @@ export type RegSeparatorLocation = {
     index: number;
 };
 
+export type RegValueLocation = {
+    kind: "value";
+    value: RegValue;
+    item: RegItem;
+    group: RegGroup;
+    /** Position inside `item.values`. */
+    index: number;
+};
+
 export type RegLocation = RegGroupLocation | RegItemLocation | RegSeparatorLocation;
 
 export function findByUid(config: RegConfig, uid: string): RegLocation | null {
@@ -361,6 +444,34 @@ function findInNodes(siblings: RegNode[], uid: string, parent: RegGroup | null):
         }
         if (isRegGroup(node)) {
             const found = findInNodes(node.items, uid, node);
+            if (found) {
+                return found;
+            }
+        }
+    }
+    return null;
+}
+
+/** Locate a single value by its runtime uid, together with its key and group. */
+export function findValueByUid(config: RegConfig, uid: string): RegValueLocation | null {
+    for (const group of config.groups) {
+        const found = findValueInGroup(group, uid);
+        if (found) {
+            return found;
+        }
+    }
+    return null;
+}
+
+function findValueInGroup(group: RegGroup, uid: string): RegValueLocation | null {
+    for (const node of group.items ?? []) {
+        if (isRegItem(node)) {
+            const index = (node.values ?? []).findIndex((value) => value.uid === uid);
+            if (index >= 0) {
+                return { kind: "value", value: node.values[index], item: node, group, index };
+            }
+        } else if (isRegGroup(node)) {
+            const found = findValueInGroup(node, uid);
             if (found) {
                 return found;
             }
@@ -593,20 +704,27 @@ export function valueDisplayName(valueName: string): string {
     return valueName.trim() ? valueName : "(Default)";
 }
 
-/** Derived label used when the item has no custom name. */
-export function derivedItemLabel(item: Pick<RegItem, "keyPath" | "valueName">): string {
-    const value = item.valueName?.trim();
-    if (value) {
-        return value;
-    }
-    const leaf = keyLeafName(item.keyPath);
-    return leaf ? `${leaf}\\(Default)` : "(no key)";
+/** Derived label used when the key has no custom name: its last path segment. */
+export function derivedItemLabel(item: Pick<RegItem, "keyPath">): string {
+    return keyLeafName(item.keyPath) || "(no key)";
 }
 
-export function itemLabel(item: Pick<RegItem, "keyPath" | "valueName" | "name">): string {
+export function itemLabel(item: Pick<RegItem, "keyPath" | "name">): string {
     const custom = item.name?.trim();
     if (custom) {
         return custom;
     }
     return derivedItemLabel(item);
+}
+
+/**
+ * Report / progress label for one value: the key label alone when it holds a
+ * single value, otherwise qualified with the value name.
+ */
+export function valueRefLabel({ item, value }: RegValueRef): string {
+    const key = itemLabel(item);
+    if ((item.values?.length ?? 0) < 2) {
+        return key;
+    }
+    return `${key}\\${valueDisplayName(value.valueName)}`;
 }

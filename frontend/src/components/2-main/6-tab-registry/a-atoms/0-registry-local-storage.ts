@@ -15,7 +15,7 @@ import {
     selectionPathFromUid,
     uidFromSelectionPath,
 } from "./9-types-registry";
-import { buildRegistryFileText, parseRegistryJson, syncDirty } from "./6-json-serialize-dirty";
+import { buildRegistryFileText, normalizeRegConfig, parseRegistryJson, syncDirty } from "./6-json-serialize-dirty";
 import { buildRegFileText } from "./7-reg-file-format";
 import { DEFAULT_REGISTRY_CONFIG } from "./8-default-config";
 
@@ -92,7 +92,9 @@ export function readCache(): RegCache | null {
         };
         if (parsed?.config && Array.isArray(parsed.config.groups)) {
             return {
-                config: parsed.config,
+                // The cached copy may predate the current shape (e.g. one value
+                // per key), so it goes through the same migration as the file.
+                config: normalizeRegConfig(parsed.config),
                 rootUid: parsed.rootUid ?? "",
                 selectedPath: parseRegSelectionPath(parsed.selectedPath),
             };

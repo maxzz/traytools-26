@@ -1,4 +1,4 @@
-import { normalizeOptionalComment } from "@/components/2-main/a-shared/field-comment";
+import { normalizeOptionalComment } from "@/components/2-main/a-shared/field-comment-utils";
 import {
     type RegConfig,
     type RegEditorStore,
@@ -6,6 +6,7 @@ import {
     type RegItem,
     type RegNode,
     type RegSeparator,
+    type RegValue,
     REG_VALUE_TYPES,
     derivedItemLabel,
     isRegItem,
@@ -63,7 +64,14 @@ export function parseRegistryJson(text: string): RegConfig {
     if (!parsed || typeof parsed !== "object" || !Array.isArray((parsed as RegConfig).groups)) {
         throw new Error("Invalid registry.json: expected { groups: [...] }");
     }
-    const config = parsed as RegConfig;
+    return normalizeRegConfig(parsed as RegConfig);
+}
+
+/**
+ * Bring a parsed config to the current shape in place. Also used for the local
+ * storage copy, which may have been written by an older format.
+ */
+export function normalizeRegConfig(config: RegConfig): RegConfig {
     normalizeOptionalComment(config);
     config.groups = config.groups.map((group) => normalizeGroup(group));
     return config;
@@ -115,15 +123,13 @@ function normalizeSeparator(raw: object): RegSeparator {
 }
 
 function normalizeItem(raw: object): RegItem {
-    const item = raw as RegItem & { hive?: unknown; };
+    const item = raw as RegItem & LegacyValueFields & { hive?: unknown; };
     // Keep the author's spelling (HKLM vs HKEY_LOCAL_MACHINE, \\ vs \, / vs \).
     // Ops normalize via parseItemKeyPath / normalizeItemKeyPath at use time.
     item.keyPath = typeof item.keyPath === "string" && item.keyPath.length > 0 ? item.keyPath : "HKCU";
     // Hive is part of keyPath; drop any leftover separate field.
     delete item.hive;
-    item.valueName = typeof item.valueName === "string" ? item.valueName : "";
-    item.valueType = REG_VALUE_TYPES.includes(item.valueType) ? item.valueType : "REG_SZ";
-    item.newValue = typeof item.newValue === "string" ? item.newValue : "";
+    item.values = normalizeValues(item);
     if (item.view !== "32" && item.view !== "64") {
         delete item.view;
     }
@@ -140,4 +146,44 @@ function normalizeItem(raw: object): RegItem {
         delete (item as { items?: unknown; }).items;
     }
     return item;
+}
+
+/** Pre-`values` files put a single value's fields directly on the key. */
+type LegacyValueFields = {
+    valueName?: unknown;
+    valueType?: unknown;
+    newValue?: unknown;
+};
+
+/**
+ * Read the `values` array, upgrading files written before a key could hold more
+ * than one value. Every key ends up with at least one value row.
+ */
+function normalizeValues(raw: RegItem & LegacyValueFields): RegValue[] {
+    const listed: unknown[] = Array.isArray(raw.values) ? raw.values : [];
+    const values = listed
+        .filter((entry): entry is object => !!entry && typeof entry === "object")
+        .map((entry) => normalizeValue(entry));
+
+    if (!values.length) {
+        values.push(normalizeValue({
+            valueName: raw.valueName,
+            valueType: raw.valueType,
+            newValue: raw.newValue,
+        }));
+    }
+
+    delete raw.valueName;
+    delete raw.valueType;
+    delete raw.newValue;
+    return values;
+}
+
+function normalizeValue(raw: object): RegValue {
+    const value = raw as RegValue;
+    return {
+        valueName: typeof value.valueName === "string" ? value.valueName : "",
+        valueType: REG_VALUE_TYPES.includes(value.valueType) ? value.valueType : "REG_SZ",
+        newValue: typeof value.newValue === "string" ? value.newValue : "",
+    };
 }

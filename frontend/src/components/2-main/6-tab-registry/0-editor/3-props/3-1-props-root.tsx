@@ -2,7 +2,7 @@ import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import { Field_TypeIcon, FlagSwitch, PropsActionButton } from "@/components/2-main/a-shared/props-field-ui";
-import { type RegGroup, type RegSeparator, collectGroupItems } from "../../a-atoms/9-types-registry";
+import { type RegGroup, type RegSeparator, countGroupValues } from "../../a-atoms/9-types-registry";
 import { patchSelectedSeparator } from "../../a-atoms/use-selected-node";
 import { registryEditorStore } from "../../a-atoms/0-registry-local-storage";
 import { confirmRegistryWritesAtom, doAsyncRegReadAllAtom } from "../../a-atoms/2-run-registry";
@@ -12,14 +12,14 @@ export function PropsFor_Root() {
     const { config } = useSnapshot(registryEditorStore, { sync: true });
     const groups = config.groups as RegGroup[];
     const readAll = useSetAtom(doAsyncRegReadAllAtom);
-    const hasItems = groups.some((group) => collectGroupItems(group).length > 0);
+    const hasItems = groups.some((group) => countGroupValues(group) > 0);
 
     return (<>
         <div className="flex items-center justify-between gap-2">
             <p className="text-muted-foreground">
                 Root of the registry operations tree. Add groups here, or drop a .reg or .json file onto the tree
-                to import one as a new group. Groups and values can be reordered by drag-and-drop.
-                This node cannot be moved or deleted.
+                to import one as a new group. Groups and keys can be reordered by drag-and-drop; the values of a
+                key are reordered in its properties. This node cannot be moved or deleted.
             </p>
         </div>
 
