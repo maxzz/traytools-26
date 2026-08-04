@@ -170,11 +170,13 @@ function ValueRow({ value, canDelete, hasKey }: { value: RegValue; canDelete: bo
                     className={cn(COL.type, "px-1.5 h-7! text-[0.72rem]")}
                     title={VALUE_TYPE_LABELS[value.valueType]}
                     aria-label="Value type"
+                    onPointerDown={(e) => e.stopPropagation()}
                 >
                     <span className="truncate">{VALUE_TYPE_SHORT_LABELS[value.valueType]}</span>
                 </SelectTrigger>
 
-                <SelectContent>
+                {/* popper: item-aligned mispositions the list inside Motion Reorder rows */}
+                <SelectContent position="popper" align="start">
                     {REG_VALUE_TYPES.map(
                         (type) => (
                             <SelectItem key={type} value={type}>
