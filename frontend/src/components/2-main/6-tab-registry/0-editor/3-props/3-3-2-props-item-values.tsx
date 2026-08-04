@@ -1,7 +1,7 @@
 // Values table for the selected registry key: one row per named value, with
 // drag-to-reorder, per-row read / write, and add / delete.
 
-import { type PointerEvent } from "react";
+import { useState, type PointerEvent } from "react";
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { Reorder, useDragControls } from "motion/react";
@@ -91,12 +91,13 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                     className="flex flex-col"
                 >
                     {values.map(
-                        (value) => (
+                        (value, index) => (
                             <ValueRow
                                 key={value.uid}
                                 value={value}
                                 canDelete={canDelete}
                                 hasKey={hasKey}
+                                isLast={index === values.length - 1}
                             />
                         )
                     )}
@@ -119,8 +120,9 @@ function HeaderRow() {
     );
 }
 
-function ValueRow({ value, canDelete, hasKey }: { value: RegValue; canDelete: boolean; hasKey: boolean; }) {
+function ValueRow({ value, canDelete, hasKey, isLast }: { value: RegValue; canDelete: boolean; hasKey: boolean; isLast: boolean; }) {
     const controls = useDragControls();
+    const [isDragging, setIsDragging] = useState(false);
     const readValue = useSetAtom(doAsyncRegReadValueAtom);
     const writeValue = useSetAtom(doAsyncRegWriteValueAtom);
     const uid = value.uid ?? "";
@@ -132,11 +134,15 @@ function ValueRow({ value, canDelete, hasKey }: { value: RegValue; canDelete: bo
             value={uid}
             dragListener={false}
             dragControls={controls}
-            className="px-1 py-1 bg-background not-last:border-b last:rounded-b flex items-start gap-1"
-            // Shadow starts at a matching zero-value so the drag lift interpolates cleanly.
-            style={{ boxShadow: "0 0 0 0 rgb(0 0 0 / 0)" }}
-            whileDrag={{ scale: 1.01, boxShadow: "0 4px 12px 0 rgb(0 0 0 / 0.18)" }}
-            transition={{ type: "spring", visualDuration: 0.22, bounce: 0.18 }}
+            // Index-based last-row styles: Motion can freeze :last-child rules as inline styles.
+            className={cn(
+                "relative px-1 py-1 bg-background flex items-start gap-1",
+                !isLast && "border-b",
+                isLast && "rounded-b",
+                isDragging && "z-10 scale-[1.01] shadow-[0_4px_12px_0_rgb(0_0_0/0.18)]",
+            )}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={() => setIsDragging(false)}
         >
             <button
                 className={cn(COL.handle, "h-7 text-muted-foreground/60 hover:text-foreground touch-none cursor-grab active:cursor-grabbing flex items-center justify-center")}
