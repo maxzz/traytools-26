@@ -168,12 +168,12 @@ describe("buildRegFileText", () => {
         }
     });
 
-    it("writes the 5.00 header and long hive names, grouping by key", () => {
+    it("writes the 5.00 header and long hive names", () => {
         const text = buildRegFileText(asGroups(parseRegFile(SAMPLE, "sample").group.items as RegItem[]));
         expect(text.startsWith("Windows Registry Editor Version 5.00")).toBe(true);
         expect(text).toContain("[HKEY_CURRENT_USER\\SOFTWARE\\Traytools\\Sample]");
         expect(text).toContain("[HKEY_LOCAL_MACHINE\\SOFTWARE\\Traytools\\Other]");
-        // Eight values share one key, so that section header appears exactly once.
+        // One item per key from the sample — each appears once.
         expect(text.split("[HKEY_CURRENT_USER").length - 1).toBe(1);
     });
 
@@ -182,18 +182,20 @@ describe("buildRegFileText", () => {
         expect(text).toContain('@="default value"');
     });
 
-    it("merges sibling items that name the same key into one section", () => {
+    it("keeps sibling items separate even when they share a key path", () => {
         const items: RegItem[] = [
-            { keyPath: "HKCU\\Foo", values: [{ valueName: "A", valueType: "REG_SZ", newValue: "1" }] },
-            { keyPath: "HKCU\\Foo", values: [{ valueName: "B", valueType: "REG_SZ", newValue: "2" }] },
+            { keyPath: "HKCU\\Foo", name: "First", values: [{ valueName: "A", valueType: "REG_SZ", newValue: "1" }] },
+            { keyPath: "HKCU\\Foo", name: "Second", values: [{ valueName: "B", valueType: "REG_SZ", newValue: "2" }] },
         ];
         const text = buildRegFileText(asGroups(items));
-        expect(text.split("[HKEY_CURRENT_USER").length - 1).toBe(1);
+        expect(text.split("[HKEY_CURRENT_USER\\Foo]").length - 1).toBe(2);
+        expect(text).toContain("; First");
+        expect(text).toContain("; Second");
         expect(text).toContain('"A"="1"');
         expect(text).toContain('"B"="2"');
     });
 
-    it("emits subgroup names as comments and keeps their keys separate", () => {
+    it("emits group and child names as comments", () => {
         const groups: RegGroup[] = [
             {
                 name: "Parent",
@@ -201,13 +203,24 @@ describe("buildRegFileText", () => {
                     {
                         name: "Alpha",
                         items: [
-                            { keyPath: "HKCU\\Foo", values: [{ valueName: "A", valueType: "REG_SZ", newValue: "1" }] },
+                            {
+                                keyPath: "HKCU\\Foo",
+                                name: "Key A",
+                                values: [
+                                    { valueName: "A", valueType: "REG_SZ", newValue: "1" },
+                                    { valueName: "C", valueType: "REG_SZ", newValue: "3" },
+                                ],
+                            },
                         ],
                     },
                     {
                         name: "Beta",
                         items: [
-                            { keyPath: "HKCU\\Foo", values: [{ valueName: "B", valueType: "REG_SZ", newValue: "2" }] },
+                            {
+                                keyPath: "HKCU\\Foo",
+                                name: "Key B",
+                                values: [{ valueName: "B", valueType: "REG_SZ", newValue: "2" }],
+                            },
                         ],
                     },
                 ],
@@ -216,12 +229,22 @@ describe("buildRegFileText", () => {
         const text = buildRegFileText(groups);
         expect(text).toContain("; Parent");
         expect(text).toContain("; Alpha");
+        expect(text).toContain("; Key A");
         expect(text).toContain("; Beta");
-        // Same key appears once per subgroup — not merged across them.
+        expect(text).toContain("; Key B");
+        // Same key path once per child — not merged.
         expect(text.split("[HKEY_CURRENT_USER\\Foo]").length - 1).toBe(2);
-        expect(text.indexOf("; Alpha")).toBeLessThan(text.indexOf('"A"="1"'));
-        expect(text.indexOf("; Beta")).toBeLessThan(text.indexOf('"B"="2"'));
-        expect(text.indexOf('"A"="1"')).toBeLessThan(text.indexOf("; Beta"));
+        expect(text.indexOf("; Key A")).toBeLessThan(text.indexOf('"A"="1"'));
+        expect(text.indexOf('"A"="1"')).toBeLessThan(text.indexOf('"C"="3"'));
+        expect(text.indexOf('"C"="3"')).toBeLessThan(text.indexOf("; Beta"));
+        expect(text.indexOf("; Key B")).toBeLessThan(text.indexOf('"B"="2"'));
+    });
+
+    it("uses the key leaf as the child comment when no custom name is set", () => {
+        const items: RegItem[] = [
+            { keyPath: "HKCU\\SOFTWARE\\_tm_test", values: [{ valueName: "", valueType: "REG_SZ", newValue: "x" }] },
+        ];
+        expect(buildRegFileText(asGroups(items))).toContain("; _tm_test");
     });
 
     it("skips items that have no key path", () => {

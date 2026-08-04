@@ -20,6 +20,7 @@ import {
     isRegGroup,
     isRegItem,
     itemHasSubKey,
+    itemLabel,
 } from "./9-types-registry";
 
 const REG_HEADER = "Windows Registry Editor Version 5.00";
@@ -382,9 +383,9 @@ function truncate(s: string): string {
 // Serialization
 
 /**
- * Render the group tree as .reg text. Each subgroup gets a `; name` comment and
- * its own key sections — values are never merged across subgroup boundaries.
- * Within one group, sibling items that name the same key still share a section.
+ * Render the group tree as .reg text. Groups and key children each get a
+ * `; name` comment; each child is emitted as its own key section (even when
+ * siblings share a path) so a child's values stay under its name.
  * The backend re-encodes to UTF-16LE with CRLF on write.
  */
 export function buildRegFileText(groups: readonly RegGroup[]): string {
@@ -405,22 +406,13 @@ function appendGroup(group: RegGroup, lines: string[]): void {
         lines.push(`; ${name}`);
     }
 
-    // Flush pending items before each nested group so keys don't merge across it.
-    let pending: RegItem[] = [];
-    const flush = () => {
-        appendItemSections(pending, lines);
-        pending = [];
-    };
-
     for (const node of group.items ?? []) {
         if (isRegItem(node)) {
-            pending.push(node);
+            appendItem(node, lines);
         } else if (isRegGroup(node)) {
-            flush();
             appendGroup(node, lines);
         }
     }
-    flush();
 }
 
 function groupHasExportableContent(group: RegGroup): boolean {
@@ -435,29 +427,18 @@ function groupHasExportableContent(group: RegGroup): boolean {
     return false;
 }
 
-/** Merge same-key sibling items into sections, preserving first-seen key order. */
-function appendItemSections(items: readonly RegItem[], lines: string[]): void {
-    const byKey = new Map<string, RegValue[]>();
-    for (const item of items) {
-        if (!itemHasSubKey(item)) {
-            continue;
-        }
-        const key = formatItemKeyPath(item);
-        const bucket = byKey.get(key);
-        if (bucket) {
-            bucket.push(...(item.values ?? []));
-        } else {
-            byKey.set(key, [...(item.values ?? [])]);
-        }
+/** One key child: `; display name`, then its key section and values. */
+function appendItem(item: RegItem, lines: string[]): void {
+    if (!itemHasSubKey(item)) {
+        return;
     }
 
-    for (const [key, values] of byKey) {
-        lines.push(`[${key}]`);
-        for (const value of values) {
-            lines.push(formatValueLine(value));
-        }
-        lines.push("");
+    lines.push(`; ${itemLabel(item)}`);
+    lines.push(`[${formatItemKeyPath(item)}]`);
+    for (const value of item.values ?? []) {
+        lines.push(formatValueLine(value));
     }
+    lines.push("");
 }
 
 function formatValueLine(value: RegValue): string {
