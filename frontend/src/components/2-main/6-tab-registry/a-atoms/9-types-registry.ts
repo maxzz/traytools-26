@@ -159,8 +159,8 @@ export type RegEditorStore = {
     selectedUid: string | null;
     /**
      * Uids of collapsed folders in the tree UI (root + groups).
-     * Persisted as index paths in localStorage so state survives remounts
-     * and uid reassignment on reload.
+     * Persisted per filename as index-path ids in a separate localStorage map
+     * so each file keeps its own expand state across import/reload.
      */
     collapsedUids: string[];
     /**
@@ -581,8 +581,8 @@ export function parseRegSelectionPath(value: unknown): RegSelectionPath | null {
 // ---------------------------------------------------------------------------
 // Collapsed tree paths (survive remounts and uid reassignment)
 //
-// Live state uses uids (reorder-safe). Persistence uses the same index-path
-// scheme as selection: "root" for Groups, or dotted paths ("0", "0.2").
+// Live state uses uids (reorder-safe). Persistence (per filename) uses the
+// same index-path scheme as selection: "root" for Groups, or "0", "0.2".
 
 const ROOT_COLLAPSE_KEY = "root";
 

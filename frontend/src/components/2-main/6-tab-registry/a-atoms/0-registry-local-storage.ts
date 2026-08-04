@@ -26,13 +26,20 @@ import { DEFAULT_REGISTRY_CONFIG } from "./8-default-config";
 // Store
 
 export const STORAGE_ID = "traytools-26__registry__v1.0";
+/** Per-filename collapsed folder ids (index paths). Separate from the config cache. */
+export const COLLAPSE_STORAGE_ID = "traytools-26__registry-collapsed__v1.0";
 
 type RegCache = {
     config: RegConfig;
     rootUid: string;
     selectedPath: RegSelectionPath | null;
-    collapsedPaths: string[];
 };
+
+/** Map of filename → collapsed node ids for that file. */
+type CollapseByFile = Record<string, string[]>;
+
+/** Placeholder key while the editor has no path (new / unsaved). */
+const UNSAVED_COLLAPSE_KEY = "__unsaved__";
 
 const cached = readCache();
 const initialConfig = cached?.config ?? cloneConfig(DEFAULT_REGISTRY_CONFIG);
@@ -43,11 +50,10 @@ const initialSelectedUid = uidFromSelectionPath(
     rootHolder.rootUid,
     cached?.selectedPath ?? { kind: "root" },
 );
-const initialCollapsedUids = collapsedUidsFromPaths(
-    initialConfig,
-    rootHolder.rootUid,
-    cached?.collapsedPaths ?? [],
-);
+// Move any pre-per-file collapsedPaths into the map (default working file name).
+migrateLegacyCollapsedPaths();
+// Path is unknown until RegistryConfig_Load; start from the unsaved slot.
+const initialCollapsedUids = loadCollapsedUidsForFile("", initialConfig, rootHolder.rootUid);
 
 export const registryEditorStore = proxy<RegEditorStore>({
     config: initialConfig,
@@ -65,10 +71,11 @@ export const registryEditorStore = proxy<RegEditorStore>({
 });
 
 subscribe(registryEditorStore, () => {
-    writeCache(
+    writeCache(registryEditorStore.config, registryEditorStore.rootUid, registryEditorStore.selectedUid);
+    saveCollapsedUidsForFile(
+        registryEditorStore.path,
         registryEditorStore.config,
         registryEditorStore.rootUid,
-        registryEditorStore.selectedUid,
         registryEditorStore.collapsedUids,
     );
     syncDirty(registryEditorStore);
@@ -105,7 +112,6 @@ export function readCache(): RegCache | null {
             config?: RegConfig;
             rootUid?: string;
             selectedPath?: unknown;
-            collapsedPaths?: unknown;
         };
         if (parsed?.config && Array.isArray(parsed.config.groups)) {
             return {
@@ -114,7 +120,6 @@ export function readCache(): RegCache | null {
                 config: normalizeRegConfig(parsed.config),
                 rootUid: parsed.rootUid ?? "",
                 selectedPath: parseRegSelectionPath(parsed.selectedPath),
-                collapsedPaths: parseCollapsedPaths(parsed.collapsedPaths),
             };
         }
     } catch (e) {
@@ -127,12 +132,10 @@ export function writeCache(
     config: RegConfig,
     rootUid: string,
     selectedUid: string | null = registryEditorStore.selectedUid,
-    collapsedUids: string[] = registryEditorStore.collapsedUids,
 ) {
     try {
         const selectedPath = selectionPathFromUid(config, rootUid, selectedUid);
-        const collapsedPaths = collapsedPathsFromUids(config, rootUid, collapsedUids);
-        localStorage.setItem(STORAGE_ID, JSON.stringify({ config, rootUid, selectedPath, collapsedPaths }));
+        localStorage.setItem(STORAGE_ID, JSON.stringify({ config, rootUid, selectedPath }));
     } catch (e) {
         console.error("Failed to cache registry config", e);
     }
@@ -150,6 +153,118 @@ export function toggleRegistryCollapsed(uid: string): void {
     } else {
         uids.push(uid);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Per-filename collapsed tree state
+//
+// Keys are filenames (basename of the working path). Values are stable index-
+// path ids ("root", "0", "0.2"). On load/import, ids that no longer resolve
+// are dropped and the pruned list is written back for that file.
+
+function collapseFileKey(path: string): string {
+    const name = fileBaseName(path);
+    return name || UNSAVED_COLLAPSE_KEY;
+}
+
+function readCollapseByFile(): CollapseByFile {
+    try {
+        const stored = localStorage.getItem(COLLAPSE_STORAGE_ID);
+        if (!stored) {
+            return {};
+        }
+        const parsed = JSON.parse(stored) as unknown;
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+            return {};
+        }
+        const out: CollapseByFile = {};
+        for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+            if (typeof key === "string" && key) {
+                out[key] = parseCollapsedPaths(value);
+            }
+        }
+        return out;
+    } catch (e) {
+        console.error("Failed to read registry collapse state", e);
+        return {};
+    }
+}
+
+function writeCollapseByFile(map: CollapseByFile): void {
+    try {
+        localStorage.setItem(COLLAPSE_STORAGE_ID, JSON.stringify(map));
+    } catch (e) {
+        console.error("Failed to cache registry collapse state", e);
+    }
+}
+
+/**
+ * One-time move of collapsedPaths that used to live in the config cache into
+ * the per-file map under the default working filename.
+ */
+function migrateLegacyCollapsedPaths(): void {
+    try {
+        const stored = localStorage.getItem(STORAGE_ID);
+        if (!stored) {
+            return;
+        }
+        const parsed = JSON.parse(stored) as { collapsedPaths?: unknown; };
+        if (parsed.collapsedPaths === undefined) {
+            return;
+        }
+        const paths = parseCollapsedPaths(parsed.collapsedPaths);
+        delete parsed.collapsedPaths;
+        localStorage.setItem(STORAGE_ID, JSON.stringify(parsed));
+
+        if (!paths.length) {
+            return;
+        }
+        const map = readCollapseByFile();
+        // Prefer the usual on-disk name; only fill if that slot is still empty.
+        if (!map["registry.json"]?.length) {
+            map["registry.json"] = paths;
+            writeCollapseByFile(map);
+        }
+    } catch {
+        // ignore corrupt legacy cache
+    }
+}
+
+/**
+ * Restore collapsed uids for `path`, pruning ids that no longer exist in
+ * `config`. Writes the pruned id list back under that filename.
+ */
+function loadCollapsedUidsForFile(path: string, config: RegConfig, rootUid: string): string[] {
+    const key = collapseFileKey(path);
+    const map = readCollapseByFile();
+    const stored = map[key] ?? [];
+    const uids = collapsedUidsFromPaths(config, rootUid, stored);
+    const pruned = collapsedPathsFromUids(config, rootUid, uids);
+    if (pruned.length) {
+        map[key] = pruned;
+    } else {
+        delete map[key];
+    }
+    writeCollapseByFile(map);
+    return uids;
+}
+
+/** Persist current collapsed uids under the filename for `path` (pruned). */
+function saveCollapsedUidsForFile(
+    path: string,
+    config: RegConfig,
+    rootUid: string,
+    collapsedUids: string[],
+): void {
+    const key = collapseFileKey(path);
+    const map = readCollapseByFile();
+    const pruned = collapsedPathsFromUids(config, rootUid, collapsedUids);
+    if (pruned.length) {
+        map[key] = pruned;
+    } else {
+        delete map[key];
+    }
+    writeCollapseByFile(map);
 }
 
 // Config functions
@@ -202,16 +317,19 @@ export async function RegistryConfig_Load(options?: { notify?: boolean; }): Prom
 }
 
 function RegistryConfig_Set(config: RegConfig, source: RegSource, path = "", fileExists = source === "file") {
-    // Capture selection / collapse as index paths before ensureUids reassigns runtime uids.
+    // Persist collapse for the file we're leaving (keyed by its filename).
+    saveCollapsedUidsForFile(
+        registryEditorStore.path,
+        registryEditorStore.config,
+        registryEditorStore.rootUid,
+        registryEditorStore.collapsedUids,
+    );
+
+    // Capture selection as an index path before ensureUids reassigns runtime uids.
     const pathToRestore = selectionPathFromUid(
         registryEditorStore.config,
         registryEditorStore.rootUid,
         registryEditorStore.selectedUid,
-    );
-    const collapsedPathsToRestore = collapsedPathsFromUids(
-        registryEditorStore.config,
-        registryEditorStore.rootUid,
-        registryEditorStore.collapsedUids,
     );
 
     const holder = { rootUid: registryEditorStore.rootUid };
@@ -225,11 +343,8 @@ function RegistryConfig_Set(config: RegConfig, source: RegSource, path = "", fil
     registryEditorStore.dirty = false;
     registryEditorStore.error = "";
     registryEditorStore.selectedUid = uidFromSelectionPath(config, holder.rootUid, pathToRestore);
-    registryEditorStore.collapsedUids = collapsedUidsFromPaths(
-        config,
-        holder.rootUid,
-        collapsedPathsToRestore,
-    );
+    // Restore (and prune obsolete ids for) the file we're opening.
+    registryEditorStore.collapsedUids = loadCollapsedUidsForFile(path, config, holder.rootUid);
 }
 
 export async function RegistryConfig_Save(): Promise<void> {
