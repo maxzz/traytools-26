@@ -52,8 +52,6 @@ import { COL, HeaderRow } from "./3-3-3-props-item-values-header";
 export function Field_ItemValues({ item }: { item: RegItem; }) {
     const values = item.values ?? [];
     const uids = values.map((value) => value.uid ?? "");
-    const canDelete = values.length > 1;
-    const hasKey = itemHasSubKey(item);
 
     return (
         <div className="flex flex-col gap-0.5">
@@ -96,8 +94,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                             <ValueRow
                                 key={value.uid}
                                 value={value}
-                                canDelete={canDelete}
-                                hasKey={hasKey}
+                                item={item}
                                 isLast={index === values.length - 1}
                             />
                         )
@@ -108,13 +105,10 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
     );
 }
 
-function ValueRow({ value, canDelete, hasKey, isLast }: { value: RegValue; canDelete: boolean; hasKey: boolean; isLast: boolean; }) {
+function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isLast: boolean; }) {
     const controls = useDragControls();
     const [isDragging, setIsDragging] = useState(false);
-    const readValue = useSetAtom(doAsyncRegReadValueAtom);
-    const writeValue = useSetAtom(doAsyncRegWriteValueAtom);
     const uid = value.uid ?? "";
-    const runnable = hasKey && !!uid;
     const multiline = value.valueType === "REG_MULTI_SZ" || value.valueType === "REG_BINARY";
 
     return (
@@ -179,47 +173,58 @@ function ValueRow({ value, canDelete, hasKey, isLast }: { value: RegValue; canDe
 
             <CurrentValueCell value={value} />
 
-            <div className={cn(COL.actions, "h-7 flex items-center justify-end gap-0.5")}>
-                <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    type="button"
-                    className="size-6"
-                    disabled={!runnable}
-                    title={runnable ? "Read this value from the registry" : "Set a key path first"}
-                    aria-label="Read current value"
-                    onClick={() => void readValue(uid)}
-                >
-                    <ArrowDownToLine className="size-3" />
-                </Button>
-
-                <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    type="button"
-                    className="size-6"
-                    disabled={!runnable}
-                    title={runnable ? "Write this value to the registry" : "Set a key path first"}
-                    aria-label="Write this value"
-                    onClick={() => void writeValue(uid)}
-                >
-                    <PencilLine className="size-3" />
-                </Button>
-
-                <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    type="button"
-                    className="size-6 text-muted-foreground hover:text-destructive"
-                    disabled={!canDelete}
-                    title={canDelete ? "Delete this value" : "A key keeps at least one value"}
-                    aria-label="Delete this value"
-                    onClick={() => removeSelectedItemValue(uid)}
-                >
-                    <Trash2 className="size-3" />
-                </Button>
-            </div>
+            <ValueRowActions uid={uid} item={item} />
         </Reorder.Item>
+    );
+}
+
+function ValueRowActions({ uid, item }: { uid: string; item: RegItem; }) {
+    const readValue = useSetAtom(doAsyncRegReadValueAtom);
+    const writeValue = useSetAtom(doAsyncRegWriteValueAtom);
+    const runnable = itemHasSubKey(item) && !!uid;
+    const canDelete = (item.values?.length ?? 0) > 1;
+
+    return (
+        <div className={cn(COL.actions, "h-7 flex items-center justify-end gap-0.5")}>
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="size-6"
+                disabled={!runnable}
+                title={runnable ? "Read this value from the registry" : "Set a key path first"}
+                aria-label="Read current value"
+                onClick={() => void readValue(uid)}
+            >
+                <ArrowDownToLine className="size-3" />
+            </Button>
+
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="size-6"
+                disabled={!runnable}
+                title={runnable ? "Write this value to the registry" : "Set a key path first"}
+                aria-label="Write this value"
+                onClick={() => void writeValue(uid)}
+            >
+                <PencilLine className="size-3" />
+            </Button>
+
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="size-6 text-muted-foreground hover:text-destructive"
+                disabled={!canDelete}
+                title={canDelete ? "Delete this value" : "A key keeps at least one value"}
+                aria-label="Delete this value"
+                onClick={() => removeSelectedItemValue(uid)}
+            >
+                <Trash2 className="size-3" />
+            </Button>
+        </div>
     );
 }
 
