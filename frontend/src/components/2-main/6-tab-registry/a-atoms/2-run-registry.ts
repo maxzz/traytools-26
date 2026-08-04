@@ -10,6 +10,7 @@ import {
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { notice } from "@/ui/local-ui/7-toaster";
+import { isNumericRegType, tryParseRegNumber } from "./7-reg-file-format";
 import {
     type RegGroup,
     type RegItem,
@@ -55,7 +56,16 @@ export function clearRegistryReads(): void {
 
 /** True when the value on the machine already equals what the editor would write. */
 export function readMatchesDesired(read: RegReadState | undefined, value: Pick<RegValue, "valueType" | "newValue">): boolean {
-    return !!read && !read.loading && read.exists && read.valueType === value.valueType && read.value === value.newValue;
+    if (!read || read.loading || !read.exists || read.valueType !== value.valueType) {
+        return false;
+    }
+    // DWORD/QWORD may be shown as decimal in one column and 0x hex in the other.
+    if (isNumericRegType(value.valueType)) {
+        const a = tryParseRegNumber(read.value ?? "");
+        const b = tryParseRegNumber(value.newValue);
+        return a !== null && b !== null && a === b;
+    }
+    return read.value === value.newValue;
 }
 
 // ---------------------------------------------------------------------------
@@ -121,6 +131,12 @@ function findJob(uid: string): RegJobReport | undefined {
  * the root props pane had been mounted at least once.
  */
 export const confirmRegistryWritesAtom = atomWithStorage("reg.confirmWrites", true, undefined, { getOnInit: true });
+
+/** Display radix for DWORD/QWORD in the Values table "New value" column. */
+export type RegNumericRadix = 10 | 16;
+
+export const newValueRadixAtom = atomWithStorage<RegNumericRadix>("reg.newValueRadix", 10);
+export const currentValueRadixAtom = atomWithStorage<RegNumericRadix>("reg.currentValueRadix", 10);
 
 // ---------------------------------------------------------------------------
 // Helpers

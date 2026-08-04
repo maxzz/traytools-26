@@ -488,6 +488,56 @@ function parseBigIntValue(text: string): bigint {
     }
 }
 
+/** True for types whose text form is an integer (decimal or 0x hex). */
+export function isNumericRegType(type: RegValueType): boolean {
+    return type === "REG_DWORD" || type === "REG_QWORD";
+}
+
+/** Parse a DWORD/QWORD text field; null when the text is empty or not a whole number. */
+export function tryParseRegNumber(text: string): bigint | null {
+    const s = text.trim();
+    if (!s) {
+        return null;
+    }
+    try {
+        if (/^0[xX][0-9a-fA-F]+$/.test(s)) {
+            return BigInt(s);
+        }
+        if (/^\d+$/.test(s)) {
+            return BigInt(s);
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Show a numeric registry value in the requested radix.
+ * Leaves the text alone when it is already in that form (avoids cursor jumps while editing)
+ * or when it cannot be parsed.
+ */
+export function formatRegNumericText(text: string, radix: 10 | 16): string {
+    const s = text.trim();
+    if (!s) {
+        return text;
+    }
+    const n = tryParseRegNumber(s);
+    if (n === null) {
+        return text;
+    }
+    if (radix === 16) {
+        if (/^0[xX][0-9a-fA-F]+$/.test(s)) {
+            return text;
+        }
+        return `0x${n.toString(16)}`;
+    }
+    if (/^\d+$/.test(s)) {
+        return text;
+    }
+    return n.toString(10);
+}
+
 export function parseBinaryText(text: string): number[] {
     const cleaned = text.replace(/[,\s:-]/g, "");
     const out: number[] = [];
