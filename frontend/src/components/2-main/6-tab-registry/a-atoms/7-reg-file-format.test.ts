@@ -238,8 +238,10 @@ describe("buildRegFileText", () => {
         expect(text.indexOf('"A"="1"')).toBeLessThan(text.indexOf('"C"="3"'));
         expect(text.indexOf('"C"="3"')).toBeLessThan(text.indexOf("; Group: Beta"));
         expect(text.indexOf("; Key B")).toBeLessThan(text.indexOf('"B"="2"'));
-        // One blank line after each group before the next group comment.
-        expect(text).toMatch(/"C"="3"\n\n; Group: Beta/);
+        // Blank line right after each group name comment.
+        expect(text).toMatch(/; Group: Parent\n\n; Group: Alpha/);
+        expect(text).toMatch(/; Group: Alpha\n\n; Key A/);
+        expect(text).toMatch(/; Group: Beta\n\n; Key B/);
     });
 
     it("uses the key leaf as the child comment when no custom name is set", () => {
