@@ -2,7 +2,7 @@ import { useState, type PointerEvent } from "react";
 import { useSetAtom } from "jotai";
 import { cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
-import { Reorder, useDragControls } from "motion/react";
+import { Reorder, useDragControls, type DragControls } from "motion/react";
 import { ArrowDownToLine, GripVertical, PencilLine, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
@@ -84,7 +84,7 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             dragControls={controls}
             // Index-based last-row styles: Motion can freeze :last-child rules as inline styles.
             className={cn(
-                "relative px-1 py-1 bg-background flex items-start gap-1",
+                "relative pl-px pr-1.5 bg-background flex items-start",
                 !isLast && "border-b",
                 isLast && "rounded-b",
                 isDragging && "z-10 scale-[1.01] shadow-[0_4px_12px_0_rgb(0_0_0/0.18)]",
@@ -92,22 +92,8 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             onDragStart={() => setIsDragging(true)}
             onDragEnd={() => setIsDragging(false)}
         >
-            <button
-                className={cn(COL.handle, "h-7 text-muted-foreground/60 hover:text-foreground touch-none cursor-grab active:cursor-grabbing flex items-center justify-center")}
-                type="button"
-                title="Drag to reorder"
-                aria-label="Drag to reorder value"
-                tabIndex={-1}
-                onPointerDown={(e: PointerEvent) => {
-                    e.preventDefault();
-                    controls.start(e);
-                }}
-            >
-                <GripVertical className="size-3.5" />
-            </button>
-
             <Input
-                className={cn(COL.name, "px-1.5 h-7 text-[0.72rem]")}
+                className={cn(COL.name, "px-1.5 py-0! h-7 text-[0.72rem]")}
                 value={value.valueName}
                 placeholder="(Default)"
                 title={valueDisplayName(value.valueName)}
@@ -117,12 +103,9 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             />
 
             <Column_Type uid={uid} valueType={value.valueType} />
-
             <Column_NewValueCell uid={uid} value={value} />
-
             <Column_CurrentValue value={value} />
-
-            <Column_RowActions uid={uid} item={item} />
+            <Column_RowActions uid={uid} item={item} controls={controls} />
         </Reorder.Item>
     );
 }
@@ -155,14 +138,42 @@ function Column_Type({ uid, valueType }: { uid: string; valueType: RegValueType;
     );
 }
 
-function Column_RowActions({ uid, item }: { uid: string; item: RegItem; }) {
+function Column_RowActions({ uid, item, controls }: { uid: string; item: RegItem; controls: DragControls; }) {
     const readValue = useSetAtom(doAsyncRegReadValueAtom);
     const writeValue = useSetAtom(doAsyncRegWriteValueAtom);
     const runnable = itemHasSubKey(item) && !!uid;
     const canDelete = (item.values?.length ?? 0) > 1;
 
     return (
-        <div className={cn(COL.actions, "h-7 flex items-center justify-end gap-0.5")}>
+        <div className={cn(COL.actions, "ml-4 h-7 flex items-center justify-end gap-0.5")}>
+            <button
+                className={cn(COL.handle, "h-7 text-muted-foreground/60 hover:text-foreground touch-none cursor-grab active:cursor-grabbing flex items-center justify-center")}
+                type="button"
+                title="Drag to reorder"
+                aria-label="Drag to reorder value"
+                tabIndex={-1}
+                onPointerDown={(e: PointerEvent) => {
+                    e.preventDefault();
+                    controls.start(e);
+                }}
+            >
+                <GripVertical className="size-3" />
+            </button>
+
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="mr-2 size-6 text-muted-foreground hover:text-destructive"
+                disabled={!canDelete}
+                title={canDelete ? "Delete this value" : "A key keeps at least one value"}
+                aria-label="Delete this value"
+                onClick={() => removeSelectedItemValue(uid)}
+            >
+                <Trash2 className="size-3" />
+            </Button>
+
+
             <Button
                 variant="ghost"
                 size="icon-xs"
@@ -189,18 +200,6 @@ function Column_RowActions({ uid, item }: { uid: string; item: RegItem; }) {
                 <PencilLine className="size-3" />
             </Button>
 
-            <Button
-                variant="ghost"
-                size="icon-xs"
-                type="button"
-                className="size-6 text-muted-foreground hover:text-destructive"
-                disabled={!canDelete}
-                title={canDelete ? "Delete this value" : "A key keeps at least one value"}
-                aria-label="Delete this value"
-                onClick={() => removeSelectedItemValue(uid)}
-            >
-                <Trash2 className="size-3" />
-            </Button>
         </div>
     );
 }

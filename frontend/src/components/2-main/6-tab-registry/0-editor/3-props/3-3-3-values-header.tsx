@@ -7,7 +7,6 @@ import { type RegHexPadMode, type RegHexPrefixMode, currentValueHexPadAtom, curr
 export function HeaderRow() {
     return (
         <div className={classNames(labelClasses, "px-1 py-0.5 bg-muted/50 border-b rounded-t flex items-center gap-1")}>
-            <span className={COL.handle} />
             <span className={classNames(COL.name, "pl-1.5")}>Value name</span>
             <span className={classNames(COL.type, "pl-1.5")}>Type</span>
             <Column_Value className={COL.newValue} label="New value" newOrCurrent />
@@ -24,7 +23,8 @@ export const COL = {
     type: "w-22 shrink-0",
     newValue: "flex-[1.3] min-w-16",
     current: "flex-1 min-w-16",
-    actions: "w-[4.75rem] shrink-0",
+    /** Read / write / delete icons + trailing drag handle. */
+    actions: "w-[5.75rem] shrink-0",
 };
 
 /** Column title on the left; the three format toggles stay right-aligned in the column. */
