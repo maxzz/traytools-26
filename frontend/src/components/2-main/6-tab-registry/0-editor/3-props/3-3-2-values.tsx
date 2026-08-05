@@ -12,7 +12,7 @@ import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-fi
 import { type RegItem, type RegValue, type RegValueType, REG_VALUE_TYPES, VALUE_TYPE_LONG_LABELS, VALUE_TYPE_SHORT_LABELS, itemHasSubKey, valueDisplayName } from "../../a-atoms/9-types-registry";
 import { doAsyncRegReadValueAtom, doAsyncRegWriteValueAtom, } from "../../a-atoms/2-run-registry";
 import { addSelectedItemValue, patchSelectedValue, removeSelectedItemValue, reorderSelectedItemValues } from "../../a-atoms/use-selected-node";
-import { COL, HeaderRow, SUBGRID_ROW, TABLE_GRID } from "./3-3-3-values-header";
+import { COL_Classes, HeaderRow, SUBGRID_ROW_Classes, TABLE_GRID_Classes } from "./3-3-3-values-header";
 import { Column_NewValueCell } from "./3-3-4-values-value-new";
 import { Column_CurrentValue } from "./3-3-5-values-value-current";
 
@@ -46,7 +46,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                 </Button>
             </div>
 
-            <div className={cn("border rounded", TABLE_GRID)}>
+            <div className={cn("border rounded", TABLE_GRID_Classes)}>
                 <HeaderRow item={item} />
 
                 <Reorder.Group
@@ -54,7 +54,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                     axis="y"
                     values={uids}
                     onReorder={reorderSelectedItemValues}
-                    className={cn(SUBGRID_ROW, "m-0 p-0 list-none")}
+                    className={cn(SUBGRID_ROW_Classes, "m-0 p-0 list-none")}
                 >
                     {values.map(
                         (value, index) => (
@@ -84,7 +84,7 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             dragControls={controls}
             // Index-based last-row styles: Motion can freeze :last-child rules as inline styles.
             className={cn(
-                SUBGRID_ROW,
+                SUBGRID_ROW_Classes,
                 "relative bg-background items-start",
                 !isLast && "border-b",
                 isLast && "rounded-b",
@@ -94,7 +94,7 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             onDragEnd={() => setIsDragging(false)}
         >
             <Input
-                className={cn(COL.name, "w-full px-1.5 py-0! h-7 text-[0.72rem]")}
+                className={cn(COL_Classes.name, "w-full px-1.5 py-0! h-7 text-[0.72rem]")}
                 value={value.valueName}
                 placeholder="(Default)"
                 title={valueDisplayName(value.valueName)}
@@ -117,7 +117,7 @@ function Column_Type({ uid, valueType }: { uid: string; valueType: RegValueType;
     return (
         <Select value={valueType} onValueChange={(next) => patchSelectedValue(uid, (v) => { v.valueType = next as RegValueType; })}>
             <SelectTrigger
-                className={cn(COL.type, "w-full px-1.5 h-7! text-[0.72rem] [&>svg]:size-2.5")}
+                className={cn(COL_Classes.type, "w-full px-1.5 h-7! text-[0.72rem] [&>svg]:size-2.5")}
                 title={VALUE_TYPE_LONG_LABELS[valueType]}
                 aria-label="Value type"
                 onPointerDown={(e) => e.stopPropagation()}
@@ -146,9 +146,9 @@ function Column_RowActions({ uid, item, controls }: { uid: string; item: RegItem
     const canDelete = (item.values?.length ?? 0) > 1;
 
     return (
-        <div className={cn(COL.actions, "h-7 flex items-center justify-end gap-0.5")}>
+        <div className={cn(COL_Classes.actions, "h-7 flex items-center justify-end gap-0.5")}>
             <button
-                className={cn(COL.handle, "h-7 text-muted-foreground/60 hover:text-foreground touch-none cursor-grab active:cursor-grabbing flex items-center justify-center")}
+                className={cn(COL_Classes.handle, "h-7 text-muted-foreground/60 hover:text-foreground touch-none cursor-grab active:cursor-grabbing flex items-center justify-center")}
                 type="button"
                 title="Drag to reorder"
                 aria-label="Drag to reorder value"

@@ -20,31 +20,31 @@ import {
 
 /**
  * Parent grid for the values table: name | type | new value | current | actions.
- * Header and each body row use {@link SUBGRID_ROW} so they share these tracks.
+ * Header and each body row use {@link SUBGRID_ROW_Classes} so they share these tracks.
  */
-export const TABLE_GRID =
-    "grid grid-cols-[minmax(0,1.1fr)_5.5rem_minmax(0,1.3fr)_minmax(0,1fr)_6.5rem] gap-x-1 px-1";
+export const TABLE_GRID_Classes =
+    "grid grid-cols-[minmax(0,1.2fr)_70px_minmax(0,1.3fr)_minmax(0,1.3fr)_6.5rem] gap-x-1";
 
 /** One table row that inherits the parent column tracks via CSS subgrid. */
-export const SUBGRID_ROW = "col-span-full grid grid-cols-subgrid";
+export const SUBGRID_ROW_Classes = "col-span-full grid grid-cols-subgrid";
 
 /** Per-cell helpers (widths come from the parent grid, not from these classes). */
-export const COL = {
+export const COL_Classes = {
     handle: "w-4 shrink-0",
-    name: "min-w-0",
-    type: "min-w-0",
-    newValue: "min-w-0",
-    current: "min-w-0",
+    name: "pl-1.25 min-w-0",
+    type: "pl-1.25 min-w-0",
+    newValue: "pl-1.25 min-w-0",
+    current: "pl-1.25 min-w-0",
     actions: "min-w-0",
 };
 
 export function HeaderRow({ item }: { item: RegItem; }) {
     return (
-        <div className={classNames(labelClasses, SUBGRID_ROW, "py-0.5 bg-muted/50 border-b rounded-t items-center")}>
-            <span className={COL.name}>Value name</span>
-            <span className={COL.type}>Type</span>
-            <Column_Value className={COL.newValue} label="New value" newOrCurrent />
-            <Column_Value className={COL.current} label="Current" />
+        <div className={classNames(labelClasses, SUBGRID_ROW_Classes, "py-0.5 bg-muted/50 border-b rounded-t items-center")}>
+            <span className={COL_Classes.name}>Value name</span>
+            <span className={COL_Classes.type}>Type</span>
+            <Column_Value className={COL_Classes.newValue} label="New value" newOrCurrent />
+            <Column_Value className={COL_Classes.current} label="Current" />
             <Column_HeaderActions item={item} />
         </div>
     );
@@ -127,8 +127,8 @@ function Column_HeaderActions({ item }: { item: RegItem; }) {
     const runnable = itemHasSubKey(item) && !!uid;
 
     return (
-        <div className={classNames(COL.actions, "h-5 flex items-center justify-end gap-0.5")}>
-            <span className={COL.handle} aria-hidden />
+        <div className={classNames(COL_Classes.actions, "h-5 flex items-center justify-end gap-0.5")}>
+            <span className={COL_Classes.handle} aria-hidden />
             <span className="mr-2 size-6" aria-hidden />
             <Button
                 variant="ghost"

@@ -10,7 +10,7 @@ import { type RegValue, type RegValueType, VALUE_TYPE_LONG_LABELS } from "../../
 import { type RegHexPadMode, type RegHexPrefixMode, type RegNumericRadix, newValueHexPadAtom, newValueHexPrefixAtom, newValueRadixAtom } from "../../a-atoms/2-run-registry";
 import { formatRegNumericText, isNumericRegType, toStoredRegNumericText } from "../../a-atoms/7-reg-file-format";
 import { patchSelectedValue } from "../../a-atoms/use-selected-node";
-import { COL } from "./3-3-3-values-header";
+import { COL_Classes } from "./3-3-3-values-header";
 
 // New-value column: inline edit for simple types, Edit dialog for expandable / binary / multi-string.
 
@@ -46,7 +46,7 @@ function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }
     return (
         <>
             <div
-                className={cn(COL.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")}
+                className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")}
                 title={valueHint(value.valueType)}
             >
                 <span
@@ -145,7 +145,7 @@ function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
 
     return (
         <Input
-            className={cn(COL.newValue, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "font-mono")}
+            className={cn(COL_Classes.newValue, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "font-mono")}
             value={shown}
             placeholder={numericPlaceholder(value.valueType, radix, hexPrefix, hexPad)}
             title={valueHint(value.valueType, radix, hexPrefix, hexPad)}

@@ -13,7 +13,7 @@ import {
     currentValueHexPadAtom, currentValueHexPrefixAtom, currentValueRadixAtom, readMatchesDesired, registryReadStore
 } from "../../a-atoms/2-run-registry";
 import { formatRegNumericText, isNumericRegType } from "../../a-atoms/7-reg-file-format";
-import { COL } from "./3-3-3-values-header";
+import { COL_Classes } from "./3-3-3-values-header";
 import { usesValueDialog } from "./3-3-4-values-value-new";
 
 // Current-value column: read-back display with a View dialog for expandable / binary / multi-string.
@@ -41,7 +41,7 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
     return (<>
         <div
             className={cn(
-                COL.current,
+                COL_Classes.current,
                 "w-full pl-1.5 pr-0.5 h-7 text-[0.72rem] bg-muted/40 border border-transparent rounded flex items-center gap-1",
             )}
             title={title}
