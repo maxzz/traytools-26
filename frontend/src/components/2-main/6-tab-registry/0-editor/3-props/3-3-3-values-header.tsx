@@ -1,25 +1,16 @@
 import { useAtom } from "jotai";
-import { cn } from "@/utils/classnames";
+import { classNames } from "@/utils/classnames";
 import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
-import {
-    type RegHexPadMode,
-    type RegHexPrefixMode,
-    currentValueHexPadAtom,
-    currentValueHexPrefixAtom,
-    currentValueRadixAtom,
-    newValueHexPadAtom,
-    newValueHexPrefixAtom,
-    newValueRadixAtom,
-} from "../../a-atoms/2-run-registry";
+import { type RegHexPadMode, type RegHexPrefixMode, currentValueHexPadAtom, currentValueHexPrefixAtom, currentValueRadixAtom, newValueHexPadAtom, newValueHexPrefixAtom, newValueRadixAtom } from "../../a-atoms/2-run-registry";
 
 export function HeaderRow() {
     return (
-        <div className={cn(labelClasses, "px-1 py-0.5 bg-muted/50 border-b rounded-t flex items-center gap-1")}>
+        <div className={classNames(labelClasses, "px-1 py-0.5 bg-muted/50 border-b rounded-t flex items-center gap-1")}>
             <span className={COL.handle} />
             <span className={COL.name}>Value name</span>
             <span className={COL.type}>Type</span>
-            <ValueColumnHeader className={COL.newValue} label="New value" newOrCurrent />
-            <ValueColumnHeader className={COL.current} label="Current" newOrCurrent={false} />
+            <Column_Value className={COL.newValue} label="New value" newOrCurrent />
+            <Column_Value className={COL.current} label="Current" />
             <span className={COL.actions} />
         </div>
     );
@@ -36,17 +27,9 @@ export const COL = {
 };
 
 /** Column title on the left; the three format toggles stay right-aligned in the column. */
-function ValueColumnHeader({
-    className,
-    label,
-    newOrCurrent,
-}: {
-    className: string;
-    label: string;
-    newOrCurrent: boolean;
-}) {
+function Column_Value({ className, label, newOrCurrent }: { className: string; label: string; newOrCurrent?: boolean; }) {
     return (
-        <span className={cn(className, "min-w-0 flex items-center gap-0.5")}>
+        <span className={classNames(className, "min-w-0 flex items-center gap-0.5")}>
             <span className="truncate">{label}</span>
             <span className="ml-auto inline-flex items-center gap-0.5 shrink-0">
                 <RadixToggle newOrCurrent={newOrCurrent} />
@@ -58,7 +41,7 @@ function ValueColumnHeader({
 }
 
 /** Tiny 10 ↔ 16 toggle; stays inside the existing header row height. */
-function RadixToggle({ newOrCurrent }: { newOrCurrent: boolean; }) {
+function RadixToggle({ newOrCurrent }: { newOrCurrent?: boolean; }) {
     const [radix, setRadix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
     const next = radix === 10 ? 16 : 10;
     const column = newOrCurrent ? "New value" : "Current";
@@ -81,7 +64,7 @@ const headerToggleClasses =
     "px-0.5 h-3 min-w-3 text-[0.58rem] leading-none font-medium tabular-nums text-muted-foreground hover:text-foreground border border-border/70 rounded-sm disabled:opacity-40 disabled:pointer-events-none";
 
 /** Tiny 0x ↔ -- toggle: whether hex is shown/typed with a 0x prefix. */
-function HexPrefixToggle({ newOrCurrent }: { newOrCurrent: boolean; }) {
+function HexPrefixToggle({ newOrCurrent }: { newOrCurrent?: boolean; }) {
     const [radix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
     const [mode, setMode] = useAtom(newOrCurrent ? newValueHexPrefixAtom : currentValueHexPrefixAtom);
     const next: RegHexPrefixMode = mode === "0x" ? "none" : "0x";
@@ -104,7 +87,7 @@ function HexPrefixToggle({ newOrCurrent }: { newOrCurrent: boolean; }) {
 }
 
 /** Tiny 00 ↔ -- toggle: zero-pad hex to DWORD (8) / QWORD (16) width. */
-function HexPadToggle({ newOrCurrent }: { newOrCurrent: boolean; }) {
+function HexPadToggle({ newOrCurrent }: { newOrCurrent?: boolean; }) {
     const [radix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
     const [mode, setMode] = useAtom(newOrCurrent ? newValueHexPadAtom : currentValueHexPadAtom);
     const next: RegHexPadMode = mode === "pad" ? "none" : "pad";
