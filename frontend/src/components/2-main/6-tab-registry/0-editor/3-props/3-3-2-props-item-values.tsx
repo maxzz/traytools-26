@@ -9,10 +9,12 @@ import { cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { ArrowDownToLine, GripVertical, PencilLine, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/ui/shadcn/select";
+import { notice } from "@/ui/local-ui/7-toaster";
 import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-field-ui";
 import {
     type RegItem,
@@ -109,7 +111,7 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
     const controls = useDragControls();
     const [isDragging, setIsDragging] = useState(false);
     const uid = value.uid ?? "";
-    const multiline = value.valueType === "REG_MULTI_SZ" || value.valueType === "REG_BINARY";
+    const dialogValue = usesValueDialog(value.valueType);
 
     return (
         <Reorder.Item
@@ -152,8 +154,8 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
 
             <Column_Type uid={uid} valueType={value.valueType} />
 
-            {multiline
-                ? <Column_NewValueMultiline uid={uid} value={value} />
+            {dialogValue
+                ? <Column_NewValueDialog uid={uid} value={value} />
                 : <Column_NewValue uid={uid} value={value} />
             }
 
@@ -164,23 +166,110 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
     );
 }
 
+/** Expandable / binary / multi-string values open a dialog so the table row stays compact. */
+function usesValueDialog(type: RegValueType): boolean {
+    return type === "REG_EXPAND_SZ" || type === "REG_BINARY" || type === "REG_MULTI_SZ";
+}
+
 // ---------------------------------------------------------------------------
 
-/** Multi-line new value (REG_MULTI_SZ / REG_BINARY); max-h keeps rows compact. */
-function Column_NewValueMultiline({ uid, value }: { uid: string; value: RegValue; }) {
+/** Compact new-value cell with a right-aligned Edit button and a Save/Cancel dialog. */
+function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }) {
+    const [open, setOpen] = useState(false);
+    const [draft, setDraft] = useState(value.newValue);
+    const preview = value.newValue.trim() ? value.newValue.replace(/\s+/g, " ") : "";
+
+    function openDialog() {
+        setDraft(value.newValue);
+        setOpen(true);
+    }
+
+    function save() {
+        if (draft !== value.newValue) {
+            patchSelectedValue(uid, (v) => { v.newValue = draft; });
+        }
+        setOpen(false);
+    }
+
     return (
-        <Textarea
-            className={cn(COL.newValue, "px-1.5 py-1 min-h-7 max-h-24 font-mono text-[0.72rem] resize-none")}
-            rows={1}
-            value={value.newValue}
-            placeholder={VALUE_PLACEHOLDERS[value.valueType]}
-            title={valueHint(value.valueType)}
-            aria-label="New value"
-            onChange={(e) => patchSelectedValue(uid, (v) => { v.newValue = e.target.value; })}
-            {...turnOffAutoComplete}
-        />
+        <>
+            <div
+                className={cn(COL.newValue, "pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")}
+                title={valueHint(value.valueType)}
+            >
+                <span
+                    className={cn(
+                        "min-w-0 flex-1 truncate text-[0.72rem] font-mono",
+                        preview ? "text-foreground" : "text-muted-foreground/60",
+                    )}
+                    aria-label="New value"
+                >
+                    {preview || VALUE_PLACEHOLDERS[value.valueType]}
+                </span>
+                <Button
+                    className="px-1.5 h-5.5 shrink-0 font-normal"
+                    variant="outline"
+                    size="xs"
+                    type="button"
+                    title="Edit value in a dialog"
+                    aria-label="Edit new value"
+                    onClick={openDialog}
+                >
+                    Edit
+                </Button>
+            </div>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="p-0! max-w-xl! gap-0!" aria-describedby={NEW_VALUE_DIALOG_DESC_ID} modal>
+                    <DialogHeader className="px-4 py-3 text-left border-b gap-0">
+                        <DialogTitle className="text-sm font-condensed font-normal">
+                            Edit new value — {VALUE_TYPE_LONG_LABELS[value.valueType]}
+                        </DialogTitle>
+                        <DialogDescription id={NEW_VALUE_DIALOG_DESC_ID} className="sr-only">
+                            Edit the registry value, then save or cancel.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="px-4 py-3">
+                        <Textarea
+                            className="min-h-40 max-h-[min(60vh,28rem)] font-mono text-xs resize-y"
+                            value={draft}
+                            placeholder={VALUE_PLACEHOLDERS[value.valueType]}
+                            title={valueHint(value.valueType)}
+                            aria-label="New value editor"
+                            onChange={(e) => setDraft(e.target.value)}
+                            {...turnOffAutoComplete}
+                        />
+                        <p className="mt-1.5 text-[0.7rem] text-muted-foreground">
+                            {valueHint(value.valueType)}
+                        </p>
+                    </div>
+
+                    <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="min-w-16 font-condensed font-normal"
+                            onClick={() => setOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            className="min-w-16 font-condensed font-normal"
+                            onClick={save}
+                        >
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
+
+const NEW_VALUE_DIALOG_DESC_ID = "reg-new-value-dialog-description";
+const CURRENT_VALUE_DIALOG_DESC_ID = "reg-current-value-dialog-description";
 
 /** Formats DWORD/QWORD for the column radix only when unfocused, so typing stays stable. */
 function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
@@ -269,21 +358,95 @@ const VALUE_PLACEHOLDERS: Record<RegValueType, string> = {
 
 /** Last value read back from the machine for this row, with a match indicator. */
 function Column_CurrentValue({ value }: { value: RegValue; }) {
+    const [open, setOpen] = useState(false);
     const currentRadix = useAtomValue(currentValueRadixAtom);
     const hexPrefix = useAtomValue(currentValueHexPrefixAtom);
     const hexPad = useAtomValue(currentValueHexPadAtom);
     const { byUid } = useSnapshot(registryReadStore);
     const read: RegReadState | undefined = value.uid ? byUid[value.uid] : undefined;
     const { text, title, className } = currentValueLook(read, value, currentRadix, hexPrefix, hexPad);
+    const dialogValue = usesValueDialog(value.valueType);
+    const fullValue = read?.exists ? (read.value ?? "") : "";
+    const canView = dialogValue && read?.exists === true && !read.loading && !read.error;
+    const cellText = canView ? text.replace(/\s+/g, " ") : text;
+
+    function copyValue() {
+        void navigator.clipboard.writeText(fullValue).catch((e) => {
+            notice.error(`Failed to copy value:<br/>${String(e)}`);
+        });
+    }
 
     return (
-        <div
-            className={cn(COL.current, "px-1.5 h-7 text-[0.72rem] bg-muted/40 border border-transparent rounded flex items-center")}
-            title={title}
-            aria-label={`Current value — ${title.replace(/\n/g, ". ")}`}
-        >
-            <span className={cn("truncate", className, isNumericRegType(value.valueType) && read?.exists && "font-mono")}>{text}</span>
-        </div>
+        <>
+            <div
+                className={cn(
+                    COL.current,
+                    "pl-1.5 pr-0.5 h-7 text-[0.72rem] bg-muted/40 border border-transparent rounded flex items-center gap-1",
+                )}
+                title={title}
+                aria-label={`Current value — ${title.replace(/\n/g, ". ")}`}
+            >
+                <span className={cn("min-w-0 flex-1 truncate", className, isNumericRegType(value.valueType) && read?.exists && "font-mono")}>
+                    {cellText}
+                </span>
+                {canView && (
+                    <Button
+                        className="px-1.5 h-5.5 shrink-0 font-normal"
+                        variant="outline"
+                        size="xs"
+                        type="button"
+                        title="View current value in a dialog"
+                        aria-label="View current value"
+                        onClick={() => setOpen(true)}
+                    >
+                        View
+                    </Button>
+                )}
+            </div>
+
+            {canView && (
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogContent className="p-0! max-w-xl! gap-0!" aria-describedby={CURRENT_VALUE_DIALOG_DESC_ID} modal>
+                        <DialogHeader className="px-4 py-3 text-left border-b gap-0">
+                            <DialogTitle className="text-sm font-condensed font-normal">
+                                Current value — {VALUE_TYPE_LONG_LABELS[value.valueType]}
+                            </DialogTitle>
+                            <DialogDescription id={CURRENT_VALUE_DIALOG_DESC_ID} className="sr-only">
+                                Read-only registry value. Copy it or close the dialog.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="px-4 py-3">
+                            <Textarea
+                                className="min-h-40 max-h-[min(60vh,28rem)] font-mono text-xs resize-y"
+                                value={fullValue}
+                                readOnly
+                                aria-label="Current value"
+                                {...turnOffAutoComplete}
+                            />
+                        </div>
+
+                        <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="min-w-16 font-condensed font-normal"
+                                onClick={copyValue}
+                            >
+                                Copy
+                            </Button>
+                            <Button
+                                type="button"
+                                className="min-w-16 font-condensed font-normal"
+                                onClick={() => setOpen(false)}
+                            >
+                                Close
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </>
     );
 }
 
