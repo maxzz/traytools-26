@@ -133,7 +133,7 @@ function Column_Type({ uid, valueType }: { uid: string; valueType: RegValueType;
     return (
         <Select value={valueType} onValueChange={(next) => patchSelectedValue(uid, (v) => { v.valueType = next as RegValueType; })}>
             <SelectTrigger
-                className={cn(COL.type, "px-1.5 w-18 h-7! text-[0.72rem] [&>svg]:size-2.5")}
+                className={cn(COL.type, "px-1.5 h-7! text-[0.72rem] [&>svg]:size-2.5")}
                 title={VALUE_TYPE_LONG_LABELS[valueType]}
                 aria-label="Value type"
                 onPointerDown={(e) => e.stopPropagation()}

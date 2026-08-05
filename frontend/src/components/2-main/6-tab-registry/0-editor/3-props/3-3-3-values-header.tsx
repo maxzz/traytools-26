@@ -1,3 +1,4 @@
+import { type ComponentProps } from "react";
 import { useAtom } from "jotai";
 import { classNames } from "@/utils/classnames";
 import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
@@ -7,8 +8,8 @@ export function HeaderRow() {
     return (
         <div className={classNames(labelClasses, "px-1 py-0.5 bg-muted/50 border-b rounded-t flex items-center gap-1")}>
             <span className={COL.handle} />
-            <span className={COL.name}>Value name</span>
-            <span className={COL.type}>Type</span>
+            <span className={classNames(COL.name, "pl-1.5")}>Value name</span>
+            <span className={classNames(COL.type, "pl-1.5")}>Type</span>
             <Column_Value className={COL.newValue} label="New value" newOrCurrent />
             <Column_Value className={COL.current} label="Current" />
             <span className={COL.actions} />
@@ -29,7 +30,7 @@ export const COL = {
 /** Column title on the left; the three format toggles stay right-aligned in the column. */
 function Column_Value({ className, label, newOrCurrent }: { className: string; label: string; newOrCurrent?: boolean; }) {
     return (
-        <span className={classNames(className, "min-w-0 flex items-center gap-0.5")}>
+        <span className={classNames(className, "min-w-0 pl-1.5 flex items-center gap-0.5")}>
             <span className="truncate">{label}</span>
             <span className="ml-auto inline-flex items-center gap-0.5 shrink-0">
                 <RadixToggle newOrCurrent={newOrCurrent} />
@@ -45,44 +46,28 @@ function RadixToggle({ newOrCurrent }: { newOrCurrent?: boolean; }) {
     const [radix, setRadix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
     const next = radix === 10 ? 16 : 10;
     const column = newOrCurrent ? "New value" : "Current";
+    const title = radix === 10 ? `${column}: decimal — click for hexadecimal` : `${column}: hexadecimal — click for decimal`;
+    const ariaLabel = `${column} numeric base ${radix}, switch to ${next}`;
     return (
-        <button
-            type="button"
-            className={headerToggleClasses}
-            title={radix === 10
-                ? `${column}: decimal — click for hexadecimal`
-                : `${column}: hexadecimal — click for decimal`}
-            aria-label={`${column} numeric base ${radix}, switch to ${next}`}
-            onClick={() => setRadix(next)}
-        >
+        <HeaderToggleButton title={title} aria-label={ariaLabel} onClick={() => setRadix(next)}>
             {radix}
-        </button>
+        </HeaderToggleButton>
     );
 }
-
-const headerToggleClasses =
-    "px-0.5 h-3 min-w-3 text-[0.58rem] leading-none font-medium tabular-nums text-muted-foreground hover:text-foreground border border-border/70 rounded-sm disabled:opacity-40 disabled:pointer-events-none";
 
 /** Tiny 0x ↔ -- toggle: whether hex is shown/typed with a 0x prefix. */
 function HexPrefixToggle({ newOrCurrent }: { newOrCurrent?: boolean; }) {
     const [radix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
     const [mode, setMode] = useAtom(newOrCurrent ? newValueHexPrefixAtom : currentValueHexPrefixAtom);
-    const next: RegHexPrefixMode = mode === "0x" ? "none" : "0x";
     const label = mode === "0x" ? "0x" : "--";
+    const next: RegHexPrefixMode = mode === "0x" ? "none" : "0x";
     const column = newOrCurrent ? "New value" : "Current";
+    const title = mode === "0x" ? `${column}: hex shows 0x — click to hide the prefix` : `${column}: hex without 0x — click to show the prefix`;
+    const ariaLabel = `${column} hex prefix ${label}, switch to ${next === "0x" ? "0x" : "none"}`;
     return (
-        <button
-            type="button"
-            className={headerToggleClasses}
-            disabled={radix === 10}
-            title={mode === "0x"
-                ? `${column}: hex shows 0x — click to hide the prefix`
-                : `${column}: hex without 0x — click to show the prefix`}
-            aria-label={`${column} hex prefix ${label}, switch to ${next === "0x" ? "0x" : "none"}`}
-            onClick={() => setMode(next)}
-        >
+        <HeaderToggleButton disabled={radix === 10} title={title} aria-label={ariaLabel} onClick={() => setMode(next)}>
             {label}
-        </button>
+        </HeaderToggleButton>
     );
 }
 
@@ -90,21 +75,23 @@ function HexPrefixToggle({ newOrCurrent }: { newOrCurrent?: boolean; }) {
 function HexPadToggle({ newOrCurrent }: { newOrCurrent?: boolean; }) {
     const [radix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
     const [mode, setMode] = useAtom(newOrCurrent ? newValueHexPadAtom : currentValueHexPadAtom);
-    const next: RegHexPadMode = mode === "pad" ? "none" : "pad";
     const label = mode === "pad" ? "00" : "--";
+    const next: RegHexPadMode = mode === "pad" ? "none" : "pad";
     const column = newOrCurrent ? "New value" : "Current";
+    const title = mode === "pad" ? `${column}: hex zero-padded — click for unpadded` : `${column}: hex unpadded — click to pad to type width`;
+    const ariaLabel = `${column} hex padding ${label}, switch to ${next === "pad" ? "00" : "none"}`;
     return (
-        <button
-            type="button"
-            className={headerToggleClasses}
-            disabled={radix === 10}
-            title={mode === "pad"
-                ? `${column}: hex zero-padded — click for unpadded`
-                : `${column}: hex unpadded — click to pad to type width`}
-            aria-label={`${column} hex padding ${label}, switch to ${next === "pad" ? "00" : "none"}`}
-            onClick={() => setMode(next)}
-        >
+        <HeaderToggleButton disabled={radix === 10} title={title} aria-label={ariaLabel} onClick={() => setMode(next)}>
             {label}
-        </button>
+        </HeaderToggleButton>
     );
 }
+
+/** Shared look for the tiny header format toggles. */
+function HeaderToggleButton({ className, ...rest }: ComponentProps<"button">) {
+    return (
+        <button className={classNames(headerToggleClasses, className)} type="button" {...rest} />
+    );
+}
+
+const headerToggleClasses = "px-0.5 h-3 min-w-3 text-[0.58rem] leading-none font-medium tabular-nums text-muted-foreground hover:text-foreground border border-border/70 rounded-sm disabled:opacity-40 disabled:pointer-events-none";
