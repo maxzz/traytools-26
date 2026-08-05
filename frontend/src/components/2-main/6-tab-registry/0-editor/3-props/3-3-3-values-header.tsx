@@ -12,16 +12,14 @@ import {
     newValueRadixAtom,
 } from "../../a-atoms/2-run-registry";
 
-type ValueColumn = "new value" | "current value";
-
 export function HeaderRow() {
     return (
         <div className={cn(labelClasses, "px-1 py-0.5 bg-muted/50 border-b rounded-t flex items-center gap-1")}>
             <span className={COL.handle} />
             <span className={COL.name}>Value name</span>
             <span className={COL.type}>Type</span>
-            <ValueColumnHeader className={COL.newValue} label="New value" column="new value" />
-            <ValueColumnHeader className={COL.current} label="Current" column="current value" />
+            <ValueColumnHeader className={COL.newValue} label="New value" newOrCurrent />
+            <ValueColumnHeader className={COL.current} label="Current" newOrCurrent={false} />
             <span className={COL.actions} />
         </div>
     );
@@ -41,28 +39,29 @@ export const COL = {
 function ValueColumnHeader({
     className,
     label,
-    column,
+    newOrCurrent,
 }: {
     className: string;
     label: string;
-    column: ValueColumn;
+    newOrCurrent: boolean;
 }) {
     return (
         <span className={cn(className, "min-w-0 flex items-center gap-0.5")}>
             <span className="truncate">{label}</span>
             <span className="ml-auto inline-flex items-center gap-0.5 shrink-0">
-                <RadixToggle column={column} />
-                <HexPrefixToggle column={column} />
-                <HexPadToggle column={column} />
+                <RadixToggle newOrCurrent={newOrCurrent} />
+                <HexPrefixToggle newOrCurrent={newOrCurrent} />
+                <HexPadToggle newOrCurrent={newOrCurrent} />
             </span>
         </span>
     );
 }
 
 /** Tiny 10 ↔ 16 toggle; stays inside the existing header row height. */
-function RadixToggle({ column }: { column: ValueColumn; }) {
-    const [radix, setRadix] = useAtom(column === "new value" ? newValueRadixAtom : currentValueRadixAtom);
+function RadixToggle({ newOrCurrent }: { newOrCurrent: boolean; }) {
+    const [radix, setRadix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
     const next = radix === 10 ? 16 : 10;
+    const column = newOrCurrent ? "New value" : "Current";
     return (
         <button
             type="button"
@@ -82,11 +81,12 @@ const headerToggleClasses =
     "px-0.5 h-3 min-w-3 text-[0.58rem] leading-none font-medium tabular-nums text-muted-foreground hover:text-foreground border border-border/70 rounded-sm disabled:opacity-40 disabled:pointer-events-none";
 
 /** Tiny 0x ↔ -- toggle: whether hex is shown/typed with a 0x prefix. */
-function HexPrefixToggle({ column }: { column: ValueColumn; }) {
-    const [radix] = useAtom(column === "new value" ? newValueRadixAtom : currentValueRadixAtom);
-    const [mode, setMode] = useAtom(column === "new value" ? newValueHexPrefixAtom : currentValueHexPrefixAtom);
+function HexPrefixToggle({ newOrCurrent }: { newOrCurrent: boolean; }) {
+    const [radix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
+    const [mode, setMode] = useAtom(newOrCurrent ? newValueHexPrefixAtom : currentValueHexPrefixAtom);
     const next: RegHexPrefixMode = mode === "0x" ? "none" : "0x";
     const label = mode === "0x" ? "0x" : "--";
+    const column = newOrCurrent ? "New value" : "Current";
     return (
         <button
             type="button"
@@ -104,11 +104,12 @@ function HexPrefixToggle({ column }: { column: ValueColumn; }) {
 }
 
 /** Tiny 00 ↔ -- toggle: zero-pad hex to DWORD (8) / QWORD (16) width. */
-function HexPadToggle({ column }: { column: ValueColumn; }) {
-    const [radix] = useAtom(column === "new value" ? newValueRadixAtom : currentValueRadixAtom);
-    const [mode, setMode] = useAtom(column === "new value" ? newValueHexPadAtom : currentValueHexPadAtom);
+function HexPadToggle({ newOrCurrent }: { newOrCurrent: boolean; }) {
+    const [radix] = useAtom(newOrCurrent ? newValueRadixAtom : currentValueRadixAtom);
+    const [mode, setMode] = useAtom(newOrCurrent ? newValueHexPadAtom : currentValueHexPadAtom);
     const next: RegHexPadMode = mode === "pad" ? "none" : "pad";
     const label = mode === "pad" ? "00" : "--";
+    const column = newOrCurrent ? "New value" : "Current";
     return (
         <button
             type="button"
