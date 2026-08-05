@@ -1,27 +1,7 @@
 import { useAtom } from "jotai";
 import { cn } from "@/utils/classnames";
 import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
-import {
-    type RegHexPadMode,
-    type RegHexPrefixMode,
-    type RegNumericRadix,
-    currentValueHexPadAtom,
-    currentValueHexPrefixAtom,
-    currentValueRadixAtom,
-    newValueHexPadAtom,
-    newValueHexPrefixAtom,
-    newValueRadixAtom,
-} from "../../a-atoms/2-run-registry";
-
-/** Column widths shared by the header and the value rows. */
-export const COL = {
-    handle: "w-4 shrink-0",
-    name: "flex-1 min-w-16",
-    type: "w-22 shrink-0",
-    newValue: "flex-[1.3] min-w-16",
-    current: "flex-1 min-w-16",
-    actions: "w-[4.75rem] shrink-0",
-};
+import { type RegHexPadMode, type RegHexPrefixMode, type RegNumericRadix, currentValueHexPadAtom, currentValueHexPrefixAtom, currentValueRadixAtom, newValueHexPadAtom, newValueHexPrefixAtom, newValueRadixAtom } from "../../a-atoms/2-run-registry";
 
 export function HeaderRow() {
     const [newRadix, setNewRadix] = useAtom(newValueRadixAtom);
@@ -60,6 +40,16 @@ export function HeaderRow() {
         </div>
     );
 }
+
+/** Column widths shared by the header and the value rows. */
+export const COL = {
+    handle: "w-4 shrink-0",
+    name: "flex-1 min-w-16",
+    type: "w-22 shrink-0",
+    newValue: "flex-[1.3] min-w-16",
+    current: "flex-1 min-w-16",
+    actions: "w-[4.75rem] shrink-0",
+};
 
 /** Column title on the left; the three format toggles stay right-aligned in the column. */
 function ValueColumnHeader({

@@ -3,33 +3,12 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
-import {
-    Field_TypeIcon,
-    FlagSwitch,
-    InfoTooltip,
-    LabelAndField,
-    PropsActionButton,
-    typeBadgeIcons,
-} from "@/components/2-main/a-shared/props-field-ui";
-import {
-    type RegGroup,
-    type RegItem,
-    type RegView,
-    countGroupValues,
-    derivedItemLabel,
-    hiveNeedsElevation,
-    itemHasSubKey,
-    itemHive,
-} from "../../a-atoms/9-types-registry";
+import { Field_TypeIcon, FlagSwitch, InfoTooltip, LabelAndField, PropsActionButton, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
+import { type RegGroup, type RegItem, type RegView, countGroupValues, derivedItemLabel, hiveNeedsElevation, itemHasSubKey, itemHive } from "../../a-atoms/9-types-registry";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
-import {
-    doAsyncRegJumpItemAtom,
-    doAsyncRegReadItemAtom,
-    doAsyncRegWriteGroupAtom,
-    doAsyncRegWriteItemAtom,
-} from "../../a-atoms/2-run-registry";
-import { Field_KeyPath } from "./3-3-1-props-item-keypath";
-import { Field_ItemValues } from "./3-3-2-props-item-values";
+import { doAsyncRegJumpItemAtom, doAsyncRegReadItemAtom, doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../../a-atoms/2-run-registry";
+import { Field_KeyPath } from "./3-3-1-field-keypath";
+import { Field_ItemValues } from "./3-3-2-values";
 
 export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup; }) {
     const readItem = useSetAtom(doAsyncRegReadItemAtom);
@@ -45,6 +24,7 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
     return (<>
         <div className="flex items-center justify-between gap-2">
             <Field_TypeIcon label="Registry key" icon={typeBadgeIcons.registry} />
+            
             <div className="flex items-center gap-2">
                 <PropsActionButton
                     label="Write parent group"
