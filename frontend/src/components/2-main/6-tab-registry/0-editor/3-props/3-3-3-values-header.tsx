@@ -18,9 +18,29 @@ import {
     newValueRadixAtom,
 } from "../../a-atoms/2-run-registry";
 
+/**
+ * Parent grid for the values table: name | type | new value | current | actions.
+ * Header and each body row use {@link SUBGRID_ROW} so they share these tracks.
+ */
+export const TABLE_GRID =
+    "grid grid-cols-[minmax(0,1.1fr)_5.5rem_minmax(0,1.3fr)_minmax(0,1fr)_6.5rem] gap-x-1 px-1";
+
+/** One table row that inherits the parent column tracks via CSS subgrid. */
+export const SUBGRID_ROW = "col-span-full grid grid-cols-subgrid";
+
+/** Per-cell helpers (widths come from the parent grid, not from these classes). */
+export const COL = {
+    handle: "w-4 shrink-0",
+    name: "min-w-0",
+    type: "min-w-0",
+    newValue: "min-w-0",
+    current: "min-w-0",
+    actions: "min-w-0",
+};
+
 export function HeaderRow({ item }: { item: RegItem; }) {
     return (
-        <div className={classNames(labelClasses, ROW, "py-0.5 bg-muted/50 border-b rounded-t items-center")}>
+        <div className={classNames(labelClasses, SUBGRID_ROW, "py-0.5 bg-muted/50 border-b rounded-t items-center")}>
             <span className={COL.name}>Value name</span>
             <span className={COL.type}>Type</span>
             <Column_Value className={COL.newValue} label="New value" newOrCurrent />
@@ -30,24 +50,10 @@ export function HeaderRow({ item }: { item: RegItem; }) {
     );
 }
 
-/** Shared horizontal chrome for the header and each value row (keeps columns aligned). */
-export const ROW = "px-1 flex gap-1";
-
-/** Column widths shared by the header and the value rows. */
-export const COL = {
-    handle: "w-4 shrink-0",
-    name: "flex-1 min-w-16",
-    type: "w-22 shrink-0",
-    newValue: "flex-[1.3] min-w-16",
-    current: "flex-1 min-w-16",
-    /** Drag handle + delete / read / write icons. */
-    actions: "w-[6.5rem] shrink-0",
-};
-
 /** Column title on the left; the three format toggles stay right-aligned in the column. */
 function Column_Value({ className, label, newOrCurrent }: { className: string; label: string; newOrCurrent?: boolean; }) {
     return (
-        <span className={classNames(className, "min-w-0 flex items-center gap-0.5")}>
+        <span className={classNames(className, "flex items-center gap-0.5")}>
             <span className="truncate">{label}</span>
             <span className="ml-auto inline-flex items-center gap-0.5 shrink-0">
                 <RadixToggle newOrCurrent={newOrCurrent} />

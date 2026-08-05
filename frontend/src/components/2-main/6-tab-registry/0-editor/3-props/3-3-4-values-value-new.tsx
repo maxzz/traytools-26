@@ -46,7 +46,7 @@ function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }
     return (
         <>
             <div
-                className={cn(COL.newValue, "pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")}
+                className={cn(COL.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")}
                 title={valueHint(value.valueType)}
             >
                 <span
@@ -145,7 +145,7 @@ function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
 
     return (
         <Input
-            className={cn(COL.newValue, "px-1.5 h-7 text-[0.72rem]", numeric && "font-mono")}
+            className={cn(COL.newValue, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "font-mono")}
             value={shown}
             placeholder={numericPlaceholder(value.valueType, radix, hexPrefix, hexPad)}
             title={valueHint(value.valueType, radix, hexPrefix, hexPad)}

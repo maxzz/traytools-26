@@ -42,7 +42,7 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
         <div
             className={cn(
                 COL.current,
-                "pl-1.5 pr-0.5 h-7 text-[0.72rem] bg-muted/40 border border-transparent rounded flex items-center gap-1",
+                "w-full pl-1.5 pr-0.5 h-7 text-[0.72rem] bg-muted/40 border border-transparent rounded flex items-center gap-1",
             )}
             title={title}
             aria-label={`Current value — ${title.replace(/\n/g, ". ")}`}

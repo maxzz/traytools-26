@@ -12,7 +12,7 @@ import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-fi
 import { type RegItem, type RegValue, type RegValueType, REG_VALUE_TYPES, VALUE_TYPE_LONG_LABELS, VALUE_TYPE_SHORT_LABELS, itemHasSubKey, valueDisplayName } from "../../a-atoms/9-types-registry";
 import { doAsyncRegReadValueAtom, doAsyncRegWriteValueAtom, } from "../../a-atoms/2-run-registry";
 import { addSelectedItemValue, patchSelectedValue, removeSelectedItemValue, reorderSelectedItemValues } from "../../a-atoms/use-selected-node";
-import { COL, HeaderRow, ROW } from "./3-3-3-values-header";
+import { COL, HeaderRow, SUBGRID_ROW, TABLE_GRID } from "./3-3-3-values-header";
 import { Column_NewValueCell } from "./3-3-4-values-value-new";
 import { Column_CurrentValue } from "./3-3-5-values-value-current";
 
@@ -46,7 +46,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                 </Button>
             </div>
 
-            <div className="border rounded">
+            <div className={cn("border rounded", TABLE_GRID)}>
                 <HeaderRow item={item} />
 
                 <Reorder.Group
@@ -54,7 +54,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                     axis="y"
                     values={uids}
                     onReorder={reorderSelectedItemValues}
-                    className="flex flex-col"
+                    className={cn(SUBGRID_ROW, "m-0 p-0 list-none")}
                 >
                     {values.map(
                         (value, index) => (
@@ -84,7 +84,7 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             dragControls={controls}
             // Index-based last-row styles: Motion can freeze :last-child rules as inline styles.
             className={cn(
-                ROW,
+                SUBGRID_ROW,
                 "relative bg-background items-start",
                 !isLast && "border-b",
                 isLast && "rounded-b",
@@ -94,7 +94,7 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             onDragEnd={() => setIsDragging(false)}
         >
             <Input
-                className={cn(COL.name, "px-1.5 py-0! h-7 text-[0.72rem]")}
+                className={cn(COL.name, "w-full px-1.5 py-0! h-7 text-[0.72rem]")}
                 value={value.valueName}
                 placeholder="(Default)"
                 title={valueDisplayName(value.valueName)}
@@ -117,7 +117,7 @@ function Column_Type({ uid, valueType }: { uid: string; valueType: RegValueType;
     return (
         <Select value={valueType} onValueChange={(next) => patchSelectedValue(uid, (v) => { v.valueType = next as RegValueType; })}>
             <SelectTrigger
-                className={cn(COL.type, "px-1.5 h-7! text-[0.72rem] [&>svg]:size-2.5")}
+                className={cn(COL.type, "w-full px-1.5 h-7! text-[0.72rem] [&>svg]:size-2.5")}
                 title={VALUE_TYPE_LONG_LABELS[valueType]}
                 aria-label="Value type"
                 onPointerDown={(e) => e.stopPropagation()}
