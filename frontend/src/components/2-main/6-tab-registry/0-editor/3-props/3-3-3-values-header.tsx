@@ -1,20 +1,37 @@
 import { type ComponentProps } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { classNames } from "@/utils/classnames";
+import { ArrowDownToLine, PencilLine } from "lucide-react";
+import { Button } from "@/ui/shadcn/button";
 import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
-import { type RegHexPadMode, type RegHexPrefixMode, currentValueHexPadAtom, currentValueHexPrefixAtom, currentValueRadixAtom, newValueHexPadAtom, newValueHexPrefixAtom, newValueRadixAtom } from "../../a-atoms/2-run-registry";
+import { type RegItem, itemHasSubKey } from "../../a-atoms/9-types-registry";
+import {
+    type RegHexPadMode,
+    type RegHexPrefixMode,
+    currentValueHexPadAtom,
+    currentValueHexPrefixAtom,
+    currentValueRadixAtom,
+    doAsyncRegReadItemAtom,
+    doAsyncRegWriteItemAtom,
+    newValueHexPadAtom,
+    newValueHexPrefixAtom,
+    newValueRadixAtom,
+} from "../../a-atoms/2-run-registry";
 
-export function HeaderRow() {
+export function HeaderRow({ item }: { item: RegItem; }) {
     return (
-        <div className={classNames(labelClasses, "px-1 py-0.5 bg-muted/50 border-b rounded-t flex items-center gap-1")}>
-            <span className={classNames(COL.name, "pl-1.5")}>Value name</span>
-            <span className={classNames(COL.type, "pl-1.5")}>Type</span>
+        <div className={classNames(labelClasses, ROW, "py-0.5 bg-muted/50 border-b rounded-t items-center")}>
+            <span className={COL.name}>Value name</span>
+            <span className={COL.type}>Type</span>
             <Column_Value className={COL.newValue} label="New value" newOrCurrent />
             <Column_Value className={COL.current} label="Current" />
-            <span className={COL.actions} />
+            <Column_HeaderActions item={item} />
         </div>
     );
 }
+
+/** Shared horizontal chrome for the header and each value row (keeps columns aligned). */
+export const ROW = "px-1 flex gap-1";
 
 /** Column widths shared by the header and the value rows. */
 export const COL = {
@@ -23,14 +40,14 @@ export const COL = {
     type: "w-22 shrink-0",
     newValue: "flex-[1.3] min-w-16",
     current: "flex-1 min-w-16",
-    /** Read / write / delete icons + trailing drag handle. */
-    actions: "w-[5.75rem] shrink-0",
+    /** Drag handle + delete / read / write icons. */
+    actions: "w-[6.5rem] shrink-0",
 };
 
 /** Column title on the left; the three format toggles stay right-aligned in the column. */
 function Column_Value({ className, label, newOrCurrent }: { className: string; label: string; newOrCurrent?: boolean; }) {
     return (
-        <span className={classNames(className, "min-w-0 pl-1.5 flex items-center gap-0.5")}>
+        <span className={classNames(className, "min-w-0 flex items-center gap-0.5")}>
             <span className="truncate">{label}</span>
             <span className="ml-auto inline-flex items-center gap-0.5 shrink-0">
                 <RadixToggle newOrCurrent={newOrCurrent} />
@@ -95,3 +112,42 @@ function HeaderToggleButton({ className, ...rest }: ComponentProps<"button">) {
 }
 
 const headerToggleClasses = "px-0.5 h-3 min-w-3 text-[0.58rem] leading-none font-medium tabular-nums text-muted-foreground hover:text-foreground border border-border/70 rounded-sm disabled:opacity-40 disabled:pointer-events-none";
+
+/** Read / write every value in the table; aligned over the per-row action icons. */
+function Column_HeaderActions({ item }: { item: RegItem; }) {
+    const readItem = useSetAtom(doAsyncRegReadItemAtom);
+    const writeItem = useSetAtom(doAsyncRegWriteItemAtom);
+    const uid = item.uid;
+    const runnable = itemHasSubKey(item) && !!uid;
+
+    return (
+        <div className={classNames(COL.actions, "h-5 flex items-center justify-end gap-0.5")}>
+            <span className={COL.handle} aria-hidden />
+            <span className="mr-2 size-6" aria-hidden />
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="size-6"
+                disabled={!runnable}
+                title={runnable ? "Read every value of this key from the registry" : "Set a key path first"}
+                aria-label="Read all values"
+                onClick={() => uid && void readItem(uid)}
+            >
+                <ArrowDownToLine className="size-3" />
+            </Button>
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                type="button"
+                className="size-6"
+                disabled={!runnable}
+                title={runnable ? "Write every value of this key to the registry" : "Set a key path first"}
+                aria-label="Write all values"
+                onClick={() => uid && void writeItem(uid)}
+            >
+                <PencilLine className="size-3" />
+            </Button>
+        </div>
+    );
+}

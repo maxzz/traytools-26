@@ -12,7 +12,7 @@ import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-fi
 import { type RegItem, type RegValue, type RegValueType, REG_VALUE_TYPES, VALUE_TYPE_LONG_LABELS, VALUE_TYPE_SHORT_LABELS, itemHasSubKey, valueDisplayName } from "../../a-atoms/9-types-registry";
 import { doAsyncRegReadValueAtom, doAsyncRegWriteValueAtom, } from "../../a-atoms/2-run-registry";
 import { addSelectedItemValue, patchSelectedValue, removeSelectedItemValue, reorderSelectedItemValues } from "../../a-atoms/use-selected-node";
-import { COL, HeaderRow } from "./3-3-3-values-header";
+import { COL, HeaderRow, ROW } from "./3-3-3-values-header";
 import { Column_NewValueCell } from "./3-3-4-values-value-new";
 import { Column_CurrentValue } from "./3-3-5-values-value-current";
 
@@ -47,7 +47,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
             </div>
 
             <div className="border rounded">
-                <HeaderRow />
+                <HeaderRow item={item} />
 
                 <Reorder.Group
                     as="ul"
@@ -84,7 +84,8 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             dragControls={controls}
             // Index-based last-row styles: Motion can freeze :last-child rules as inline styles.
             className={cn(
-                "relative pl-px pr-1.5 bg-background flex items-start",
+                ROW,
+                "relative bg-background items-start",
                 !isLast && "border-b",
                 isLast && "rounded-b",
                 isDragging && "z-10 scale-[1.01] shadow-[0_4px_12px_0_rgb(0_0_0/0.18)]",
@@ -145,7 +146,7 @@ function Column_RowActions({ uid, item, controls }: { uid: string; item: RegItem
     const canDelete = (item.values?.length ?? 0) > 1;
 
     return (
-        <div className={cn(COL.actions, "ml-4 h-7 flex items-center justify-end gap-0.5")}>
+        <div className={cn(COL.actions, "h-7 flex items-center justify-end gap-0.5")}>
             <button
                 className={cn(COL.handle, "h-7 text-muted-foreground/60 hover:text-foreground touch-none cursor-grab active:cursor-grabbing flex items-center justify-center")}
                 type="button"
