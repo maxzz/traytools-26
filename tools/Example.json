@@ -1,83 +1,6 @@
 {
     "groups": [
         {
-            "name": "DpTracing-org",
-            "requireElevated": true,
-            "items": [
-                {
-                    "keyPath": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing",
-                    "values": [
-                        {
-                            "valueName": "TracePath",
-                            "valueType": "REG_SZ",
-                            "newValue": "C:\\Users\\makzak\\Desktop\\DPTrace"
-                        },
-                        {
-                            "valueName": "TracePath2",
-                            "valueType": "REG_SZ",
-                            "newValue": "C:\\ProgramData\\DigitalPersona\\Tracing"
-                        },
-                        {
-                            "valueName": "DoTrace",
-                            "valueType": "REG_DWORD",
-                            "newValue": "0"
-                        },
-                        {
-                            "valueName": "OtsTrace",
-                            "valueType": "REG_DWORD",
-                            "newValue": "1"
-                        },
-                        {
-                            "valueName": "ots_dpofeedb",
-                            "valueType": "REG_DWORD",
-                            "newValue": "1023"
-                        },
-                        {
-                            "valueName": "ots_dpfbview",
-                            "valueType": "REG_DWORD",
-                            "newValue": "536805439"
-                        },
-                        {
-                            "valueName": "ots_dpfillin",
-                            "valueType": "REG_DWORD",
-                            "newValue": "4128831"
-                        },
-                        {
-                            "valueName": "ots_dpocache",
-                            "valueType": "REG_DWORD",
-                            "newValue": "0"
-                        },
-                        {
-                            "valueName": "ots_dpffcli",
-                            "valueType": "REG_DWORD",
-                            "newValue": "2047"
-                        },
-                        {
-                            "valueName": "TraceToFile",
-                            "valueType": "REG_DWORD",
-                            "newValue": "1"
-                        },
-                        {
-                            "valueName": "NewFileAlways",
-                            "valueType": "REG_DWORD",
-                            "newValue": "0"
-                        },
-                        {
-                            "valueName": "Verbosity",
-                            "valueType": "REG_DWORD",
-                            "newValue": "4"
-                        },
-                        {
-                            "valueName": "DeleteAtEnd",
-                            "valueType": "REG_DWORD",
-                            "newValue": "1"
-                        }
-                    ],
-                    "requireElevated": true
-                }
-            ]
-        },
-        {
             "name": "Example",
             "items": [
                 {
@@ -205,7 +128,7 @@
                             "values": [
                                 {
                                     "valueName": "",
-                                    "valueType": "REG_BINARY",
+                                    "valueType": "REG_SZ",
                                     "newValue": ""
                                 }
                             ]
