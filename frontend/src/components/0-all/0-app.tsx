@@ -40,7 +40,7 @@ export function App() {
         <main
             // Mini: content-sized shell. content-start prevents CSS grid from stretching
             // auto rows into leftover window space (which previously inflated height).
-            className="@container h-screen text-xs bg-background grid grid-rows-[auto_1fr_auto] mini:h-auto mini:min-h-0 mini:overflow-hidden mini:content-start mini:items-start"
+            className="h-screen mini:h-auto mini:min-h-0 text-xs bg-background mini:content-start mini:items-start mini:overflow-hidden grid grid-rows-[auto_1fr_auto] @container"
             data-app-size={appSize}
             style={{
                 "--app-size": appSize,
@@ -51,7 +51,7 @@ export function App() {
         >
             <Header />
 
-            <div className="h-full min-h-0 bg-app-background/10 flex flex-col mini:hidden">
+            <div className="h-full min-h-0 bg-app-background/10 mini:hidden flex flex-col">
                 <MainBody />
             </div>
 

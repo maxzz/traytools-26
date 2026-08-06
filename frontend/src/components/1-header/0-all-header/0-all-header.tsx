@@ -25,9 +25,9 @@ export function Header() {
     return (
         <header
             ref={headerRef}
-            className="px-3 py-1 bg-background border-b border-border flex items-center justify-between mini:justify-end mini:self-start mini:min-h-8 mini:w-full"
+            className="mini:self-start px-3 py-1 mini:min-h-8 mini:w-full bg-background mini:justify-end border-b border-border flex items-center justify-between"
         >
-            <div className="min-w-0 flex items-center gap-3 mini:hidden">
+            <div className="min-w-0 mini:hidden flex items-center gap-3">
                 <AppMenubar />
 
                 <div className="relative min-w-0">
