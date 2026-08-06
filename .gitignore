@@ -33,6 +33,3 @@ desktop.ini
 #!.env.example
 frontend/package.json.md5
 copy.json
-
-# Frontend build number
-frontend/.env
