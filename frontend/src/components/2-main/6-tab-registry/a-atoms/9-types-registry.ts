@@ -178,7 +178,13 @@ export type RegEditorStore = {
     keyPathMru: string[];
 };
 
-/** Hives whose writes normally need an elevated process. */
+/** 
+ * Hives whose writes normally need an elevated process.
+ * Administrator privileges (or an elevated process token) are generally required to 
+ * write or make changes to the HKLM registry hive in Windows.
+ * By default, standard users and non-elevated applications have read-only access 
+ * to HKLM and full write access only to HKCU.
+ */
 export function hiveNeedsElevation(hive: RegHive): boolean {
     return hive !== "HKCU";
 }
