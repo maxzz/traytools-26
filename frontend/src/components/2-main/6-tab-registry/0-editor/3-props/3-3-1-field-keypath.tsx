@@ -33,7 +33,7 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
             labelAside={
                 showElevationNote
                     ? (
-                        <div className="min-w-0 pl-0.5 text-[0.55rem] font-normal">
+                        <div className="pl-0.5 min-w-0 font-normal text-[0.55rem]">
                             <span
                                 className={classNames("truncate select-none", isElevated ? "text-foreground/70" : "text-destructive")}
                                 title="Writing keys outside HKCU usually requires an elevated (administrator) process."
@@ -100,7 +100,7 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
                                         </DropdownMenuItem>
                                         <button
                                             type="button"
-                                            className="absolute right-1 top-1/2 z-10 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover/mru:opacity-100 hover:bg-foreground/10 text-muted-foreground hover:text-foreground"
+                                            className="absolute right-1 top-1/2 p-0.5 text-muted-foreground opacity-0 group-hover/mru:opacity-100 hover:bg-foreground/10 hover:text-foreground rounded z-10 -translate-y-1/2"
                                             title="Remove from recent list"
                                             aria-label={`Remove ${path} from recent list`}
                                             onPointerDown={(e) => {

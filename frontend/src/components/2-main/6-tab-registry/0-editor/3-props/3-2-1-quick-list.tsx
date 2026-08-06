@@ -88,7 +88,7 @@ function QuickAccessItem({ node, depth }: { node: RegNode; depth: number; }) {
         return (
             <div className="select-none flex flex-col gap-0.5 cursor-default">
                 <div
-                    className="pr-1 h-4.5 pb-0.5 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 flex items-center justify-between gap-0.5"
+                    className="pr-1 pb-0.5 h-4.5 has-[button:hover]:**:data-qa-name:text-blue-600 dark:has-[button:hover]:**:data-qa-name:text-blue-400 flex items-center justify-between gap-0.5"
                     style={indentStyle}
                 >
                     <div className="min-w-0 flex items-center gap-x-1.5">
@@ -168,7 +168,7 @@ function ReadStateDot({ value }: { value: RegValue; }) {
 
     return (
         <span
-            className={classNames("ml-1 shrink-0 size-1.5 rounded-full", className)}
+            className={classNames("shrink-0 ml-1 size-1.5 rounded-full", className)}
             title={title}
             aria-label={title}
         />
@@ -189,7 +189,7 @@ function ItemReadStateDot({ item }: { item: RegItem; }) {
 
     return (
         <span
-            className={classNames("ml-1 shrink-0 size-1.5 rounded-full", look.className)}
+            className={classNames("shrink-0 ml-1 size-1.5 rounded-full", look.className)}
             title={look.title}
             aria-label={look.title}
         />
