@@ -58,7 +58,7 @@ function QuickAccessItem({ node, depth }: { node: SyncNode; depth: number; }) {
     if (isSyncGroup(node)) {
         return (
             <div className="select-none flex flex-col gap-0.5 cursor-default">
-                <div className="pr-1 h-4.5 pb-0.5 flex items-center gap-x-1.5" style={indentStyle}>
+                <div className="pr-1 pb-0.5 h-4.5 flex items-center gap-x-1.5" style={indentStyle}>
                     <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     <span className="text-[0.65rem] truncate">
                         {node.name || <span className="text-muted-foreground italic">(unnamed)</span>}
@@ -161,7 +161,7 @@ function ActionIconButton({ icon, label, disabled, ariaLabel, tooltip, onClick }
         <Tooltip>
             <TooltipTrigger asChild>
                 {/* Span keeps hover/focus when the button is disabled (pointer-events: none). */}
-                <span className="inline-flex min-w-0">
+                <span className="min-w-0 inline-flex">
                     <Button
                         className={named ? actionNamedButtonClass : actionIconButtonClass}
                         variant="secondary"
