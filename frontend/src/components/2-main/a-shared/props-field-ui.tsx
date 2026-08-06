@@ -38,11 +38,7 @@ export function LabelAndField({ label, labelHint, labelAside, error, children, .
                         ? <InfoTooltip label={`${label} help`}>{labelHint}</InfoTooltip>
                         : labelHint
                 }
-                {labelAside && (
-                    <div className="ml-auto min-w-0 pl-2 text-right">
-                        {labelAside}
-                    </div>
-                )}
+                {labelAside}
             </div>
             {children}
         </div>
@@ -108,11 +104,11 @@ export function ErrorTooltip({ label, children, side, contentClasses }: {
  * titleRich: Info-icon trigger for a shadcn tooltip (string or rich content).
  */
 export function FlagSwitch({ label, title, titleRich, checked, disabled, onCheckedChange }: {
-    label: string; 
-    title?: string; 
-    titleRich?: ReactNode; 
-    checked: boolean; 
-    disabled?: boolean; 
+    label: string;
+    title?: string;
+    titleRich?: ReactNode;
+    checked: boolean;
+    disabled?: boolean;
     onCheckedChange: (v: boolean) => void;
 }) {
     return (

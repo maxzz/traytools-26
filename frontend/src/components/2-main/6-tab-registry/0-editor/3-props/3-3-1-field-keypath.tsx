@@ -32,15 +32,17 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
             labelHint="Hive plus subkey, stored as typed (HKCU or HKEY_CURRENT_USER, \\ or /). Normalized only when reading, writing, or opening in regedit."
             labelAside={showElevationNote
                 ? (
-                    <span
-                        className={classNames(
-                            "text-[0.65rem] font-normal truncate select-none",
-                            isElevated ? "text-foreground/70" : "text-destructive",
-                        )}
-                        title="Writing keys outside HKCU usually requires an elevated (administrator) process."
-                    >
-                        Elevated privileges required to write
-                    </span>
+                    <div className="ml-auto min-w-0 pl-2 text-right">
+                        <span
+                            className={classNames(
+                                "text-[0.65rem] font-normal truncate select-none",
+                                isElevated ? "text-foreground/70" : "text-destructive",
+                            )}
+                            title="Writing keys outside HKCU usually requires an elevated (administrator) process."
+                        >
+                            Elevated privileges required to write
+                        </span>
+                    </div>
                 )
                 : undefined}
             error={error}
