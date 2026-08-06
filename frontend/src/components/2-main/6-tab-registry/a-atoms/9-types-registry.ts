@@ -173,6 +173,11 @@ export type RegEditorStore = {
      * (skip the typing debounce) until the next successful save.
      */
     strictKeyPathValidation: boolean;
+    /**
+     * Most-recently-used key paths (validated spelling as typed). Newest first.
+     * Persisted with the registry editor localStorage cache.
+     */
+    keyPathMru: string[];
 };
 
 /** Hives whose writes normally need an elevated process. */

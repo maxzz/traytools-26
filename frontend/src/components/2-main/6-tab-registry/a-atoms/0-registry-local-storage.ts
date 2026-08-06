@@ -18,6 +18,7 @@ import {
     parseRegSelectionPath,
     selectionPathFromUid,
     uidFromSelectionPath,
+    validateItemKeyPath,
 } from "./9-types-registry";
 import { buildRegistryFileText, normalizeRegConfig, parseRegistryJson, syncDirty } from "./6-json-serialize-dirty";
 import { buildRegFileText } from "./7-reg-file-format";
@@ -29,10 +30,14 @@ export const STORAGE_ID = "traytools-26__registry__v1.0";
 /** Per-filename collapsed folder ids (index paths). Separate from the config cache. */
 export const COLLAPSE_STORAGE_ID = "traytools-26__registry-collapsed__v1.0";
 
+/** Cap for the Key path MRU dropdown (newest first). */
+export const KEY_PATH_MRU_MAX = 10;
+
 type RegCache = {
     config: RegConfig;
     rootUid: string;
     selectedPath: RegSelectionPath | null;
+    keyPathMru: string[];
 };
 
 /** Map of filename → collapsed node ids for that file. */
@@ -68,6 +73,7 @@ export const registryEditorStore = proxy<RegEditorStore>({
     selectedUid: initialSelectedUid,
     collapsedUids: initialCollapsedUids,
     strictKeyPathValidation: false,
+    keyPathMru: cached?.keyPathMru ?? [],
 });
 
 subscribe(registryEditorStore, () => {
@@ -112,6 +118,7 @@ export function readCache(): RegCache | null {
             config?: RegConfig;
             rootUid?: string;
             selectedPath?: unknown;
+            keyPathMru?: unknown;
         };
         if (parsed?.config && Array.isArray(parsed.config.groups)) {
             return {
@@ -120,6 +127,7 @@ export function readCache(): RegCache | null {
                 config: normalizeRegConfig(parsed.config),
                 rootUid: parsed.rootUid ?? "",
                 selectedPath: parseRegSelectionPath(parsed.selectedPath),
+                keyPathMru: parseKeyPathMru(parsed.keyPathMru),
             };
         }
     } catch (e) {
@@ -135,9 +143,66 @@ export function writeCache(
 ) {
     try {
         const selectedPath = selectionPathFromUid(config, rootUid, selectedUid);
-        localStorage.setItem(STORAGE_ID, JSON.stringify({ config, rootUid, selectedPath }));
+        localStorage.setItem(
+            STORAGE_ID,
+            JSON.stringify({
+                config,
+                rootUid,
+                selectedPath,
+                keyPathMru: [...registryEditorStore.keyPathMru],
+            }),
+        );
     } catch (e) {
         console.error("Failed to cache registry config", e);
+    }
+}
+
+/** Keep only non-empty strings, newest-first, capped. */
+function parseKeyPathMru(raw: unknown): string[] {
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+    const out: string[] = [];
+    for (const entry of raw) {
+        if (typeof entry !== "string") {
+            continue;
+        }
+        const path = entry.trim() ? entry : "";
+        if (!path || out.includes(path)) {
+            continue;
+        }
+        out.push(path);
+        if (out.length >= KEY_PATH_MRU_MAX) {
+            break;
+        }
+    }
+    return out;
+}
+
+/**
+ * Remember a validated key path when the field blurs with a new value.
+ * No-op when invalid, unchanged, or already present.
+ */
+export function rememberKeyPathMru(path: string): void {
+    if (!path || validateItemKeyPath(path)) {
+        return;
+    }
+    const list = registryEditorStore.keyPathMru;
+    if (list.includes(path)) {
+        return;
+    }
+    list.unshift(path);
+    if (list.length > KEY_PATH_MRU_MAX) {
+        list.length = KEY_PATH_MRU_MAX;
+    }
+}
+
+/** Remove one entry from the Key path MRU list. */
+export function removeKeyPathMru(path: string): void {
+    const list = registryEditorStore.keyPathMru;
+    const index = list.indexOf(path);
+    if (index >= 0) {
+        list.splice(index, 1);
     }
 }
 

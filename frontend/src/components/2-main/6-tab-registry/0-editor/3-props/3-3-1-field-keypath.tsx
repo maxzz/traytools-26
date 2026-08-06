@@ -1,22 +1,25 @@
-import { type ClipboardEvent } from "react";
+import { type ClipboardEvent, useRef } from "react";
 import { useSnapshot } from "valtio";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { useDebouncedValue } from "@/utils/util-hooks";
 import { notice } from "@/ui/local-ui/7-toaster";
-import { Copy, SquareArrowOutUpRight, X } from "lucide-react";
+import { ChevronDown, Copy, SquareArrowOutUpRight, X } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
 import { type RegItem, fullKeyPath, itemHasSubKey, parseHiveAlias, validateItemKeyPath } from "../../a-atoms/9-types-registry";
-import { registryEditorStore } from "../../a-atoms/0-registry-local-storage";
+import { registryEditorStore, rememberKeyPathMru, removeKeyPathMru } from "../../a-atoms/0-registry-local-storage";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 
 export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; }) {
-    const { strictKeyPathValidation } = useSnapshot(registryEditorStore);
+    const { strictKeyPathValidation, keyPathMru } = useSnapshot(registryEditorStore);
     const debouncedPath = useDebouncedValue(item.keyPath, KEY_PATH_VALIDATE_DELAY_MS);
     const pathToValidate = strictKeyPathValidation ? item.keyPath : debouncedPath;
     const error = validateItemKeyPath(pathToValidate);
     const hasText = item.keyPath.length > 0;
     const canJump = itemHasSubKey(item);
+    const hasMru = keyPathMru.length > 0;
+    const pathAtFocusRef = useRef(item.keyPath);
 
     return (
         <LabelAndField
@@ -35,11 +38,78 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
                             it.keyPath = e.target.value;
                         });
                     }}
+                    onFocus={() => {
+                        pathAtFocusRef.current = item.keyPath;
+                    }}
+                    onBlur={() => {
+                        const path = item.keyPath;
+                        if (path !== pathAtFocusRef.current) {
+                            rememberKeyPathMru(path);
+                        }
+                    }}
                     onPaste={onKeyPathPaste}
                     {...turnOffAutoComplete}
                 />
 
                 <InputGroupAddon className="p-0 pr-1.5 gap-0" align="inline-end">
+                    {hasMru ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <InputGroupButton
+                                    size="icon-xs"
+                                    title="Recent key paths"
+                                    aria-label="Recent key paths"
+                                    tabIndex={-1}
+                                >
+                                    <ChevronDown className="size-3.5 stroke-[1.5px]" />
+                                </InputGroupButton>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent align="end" className="min-w-72 max-w-xl">
+                                {keyPathMru.map((path) => (
+                                    <DropdownMenuItem
+                                        key={path}
+                                        className="justify-between gap-2 pr-1"
+                                        title={path}
+                                        onSelect={() => {
+                                            patchSelectedItem((it) => { it.keyPath = path; });
+                                        }}
+                                    >
+                                        <span className="min-w-0 truncate">{path}</span>
+                                        <button
+                                            type="button"
+                                            className="shrink-0 p-0.5 rounded opacity-0 group-hover/dropdown-menu-item:opacity-100 hover:bg-foreground/10 text-muted-foreground hover:text-foreground"
+                                            title="Remove from recent list"
+                                            aria-label={`Remove ${path} from recent list`}
+                                            onPointerDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                            }}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                removeKeyPathMru(path);
+                                            }}
+                                        >
+                                            <X className="size-3.5 stroke-[1.5px]" />
+                                        </button>
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <InputGroupButton
+                            className="opacity-50"
+                            size="icon-xs"
+                            title="No recent key paths yet"
+                            aria-label="Recent key paths"
+                            aria-disabled
+                            tabIndex={-1}
+                        >
+                            <ChevronDown className="size-3.5 stroke-[1.5px]" />
+                        </InputGroupButton>
+                    )}
+
                     <InputGroupButton
                         // aria-disabled (not disabled): InputGroup's has-disabled:opacity-50
                         // would dim the whole field.
