@@ -93,7 +93,6 @@ export type RegItem = {
     /** Display name; omitted from registry.json when empty or equal to the derived label. */
     name?: string;
     view?: RegView;
-    requireElevated?: boolean;
     /** Optional note stored in registry.json; omitted when empty. */
     comment?: string;
     // Runtime-only identity for selection / DnD; stripped on serialize.
@@ -108,7 +107,6 @@ export type RegValueRef = {
 
 export type RegGroup = {
     name: string;
-    requireElevated?: boolean;
     /** Optional note stored in registry.json; omitted when empty. */
     comment?: string;
     /** Ordered children: registry items, nested groups, and/or separators. */
@@ -287,7 +285,6 @@ export function createGroup(items?: RegNode[]): RegGroup {
         uid: newUid(),
         name: "New Group",
         items: items ?? [createItem()],
-        requireElevated: false,
     };
 }
 
@@ -296,7 +293,6 @@ export function createItem(): RegItem {
         uid: newUid(),
         keyPath: "HKCU",
         values: [createValue()],
-        requireElevated: false,
     };
 }
 

@@ -112,11 +112,6 @@ describe("parseRegFile", () => {
         expect(warnings.join("\n")).toContain("Value deletion not supported");
     });
 
-    it("marks machine-wide hives as needing elevation", () => {
-        expect(byName("Text").item.requireElevated).toBe(false);
-        expect(byName("Flag").item.requireElevated).toBe(true);
-    });
-
     it("merges a key that appears in more than one section", () => {
         const parsed = parseRegFile(
             '[HKCU\\Foo]\r\n"A"="1"\r\n\r\n[HKCU\\Bar]\r\n"B"="2"\r\n\r\n[HKCU\\Foo]\r\n"C"="3"\r\n',

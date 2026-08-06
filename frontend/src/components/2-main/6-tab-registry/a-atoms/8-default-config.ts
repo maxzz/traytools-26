@@ -4,7 +4,6 @@ export const DEFAULT_REGISTRY_CONFIG: RegConfig = {
     groups: [
         {
             name: "Example",
-            requireElevated: false,
             items: [
                 {
                     keyPath: "HKCU",
@@ -15,7 +14,6 @@ export const DEFAULT_REGISTRY_CONFIG: RegConfig = {
                             newValue: "",
                         },
                     ],
-                    requireElevated: false,
                 },
             ],
         },

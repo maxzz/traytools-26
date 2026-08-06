@@ -126,7 +126,6 @@ export function parseRegFile(text: string, groupName: string): ParsedRegFile {
             item = createItem();
             item.keyPath = fullKey;
             item.values = [];
-            item.requireElevated = hive !== "HKCU";
             byKey.set(fullKey, item);
             items.push(item);
         }
@@ -141,7 +140,6 @@ export function parseRegFile(text: string, groupName: string): ParsedRegFile {
     return {
         group: {
             name: groupName || "Imported",
-            requireElevated: items.some((item) => item.requireElevated),
             items,
         },
         warnings,

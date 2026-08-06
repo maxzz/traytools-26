@@ -389,9 +389,6 @@ function quickAccessItemPropertyRows(item: RegItem): { label: string; value: str
     if (item.view === "32" || item.view === "64") {
         add("View", `${item.view}-bit`);
     }
-    if (item.requireElevated) {
-        add("Require elevated", "Yes");
-    }
 
     return rows;
 }

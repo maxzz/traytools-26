@@ -4,7 +4,6 @@ import { Input } from "@/ui/shadcn/input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import {
     Field_TypeIcon,
-    FlagSwitch,
     LabelAndField,
     PropsActionButton,
     typeBadgeIcons,
@@ -52,15 +51,6 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
             value={group.comment ?? ""}
             onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
         />
-
-        <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <FlagSwitch
-                label="Require elevated privileges"
-                title="Prompt to relaunch as administrator before writing any value in this group."
-                checked={!!group.requireElevated}
-                onCheckedChange={(v) => patchSelectedGroup((g) => { g.requireElevated = v; })}
-            />
-        </div>
 
         <QuickAccessList nodes={[group]} />
     </>);

@@ -3,8 +3,8 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
-import { Field_TypeIcon, FlagSwitch, InfoTooltip, LabelAndField, PropsActionButton, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
-import { type RegGroup, type RegItem, type RegView, countGroupValues, derivedItemLabel, hiveNeedsElevation, itemHasSubKey, itemHive } from "../../a-atoms/9-types-registry";
+import { Field_TypeIcon, InfoTooltip, LabelAndField, PropsActionButton, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
+import { type RegGroup, type RegItem, type RegView, countGroupValues, derivedItemLabel, itemHasSubKey } from "../../a-atoms/9-types-registry";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import { doAsyncRegJumpItemAtom, doAsyncRegReadItemAtom, doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../../a-atoms/2-run-registry";
 import { Field_KeyPath } from "./3-3-1-field-keypath";
@@ -19,7 +19,6 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
     const uid = item.uid;
     const hasKey = itemHasSubKey(item);
     const parentHasValues = countGroupValues(group) > 0;
-    const hive = itemHive(item);
 
     return (<>
         <div className="flex items-center justify-between gap-2">
@@ -58,16 +57,6 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
         </div>
 
         <Field_ItemValues item={item} />
-
-        <div className="-mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <FlagSwitch
-                label="Require elevated privileges"
-                title="Prompt to relaunch as administrator before writing this key. Machine-wide hives always require it."
-                checked={!!item.requireElevated || hiveNeedsElevation(hive)}
-                disabled={hiveNeedsElevation(hive)}
-                onCheckedChange={(v) => patchSelectedItem((it) => { it.requireElevated = v; })}
-            />
-        </div>
 
         <Field_ItemName item={item} />
     </>);

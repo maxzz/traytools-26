@@ -359,7 +359,7 @@ function applyReadResults(jobUid: string, refs: RegValueRef[], results: RegReadR
 // ---------------------------------------------------------------------------
 // Write
 
-async function runWrite(refs: RegValueRef[], label: string, groupRequiresElevation: boolean): Promise<void> {
+async function runWrite(refs: RegValueRef[], label: string): Promise<void> {
     const { runnable, invalid } = partitionRunnable(refs);
     if (!runnable.length) {
         notice.warning(invalid.length ? "Nothing to write — key paths are empty" : "Nothing to write");
@@ -375,10 +375,8 @@ async function runWrite(refs: RegValueRef[], label: string, groupRequiresElevati
         }
     }
 
-    // Elevation is needed when any key says so, or targets a machine-wide hive.
-    const needsElevation =
-        groupRequiresElevation
-        || runnable.some(({ item }) => item.requireElevated || hiveNeedsElevation(itemHive(item)));
+    // Machine-wide hives need an elevated process; HKCU does not.
+    const needsElevation = runnable.some(({ item }) => hiveNeedsElevation(itemHive(item)));
 
     if (!(await ensureElevatedOrPrompt(needsElevation))) {
         return;
@@ -487,7 +485,7 @@ export const doAsyncRegWriteItemAtom = atom(
     async (_get, _set, uid: string): Promise<void> => {
         const item = liveItem(uid);
         if (item) {
-            await runWrite(itemValueRefs(item), itemLabel(item), !!item.requireElevated);
+            await runWrite(itemValueRefs(item), itemLabel(item));
         }
     },
 );
@@ -498,7 +496,7 @@ export const doAsyncRegWriteValueAtom = atom(
     async (_get, _set, uid: string): Promise<void> => {
         const ref = liveValueRef(uid);
         if (ref) {
-            await runWrite([ref], valueRefLabel(ref), !!ref.item.requireElevated);
+            await runWrite([ref], valueRefLabel(ref));
         }
     },
 );
@@ -508,7 +506,7 @@ export const doAsyncRegWriteGroupAtom = atom(
     async (_get, _set, uid: string): Promise<void> => {
         const group = liveGroup(uid);
         if (group) {
-            await runWrite(collectGroupValueRefs(group), group.name || "Group", !!group.requireElevated);
+            await runWrite(collectGroupValueRefs(group), group.name || "Group");
         }
     },
 );

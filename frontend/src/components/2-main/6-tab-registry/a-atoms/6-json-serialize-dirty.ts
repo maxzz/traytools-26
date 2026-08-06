@@ -17,12 +17,9 @@ export function buildRegistryFileText(config: RegConfig): string {
 }
 
 function jsonReplacer(this: RegGroup | RegItem, key: string, value: unknown): unknown {
-    if (key === "uid" || key === "hive") {
-        // hive lives inside keyPath; never persist a separate field.
+    if (key === "uid" || key === "hive" || key === "requireElevated") {
+        // hive lives inside keyPath; requireElevated is no longer a setting.
         return undefined;
-    }
-    if (key === "requireElevated") {
-        return value === true ? true : undefined;
     }
     // "curr" is the default view; omit it so files stay uncluttered.
     if (key === "view") {
@@ -81,11 +78,12 @@ export function normalizeGroup(raw: unknown): RegGroup {
     if (!raw || typeof raw !== "object") {
         throw new Error("Invalid registry.json: group must be an object");
     }
-    const group = raw as RegGroup;
+    const group = raw as RegGroup & { requireElevated?: unknown; };
     if (typeof group.name !== "string") {
         group.name = "Group";
     }
     normalizeOptionalComment(group);
+    delete group.requireElevated;
 
     const children: RegNode[] = [];
     if (Array.isArray(group.items)) {
@@ -123,12 +121,13 @@ function normalizeSeparator(raw: object): RegSeparator {
 }
 
 function normalizeItem(raw: object): RegItem {
-    const item = raw as RegItem & LegacyValueFields & { hive?: unknown; };
+    const item = raw as RegItem & LegacyValueFields & { hive?: unknown; requireElevated?: unknown; };
     // Keep the author's spelling (HKLM vs HKEY_LOCAL_MACHINE, \\ vs \, / vs \).
     // Ops normalize via parseItemKeyPath / normalizeItemKeyPath at use time.
     item.keyPath = typeof item.keyPath === "string" && item.keyPath.length > 0 ? item.keyPath : "HKCU";
     // Hive is part of keyPath; drop any leftover separate field.
     delete item.hive;
+    delete item.requireElevated;
     item.values = normalizeValues(item);
     if (item.view !== "32" && item.view !== "64") {
         delete item.view;
