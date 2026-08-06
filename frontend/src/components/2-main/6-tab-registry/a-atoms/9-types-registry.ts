@@ -700,6 +700,10 @@ const KEY_NAME_MAX = 255;
  * Validate a stored keyPath spelling. Returns an error message, or null when ok.
  * Separators may be `\`, `\\`, or `/`; hive may be short or long. Structural
  * checks run on a normalized form without rewriting the stored value.
+ *
+ * Minimum shape: hive \ top-level key \ company/app folder
+ * (e.g. HKEY_CURRENT_USER\Software\Vendor). Further segments may follow for
+ * the folder that holds the actual values.
  */
 export function validateItemKeyPath(text: string): string | null {
     if (!text.trim()) {
@@ -711,18 +715,18 @@ export function validateItemKeyPath(text: string): string | null {
         return "Key path is required.";
     }
 
-    const slash = normalized.indexOf("\\");
-    const head = slash < 0 ? normalized : normalized.slice(0, slash);
+    const segments = normalized.split("\\");
+    const head = segments[0] ?? "";
     if (!parseHiveAlias(head)) {
         return "Key path must start with a registry hive (HKCU, HKLM, HKEY_CURRENT_USER, …).";
     }
 
-    const rest = slash < 0 ? "" : normalized.slice(slash + 1);
-    if (!rest) {
-        return null;
+    // hive \ Software \ Company[\ Product…]
+    if (segments.length < 3) {
+        return "Key path needs at least hive\\top-level key\\company or app (e.g. HKCU\\Software\\Vendor).";
     }
 
-    for (const segment of rest.split("\\")) {
+    for (const segment of segments.slice(1)) {
         if (!segment) {
             return "Key path has an empty segment.";
         }
