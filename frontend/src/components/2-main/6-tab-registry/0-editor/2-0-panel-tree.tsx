@@ -561,7 +561,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                 </span>
 
                 {values.length > 1 && (
-                    <span className="shrink-0 relative mr-5 text-[0.65rem] text-muted-foreground tabular-nums">
+                    <span className="shrink-0 relative mr-5 tabular-nums text-[0.65rem] text-muted-foreground">
                         {values.length}
                     </span>
                 )}
