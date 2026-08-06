@@ -136,7 +136,7 @@ function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, chi
                 <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={hasChildren} />
 
                 <button
-                    className="shrink-0 relative w-4 h-4 text-muted-foreground flex items-center justify-center disabled:opacity-40 cursor-pointer"
+                    className="shrink-0 relative w-4 h-4 text-muted-foreground disabled:opacity-40 flex items-center justify-center cursor-pointer"
                     onClick={() => setCollapsed((v) => !v)}
                     title={hasChildren ? (collapsed ? "Expand" : "Collapse") : undefined}
                     disabled={!hasChildren}

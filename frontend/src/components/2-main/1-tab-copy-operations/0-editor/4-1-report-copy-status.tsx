@@ -24,7 +24,7 @@ export function OperationStatus({ row }: { row: CopyProgressRow; }) {
     const pendingHidden = status === "pending" && !pendingVisible;
 
     return (
-        <span className="min-w-20 inline-grid justify-items-end overflow-x-clip">
+        <span className="min-w-20 overflow-x-clip inline-grid justify-items-end">
             <AnimatePresence initial={false}>
                 <motion.span
                     key={status}

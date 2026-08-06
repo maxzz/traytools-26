@@ -30,7 +30,7 @@ export function CheckDetailsDialog() {
                     </div>
                 </>)}
 
-                <ScrollArea2 className="max-h-[min(70vh,32rem)] px-4 py-3">
+                <ScrollArea2 className="px-4 py-3 max-h-[min(70vh,32rem)]">
                     {payload && <CheckDetailsTree response={payload.response} />}
                 </ScrollArea2>
 
