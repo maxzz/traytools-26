@@ -33,9 +33,9 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
             labelAside={
                 showElevationNote
                     ? (
-                        <div className="min-w-0 pl-0.5">
+                        <div className="min-w-0 pl-0.5 text-[0.55rem] font-normal">
                             <span
-                                className={classNames("text-[0.55rem] font-normal truncate select-none", isElevated ? "text-foreground/70" : "text-destructive")}
+                                className={classNames("truncate select-none", isElevated ? "text-foreground/70" : "text-destructive")}
                                 title="Writing keys outside HKCU usually requires an elevated (administrator) process."
                             >
                                 Elevattion required to write
