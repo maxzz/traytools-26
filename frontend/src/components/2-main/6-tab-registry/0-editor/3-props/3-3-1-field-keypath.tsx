@@ -67,21 +67,26 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
 
                             <DropdownMenuContent align="end" className="min-w-72 max-w-xl">
                                 {keyPathMru.map((path) => (
-                                    <DropdownMenuItem
-                                        key={path}
-                                        className="justify-between gap-2 pr-1"
-                                        title={path}
-                                        onSelect={() => {
-                                            patchSelectedItem((it) => { it.keyPath = path; });
-                                        }}
-                                    >
-                                        <span className="min-w-0 truncate">{path}</span>
+                                    // Remove control is a sibling of DropdownMenuItem so its
+                                    // click never triggers the item's onSelect (which would
+                                    // write the path into the Key path field).
+                                    <div key={path} className="group/mru relative">
+                                        <DropdownMenuItem
+                                            className="pr-7"
+                                            title={path}
+                                            onSelect={() => {
+                                                patchSelectedItem((it) => { it.keyPath = path; });
+                                            }}
+                                        >
+                                            <span className="min-w-0 truncate">{path}</span>
+                                        </DropdownMenuItem>
                                         <button
                                             type="button"
-                                            className="shrink-0 p-0.5 rounded opacity-0 group-hover/dropdown-menu-item:opacity-100 hover:bg-foreground/10 text-muted-foreground hover:text-foreground"
+                                            className="absolute right-1 top-1/2 z-10 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover/mru:opacity-100 hover:bg-foreground/10 text-muted-foreground hover:text-foreground"
                                             title="Remove from recent list"
                                             aria-label={`Remove ${path} from recent list`}
                                             onPointerDown={(e) => {
+                                                // Keep focus in the menu; do not select the row.
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                             }}
@@ -93,7 +98,7 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
                                         >
                                             <X className="size-3.5 stroke-[1.5px]" />
                                         </button>
-                                    </DropdownMenuItem>
+                                    </div>
                                 ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
