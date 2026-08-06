@@ -1,18 +1,22 @@
 import { type ClipboardEvent, useRef } from "react";
+import { useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
+import { classNames } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { useDebouncedValue } from "@/utils/util-hooks";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { ChevronDown, Copy, SquareArrowOutUpRight, X } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
-import { type RegItem, fullKeyPath, itemHasSubKey, parseHiveAlias, validateItemKeyPath } from "../../a-atoms/9-types-registry";
+import { type RegItem, fullKeyPath, hiveNeedsElevation, itemHasSubKey, itemHive, parseHiveAlias, validateItemKeyPath } from "../../a-atoms/9-types-registry";
 import { registryEditorStore, rememberKeyPathMru, removeKeyPathMru } from "../../a-atoms/0-registry-local-storage";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 
 export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => void; }) {
     const { strictKeyPathValidation, keyPathMru } = useSnapshot(registryEditorStore);
+    const isElevated = useAtomValue(appIsElevatedAtom);
     const debouncedPath = useDebouncedValue(item.keyPath, KEY_PATH_VALIDATE_DELAY_MS);
     const pathToValidate = strictKeyPathValidation ? item.keyPath : debouncedPath;
     const error = validateItemKeyPath(pathToValidate);
@@ -20,11 +24,25 @@ export function Field_KeyPath({ item, onJump }: { item: RegItem; onJump: () => v
     const canJump = itemHasSubKey(item);
     const hasMru = keyPathMru.length > 0;
     const pathAtFocusRef = useRef(item.keyPath);
+    const showElevationNote = !error && hiveNeedsElevation(itemHive({ keyPath: pathToValidate }));
 
     return (
         <LabelAndField
             label="Key path"
             labelHint="Hive plus subkey, stored as typed (HKCU or HKEY_CURRENT_USER, \\ or /). Normalized only when reading, writing, or opening in regedit."
+            labelAside={showElevationNote
+                ? (
+                    <span
+                        className={classNames(
+                            "text-[0.65rem] font-normal truncate select-none",
+                            isElevated ? "text-foreground/70" : "text-destructive",
+                        )}
+                        title="Writing keys outside HKCU usually requires an elevated (administrator) process."
+                    >
+                        Elevated privileges required to write
+                    </span>
+                )
+                : undefined}
             error={error}
         >
             <InputGroup>
