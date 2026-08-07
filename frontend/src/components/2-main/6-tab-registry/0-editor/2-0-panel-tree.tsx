@@ -403,11 +403,12 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
 
                     {collapsed ? <Folder className={FOLDER_ICON} /> : <FolderOpen className={FOLDER_ICON} />}
 
-                    <span className="flex-1 relative min-w-0 truncate">
-                        {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
+                    <span className="flex-1 relative min-w-0 pr-5 flex items-center gap-1 overflow-hidden">
+                        <span className="min-w-0 truncate">
+                            {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
+                        </span>
+                        {snap.dirtyUids.includes(uid) && <DirtyDot />}
                     </span>
-
-                    {snap.dirtyUids.includes(uid) && <DirtyDot className="mr-5" />}
 
                     <Button
                         className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
@@ -569,18 +570,14 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <SymbolAppRegedit className="shrink-0 relative size-3.5 opacity-70" />
 
-                <span className="flex-1 relative min-w-0 truncate" title={itemRowTitle(item)}>
-                    {label}
+                <span className="flex-1 relative min-w-0 pr-5 flex items-center gap-1 overflow-hidden" title={itemRowTitle(item)}>
+                    <span className="min-w-0 truncate">{label}</span>
+                    {isDirty && <DirtyDot />}
                 </span>
 
-                {(values.length > 1 || isDirty) && (
-                    <span className="shrink-0 relative mr-5 flex items-center gap-1">
-                        {values.length > 1 && (
-                            <span className="tabular-nums text-[0.65rem] text-muted-foreground">
-                                {values.length}
-                            </span>
-                        )}
-                        {isDirty && <DirtyDot />}
+                {values.length > 1 && (
+                    <span className="shrink-0 relative mr-5 tabular-nums text-[0.65rem] text-muted-foreground">
+                        {values.length}
                     </span>
                 )}
 
