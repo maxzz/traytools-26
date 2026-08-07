@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
-import { ChevronDown, ChevronRight, Folder, FolderOpen, FileIcon } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronRight, Folder, FolderOpen, FileIcon, Info } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { type SyncOpItem, findByUid, itemLabel } from "../../a-atoms/9-types-sync";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { type SyncOpItem, findByUid, folderBaseName, itemLabel } from "../../a-atoms/9-types-sync";
 import { type DropPosition, addDroppedFolders, copyNode, isRootUid, moveNode } from "../../a-atoms/1-sync-editor-atoms";
-import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
+import { SyncConfig_Apply, syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import {
     DROP_TARGET_STYLE,
     isFileDrag,
@@ -304,6 +305,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
     const isDropTarget = dnd.dropUid === rootUid;
     const showInside = isDropTarget && dnd.dropPos === "inside";
     const showFileDrop = dnd.fileDropUid === rootUid;
+    const working = workingFileCaption(snap);
 
     return (
         <div>
@@ -316,7 +318,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
             >
                 <div
                     className={cn(
-                        "group relative mx-0 px-1 h-5 font-medium rounded-none select-none flex items-center gap-1 cursor-pointer",
+                        "group relative mx-0 px-1 pr-7 h-5 font-medium rounded-none select-none flex items-center gap-1 cursor-pointer",
                         !selected && "hover:bg-accent/50",
                         selected && ROW_SELECTED,
                         (showInside || showFileDrop) && "ring-1 ring-sky-500 bg-sky-500/10",
@@ -343,7 +345,13 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                         ? <Folder className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
-                    <span className="flex-1 relative min-w-0 truncate">Groups</span>
+                    <span className="flex-1 min-w-0 flex items-center gap-1">
+                        <span className="min-w-0 truncate" title={working.detail}>
+                            Groups: {working.label}
+                        </span>
+                        <RootFileInfoButton working={working} error={snap.error} />
+                        {snap.dirty && <ModifiedBadge />}
+                    </span>
                 </div>
             </div>
 
@@ -381,11 +389,11 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
 }
 
 function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: SnapGroup; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
-    const { selectedUid } = useSnapshot(syncEditorStore);
+    const snap = useSnapshot(syncEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
     const uid = group.uid ?? "";
-    const selected = selectedUid === uid;
+    const selected = snap.selectedUid === uid;
     const isDragging = dnd.dragUid === uid;
     const isDropTarget = dnd.dropUid === uid;
     const showBefore = isDropTarget && dnd.dropPos === "before";
@@ -445,7 +453,12 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
 
-                    <span className="flex-1 relative min-w-0 truncate">{group.name || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
+                    <span className="flex-1 relative min-w-0 pr-5 flex items-center gap-1 overflow-hidden">
+                        <span className="min-w-0 truncate">
+                            {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
+                        </span>
+                        {snap.dirtyUids.includes(uid) && <DirtyDot />}
+                    </span>
                 </div>
             </div>
 
@@ -542,6 +555,8 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
                   horizontal tick; scoped to this span only.
                 */}
                 <span className="flex-1 relative -ml-2 mr-2 max-w-40 border-t border-foreground/40 -translate-y-px" />
+
+                {snap.dirtyUids.includes(uid) && <DirtyDot />}
             </div>
         </div>
     );
@@ -557,6 +572,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
     const showBefore = isDropTarget && dnd.dropPos === "before";
     const showAfter = isDropTarget && dnd.dropPos === "after";
     const label = itemLabel(item as SyncOpItem);
+    const isDirty = snap.dirtyUids.includes(uid);
     // OS folder drops on an item land in the parent group.
     const fileDropParentUid = fileDropDestUid(uid);
 
@@ -594,12 +610,118 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <FileIcon className="shrink-0 relative size-3.5 text-foreground/70" />
 
-                <span className="flex-1 relative min-w-0 truncate" title={label}>
-                    {label}
+                <span className="flex-1 relative min-w-0 pr-5 flex items-center gap-1 overflow-hidden" title={label}>
+                    <span className="min-w-0 truncate">{label}</span>
+                    {isDirty && <DirtyDot />}
                 </span>
             </div>
         </div>
     );
+}
+
+function RootFileInfoButton({ working, error }: { working: WorkingFileCaption; error: string; }) {
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button
+                        type="button"
+                        className={cn(
+                            "shrink-0 size-3.5 border rounded-full inline-flex items-center justify-center",
+                            error
+                                ? "text-destructive border-destructive/70 bg-destructive/15"
+                                : "text-muted-foreground border-border bg-muted",
+                        )}
+                        aria-label={working.aria}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {error
+                            ? <AlertTriangle className="size-2" />
+                            : <Info className="size-2" />
+                        }
+                    </button>
+                </TooltipTrigger>
+
+                <TooltipContent side="bottom" className="max-w-80">
+                    <div className="flex flex-col gap-1">
+                        {error && <p>{error}</p>}
+                        <p>{working.detail}</p>
+                    </div>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+}
+
+function ModifiedBadge() {
+    return (
+        <button
+            type="button"
+            className="shrink-0 px-1 py-px text-[0.6rem] leading-none font-normal text-red-500 bg-orange-500/30 dark:text-orange-500 border border-red-500/70 rounded-sm hover:bg-orange-500/45 cursor-pointer"
+            title="Save changes"
+            aria-label="Save changes"
+            onClick={(e) => {
+                e.stopPropagation();
+                void SyncConfig_Apply();
+            }}
+        >
+            modified
+        </button>
+    );
+}
+
+function DirtyDot({ className }: { className?: string; }) {
+    return (
+        <span
+            className={cn("shrink-0 size-1.5 rounded-full bg-red-500", className)}
+            title="Modified"
+            aria-label="Modified"
+        />
+    );
+}
+
+type WorkingFileCaption = { label: string; detail: string; aria: string; };
+
+function workingFileCaption(snap: {
+    path: string;
+    source: string;
+    fileExists: boolean;
+}): WorkingFileCaption {
+    const { path, source, fileExists } = snap;
+
+    if (source === "import" && path) {
+        return {
+            label: folderBaseName(path),
+            detail: path,
+            aria: `Imported file: ${path}`,
+        };
+    }
+
+    if (fileExists && path) {
+        return {
+            label: folderBaseName(path),
+            detail: path,
+            aria: `Working file: ${path}`,
+        };
+    }
+
+    if (source === "default") {
+        const detail = "New configuration — stored in local storage until you Save.";
+        return {
+            label: "New (local storage)",
+            detail,
+            aria: detail,
+        };
+    }
+
+    const detail = path
+        ? `No file on disk yet (expected ${path}). Stored in local storage until you Save.`
+        : "Stored in local storage until you Save.";
+    return {
+        label: "Local storage",
+        detail,
+        aria: detail,
+    };
 }
 
 /** Same focus/unfocus selection look as the Windows tab (kibo-ui-tree). */

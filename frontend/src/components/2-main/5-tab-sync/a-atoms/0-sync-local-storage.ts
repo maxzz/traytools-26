@@ -3,7 +3,7 @@ import { proxy, subscribe } from "valtio";
 import { appBus, syncOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { type SyncConfig, type SyncEditorStore, type SyncSelectionPath, type SyncSource, ensureUids, parseSyncSelectionPath, selectionPathFromUid, uidFromSelectionPath } from "./9-types-sync";
-import { buildSyncFileText, parseSyncJson, syncDirty } from "./6-json-serialize-dirty";
+import { buildSyncFileText, captureBaselineNodes, collectNodeTextsByUid, parseSyncJson, syncDirty } from "./6-json-serialize-dirty";
 import { DEFAULT_SYNC_CONFIG } from "./8-default-config";
 
 // Store
@@ -32,8 +32,10 @@ export const syncEditorStore = proxy<SyncEditorStore>({
     source: cached ? "storage" : "default",
     path: "",
     baseline: buildSyncFileText(initialConfig),
+    baselineNodeTextByUid: collectNodeTextsByUid(initialConfig),
     fileExists: false,
     dirty: false,
+    dirtyUids: [],
     status: "",
     error: "",
     selectedUid: initialSelectedUid,
@@ -163,6 +165,7 @@ function SyncConfig_Set(config: SyncConfig, source: SyncSource, path = "", fileE
     syncEditorStore.path = path;
     syncEditorStore.fileExists = fileExists;
     syncEditorStore.baseline = buildSyncFileText(config);
+    captureBaselineNodes(syncEditorStore);
     syncEditorStore.dirty = false;
     syncEditorStore.error = "";
     syncEditorStore.selectedUid = uidFromSelectionPath(config, holder.rootUid, pathToRestore);
@@ -175,6 +178,7 @@ export async function SyncConfig_Save(): Promise<void> {
         syncEditorStore.path = res?.path ?? syncEditorStore.path;
         syncEditorStore.source = "file";
         syncEditorStore.baseline = text;
+        captureBaselineNodes(syncEditorStore);
         syncEditorStore.fileExists = true;
         syncEditorStore.dirty = false;
         syncEditorStore.error = "";
@@ -227,8 +231,6 @@ export async function SyncConfig_Import(): Promise<void> {
         const { content } = await syncOpsBus.readTextFile(pick.path);
         const config = parseSyncJson(content);
         SyncConfig_Set(config, "import", pick.path, false);
-        syncEditorStore.baseline = buildSyncFileText(config);
-        syncEditorStore.dirty = false;
         syncEditorStore.status = "";
         writeCache(config, syncEditorStore.rootUid, syncEditorStore.selectedUid);
         notice.success(`Imported from<br/>${pick.path}`);
