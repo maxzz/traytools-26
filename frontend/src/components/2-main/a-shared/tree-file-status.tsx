@@ -1,5 +1,5 @@
 import { type ComponentProps } from "react";
-import { cn } from "@/utils/classnames";
+import { classNames } from "@/utils/classnames";
 import { AlertTriangle, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 
@@ -27,11 +27,7 @@ export function pathBaseName(path: string): string {
  * Caption for the tree root file label / info tooltip.
  * Supports the usual editor sources: default, file, storage, import, open.
  */
-export function workingFileCaption(snap: {
-    path: string;
-    source: string;
-    fileExists: boolean;
-}): WorkingFileCaption {
+export function workingFileCaption(snap: { path: string; source: string; fileExists: boolean; }): WorkingFileCaption {
     const { path, source, fileExists } = snap;
 
     if (source === "import" && path) {
@@ -81,7 +77,7 @@ export function RootFileInfoButton({ working, error }: { working: WorkingFileCap
                 <TooltipTrigger asChild>
                     <button
                         type="button"
-                        className={cn(
+                        className={classNames(
                             "shrink-0 size-3.5 border rounded-full inline-flex items-center justify-center",
                             error
                                 ? "text-destructive border-destructive/70 bg-destructive/15"
@@ -130,7 +126,7 @@ export function ModifiedBadge({ onSave }: { onSave: () => void | Promise<void>; 
 export function DirtyDot({ className, ...rest }: ComponentProps<"span">) {
     return (
         <span
-            className={cn("shrink-0 size-1.5 rounded-full bg-red-500", className)}
+            className={classNames("shrink-0 size-1.5 rounded-full bg-red-500", className)}
             title="Modified"
             aria-label="Modified"
             {...rest}
@@ -139,7 +135,7 @@ export function DirtyDot({ className, ...rest }: ComponentProps<"span">) {
 }
 
 /** Same focus/unfocus selection look as the Windows tab (kibo-ui-tree). */
-export const treeRowSelectedClasses = cn(
+export const treeRowSelectedClasses = classNames(
     "text-tree-select-foreground bg-tree-select",
     "group-focus-within/tree:bg-tree-select-focused group-focus-within/tree:text-tree-select-focused-foreground",
     "group-focus-within/tree:ring-1 group-focus-within/tree:ring-inset group-focus-within/tree:ring-tree-select-border",
