@@ -1,11 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
-import { AlertTriangle, ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon, Info } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { type CopyOpItem, findByUid, itemLabel, sourceFileBaseName } from "../a-atoms/9-types-copy";
+import { type CopyOpItem, findByUid, itemLabel } from "../a-atoms/9-types-copy";
 import { type DropPosition, addDroppedFiles, copyNode, isRootUid, moveNode } from "../a-atoms/1-copy-editor-atoms";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 import { CopyConfig_Apply, copyEditorStore } from "../a-atoms/0-copy-local-storage";
@@ -16,6 +15,13 @@ import {
     pathsFromDataTransfer,
     registerFileDropTarget,
 } from "@/components/2-main/a-shared/path-input";
+import {
+    DirtyDot,
+    ModifiedBadge,
+    RootFileInfoButton,
+    treeRowSelectedClasses,
+    workingFileCaption,
+} from "@/components/2-main/a-shared/tree-file-status";
 
 /** Custom MIME so OS file drags are never mistaken for in-tree reorder. */
 const TREE_UID_MIME = "application/x-traytools-tree-uid";
@@ -320,7 +326,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                     className={cn(
                         "group relative mx-0 px-1 pr-7 h-5 font-medium rounded-none select-none flex items-center gap-1 cursor-pointer",
                         !selected && "hover:bg-accent/50",
-                        selected && ROW_SELECTED,
+                        selected && treeRowSelectedClasses,
                         (showInside || showFileDrop) && "ring-1 ring-sky-500 bg-sky-500/10",
                     )}
                     style={{ paddingLeft: INDENT + 8 }}
@@ -350,7 +356,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                             Groups: {working.label}
                         </span>
                         <RootFileInfoButton working={working} error={snap.error} />
-                        {snap.dirty && <ModifiedBadge />}
+                        {snap.dirty && <ModifiedBadge onSave={CopyConfig_Apply} />}
                     </span>
                 </div>
             </div>
@@ -423,7 +429,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                     className={cn(
                         "group relative px-1 h-5 rounded-none select-none flex items-center gap-1 cursor-pointer",
                         !selected && "hover:bg-accent/50",
-                        selected && ROW_SELECTED,
+                        selected && treeRowSelectedClasses,
                         (showInside || showFileDrop) && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
                     )}
@@ -552,7 +558,7 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
                 className={cn(
                     "group relative px-1 h-5 rounded-none select-none flex items-center gap-1 cursor-pointer",
                     !selected && "hover:bg-accent/50",
-                    selected && ROW_SELECTED,
+                    selected && treeRowSelectedClasses,
                     isDragging && "opacity-40",
                 )}
                 style={{ paddingLeft: (depth + 1) * INDENT + 8 }}
@@ -611,7 +617,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                 className={cn(
                     "group relative px-1 h-5 rounded-none select-none flex items-center gap-1 cursor-pointer",
                     !selected && "hover:bg-accent/50",
-                    selected && ROW_SELECTED,
+                    selected && treeRowSelectedClasses,
                     isDragging && "opacity-40",
                 )}
                 style={{ paddingLeft: (depth + 1) * INDENT + 8 }}
@@ -652,119 +658,6 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
         </div>
     );
 }
-
-function RootFileInfoButton({ working, error }: { working: WorkingFileCaption; error: string; }) {
-    return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <button
-                        type="button"
-                        className={cn(
-                            "shrink-0 size-3.5 border rounded-full inline-flex items-center justify-center",
-                            error
-                                ? "text-destructive border-destructive/70 bg-destructive/15"
-                                : "text-muted-foreground border-border bg-muted",
-                        )}
-                        aria-label={working.aria}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {error
-                            ? <AlertTriangle className="size-2" />
-                            : <Info className="size-2" />
-                        }
-                    </button>
-                </TooltipTrigger>
-
-                <TooltipContent side="bottom" className="max-w-80">
-                    <div className="flex flex-col gap-1">
-                        {error && <p>{error}</p>}
-                        <p>{working.detail}</p>
-                    </div>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
-    );
-}
-
-function ModifiedBadge() {
-    return (
-        <button
-            type="button"
-            className="shrink-0 px-1 py-px text-[0.6rem] leading-none font-normal text-red-500 bg-orange-500/30 dark:text-orange-500 border border-red-500/70 rounded-sm hover:bg-orange-500/45 cursor-pointer"
-            title="Save changes"
-            aria-label="Save changes"
-            onClick={(e) => {
-                e.stopPropagation();
-                void CopyConfig_Apply();
-            }}
-        >
-            modified
-        </button>
-    );
-}
-
-function DirtyDot({ className }: { className?: string; }) {
-    return (
-        <span
-            className={cn("shrink-0 size-1.5 rounded-full bg-red-500", className)}
-            title="Modified"
-            aria-label="Modified"
-        />
-    );
-}
-
-type WorkingFileCaption = { label: string; detail: string; aria: string; };
-
-function workingFileCaption(snap: {
-    path: string;
-    source: string;
-    fileExists: boolean;
-}): WorkingFileCaption {
-    const { path, source, fileExists } = snap;
-
-    if (source === "import" && path) {
-        return {
-            label: sourceFileBaseName(path),
-            detail: path,
-            aria: `Imported file: ${path}`,
-        };
-    }
-
-    if (fileExists && path) {
-        return {
-            label: sourceFileBaseName(path),
-            detail: path,
-            aria: `Working file: ${path}`,
-        };
-    }
-
-    if (source === "default") {
-        const detail = "New configuration — stored in local storage until you Save.";
-        return {
-            label: "New (local storage)",
-            detail,
-            aria: detail,
-        };
-    }
-
-    const detail = path
-        ? `No file on disk yet (expected ${path}). Stored in local storage until you Save.`
-        : "Stored in local storage until you Save.";
-    return {
-        label: "Local storage",
-        detail,
-        aria: detail,
-    };
-}
-
-/** Same focus/unfocus selection look as the Windows tab (kibo-ui-tree). */
-const ROW_SELECTED = cn(
-    "text-tree-select-foreground bg-tree-select",
-    "group-focus-within/tree:bg-tree-select-focused group-focus-within/tree:text-tree-select-focused-foreground",
-    "group-focus-within/tree:ring-1 group-focus-within/tree:ring-inset group-focus-within/tree:ring-tree-select-border",
-    "group-focus-within/tree:font-medium",
-);
 
 /** Gap between the horizontal tick and the expander (parents) or icon (leaves). */
 const TREE_LINE_CONTENT_GAP = 4;
