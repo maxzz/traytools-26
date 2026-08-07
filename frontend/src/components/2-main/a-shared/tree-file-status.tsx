@@ -114,7 +114,7 @@ export function ModifiedBadge({ onSave }: { onSave: () => void | Promise<void>; 
             bg-red-500 
             dark:text-orange-50 
             dark:border-red-400 
-            hover:bg-red-600/50 
+            hover:bg-red-700
             dark:hover:bg-red-400/45 
             border-red-600 
             border 
@@ -136,7 +136,7 @@ export function ModifiedBadge({ onSave }: { onSave: () => void | Promise<void>; 
 export function DirtyDot({ className, ...rest }: ComponentProps<"span">) {
     return (
         <span
-            className={classNames("shrink-0 size-1.5 rounded-full bg-red-500", className)}
+            className={classNames("shrink-0 size-1.5 rounded-full bg-orange-400", className)}
             title="Modified"
             aria-label="Modified"
             {...rest}
