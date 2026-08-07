@@ -21,9 +21,13 @@ import {
 /**
  * Parent grid for the values table: name | type | new value | current | actions.
  * Header and each body row use {@link SUBGRID_ROW_Classes} so they share these tracks.
+ * Actions track widens when Edit order shows drag + delete controls.
  */
-export const TABLE_GRID_Classes =
-    "grid grid-cols-[minmax(0,1.2fr)_70px_minmax(0,1.3fr)_minmax(0,1.3fr)_6.5rem] gap-x-1";
+export function tableGridClasses(editOrder: boolean): string {
+    return editOrder
+        ? "grid grid-cols-[minmax(0,1.2fr)_70px_minmax(0,1.3fr)_minmax(0,1.3fr)_6.5rem] gap-x-1"
+        : "grid grid-cols-[minmax(0,1.2fr)_70px_minmax(0,1.3fr)_minmax(0,1.3fr)_3.25rem] gap-x-1";
+}
 
 /** One table row that inherits the parent column tracks via CSS subgrid. */
 export const SUBGRID_ROW_Classes = "col-span-full grid grid-cols-subgrid";
@@ -38,14 +42,14 @@ export const COL_Classes = {
     actions: "min-w-0",
 };
 
-export function HeaderRow({ item }: { item: RegItem; }) {
+export function HeaderRow({ item, editOrder }: { item: RegItem; editOrder: boolean; }) {
     return (
         <div className={classNames(labelClasses, SUBGRID_ROW_Classes, "py-0.5 bg-muted/50 border-b rounded-t items-center")}>
             <span className={COL_Classes.name}>Value name</span>
             <span className={COL_Classes.type}>Type</span>
             <Column_Value className={COL_Classes.newValue} label="New value" newOrCurrent />
             <Column_Value className={COL_Classes.current} label="Current" />
-            <Column_HeaderActions item={item} />
+            <Column_HeaderActions item={item} editOrder={editOrder} />
         </div>
     );
 }
@@ -120,7 +124,7 @@ function HeaderToggleButton({ className, ...rest }: ComponentProps<"button">) {
 const headerToggleClasses = "px-0.5 h-3 min-w-3 text-[0.58rem] leading-none font-medium tabular-nums text-muted-foreground hover:text-foreground border border-border/70 rounded-sm disabled:opacity-40 disabled:pointer-events-none";
 
 /** Read / write every value in the table; aligned over the per-row action icons. */
-function Column_HeaderActions({ item }: { item: RegItem; }) {
+function Column_HeaderActions({ item, editOrder }: { item: RegItem; editOrder: boolean; }) {
     const readItem = useSetAtom(doAsyncRegReadItemAtom);
     const writeItem = useSetAtom(doAsyncRegWriteItemAtom);
     const uid = item.uid;
@@ -128,8 +132,12 @@ function Column_HeaderActions({ item }: { item: RegItem; }) {
 
     return (
         <div className={classNames(COL_Classes.actions, "h-5 flex items-center justify-end gap-0.5")}>
-            <span className={COL_Classes.handle} aria-hidden />
-            <span className="mr-2 size-6" aria-hidden />
+            {editOrder && (
+                <>
+                    <span className={COL_Classes.handle} aria-hidden />
+                    <span className="mr-2 size-6" aria-hidden />
+                </>
+            )}
             <Button
                 variant="ghost"
                 size="icon-xs"

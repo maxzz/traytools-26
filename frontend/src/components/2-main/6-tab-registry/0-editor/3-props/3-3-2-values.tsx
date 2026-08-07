@@ -12,13 +12,14 @@ import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-fi
 import { type RegItem, type RegValue, type RegValueType, REG_VALUE_TYPES, VALUE_TYPE_LONG_LABELS, VALUE_TYPE_SHORT_LABELS, itemHasSubKey, valueDisplayName } from "../../a-atoms/9-types-registry";
 import { doAsyncRegReadValueAtom, doAsyncRegWriteValueAtom, } from "../../a-atoms/2-run-registry";
 import { addSelectedItemValue, patchSelectedValue, removeSelectedItemValue, reorderSelectedItemValues } from "../../a-atoms/use-selected-node";
-import { COL_Classes, HeaderRow, SUBGRID_ROW_Classes, TABLE_GRID_Classes } from "./3-3-3-values-header";
+import { COL_Classes, HeaderRow, SUBGRID_ROW_Classes, tableGridClasses } from "./3-3-3-values-header";
 import { Column_NewValueCell } from "./3-3-4-values-value-new";
 import { Column_CurrentValue } from "./3-3-5-values-value-current";
 
 export function Field_ItemValues({ item }: { item: RegItem; }) {
     const values = item.values ?? [];
     const uids = values.map((value) => value.uid ?? "");
+    const [editOrder, setEditOrder] = useState(false);
 
     return (
         <div className="flex flex-col gap-0.5">
@@ -27,27 +28,41 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                     <Label className={labelClasses}>Values</Label>
                     <InfoTooltip label="Values help" contentClasses="max-w-64">
                         <p className="text-xs">
-                            Every value written under this key. Drag a row by its handle to reorder,
-                            and use the row buttons to read or write that one value.
+                            Every value written under this key. Turn on Edit order to drag rows and
+                            delete values; use the row buttons to read or write that one value.
                         </p>
                     </InfoTooltip>
                 </div>
 
-                <Button
-                    className="px-1.5 h-5.5 font-normal"
-                    variant="outline"
-                    size="xs"
-                    type="button"
-                    title="Add a value to this key"
-                    onClick={addSelectedItemValue}
-                >
-                    <Plus className="size-3" />
-                    Add value
-                </Button>
+                <div className="inline-flex items-center gap-1">
+                    <Button
+                        className="px-1.5 h-5.5 font-normal"
+                        variant={editOrder ? "secondary" : "outline"}
+                        size="xs"
+                        type="button"
+                        title={editOrder ? "Hide drag and delete controls" : "Show drag and delete controls"}
+                        aria-pressed={editOrder}
+                        onClick={() => setEditOrder((on) => !on)}
+                    >
+                        <GripVertical className="size-3" />
+                        Edit order
+                    </Button>
+                    <Button
+                        className="px-1.5 h-5.5 font-normal"
+                        variant="outline"
+                        size="xs"
+                        type="button"
+                        title="Add a value to this key"
+                        onClick={addSelectedItemValue}
+                    >
+                        <Plus className="size-3" />
+                        Add value
+                    </Button>
+                </div>
             </div>
 
-            <div className={cn("border rounded", TABLE_GRID_Classes)}>
-                <HeaderRow item={item} />
+            <div className={cn("border rounded", tableGridClasses(editOrder))}>
+                <HeaderRow item={item} editOrder={editOrder} />
 
                 <Reorder.Group
                     as="ul"
@@ -63,6 +78,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                                 value={value}
                                 item={item}
                                 isLast={index === values.length - 1}
+                                editOrder={editOrder}
                             />
                         )
                     )}
@@ -72,7 +88,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
     );
 }
 
-function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isLast: boolean; }) {
+function ValueRow({ value, item, isLast, editOrder }: { value: RegValue; item: RegItem; isLast: boolean; editOrder: boolean; }) {
     const controls = useDragControls();
     const [isDragging, setIsDragging] = useState(false);
     const uid = value.uid ?? "";
@@ -106,7 +122,7 @@ function ValueRow({ value, item, isLast }: { value: RegValue; item: RegItem; isL
             <Column_Type uid={uid} valueType={value.valueType} />
             <Column_NewValueCell uid={uid} value={value} />
             <Column_CurrentValue value={value} />
-            <Column_RowActions uid={uid} item={item} controls={controls} />
+            <Column_RowActions uid={uid} item={item} controls={controls} editOrder={editOrder} />
         </Reorder.Item>
     );
 }
@@ -139,7 +155,7 @@ function Column_Type({ uid, valueType }: { uid: string; valueType: RegValueType;
     );
 }
 
-function Column_RowActions({ uid, item, controls }: { uid: string; item: RegItem; controls: DragControls; }) {
+function Column_RowActions({ uid, item, controls, editOrder }: { uid: string; item: RegItem; controls: DragControls; editOrder: boolean; }) {
     const readValue = useSetAtom(doAsyncRegReadValueAtom);
     const writeValue = useSetAtom(doAsyncRegWriteValueAtom);
     const runnable = itemHasSubKey(item) && !!uid;
@@ -147,33 +163,36 @@ function Column_RowActions({ uid, item, controls }: { uid: string; item: RegItem
 
     return (
         <div className={cn(COL_Classes.actions, "h-7 flex items-center justify-end gap-0.5")}>
-            <button
-                className={cn(COL_Classes.handle, "h-7 text-muted-foreground/60 hover:text-foreground touch-none cursor-grab active:cursor-grabbing flex items-center justify-center")}
-                type="button"
-                title="Drag to reorder"
-                aria-label="Drag to reorder value"
-                tabIndex={-1}
-                onPointerDown={(e: PointerEvent) => {
-                    e.preventDefault();
-                    controls.start(e);
-                }}
-            >
-                <GripVertical className="size-3" />
-            </button>
+            {editOrder && (
+                <>
+                    <button
+                        className={cn(COL_Classes.handle, "h-7 text-muted-foreground/60 hover:text-foreground touch-none cursor-grab active:cursor-grabbing flex items-center justify-center")}
+                        type="button"
+                        title="Drag to reorder"
+                        aria-label="Drag to reorder value"
+                        tabIndex={-1}
+                        onPointerDown={(e: PointerEvent) => {
+                            e.preventDefault();
+                            controls.start(e);
+                        }}
+                    >
+                        <GripVertical className="size-3" />
+                    </button>
 
-            <Button
-                variant="ghost"
-                size="icon-xs"
-                type="button"
-                className="mr-2 size-6 text-muted-foreground hover:text-destructive"
-                disabled={!canDelete}
-                title={canDelete ? "Delete this value" : "A key keeps at least one value"}
-                aria-label="Delete this value"
-                onClick={() => removeSelectedItemValue(uid)}
-            >
-                <Trash2 className="size-3" />
-            </Button>
-
+                    <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        type="button"
+                        className="mr-2 size-6 text-muted-foreground hover:text-destructive"
+                        disabled={!canDelete}
+                        title={canDelete ? "Delete this value" : "A key keeps at least one value"}
+                        aria-label="Delete this value"
+                        onClick={() => removeSelectedItemValue(uid)}
+                    >
+                        <Trash2 className="size-3" />
+                    </Button>
+                </>
+            )}
 
             <Button
                 variant="ghost"
