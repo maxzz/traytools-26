@@ -50,7 +50,7 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
     );
 }
 
-export function JobFooter({ response }: { response: SyncCheckResponse; }) {
+export function JobSummary({ response }: { response: SyncCheckResponse; }) {
     if (response.changeCount <= 0) {
         return null;
     }

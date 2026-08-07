@@ -6,7 +6,7 @@ import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { DelayedRunningIndicator } from "../../../a-shared/delayed-running-indicator";
 import { formatJobTime } from "../../../a-shared/format-job-time";
 import { type SyncJobReport, clearSyncReportMessages, syncReportStore } from "../../a-atoms/2-run-sync";
-import { CheckDetailsTree, JobFooter } from "./4-1-check-details-tree";
+import { CheckDetailsTree, JobSummary } from "./4-1-check-details-tree";
 
 export function SyncReportPanel() {
     const { jobs } = useSnapshot(syncReportStore);
@@ -131,7 +131,7 @@ function JobDetails({ job }: { job: SyncJobReport; }) {
         <div className="pt-1">
             <div className="mb-1.5 text-xs text-sky-600 dark:text-cyan-400">Check</div>
             <CheckDetailsTree response={job.checkDetails} />
-            <JobFooter response={job.checkDetails} />
+            <JobSummary response={job.checkDetails} />
         </div>
     );
 }
