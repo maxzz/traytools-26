@@ -1,13 +1,14 @@
 import { createContext, useContext, useMemo, useRef, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
-import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronRight, Folder, FolderOpen, Info, Minus } from "lucide-react";
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { type ToolMenuItem, isRegistryPath, nodeKind } from "../a-atoms/9-types-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { type ToolMenuItem, isRegistryPath, nodeKind, sourceFileBaseName } from "../a-atoms/9-types-menu";
 import { type DropPosition, copyNode, moveNode } from "../a-atoms/1-menu-editor-atoms";
-import { toolsEditorStore } from "../a-atoms/0-menu-local-storage";
+import { ToolsConfig_Apply, toolsEditorStore } from "../a-atoms/0-menu-local-storage";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {
@@ -154,6 +155,8 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     const Icon = isSeparator ? Minus : isSubmenu ? (collapsed ? Folder : FolderOpen) : isRegistry ? SymbolAppRegedit : IconTerminalHero;
     const childAncestors = [...ancestors, !isLast];
     const children = node.menuItems ?? [];
+    const isDirty = snap.dirtyUids.includes(uid);
+    const working = isRoot ? workingFileCaption(snap) : null;
 
     return (
         <div>
@@ -176,7 +179,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                         selected && "bg-accent text-accent-foreground",
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
-                        isRoot && "font-medium",
+                        isRoot && "font-medium pr-7",
                     )}
                     style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
                     onClick={() => { toolsEditorStore.selectedUid = uid; }}
@@ -217,10 +220,27 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
                     {isSeparator
                         ? (
-                            <span className="flex-1 relative -ml-1.5 mr-2 max-w-40 border-t border-foreground/40" />
-                        ) : (
-                            <span className="flex-1 relative truncate">{node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}</span>
-                        )
+                            <>
+                                <span className="flex-1 relative -ml-1.5 mr-2 max-w-40 border-t border-foreground/40" />
+                                {isDirty && <DirtyDot />}
+                            </>
+                        ) : isRoot && working
+                            ? (
+                                <span className="flex-1 min-w-0 flex items-center gap-1">
+                                    <span className="min-w-0 truncate" title={working.detail}>
+                                        {node.menuName || "Tools"}: {working.label}
+                                    </span>
+                                    <RootFileInfoButton working={working} error={snap.error} />
+                                    {snap.dirty && <ModifiedBadge />}
+                                </span>
+                            ) : (
+                                <span className="flex-1 min-w-0 flex items-center gap-1 overflow-hidden">
+                                    <span className="min-w-0 truncate">
+                                        {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
+                                    </span>
+                                    {isDirty && <DirtyDot />}
+                                </span>
+                            )
                     }
                 </div>
             </div>
@@ -278,6 +298,104 @@ function guideX(depth: number): number {
 }
 
 const INDENT = 16;
+
+function RootFileInfoButton({ working, error }: { working: WorkingFileCaption; error: string; }) {
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button
+                        type="button"
+                        className={cn(
+                            "shrink-0 size-3.5 border rounded-full inline-flex items-center justify-center",
+                            error
+                                ? "text-destructive border-destructive/70 bg-destructive/15"
+                                : "text-muted-foreground border-border bg-muted",
+                        )}
+                        aria-label={working.aria}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {error
+                            ? <AlertTriangle className="size-2" />
+                            : <Info className="size-2" />
+                        }
+                    </button>
+                </TooltipTrigger>
+
+                <TooltipContent side="bottom" className="max-w-80">
+                    <div className="flex flex-col gap-1">
+                        {error && <p>{error}</p>}
+                        <p>{working.detail}</p>
+                    </div>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+}
+
+function ModifiedBadge() {
+    return (
+        <button
+            type="button"
+            className="shrink-0 px-1 py-px text-[0.6rem] leading-none font-normal text-red-500 bg-orange-500/30 dark:text-orange-500 border border-red-500/70 rounded-sm hover:bg-orange-500/45 cursor-pointer"
+            title="Save changes"
+            aria-label="Save changes"
+            onClick={(e) => {
+                e.stopPropagation();
+                void ToolsConfig_Apply();
+            }}
+        >
+            modified
+        </button>
+    );
+}
+
+function DirtyDot({ className }: { className?: string; }) {
+    return (
+        <span
+            className={cn("shrink-0 size-1.5 rounded-full bg-red-500", className)}
+            title="Modified"
+            aria-label="Modified"
+        />
+    );
+}
+
+type WorkingFileCaption = { label: string; detail: string; aria: string; };
+
+function workingFileCaption(snap: {
+    path: string;
+    source: string;
+    fileExists: boolean;
+}): WorkingFileCaption {
+    const { path, source, fileExists } = snap;
+
+    if (fileExists && path) {
+        const label = sourceFileBaseName(path);
+        return {
+            label,
+            detail: path,
+            aria: source === "open" ? `Opened file: ${path}` : `Working file: ${path}`,
+        };
+    }
+
+    if (source === "default") {
+        const detail = "New configuration — stored in local storage until you Save.";
+        return {
+            label: "New (local storage)",
+            detail,
+            aria: detail,
+        };
+    }
+
+    const detail = path
+        ? `No file on disk yet (expected ${path}). Stored in local storage until you Save.`
+        : "Stored in local storage until you Save.";
+    return {
+        label: "Local storage",
+        detail,
+        aria: detail,
+    };
+}
 
 function DragAndDropTargetLine({ style }: { style: React.CSSProperties; }) {
     return (

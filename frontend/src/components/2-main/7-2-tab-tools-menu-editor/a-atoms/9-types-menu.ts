@@ -81,9 +81,16 @@ export type ToolsEditorStore = {
     source: ToolsSource;         // where `config` came from on the last load
     path: string;                // working file path (load/save target)
     baseline: string;            // full file text at last load/save (includes JSONC comments)
+    /**
+     * Per-node file text at the last load/save/open, keyed by runtime uid.
+     * Used to mark which tree rows differ from the baseline.
+     */
+    baselineNodeTextByUid: Record<string, string>;
     rootComments: string;        // // and /* */ lines inside the root { } before "menu"
     fileExists: boolean;         // whether the working file currently exists on disk
     dirty: boolean;              // true when the editor differs from the loaded/saved file
+    /** Runtime uids whose serialized content differs from {@link baselineNodeTextByUid}. */
+    dirtyUids: string[];
     status: string;              // last user-facing status message
     error: string;               // last error, if any
     selectedUid: string | null;  // uid of the node shown in the properties panel

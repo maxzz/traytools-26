@@ -16,7 +16,7 @@ import {
     sourceFileBaseName,
     uidFromSelectionPath,
 } from "./9-types-menu";
-import { buildToolsFileText, syncDirty } from "./6-json-serialize-dirty";
+import { buildToolsFileText, captureBaselineNodes, collectNodeTextsByUid, syncDirty } from "./6-json-serialize-dirty";
 import { extractRootComments, parseToolsJsonc } from "./7-json-parse";
 import { DEFAULT_TOOLS_CONFIG } from "./8-default-config";
 import { syncToolsHotkeys } from "./2-tools-hotkeys";
@@ -43,9 +43,11 @@ export const toolsEditorStore = proxy<ToolsEditorStore>({
     source: cached ? "storage" : "default",
     path: "",
     baseline: buildToolsFileText(initialConfig, initialRootComments),
+    baselineNodeTextByUid: collectNodeTextsByUid(initialConfig),
     rootComments: initialRootComments,
     fileExists: false,
     dirty: false,
+    dirtyUids: [],
     status: "",
     error: "",
     selectedUid: initialSelectedUid,
@@ -213,6 +215,7 @@ function ToolsConfig_Set(
     toolsEditorStore.path = path;
     toolsEditorStore.fileExists = fileExists;
     toolsEditorStore.baseline = buildToolsFileText(config, toolsEditorStore.rootComments);
+    captureBaselineNodes(toolsEditorStore);
     toolsEditorStore.dirty = false;
     toolsEditorStore.error = "";
     toolsEditorStore.selectedUid = uidFromSelectionPath(config.menu, pathToRestore);
@@ -222,6 +225,7 @@ function markSaved(path: string, text: string, source: ToolsSource = "file") {
     toolsEditorStore.path = path;
     toolsEditorStore.source = source;
     toolsEditorStore.baseline = text;
+    captureBaselineNodes(toolsEditorStore);
     toolsEditorStore.fileExists = true;
     toolsEditorStore.dirty = false;
     toolsEditorStore.error = "";

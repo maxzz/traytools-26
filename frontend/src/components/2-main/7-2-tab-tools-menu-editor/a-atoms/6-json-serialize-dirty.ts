@@ -28,6 +28,36 @@ function serializeToolsConfig(config: ToolsConfig): string {
     return JSON.stringify(config, jsonReplacer, 4);
 }
 
+/** Same formatting rules as the file, for one menu item subtree. */
+export function buildNodeFileText(node: ToolMenuItem): string {
+    return normalizeFileText(JSON.stringify(node, jsonReplacer, 4));
+}
+
+/** Snapshot each node's file text under its runtime uid (for per-row dirty dots). */
+export function collectNodeTextsByUid(config: ToolsConfig): Record<string, string> {
+    const out: Record<string, string> = {};
+    walkNodes([config.menu], (node) => {
+        if (node.uid) {
+            out[node.uid] = buildNodeFileText(node);
+        }
+    });
+    return out;
+}
+
+export function captureBaselineNodes(store: ToolsEditorStore): void {
+    store.baselineNodeTextByUid = collectNodeTextsByUid(store.config);
+    store.dirtyUids = [];
+}
+
+function walkNodes(nodes: readonly ToolMenuItem[], visit: (node: ToolMenuItem) => void): void {
+    for (const node of nodes) {
+        visit(node);
+        if (node.menuItems?.length) {
+            walkNodes(node.menuItems, visit);
+        }
+    }
+}
+
 /**
  * JSON replacer function for the config object.
  * @param this - The ToolMenuItem object.
@@ -76,6 +106,10 @@ export function syncDirty(store: ToolsEditorStore): void {
     if (store.dirty !== dirty) {
         store.dirty = dirty;
     }
+    const dirtyUids = computeDirtyUids(store);
+    if (!sameUidList(store.dirtyUids, dirtyUids)) {
+        store.dirtyUids = dirtyUids;
+    }
 }
 
 /**
@@ -84,4 +118,31 @@ export function syncDirty(store: ToolsEditorStore): void {
  */
 function computeDirty(store: ToolsEditorStore): boolean {
     return buildToolsFileText(store.config, store.rootComments) !== store.baseline;
+}
+
+function computeDirtyUids(store: ToolsEditorStore): string[] {
+    const dirtyUids: string[] = [];
+    walkNodes([store.config.menu], (node) => {
+        const uid = node.uid;
+        if (!uid) {
+            return;
+        }
+        const baselineText = store.baselineNodeTextByUid[uid];
+        if (baselineText === undefined || baselineText !== buildNodeFileText(node)) {
+            dirtyUids.push(uid);
+        }
+    });
+    return dirtyUids;
+}
+
+function sameUidList(a: readonly string[], b: readonly string[]): boolean {
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+    return true;
 }
