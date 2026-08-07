@@ -9,7 +9,7 @@ import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-field-ui";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/ui/shadcn/select";
-import { COL_Classes, HeaderRow, SUBGRID_ROW_Classes, tableGridClasses } from "./3-3-3-values-header";
+import { COL_Classes, TableHeaderRow, SUBGRID_ROW_Classes, tableGridClasses } from "./3-3-3-values-header";
 import { Column_NewValueCell } from "./3-3-4-values-value-new";
 import { Column_CurrentValue } from "./3-3-5-values-value-current";
 import { type RegItem, type RegValue, type RegValueType, REG_VALUE_TYPES, VALUE_TYPE_LONG_LABELS, VALUE_TYPE_SHORT_LABELS, itemHasSubKey, valueDisplayName } from "../../a-atoms/9-types-registry";
@@ -26,7 +26,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
             <SectionHeader editOrder={editOrder} setEditOrder={setEditOrder} />
 
             <div className={classNames("border rounded", tableGridClasses(editOrder))}>
-                <HeaderRow item={item} editOrder={editOrder} />
+                <TableHeaderRow item={item} editOrder={editOrder} />
 
                 <Reorder.Group
                     className={classNames(SUBGRID_ROW_Classes, "m-0 p-0 list-none")}

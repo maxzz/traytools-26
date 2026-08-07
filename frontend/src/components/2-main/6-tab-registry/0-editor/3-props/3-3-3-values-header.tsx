@@ -42,7 +42,7 @@ export const COL_Classes = {
     actions: "min-w-0",
 };
 
-export function HeaderRow({ item, editOrder }: { item: RegItem; editOrder: boolean; }) {
+export function TableHeaderRow({ item, editOrder }: { item: RegItem; editOrder: boolean; }) {
     return (
         <div className={classNames(labelClasses, SUBGRID_ROW_Classes, "py-0.5 bg-muted/50 border-b rounded-t items-center")}>
             <span className={COL_Classes.name}>Value name</span>
