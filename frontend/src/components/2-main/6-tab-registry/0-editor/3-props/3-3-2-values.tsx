@@ -23,17 +23,17 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
 
     return (
         <div className="flex flex-col gap-0.5">
-            <TableHeader editOrder={editOrder} setEditOrder={setEditOrder} />
+            <SectionHeader editOrder={editOrder} setEditOrder={setEditOrder} />
 
             <div className={cn("border rounded", tableGridClasses(editOrder))}>
                 <HeaderRow item={item} editOrder={editOrder} />
 
                 <Reorder.Group
+                    className={cn(SUBGRID_ROW_Classes, "m-0 p-0 list-none")}
                     as="ul"
                     axis="y"
                     values={uids}
                     onReorder={reorderSelectedItemValues}
-                    className={cn(SUBGRID_ROW_Classes, "m-0 p-0 list-none")}
                 >
                     {values.map(
                         (value, index) => (
@@ -47,50 +47,6 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                         )
                     )}
                 </Reorder.Group>
-            </div>
-        </div>
-    );
-}
-
-function TableHeader({ editOrder, setEditOrder }: { editOrder: boolean; setEditOrder: Dispatch<SetStateAction<boolean>>; }) {
-    return (
-        <div className="flex items-center justify-between gap-2">
-            <div className="inline-flex items-center gap-0.5">
-                <Label className={labelClasses}>
-                    Values
-                </Label>
-                <InfoTooltip label="Values help" contentClasses="max-w-64">
-                    <p className="text-xs">
-                        Every value written under this key. Turn on Edit order to drag rows and
-                        delete values; use the row buttons to read or write that one value.
-                    </p>
-                </InfoTooltip>
-            </div>
-
-            <div className="inline-flex items-center gap-1">
-                <Button
-                    className={classNames("px-1.5 h-5.5 font-normal text-muted-foreground hover:text-foreground active:not-aria-[haspopup]:scale-100", editOrder ? "bg-secondary text-secondary-foreground" : "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50")}
-                    variant="outline"
-                    size="xs"
-                    type="button"
-                    title={editOrder ? "Hide drag and delete controls" : "Show drag and delete controls"}
-                    aria-pressed={editOrder}
-                    onClick={() => setEditOrder((on) => !on)}
-                >
-                    <GripVertical className="size-3" />
-                    Edit order
-                </Button>
-                <Button
-                    className="px-1.5 h-5.5 font-normal text-muted-foreground hover:text-foreground"
-                    variant="outline"
-                    size="xs"
-                    type="button"
-                    title="Add a value to this key"
-                    onClick={addSelectedItemValue}
-                >
-                    <Plus className="size-3" />
-                    Add value
-                </Button>
             </div>
         </div>
     );
@@ -228,6 +184,50 @@ function Column_RowActions({ uid, item, controls, editOrder }: { uid: string; it
                 <PencilLine className="size-3" />
             </Button>
 
+        </div>
+    );
+}
+
+function SectionHeader({ editOrder, setEditOrder }: { editOrder: boolean; setEditOrder: Dispatch<SetStateAction<boolean>>; }) {
+    return (
+        <div className="flex items-center justify-between gap-2">
+            <div className="inline-flex items-center gap-0.5">
+                <Label className={labelClasses}>
+                    Values
+                </Label>
+                <InfoTooltip label="Values help" contentClasses="max-w-64">
+                    <p className="text-xs">
+                        Every value written under this key. Turn on Edit order to drag rows and
+                        delete values; use the row buttons to read or write that one value.
+                    </p>
+                </InfoTooltip>
+            </div>
+
+            <div className="inline-flex items-center gap-1">
+                <Button
+                    className={classNames("px-1.5 h-5.5 font-normal text-muted-foreground hover:text-foreground active:not-aria-[haspopup]:scale-100", editOrder ? "bg-secondary text-secondary-foreground" : "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50")}
+                    variant="outline"
+                    size="xs"
+                    type="button"
+                    title={editOrder ? "Hide drag and delete controls" : "Show drag and delete controls"}
+                    aria-pressed={editOrder}
+                    onClick={() => setEditOrder((on) => !on)}
+                >
+                    <GripVertical className="size-3" />
+                    Edit order
+                </Button>
+                <Button
+                    className="px-1.5 h-5.5 font-normal text-muted-foreground hover:text-foreground"
+                    variant="outline"
+                    size="xs"
+                    type="button"
+                    title="Add a value to this key"
+                    onClick={addSelectedItemValue}
+                >
+                    <Plus className="size-3" />
+                    Add value
+                </Button>
+            </div>
         </div>
     );
 }
