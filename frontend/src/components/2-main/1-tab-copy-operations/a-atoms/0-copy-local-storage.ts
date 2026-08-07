@@ -3,7 +3,7 @@ import { proxy, subscribe } from "valtio";
 import { appBus, copyOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { type CopyConfig, type CopyEditorStore, type CopySelectionPath, type CopySource, ensureUids, parseCopySelectionPath, selectionPathFromUid, uidFromSelectionPath } from "./9-types-copy";
-import { buildCopyFileText, parseCopyJson, syncDirty } from "./6-json-serialize-dirty";
+import { buildCopyFileText, captureBaselineNodes, collectNodeTextsByUid, parseCopyJson, syncDirty } from "./6-json-serialize-dirty";
 import { DEFAULT_COPY_CONFIG } from "./8-default-config";
 
 // Store
@@ -32,8 +32,10 @@ export const copyEditorStore = proxy<CopyEditorStore>({
     source: cached ? "storage" : "default",
     path: "",
     baseline: buildCopyFileText(initialConfig),
+    baselineNodeTextByUid: collectNodeTextsByUid(initialConfig),
     fileExists: false,
     dirty: false,
+    dirtyUids: [],
     status: "",
     error: "",
     selectedUid: initialSelectedUid,
@@ -163,6 +165,7 @@ function CopyConfig_Set(config: CopyConfig, source: CopySource, path = "", fileE
     copyEditorStore.path = path;
     copyEditorStore.fileExists = fileExists;
     copyEditorStore.baseline = buildCopyFileText(config);
+    captureBaselineNodes(copyEditorStore);
     copyEditorStore.dirty = false;
     copyEditorStore.error = "";
     copyEditorStore.selectedUid = uidFromSelectionPath(config, holder.rootUid, pathToRestore);
@@ -175,6 +178,7 @@ export async function CopyConfig_Save(): Promise<void> {
         copyEditorStore.path = res?.path ?? copyEditorStore.path;
         copyEditorStore.source = "file";
         copyEditorStore.baseline = text;
+        captureBaselineNodes(copyEditorStore);
         copyEditorStore.fileExists = true;
         copyEditorStore.dirty = false;
         copyEditorStore.error = "";
@@ -227,8 +231,6 @@ export async function CopyConfig_Import(): Promise<void> {
         const { content } = await copyOpsBus.readTextFile(pick.path);
         const config = parseCopyJson(content);
         CopyConfig_Set(config, "import", pick.path, false);
-        copyEditorStore.baseline = buildCopyFileText(config);
-        copyEditorStore.dirty = false;
         copyEditorStore.status = "";
         writeCache(config, copyEditorStore.rootUid, copyEditorStore.selectedUid);
         notice.success(`Imported from<br/>${pick.path}`);

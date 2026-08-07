@@ -1,12 +1,10 @@
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
-import { AlertTriangle, Info, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
 import { copyEditorStore, CopyConfig_Apply, CopyConfig_CreateNew, CopyConfig_Export, CopyConfig_Import, CopyConfig_Load, CopyConfig_RevealInExplorer } from "../a-atoms/0-copy-local-storage";
-import { sourceFileBaseName } from "../a-atoms/9-types-copy";
 
 export function CopyOperationsToolbar() {
     const saveNotice = useSaveNotice();
@@ -27,128 +25,24 @@ export function CopyOperationsToolbar() {
     return (
         <div className="bg-app-background/10">
             <div className="mx-1 px-2 py-1.5 h-9 bg-background border rounded flex items-center gap-2">
-                <CurrentFileInfo saveNotice={saveNotice.message} />
+                {saveNotice.message && (
+                    <span
+                        className={cn(
+                            "min-w-0 text-xs truncate",
+                            saveNotice.message === "saved"
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-muted-foreground",
+                        )}
+                    >
+                        {saveNotice.message}
+                    </span>
+                )}
 
                 <div className="ml-auto flex items-center gap-2">
-                    <ChangedBadge />
                     <ActionsMenu />
                 </div>
             </div>
         </div>
-    );
-}
-
-function CurrentFileInfo({ saveNotice }: { saveNotice: string; }) {
-    const snap = useSnapshot(copyEditorStore);
-    const { error } = snap;
-    const working = workingFileCaption(snap);
-
-    return (
-        <div className="min-w-0 flex items-center gap-2">
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <button
-                            type="button"
-                            className={cn(
-                                "shrink-0 size-5 border rounded-full inline-flex items-center justify-center",
-                                error
-                                    ? "text-destructive border-destructive/70 bg-destructive/15"
-                                    : "text-muted-foreground border-border bg-muted",
-                            )}
-                            aria-label={working.aria}
-                        >
-                            {error
-                                ? <AlertTriangle className="size-3" />
-                                : <Info className="size-3" />
-                            }
-                        </button>
-                    </TooltipTrigger>
-
-                    <TooltipContent side="bottom" className="max-w-80">
-                        <div className="flex flex-col gap-1">
-                            {error && <p>{error}</p>}
-                            <p>{working.detail}</p>
-                        </div>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-
-            <span className="text-xs text-muted-foreground truncate" title={working.detail}>
-                {working.label}
-            </span>
-
-            {saveNotice && (
-                <span
-                    className={cn(
-                        "shrink-0 text-xs",
-                        saveNotice === "saved"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-muted-foreground",
-                    )}
-                >
-                    {saveNotice}
-                </span>
-            )}
-        </div>
-    );
-}
-
-function workingFileCaption(snap: {
-    path: string;
-    source: string;
-    fileExists: boolean;
-}): { label: string; detail: string; aria: string; } {
-    const { path, source, fileExists } = snap;
-
-    if (source === "import" && path) {
-        const label = sourceFileBaseName(path);
-        return {
-            label,
-            detail: path,
-            aria: `Imported file: ${path}`,
-        };
-    }
-
-    if (fileExists && path) {
-        const label = sourceFileBaseName(path);
-        return {
-            label,
-            detail: path,
-            aria: `Working file: ${path}`,
-        };
-    }
-
-    if (source === "default") {
-        const detail = "New configuration — stored in local storage until you Save.";
-        return {
-            label: "New (local storage)",
-            detail,
-            aria: detail,
-        };
-    }
-
-    const detail = path
-        ? `No file on disk yet (expected ${path}). Stored in local storage until you Save.`
-        : "Stored in local storage until you Save.";
-    return {
-        label: "Local storage",
-        detail,
-        aria: detail,
-    };
-}
-
-function ChangedBadge() {
-    const { dirty } = useSnapshot(copyEditorStore);
-
-    if (!dirty) {
-        return null;
-    }
-
-    return (
-        <span className="px-1.5 text-red-500 bg-orange-500/30 dark:text-orange-500 border border-red-500/70 rounded-full flex items-center justify-center">
-            Changed
-        </span>
     );
 }
 
