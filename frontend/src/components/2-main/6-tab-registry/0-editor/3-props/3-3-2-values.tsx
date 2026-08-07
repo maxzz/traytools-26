@@ -1,6 +1,6 @@
 import { useState, type PointerEvent } from "react";
 import { useSetAtom } from "jotai";
-import { cn } from "@/utils/classnames";
+import { classNames, cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Reorder, useDragControls, type DragControls } from "motion/react";
 import { ArrowDownToLine, GripVertical, PencilLine, Plus, Trash2 } from "lucide-react";
@@ -36,8 +36,8 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
 
                 <div className="inline-flex items-center gap-1">
                     <Button
-                        className="px-1.5 h-5.5 font-normal"
-                        variant={editOrder ? "secondary" : "outline"}
+                        className={classNames("px-1.5 h-5.5 font-normal text-muted-foreground hover:text-foreground active:not-aria-[haspopup]:scale-100", editOrder ? "bg-secondary text-secondary-foreground" : "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50")}
+                        variant="outline"
                         size="xs"
                         type="button"
                         title={editOrder ? "Hide drag and delete controls" : "Show drag and delete controls"}
@@ -48,7 +48,7 @@ export function Field_ItemValues({ item }: { item: RegItem; }) {
                         Edit order
                     </Button>
                     <Button
-                        className="px-1.5 h-5.5 font-normal"
+                        className="px-1.5 h-5.5 font-normal text-muted-foreground hover:text-foreground"
                         variant="outline"
                         size="xs"
                         type="button"
