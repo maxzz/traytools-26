@@ -109,7 +109,15 @@ export function ModifiedBadge({ onSave }: { onSave: () => void | Promise<void>; 
     return (
         <button
             type="button"
-            className="shrink-0 px-1 py-px text-[0.6rem] leading-none font-normal text-red-500 bg-orange-500/30 dark:text-orange-500 border border-red-500/70 rounded-sm hover:bg-orange-500/45 cursor-pointer"
+            className="shrink-0 px-1 py-px text-[0.55rem] leading-none font-normal 
+            text-orange-50 
+            bg-orange-600 
+            dark:text-orange-50 
+            border-orange-600 
+            hover:bg-orange-500/45 
+            border 
+            rounded 
+            cursor-pointer"
             title="Save changes"
             aria-label="Save changes"
             onClick={(e) => {
