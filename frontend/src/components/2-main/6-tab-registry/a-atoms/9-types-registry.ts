@@ -155,8 +155,15 @@ export type RegEditorStore = {
     source: RegSource;
     path: string;
     baseline: string;
+    /**
+     * Per-node file text at the last load/save/import, keyed by runtime uid.
+     * Used to mark which tree rows differ from the baseline.
+     */
+    baselineNodeTextByUid: Record<string, string>;
     fileExists: boolean;
     dirty: boolean;
+    /** Runtime uids whose serialized content differs from {@link baselineNodeTextByUid}. */
+    dirtyUids: string[];
     status: string;
     error: string;
     selectedUid: string | null;

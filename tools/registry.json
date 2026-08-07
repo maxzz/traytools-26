@@ -2,7 +2,6 @@
     "groups": [
         {
             "name": "DpTracing-org",
-            "requireElevated": true,
             "items": [
                 {
                     "keyPath": "HKLM\\SOFTWARE\\DigitalPersona\\Tracing",
@@ -72,8 +71,7 @@
                             "valueType": "REG_DWORD",
                             "newValue": "1"
                         }
-                    ],
-                    "requireElevated": true
+                    ]
                 }
             ]
         },
@@ -151,7 +149,6 @@
                 },
                 {
                     "name": "tm_test",
-                    "requireElevated": true,
                     "items": [
                         {
                             "keyPath": "HKLM\\SOFTWARE\\_tm_test",
@@ -159,15 +156,14 @@
                                 {
                                     "valueName": "",
                                     "valueType": "REG_SZ",
-                                    "newValue": "111"
+                                    "newValue": "1111"
                                 },
                                 {
                                     "valueName": "tm_test",
                                     "valueType": "REG_DWORD",
                                     "newValue": "12345"
                                 }
-                            ],
-                            "requireElevated": true
+                            ]
                         },
                         {
                             "keyPath": "HKLM\\SOFTWARE\\_tm_test\\sub_key",
@@ -192,8 +188,7 @@
                                     "valueType": "REG_SZ",
                                     "newValue": "the is some long string. the is some long string. the is some long string. the is some long string. the is some long string."
                                 }
-                            ],
-                            "requireElevated": true
+                            ]
                         }
                     ]
                 },

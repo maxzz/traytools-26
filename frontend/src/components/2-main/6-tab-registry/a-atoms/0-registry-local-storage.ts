@@ -20,7 +20,7 @@ import {
     uidFromSelectionPath,
     validateItemKeyPath,
 } from "./9-types-registry";
-import { buildRegistryFileText, normalizeRegConfig, parseRegistryJson, syncDirty } from "./6-json-serialize-dirty";
+import { buildRegistryFileText, captureBaselineNodes, collectNodeTextsByUid, normalizeRegConfig, parseRegistryJson, syncDirty } from "./6-json-serialize-dirty";
 import { buildRegFileText } from "./7-reg-file-format";
 import { DEFAULT_REGISTRY_CONFIG } from "./8-default-config";
 
@@ -66,8 +66,10 @@ export const registryEditorStore = proxy<RegEditorStore>({
     source: cached ? "storage" : "default",
     path: "",
     baseline: buildRegistryFileText(initialConfig),
+    baselineNodeTextByUid: collectNodeTextsByUid(initialConfig),
     fileExists: false,
     dirty: false,
+    dirtyUids: [],
     status: "",
     error: "",
     selectedUid: initialSelectedUid,
@@ -405,6 +407,7 @@ function RegistryConfig_Set(config: RegConfig, source: RegSource, path = "", fil
     registryEditorStore.path = path;
     registryEditorStore.fileExists = fileExists;
     registryEditorStore.baseline = buildRegistryFileText(config);
+    captureBaselineNodes(registryEditorStore);
     registryEditorStore.dirty = false;
     registryEditorStore.error = "";
     registryEditorStore.selectedUid = uidFromSelectionPath(config, holder.rootUid, pathToRestore);
@@ -434,6 +437,7 @@ export async function RegistryConfig_Save(): Promise<void> {
         registryEditorStore.path = res?.path ?? registryEditorStore.path;
         registryEditorStore.source = "file";
         registryEditorStore.baseline = text;
+        captureBaselineNodes(registryEditorStore);
         registryEditorStore.fileExists = true;
         registryEditorStore.dirty = false;
         registryEditorStore.error = "";
@@ -490,8 +494,6 @@ export async function RegistryConfig_Import(): Promise<void> {
         const { content } = await registryOpsBus.readTextFile(pick.path);
         const config = parseRegistryJson(content);
         RegistryConfig_Set(config, "import", pick.path, false);
-        registryEditorStore.baseline = buildRegistryFileText(config);
-        registryEditorStore.dirty = false;
         registryEditorStore.status = "";
         writeCache(config, registryEditorStore.rootUid, registryEditorStore.selectedUid);
         notice.success(`Imported from<br/>${pick.path}`);

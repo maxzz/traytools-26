@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/s
 import { fullKeyPath, itemLabel, valueDisplayName } from "../a-atoms/9-types-registry";
 import { type DropPosition, addDroppedRegistryFiles, copyNode, moveNode } from "../a-atoms/1-registry-editor-atoms";
 import { doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../a-atoms/2-run-registry";
-import { fileBaseName, registryEditorStore, toggleRegistryCollapsed } from "../a-atoms/0-registry-local-storage";
+import { fileBaseName, RegistryConfig_Apply, registryEditorStore, toggleRegistryCollapsed } from "../a-atoms/0-registry-local-storage";
 import {
     DROP_TARGET_STYLE,
     isFileDrag,
@@ -407,6 +407,8 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
                     </span>
 
+                    {snap.dirtyUids.includes(uid) && <DirtyDot className="mr-5" />}
+
                     <Button
                         className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
                         variant="ghost"
@@ -513,6 +515,8 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
                   horizontal tick; scoped to this span only.
                 */}
                 <span className="flex-1 relative -ml-2 mr-2 max-w-40 border-t border-foreground/40 -translate-y-px" />
+
+                {snap.dirtyUids.includes(uid) && <DirtyDot />}
             </div>
         </div>
     );
@@ -530,6 +534,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
     const showAfter = isDropTarget && dnd.dropPos === "after";
     const label = itemLabel(item);
     const values = item.values ?? [];
+    const isDirty = snap.dirtyUids.includes(uid);
 
     return (
         <div
@@ -568,9 +573,14 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                     {label}
                 </span>
 
-                {values.length > 1 && (
-                    <span className="shrink-0 relative mr-5 tabular-nums text-[0.65rem] text-muted-foreground">
-                        {values.length}
+                {(values.length > 1 || isDirty) && (
+                    <span className="shrink-0 relative mr-5 flex items-center gap-1">
+                        {values.length > 1 && (
+                            <span className="tabular-nums text-[0.65rem] text-muted-foreground">
+                                {values.length}
+                            </span>
+                        )}
+                        {isDirty && <DirtyDot />}
                     </span>
                 )}
 
@@ -687,9 +697,28 @@ function RootFileInfoButton({ working, error }: { working: WorkingFileCaption; e
 
 function ModifiedBadge() {
     return (
-        <span className="shrink-0 px-1 py-px text-[0.6rem] leading-none font-normal text-red-500 bg-orange-500/30 dark:text-orange-500 border border-red-500/70 rounded-sm">
+        <button
+            type="button"
+            className="shrink-0 px-1 py-px text-[0.6rem] leading-none font-normal text-red-500 bg-orange-500/30 dark:text-orange-500 border border-red-500/70 rounded-sm hover:bg-orange-500/45 cursor-pointer"
+            title="Save changes"
+            aria-label="Save changes"
+            onClick={(e) => {
+                e.stopPropagation();
+                void RegistryConfig_Apply();
+            }}
+        >
             modified
-        </span>
+        </button>
+    );
+}
+
+function DirtyDot({ className }: { className?: string; }) {
+    return (
+        <span
+            className={cn("shrink-0 size-1.5 rounded-full bg-red-500", className)}
+            title="Modified"
+            aria-label="Modified"
+        />
     );
 }
 
