@@ -111,10 +111,12 @@ export function ModifiedBadge({ onSave }: { onSave: () => void | Promise<void>; 
             type="button"
             className="shrink-0 px-1 py-px text-[0.55rem] leading-none font-normal 
             text-orange-50 
-            bg-orange-600 
+            bg-red-500 
             dark:text-orange-50 
-            border-orange-600 
-            hover:bg-orange-500/45 
+            dark:border-red-400 
+            hover:bg-red-600/50 
+            dark:hover:bg-red-400/45 
+            border-red-600 
             border 
             rounded 
             cursor-pointer"
