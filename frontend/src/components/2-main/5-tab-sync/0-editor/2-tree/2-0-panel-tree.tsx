@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from "react";
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Folder, FolderOpen, FileIcon } from "lucide-react";
@@ -476,29 +476,21 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
 
-                    <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1">
-                        {renaming ? (
+                    <TreeRowLabel
+                        renaming={renaming}
+                        onBeginRename={beginRename}
+                        trailing={snap.dirtyUids.includes(uid) ? <DirtyDot /> : null}
+                        editor={(
                             <TreeInlineName
                                 value={group.name}
                                 placeholder="Group name"
                                 onCommit={commitRename}
                                 onCancel={() => setRenaming(false)}
                             />
-                        ) : (
-                            <>
-                                <span
-                                    className="min-w-0 truncate"
-                                    onDoubleClick={(e) => {
-                                        e.stopPropagation();
-                                        beginRename();
-                                    }}
-                                >
-                                    {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
-                                </span>
-                                {snap.dirtyUids.includes(uid) && <DirtyDot />}
-                            </>
                         )}
-                    </span>
+                    >
+                        {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
+                    </TreeRowLabel>
                 </div>
             </div>
 
@@ -671,31 +663,57 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <FileIcon className="shrink-0 relative size-3.5 text-foreground/70" />
 
-                <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1" title={renaming ? undefined : label}>
-                    {renaming ? (
+                <TreeRowLabel
+                    renaming={renaming}
+                    title={label}
+                    onBeginRename={beginRename}
+                    trailing={isDirty ? <DirtyDot /> : null}
+                    editor={(
                         <TreeInlineName
                             value={item.name ?? baseName}
                             placeholder={baseName || "Operation name"}
                             onCommit={commitRename}
                             onCancel={() => setRenaming(false)}
                         />
-                    ) : (
-                        <>
-                            <span
-                                className="min-w-0 truncate"
-                                onDoubleClick={(e) => {
-                                    e.stopPropagation();
-                                    beginRename();
-                                }}
-                            >
-                                {label}
-                            </span>
-                            {isDirty && <DirtyDot />}
-                        </>
                     )}
-                </span>
+                >
+                    {label}
+                </TreeRowLabel>
             </div>
         </div>
+    );
+}
+
+/**
+ * Label cell: double-click text or trailing empty space to rename.
+ * Right `w-5` gutter is reserved for row-end action icons and is not a rename target.
+ */
+function TreeRowLabel({ renaming, title, onBeginRename, trailing, editor, children }: {
+    renaming: boolean;
+    title?: string;
+    onBeginRename: () => void;
+    trailing?: ReactNode;
+    editor: ReactNode;
+    children: ReactNode;
+}) {
+    return (
+        <span className="flex-1 relative min-w-0 overflow-hidden flex items-center" title={renaming ? undefined : title}>
+            {renaming ? (
+                editor
+            ) : (
+                <span
+                    className="flex-1 min-w-0 self-stretch flex items-center gap-1"
+                    onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        onBeginRename();
+                    }}
+                >
+                    <span className="min-w-0 truncate">{children}</span>
+                    {trailing}
+                </span>
+            )}
+            <span className="shrink-0 w-5" aria-hidden />
+        </span>
     );
 }
 
