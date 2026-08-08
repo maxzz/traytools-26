@@ -255,7 +255,7 @@ export function runCheckDetails(item: SyncOpItem): void {
         return;
     }
 
-    const label = `Check Details · ${itemLabel(item)}`;
+    const label = `Check · ${itemLabel(item)}`;
     const inPanel = appSettings.syncCheckDetailsInPanel === true;
 
     void (async () => {
