@@ -8,10 +8,10 @@ export function FolderPairLines({ sourceFolder, destFolder }: { sourceFolder: st
     return (
         <div className="text-xs text-sky-600 dark:text-cyan-400 space-y-0.5">
             <div className="truncate" title={sourceFolder}>
-                {sourceName}
+                Source: {sourceName}
             </div>
             <div className="truncate" title={destFolder}>
-                {destName}
+                Destination: {destName}
             </div>
         </div>
     );
