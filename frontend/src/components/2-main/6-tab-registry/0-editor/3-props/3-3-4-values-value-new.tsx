@@ -50,7 +50,6 @@ function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
         <Input
             className={cn(COL_Classes.newValue, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "tabular-nums")}
             value={shown}
-            placeholder={numericPlaceholder(value.valueType, radix, hexPrefix, hexPad)}
             title={valueHint(value.valueType, radix, hexPrefix, hexPad)}
             aria-label="New value"
             onFocus={() => {
@@ -83,20 +82,6 @@ function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
     );
 }
 
-/** Placeholder text showing the canonical form expected for each value type. */
-function numericPlaceholder(type: RegValueType, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode): string {
-    if (!isNumericRegType(type)) {
-        return VALUE_PLACEHOLDERS[type];
-    }
-    if (radix !== 16) {
-        return "0";
-    }
-    const width = type === "REG_QWORD" ? 16 : 8;
-    const lo = hexPad === "pad" ? "0".padStart(width, "0") : "0";
-    const hi = "f".repeat(width);
-    return hexPrefix === "none" ? `${lo} or ${hi}` : `0x${lo} or 0x${hi}`;
-}
-
 function valueHint(type: RegValueType, radix?: RegNumericRadix, hexPrefix?: RegHexPrefixMode, hexPad?: RegHexPadMode): string {
     switch (type) {
         case "REG_DWORD":
@@ -122,15 +107,6 @@ function valueHint(type: RegValueType, radix?: RegNumericRadix, hexPrefix?: RegH
     }
 }
 
-const VALUE_PLACEHOLDERS: Record<RegValueType, string> = {
-    REG_SZ: "Some text",
-    REG_EXPAND_SZ: "%SystemRoot%\\System32",
-    REG_DWORD: "0 or 0x0000ffff",
-    REG_QWORD: "0 or 0x00000000ffffffff",
-    REG_BINARY: "de,ad,be,ef",
-    REG_MULTI_SZ: "One string per line",
-};
-
 const NEW_VALUE_DIALOG_DESC_ID = "reg-new-value-dialog-description";
 
 /** Compact new-value cell with a right-aligned Edit button and a Save/Cancel dialog. */
@@ -155,7 +131,7 @@ function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }
         <>
             <div className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")} title={valueHint(value.valueType)}>
                 <span className={cn("min-w-0 flex-1 truncate text-[0.72rem] font-mono", preview ? "text-foreground" : "text-muted-foreground/60")} aria-label="New value">
-                    {preview || VALUE_PLACEHOLDERS[value.valueType]}
+                    {preview}
                 </span>
 
                 <Button
@@ -186,7 +162,6 @@ function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }
                         <Textarea
                             className="min-h-40 max-h-[min(60vh,28rem)] font-mono text-xs resize-y"
                             value={draft}
-                            // placeholder={VALUE_PLACEHOLDERS[value.valueType]}
                             title={valueHint(value.valueType)}
                             aria-label="New value editor"
                             onChange={(e) => setDraft(e.target.value)}
