@@ -147,50 +147,80 @@ function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }
                 </Button>
             </div>
 
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="p-0! max-w-xl! gap-0!" aria-describedby={NEW_VALUE_DIALOG_DESC_ID} modal>
-                    <DialogHeader className="px-4 py-3 text-left border-b gap-0">
-                        <DialogTitle className="text-sm font-condensed font-normal">
-                            Edit new value — {VALUE_TYPE_LONG_LABELS[value.valueType]}
-                        </DialogTitle>
-                        <DialogDescription id={NEW_VALUE_DIALOG_DESC_ID} className="sr-only">
-                            Edit the registry value, then save or cancel.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="px-4 py-3">
-                        <Textarea
-                            className="min-h-40 max-h-[min(60vh,28rem)] font-mono text-xs resize-y"
-                            value={draft}
-                            title={valueHint(value.valueType)}
-                            aria-label="New value editor"
-                            onChange={(e) => setDraft(e.target.value)}
-                            {...turnOffAutoComplete}
-                        />
-                        <p className="mt-1.5 text-[0.7rem] text-muted-foreground">
-                            {valueHint(value.valueType)}
-                        </p>
-                    </div>
-
-                    <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
-                        <Button
-                            className="min-w-16 font-condensed font-normal"
-                            variant="outline"
-                            onClick={() => setOpen(false)}
-                            type="button"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            className="min-w-16 font-condensed font-normal"
-                            onClick={save}
-                            type="button"
-                        >
-                            Save
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <NewValueDialog
+                open={open}
+                onOpenChange={setOpen}
+                valueType={value.valueType}
+                draft={draft}
+                onDraftChange={setDraft}
+                onSave={save}
+            />
         </>
+    );
+}
+
+/** Edit dialog for expandable / binary / multi-string new values. */
+function NewValueDialog({
+    open,
+    onOpenChange,
+    valueType,
+    draft,
+    onDraftChange,
+    onSave,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    valueType: RegValueType;
+    draft: string;
+    onDraftChange: (draft: string) => void;
+    onSave: () => void;
+}) {
+    const hint = valueHint(valueType);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="p-0! max-w-xl! gap-0!" aria-describedby={NEW_VALUE_DIALOG_DESC_ID} modal>
+                <DialogHeader className="px-4 py-3 text-left border-b gap-0">
+                    <DialogTitle className="text-sm font-condensed font-normal">
+                        Edit new value — {VALUE_TYPE_LONG_LABELS[valueType]}
+                    </DialogTitle>
+                    <DialogDescription id={NEW_VALUE_DIALOG_DESC_ID} className="sr-only">
+                        Edit the registry value, then save or cancel.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="px-4 py-3">
+                    <Textarea
+                        className="min-h-40 max-h-[min(60vh,28rem)] font-mono text-xs resize-y"
+                        value={draft}
+                        title={hint}
+                        aria-label="New value editor"
+                        onChange={(e) => onDraftChange(e.target.value)}
+                        {...turnOffAutoComplete}
+                    />
+                    <p className="mt-1.5 text-[0.7rem] text-muted-foreground">
+                        {hint}
+                    </p>
+                </div>
+
+                <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
+                    <Button
+                        className="min-w-16 font-condensed font-normal"
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                        type="button"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="min-w-16 font-condensed font-normal"
+                        onClick={onSave}
+                        type="button"
+                    >
+                        Save
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
