@@ -1,6 +1,12 @@
 import { type SyncChangeDTO } from "@/bridge";
 
-export function formatChangeBreakdown(changes: SyncChangeDTO[] | undefined): string {
+export type ChangeCounts = {
+    added: number;
+    deleted: number;
+    modified: number;
+};
+
+export function countChangeMarkers(changes: SyncChangeDTO[] | undefined): ChangeCounts {
     let added = 0;
     let deleted = 0;
     let modified = 0;
@@ -11,5 +17,5 @@ export function formatChangeBreakdown(changes: SyncChangeDTO[] | undefined): str
             case "M": modified++; break;
         }
     }
-    return `${added} added, ${deleted} deleted, ${modified} modified`;
+    return { added, deleted, modified };
 }

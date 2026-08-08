@@ -8,6 +8,7 @@ import { formatJobTime } from "../../../a-shared/format-job-time";
 import { type SyncJobReport, clearSyncReportMessages, syncReportStore } from "../../a-atoms/2-run-sync";
 import { CheckDetailsTree, JobSummary } from "./4-1-check-details-tree";
 import { FolderPairLines } from "./4-3-folder-pair-lines";
+import { ChangeBreakdown } from "./4-4-change-breakdown";
 
 export function SyncReportPanel() {
     const { jobs } = useSnapshot(syncReportStore);
@@ -103,6 +104,13 @@ function JobBlock({ job }: { job: SyncJobReport; }) {
             {job.summary && (
                 <p className="text-xs">
                     {job.summary}
+                    {job.changeCounts && (
+                        <>
+                            {job.changeCountsStyle === "inner" ? ": " : " ("}
+                            <ChangeBreakdown counts={job.changeCounts} />
+                            )
+                        </>
+                    )}
                 </p>
             )}
 

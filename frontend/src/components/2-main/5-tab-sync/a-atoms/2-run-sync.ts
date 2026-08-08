@@ -11,7 +11,7 @@ import {
 import { appSettings } from "@/store/1-ui-settings";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { type SyncOpItem, itemLabel } from "./9-types-sync";
-import { formatChangeBreakdown } from "./format-change-breakdown";
+import { type ChangeCounts, countChangeMarkers } from "./format-change-breakdown";
 
 export type SyncJobKind = "sync" | "check" | "check-details";
 
@@ -29,6 +29,13 @@ export type SyncJobReport = {
     setupError: string;
     messages: string[];
     summary: string;
+    /** When set, panel renders colored added/deleted/modified after summary. */
+    changeCounts?: ChangeCounts;
+    /**
+     * `inner`: summary ends mid-parens (`… files`) → render `: counts)`.
+     * `suffix`: wrap counts as ` (counts)`.
+     */
+    changeCountsStyle?: "inner" | "suffix";
     /** Full check payload when Check Details is shown in the bottom panel. */
     checkDetails?: SyncCheckResponse;
 };
@@ -148,9 +155,13 @@ export function runSyncItem(item: SyncOpItem, direction: "forward" | "reverse" =
             }
             const changeCount = ev.changeCount ?? ev.changes?.length ?? 0;
             const fileCount = ev.sourceFileCount ?? 0;
-            live.summary = changeCount === 0
-                ? `Synced — identical (${fileCount} files)`
-                : `Synced — ${changeCount} update${changeCount === 1 ? "" : "s"} (${fileCount} files: ${formatChangeBreakdown(ev.changes)})`;
+            if (changeCount === 0) {
+                live.summary = `Synced — identical (${fileCount} files)`;
+            } else {
+                live.summary = `Synced — ${changeCount} update${changeCount === 1 ? "" : "s"} (${fileCount} files`;
+                live.changeCounts = countChangeMarkers(ev.changes);
+                live.changeCountsStyle = "inner";
+            }
         });
 
         try {
@@ -219,7 +230,9 @@ export function runCheckItem(item: SyncOpItem): void {
             if (res.identical) {
                 live.summary = `Identical — ${res.sourceFileCount} files in ${res.folderCount} folders`;
             } else {
-                live.summary = `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} — ${res.sourceFileCount} files in ${res.folderCount} folders (${formatChangeBreakdown(res.changes)})`;
+                live.summary = `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} — ${res.sourceFileCount} files in ${res.folderCount} folders`;
+                live.changeCounts = countChangeMarkers(res.changes);
+                live.changeCountsStyle = "suffix";
             }
         } catch (e) {
             const live = findJob(uid);
@@ -272,9 +285,13 @@ export function runCheckDetails(item: SyncOpItem): void {
                 }
                 live.running = false;
                 live.checkDetails = res;
-                live.summary = res.identical
-                    ? `Identical — ${res.sourceFileCount} files`
-                    : `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} (${formatChangeBreakdown(res.changes)})`;
+                if (res.identical) {
+                    live.summary = `Identical — ${res.sourceFileCount} files`;
+                } else {
+                    live.summary = `${res.changeCount} update${res.changeCount === 1 ? "" : "s"}`;
+                    live.changeCounts = countChangeMarkers(res.changes);
+                    live.changeCountsStyle = "suffix";
+                }
                 return;
             }
             getDefaultStore().set(checkDetailsDialogAtom, { label, sourceFolder, destFolder, response: res });

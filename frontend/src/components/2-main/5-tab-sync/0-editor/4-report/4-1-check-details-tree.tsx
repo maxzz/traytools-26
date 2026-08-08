@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight, FileIcon, Folder, FolderOpen } from "lucide-react";
 import { classNames } from "@/utils/classnames";
 import { type SyncChangeDTO, type SyncCheckResponse, type SyncTreeNodeDTO } from "@/bridge";
-import { formatChangeBreakdown } from "../../a-atoms/format-change-breakdown";
+import { ChangeBreakdown, markerColorClasses } from "./4-4-change-breakdown";
 
 /** Check Details tree using the same guide-line / indent style as the Sync left panel. */
 export function CheckDetailsTree({ response }: { response: SyncCheckResponse; }) {
@@ -60,12 +60,13 @@ export function JobSummary({ response }: { response: SyncCheckResponse; }) {
         <div className="mt-1 text-[0.65rem] text-muted-foreground">
             <span className="mr-4">
                 Total: {response.changeCount} update{response.changeCount === 1 ? "" : "s"}
-                {" "}({response.sourceFileCount} files in {response.folderCount} folders: {formatChangeBreakdown(response.changes)})
+                {" "}({response.sourceFileCount} files in {response.folderCount} folders:{" "}
+                <ChangeBreakdown changes={response.changes} />)
             </span>
-            Legend:{" "}
+            {/* Legend:{" "}
             <span className={markerColorClasses("A")}>A</span> = add,{" "}
             <span className={markerColorClasses("M")}>M</span> = modify,{" "}
-            <span className={markerColorClasses("D")}>D</span> = delete
+            <span className={markerColorClasses("D")}>D</span> = delete */}
         </div>
     );
 }
@@ -230,16 +231,3 @@ const TREE_EXPANDER_SLOT = 16;
 function guideX(depth: number): number {
     return depth * INDENT + 16;
 }
-
-function markerColorClasses(marker: string): string {
-    switch (marker) {
-        case "A": return markerAddClasses;
-        case "M": return markerModifyClasses;
-        case "D": return markerDeleteClasses;
-        default: return "";
-    }
-}
-
-const markerAddClasses = "text-emerald-600 dark:text-emerald-400";
-const markerModifyClasses = "text-yellow-600 dark:text-amber-300/70";
-const markerDeleteClasses = "text-red-600 dark:text-red-400";
