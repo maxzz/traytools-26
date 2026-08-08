@@ -6,7 +6,7 @@ import { Label } from "@/ui/shadcn/label";
 import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
 
 /** Collapses when `value` is empty; click the label to expand/collapse. */
-export function CollapsibleOptionalField({ label, value, children, className }: { label: string; value: string; children: ReactNode; className?: string; }) {
+export function CollapsibleOptionalField({ label, value, children, className }: { label: ReactNode; value: string; children: ReactNode; className?: string; }) {
     const hasValue = !!value.trim();
     const [open, setOpen] = useState(hasValue);
 

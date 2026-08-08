@@ -1,3 +1,5 @@
+import { type ReactNode } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Input } from "@/ui/shadcn/input";
 import { Button } from "@/ui/shadcn/button";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
@@ -48,13 +50,13 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
             <DirectionNameField
                 item={item}
                 field="forwardName"
-                label="Sync → name"
+                label={<span className="inline-flex items-center gap-x-0.5">'Src <ArrowRight className="size-2.5" /> Dst' name</span>}
                 placeholder="Optional name for source → destination"
             />
             <DirectionNameField
                 item={item}
                 field="reverseName"
-                label="Sync ← name"
+                label={<span className="inline-flex items-center gap-x-0.5">'Src <ArrowLeft className="size-2.5" /> Dst' name</span>}
                 placeholder="Optional name for destination → source"
             />
         </div>
@@ -153,7 +155,7 @@ function OperationNameField({ item }: { item: SyncOpItem; }) {
     );
 }
 
-function DirectionNameField({ item, field, label, placeholder }: { item: SyncOpItem; field: "forwardName" | "reverseName"; label: string; placeholder: string; }) {
+function DirectionNameField({ item, field, label, placeholder }: { item: SyncOpItem; field: "forwardName" | "reverseName"; label: ReactNode; placeholder: string; }) {
     const value = item[field] ?? "";
 
     return (
