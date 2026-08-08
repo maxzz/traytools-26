@@ -1,6 +1,6 @@
 import { useState, type Dispatch, type PointerEvent, type SetStateAction } from "react";
 import { useSetAtom } from "jotai";
-import { classNames } from "@/utils/classnames";
+import { classNames, cn } from "@/utils/classnames";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Reorder, useDragControls, type DragControls } from "motion/react";
 import { ArrowDownToLine, GripVertical, PencilLine, Plus, Trash2 } from "lucide-react";
@@ -9,7 +9,7 @@ import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-field-ui";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/ui/shadcn/select";
-import { COL_Classes, TableHeaderRow, SUBGRID_ROW_Classes, tableGridClasses } from "./3-3-3-values-header";
+import { COL_Classes, TableHeaderRow, SUBGRID_ROW_Classes, TABLE_CELL_CONTROL_Classes, tableGridClasses } from "./3-3-3-values-header";
 import { Column_NewValueCell } from "./3-3-4-values-value-new";
 import { Column_CurrentValue } from "./3-3-5-values-value-current";
 import { type RegItem, type RegValue, type RegValueType, REG_VALUE_TYPES, VALUE_TYPE_LONG_LABELS, VALUE_TYPE_SHORT_LABELS, itemHasSubKey, valueDisplayName } from "../../a-atoms/9-types-registry";
@@ -74,7 +74,7 @@ function ValueRow({ value, item, isLast, editOrder }: { value: RegValue; item: R
             onDragEnd={() => setIsDragging(false)}
         >
             <Input
-                className={classNames(COL_Classes.name, "w-full px-1.5 py-0! h-7 text-[0.72rem]")}
+                className={cn(COL_Classes.name, TABLE_CELL_CONTROL_Classes, "w-full px-1.5 py-0! h-7 text-[0.72rem]")}
                 value={value.valueName}
                 placeholder="(Default)"
                 title={valueDisplayName(value.valueName)}
@@ -97,7 +97,7 @@ function Column_Type({ uid, valueType }: { uid: string; valueType: RegValueType;
     return (
         <Select value={valueType} onValueChange={(next) => patchSelectedValue(uid, (v) => { v.valueType = next as RegValueType; })}>
             <SelectTrigger
-                className={classNames(COL_Classes.type, "w-full px-1.5 h-7! text-[0.72rem] [&>svg]:size-2.5")}
+                className={cn(COL_Classes.type, TABLE_CELL_CONTROL_Classes, "w-full px-1.5 h-7! text-[0.72rem] [&>svg]:size-2.5")}
                 title={VALUE_TYPE_LONG_LABELS[valueType]}
                 aria-label="Value type"
                 onPointerDown={(e) => e.stopPropagation()}

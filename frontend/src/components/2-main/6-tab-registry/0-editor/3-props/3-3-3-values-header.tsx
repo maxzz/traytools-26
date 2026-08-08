@@ -25,20 +25,33 @@ import {
  */
 export function tableGridClasses(editOrder: boolean): string {
     return editOrder
-        ? "grid grid-cols-[minmax(0,1.2fr)_70px_minmax(0,1.3fr)_minmax(0,1.3fr)_6.5rem] gap-x-1"
-        : "grid grid-cols-[minmax(0,1.2fr)_70px_minmax(0,1.3fr)_minmax(0,1.3fr)_3.25rem] gap-x-1";
+        ? "grid grid-cols-[minmax(0,1.2fr)_70px_minmax(0,1.3fr)_minmax(0,1.3fr)_6.5rem]"
+        : "grid grid-cols-[minmax(0,1.2fr)_70px_minmax(0,1.3fr)_minmax(0,1.3fr)_3.25rem]";
 }
 
 /** One table row that inherits the parent column tracks via CSS subgrid. */
 export const SUBGRID_ROW_Classes = "col-span-full grid grid-cols-subgrid";
 
+/**
+ * Flat controls in the first four columns: no box chrome; a single right edge
+ * separates columns. Focus uses an inset CSS outline (not ring).
+ */
+export const TABLE_CELL_CONTROL_Classes = "\
+rounded-none border-0 border-r border-border \
+bg-transparent shadow-none dark:bg-transparent \
+\
+focus-visible:border-border \
+focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0 \
+focus-visible:outline-solid focus-visible:outline-1 focus-visible:outline-ring \
+focus-visible:-outline-offset-1";
+
 /** Per-cell helpers (widths come from the parent grid, not from these classes). */
 export const COL_Classes = {
     handle: "w-4 shrink-0",
-    name: "pl-1.25 min-w-0",
-    type: "pl-1.25 min-w-0",
-    newValue: "pl-1.25 min-w-0",
-    current: "pl-1.25 min-w-0",
+    name: "pl-1.25 min-w-0 border-r border-border",
+    type: "pl-1.25 min-w-0 border-r border-border",
+    newValue: "pl-1.25 min-w-0 border-r border-border",
+    current: "pl-1.25 min-w-0 border-r border-border",
     actions: "min-w-0",
 };
 

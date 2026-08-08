@@ -10,7 +10,7 @@ import { type RegValue, type RegValueType, VALUE_TYPE_LONG_LABELS } from "../../
 import { type RegHexPadMode, type RegHexPrefixMode, type RegNumericRadix, newValueHexPadAtom, newValueHexPrefixAtom, newValueRadixAtom } from "../../a-atoms/2-run-registry";
 import { formatRegNumericText, isNumericRegType, toStoredRegNumericText } from "../../a-atoms/7-reg-file-format";
 import { patchSelectedValue } from "../../a-atoms/use-selected-node";
-import { COL_Classes } from "./3-3-3-values-header";
+import { COL_Classes, TABLE_CELL_CONTROL_Classes } from "./3-3-3-values-header";
 
 // New-value column: inline edit for simple types, Edit dialog for expandable / binary / multi-string.
 
@@ -48,7 +48,7 @@ function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
 
     return (
         <Input
-            className={cn(COL_Classes.newValue, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "tabular-nums")}
+            className={cn(COL_Classes.newValue, TABLE_CELL_CONTROL_Classes, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "tabular-nums")}
             value={shown}
             title={valueHint(value.valueType, radix, hexPrefix, hexPad)}
             aria-label="New value"
@@ -126,7 +126,7 @@ function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }
     }
 
     return (<>
-        <div className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-border rounded flex items-center gap-1")} title={valueHint(value.valueType)}>
+        <div className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 flex items-center gap-1")} title={valueHint(value.valueType)}>
             <span className={cn("min-w-0 flex-1 truncate text-[0.72rem] tabular-nums", preview ? "text-foreground" : "text-muted-foreground/60")} aria-label="New value">
                 {preview}
             </span>
