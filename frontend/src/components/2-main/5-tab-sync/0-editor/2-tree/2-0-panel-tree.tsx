@@ -1,9 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { type SyncOpItem, findByUid, itemLabel } from "../../a-atoms/9-types-sync";
+import { Input } from "@/ui/shadcn/input";
+import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
+import { type SyncOpItem, findByUid, folderBaseName, itemLabel } from "../../a-atoms/9-types-sync";
 import { type DropPosition, addDroppedFolders, copyNode, isRootUid, moveNode } from "../../a-atoms/1-sync-editor-atoms";
 import { SyncConfig_Apply, syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import {
@@ -398,6 +400,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
     const snap = useSnapshot(syncEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
+    const [renaming, setRenaming] = useState(false);
     const uid = group.uid ?? "";
     const selected = snap.selectedUid === uid;
     const isDragging = dnd.dragUid === uid;
@@ -410,11 +413,25 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
     const childAncestors = [...ancestors, !isLast];
     const hasChildren = group.items.length > 0;
 
+    function beginRename() {
+        onActivate();
+        syncEditorStore.selectedUid = uid;
+        setRenaming(true);
+    }
+
+    function commitRename(next: string) {
+        const loc = findByUid(syncEditorStore.config, uid);
+        if (loc?.kind === "group") {
+            loc.group.name = next;
+        }
+        setRenaming(false);
+    }
+
     return (
         <div>
             <div
                 className="relative"
-                draggable
+                draggable={!renaming}
                 data-tree-drop-uid={uid}
                 onDragStart={(e) => dnd.onDragStart(e, uid)}
                 onDragOver={(e) => dnd.onDragOver(e, uid, true, false)}
@@ -460,10 +477,27 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                     }
 
                     <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1">
-                        <span className="min-w-0 truncate">
-                            {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
-                        </span>
-                        {snap.dirtyUids.includes(uid) && <DirtyDot />}
+                        {renaming ? (
+                            <TreeInlineName
+                                value={group.name}
+                                placeholder="Group name"
+                                onCommit={commitRename}
+                                onCancel={() => setRenaming(false)}
+                            />
+                        ) : (
+                            <>
+                                <span
+                                    className="min-w-0 truncate"
+                                    onDoubleClick={(e) => {
+                                        e.stopPropagation();
+                                        beginRename();
+                                    }}
+                                >
+                                    {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
+                                </span>
+                                {snap.dirtyUids.includes(uid) && <DirtyDot />}
+                            </>
+                        )}
                     </span>
                 </div>
             </div>
@@ -571,6 +605,7 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
 function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapItem; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
     const snap = useSnapshot(syncEditorStore);
     const dnd = useDnd();
+    const [renaming, setRenaming] = useState(false);
     const uid = item.uid ?? "";
     const selected = snap.selectedUid === uid;
     const isDragging = dnd.dragUid === uid;
@@ -578,14 +613,34 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
     const showBefore = isDropTarget && dnd.dropPos === "before";
     const showAfter = isDropTarget && dnd.dropPos === "after";
     const label = itemLabel(item as SyncOpItem);
+    const baseName = folderBaseName(item.sourceFolder);
     const isDirty = snap.dirtyUids.includes(uid);
     // OS folder drops on an item land in the parent group.
     const fileDropParentUid = fileDropDestUid(uid);
 
+    function beginRename() {
+        onActivate();
+        syncEditorStore.selectedUid = uid;
+        setRenaming(true);
+    }
+
+    function commitRename(next: string) {
+        const loc = findByUid(syncEditorStore.config, uid);
+        if (loc?.kind === "item") {
+            const base = folderBaseName(loc.item.sourceFolder);
+            if (!next.trim() || next === base) {
+                delete loc.item.name;
+            } else {
+                loc.item.name = next;
+            }
+        }
+        setRenaming(false);
+    }
+
     return (
         <div
             className="relative"
-            draggable
+            draggable={!renaming}
             data-tree-drop-uid={fileDropParentUid}
             onDragStart={(e) => dnd.onDragStart(e, uid)}
             onDragOver={(e) => dnd.onDragOver(e, uid, false, false)}
@@ -616,12 +671,85 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <FileIcon className="shrink-0 relative size-3.5 text-foreground/70" />
 
-                <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1" title={label}>
-                    <span className="min-w-0 truncate">{label}</span>
-                    {isDirty && <DirtyDot />}
+                <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1" title={renaming ? undefined : label}>
+                    {renaming ? (
+                        <TreeInlineName
+                            value={item.name ?? baseName}
+                            placeholder={baseName || "Operation name"}
+                            onCommit={commitRename}
+                            onCancel={() => setRenaming(false)}
+                        />
+                    ) : (
+                        <>
+                            <span
+                                className="min-w-0 truncate"
+                                onDoubleClick={(e) => {
+                                    e.stopPropagation();
+                                    beginRename();
+                                }}
+                            >
+                                {label}
+                            </span>
+                            {isDirty && <DirtyDot />}
+                        </>
+                    )}
                 </span>
             </div>
         </div>
+    );
+}
+
+/** Compact in-place name editor for tree labels (Enter commits, Escape cancels). */
+function TreeInlineName({ value, placeholder, onCommit, onCancel }: {
+    value: string;
+    placeholder?: string;
+    onCommit: (next: string) => void;
+    onCancel: () => void;
+}) {
+    const [draft, setDraft] = useState(value);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const skipCommitRef = useRef(false);
+
+    useEffect(() => {
+        inputRef.current?.select();
+    }, []);
+
+    function finishCommit() {
+        if (skipCommitRef.current) {
+            return;
+        }
+        skipCommitRef.current = true;
+        onCommit(draft);
+    }
+
+    function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            finishCommit();
+            return;
+        }
+        if (e.key === "Escape") {
+            e.preventDefault();
+            skipCommitRef.current = true;
+            onCancel();
+        }
+    }
+
+    return (
+        <Input
+            ref={inputRef}
+            className="h-5 flex-1 min-w-0 px-1 py-0"
+            value={draft}
+            placeholder={placeholder}
+            autoFocus
+            onChange={(e) => setDraft(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={onKeyDown}
+            onBlur={finishCommit}
+            {...turnOffAutoComplete}
+        />
     );
 }
 
