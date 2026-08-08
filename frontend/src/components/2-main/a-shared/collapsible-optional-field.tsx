@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { classNames, cn } from "@/utils/classnames";
+import { classNames } from "@/utils/classnames";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { Label } from "@/ui/shadcn/label";
@@ -15,9 +15,9 @@ export function CollapsibleOptionalField({ label, value, children, className }: 
     }, [hasValue]);
 
     return (
-        <div className={cn("-mt-1 flex flex-col gap-0.5", className)}>
+        <div className={classNames("-mt-1 flex flex-col gap-0.5", className)}>
             <Label className={classNames(labelClasses, "select-none inline-flex items-center gap-px cursor-pointer")} onClick={() => setOpen((v) => !v)}>
-                {label}
+                <span className="text-[0.65rem]!">{label}</span>
                 <motion.span
                     className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
                     animate={{ rotate: open ? 90 : 0 }}
@@ -26,6 +26,7 @@ export function CollapsibleOptionalField({ label, value, children, className }: 
                     <ChevronRight className="size-2.5" />
                 </motion.span>
             </Label>
+
             <AnimatePresence initial={false}>
                 {open && (
                     <motion.div

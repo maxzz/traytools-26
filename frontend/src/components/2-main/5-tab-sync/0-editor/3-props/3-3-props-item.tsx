@@ -43,26 +43,20 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
             />
         </LabelAndField>
 
-        <div className="flex flex-wrap gap-x-3 gap-y-2">
-            <div className="min-w-[200px] flex-1">
-                <OperationNameField item={item} />
-            </div>
-            <div className="min-w-[200px] flex-1">
-                <DirectionNameField
-                    item={item}
-                    field="forwardName"
-                    label="Sync → name"
-                    placeholder="Optional name for source → destination"
-                />
-            </div>
-            <div className="min-w-[200px] flex-1">
-                <DirectionNameField
-                    item={item}
-                    field="reverseName"
-                    label="Sync ← name"
-                    placeholder="Optional name for destination → source"
-                />
-            </div>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] items-center gap-x-3 gap-y-2">
+            <OperationNameField item={item} />
+            <DirectionNameField
+                item={item}
+                field="forwardName"
+                label="Sync → name"
+                placeholder="Optional name for source → destination"
+            />
+            <DirectionNameField
+                item={item}
+                field="reverseName"
+                label="Sync ← name"
+                placeholder="Optional name for destination → source"
+            />
         </div>
     </>);
 }
@@ -163,7 +157,7 @@ function DirectionNameField({ item, field, label, placeholder }: { item: SyncOpI
     const value = item[field] ?? "";
 
     return (
-        <CollapsibleOptionalField label={label} value={value} className="mt-0">
+        <CollapsibleOptionalField className="mt-0" label={label} value={value}>
             <Input
                 className="h-7"
                 value={value}

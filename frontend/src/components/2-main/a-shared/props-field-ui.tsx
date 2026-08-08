@@ -29,7 +29,10 @@ export function LabelAndField({ label, labelHint, labelAside, error, children, .
     return (
         <div className="flex flex-col gap-0.5" {...props}>
             <div className="flex items-center gap-0.5 min-w-0">
-                <Label className={cn(labelClasses, error && "text-destructive")}>{label}</Label>
+                <Label className={cn(labelClasses, error && "text-destructive")}>
+                    {label}
+                </Label>
+
                 {error
                     ? (
                         <ErrorTooltip label={`${label} error`}>{error}</ErrorTooltip>
@@ -38,8 +41,10 @@ export function LabelAndField({ label, labelHint, labelAside, error, children, .
                         ? <InfoTooltip label={`${label} help`}>{labelHint}</InfoTooltip>
                         : labelHint
                 }
+
                 {labelAside}
             </div>
+            
             {children}
         </div>
     );
