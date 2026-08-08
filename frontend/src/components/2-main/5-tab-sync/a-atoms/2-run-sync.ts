@@ -4,6 +4,7 @@ import {
     syncOpsBus,
     onWailsEvent,
     SYNC_OPS_EVENTS,
+    type SyncChangeDTO,
     type SyncCheckResponse,
     type SyncJobDoneEvent,
     type SyncProgressEvent,
@@ -13,6 +14,20 @@ import { notice } from "@/ui/local-ui/7-toaster";
 import { type SyncOpItem, itemLabel } from "./9-types-sync";
 
 export type SyncJobKind = "sync" | "check" | "check-details";
+
+function formatChangeBreakdown(changes: SyncChangeDTO[] | undefined): string {
+    let added = 0;
+    let deleted = 0;
+    let modified = 0;
+    for (const change of changes ?? []) {
+        switch ((change.marker || "").slice(0, 1).toUpperCase()) {
+            case "A": added++; break;
+            case "D": deleted++; break;
+            case "M": modified++; break;
+        }
+    }
+    return `${added} added, ${deleted} deleted, ${modified} modified`;
+}
 
 export type SyncJobReport = {
     /** Local identity for this UI job (stable for the session). */
@@ -143,7 +158,7 @@ export function runSyncItem(item: SyncOpItem, direction: "forward" | "reverse" =
             const fileCount = ev.sourceFileCount ?? 0;
             live.summary = changeCount === 0
                 ? `Synced — identical (${fileCount} files)`
-                : `Synced — ${changeCount} update${changeCount === 1 ? "" : "s"} (${fileCount} files)`;
+                : `Synced — ${changeCount} update${changeCount === 1 ? "" : "s"} (${fileCount} files: ${formatChangeBreakdown(ev.changes)})`;
         });
 
         try {
@@ -210,7 +225,7 @@ export function runCheckItem(item: SyncOpItem): void {
             if (res.identical) {
                 live.summary = `Identical — ${res.sourceFileCount} files in ${res.folderCount} folders`;
             } else {
-                live.summary = `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} — ${res.sourceFileCount} files in ${res.folderCount} folders`;
+                live.summary = `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} — ${res.sourceFileCount} files in ${res.folderCount} folders (${formatChangeBreakdown(res.changes)})`;
             }
         } catch (e) {
             const live = findJob(uid);
@@ -263,7 +278,7 @@ export function runCheckDetails(item: SyncOpItem): void {
                 live.checkDetails = res;
                 live.summary = res.identical
                     ? `Identical — ${res.sourceFileCount} files`
-                    : `${res.changeCount} update${res.changeCount === 1 ? "" : "s"}`;
+                    : `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} (${formatChangeBreakdown(res.changes)})`;
                 return;
             }
             getDefaultStore().set(checkDetailsDialogAtom, { label, response: res });
