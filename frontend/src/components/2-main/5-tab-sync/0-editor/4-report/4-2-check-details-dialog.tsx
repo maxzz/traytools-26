@@ -3,8 +3,8 @@ import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { checkDetailsDialogAtom } from "../../a-atoms/2-run-sync";
-import { CheckDetailsTree, JobSummary } from "./4-1-check-details-tree";
-import { FolderPairLines } from "./4-3-folder-pair-lines";
+import { CheckDetailsTree } from "./4-1-check-details-tree";
+import { FolderPairLines, JobSummary } from "./4-3-folder-pair-lines";
 
 export function CheckDetailsDialog() {
     const [payload, setPayload] = useAtom(checkDetailsDialogAtom);

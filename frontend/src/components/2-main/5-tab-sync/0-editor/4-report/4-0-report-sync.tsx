@@ -6,8 +6,8 @@ import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { DelayedRunningIndicator } from "../../../a-shared/delayed-running-indicator";
 import { formatJobTime } from "../../../a-shared/format-job-time";
 import { type SyncJobReport, clearSyncReportMessages, syncReportStore } from "../../a-atoms/2-run-sync";
-import { CheckDetailsTree, JobSummary } from "./4-1-check-details-tree";
-import { FolderPairLines } from "./4-3-folder-pair-lines";
+import { CheckDetailsTree } from "./4-1-check-details-tree";
+import { FolderPairLines, JobSummary } from "./4-3-folder-pair-lines";
 import { ChangeBreakdown } from "./4-4-change-breakdown";
 
 export function SyncReportPanel() {
