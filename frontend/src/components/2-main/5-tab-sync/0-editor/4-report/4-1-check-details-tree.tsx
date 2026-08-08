@@ -75,6 +75,8 @@ function FolderNode({ node, depth, isLast, ancestors }: { node: SyncTreeNodeDTO;
     const changes = node.changes ?? [];
     const childAncestors = [...ancestors, !isLast];
     const hasChildren = children.length > 0 || changes.length > 0;
+    // Folders with only unchanged subfolders start collapsed; paths that contain A/M/D stay open.
+    const defaultCollapsed = children.length > 0 && !nodeHasFileChanges(node);
 
     return (
         <FolderRow
@@ -84,6 +86,7 @@ function FolderNode({ node, depth, isLast, ancestors }: { node: SyncTreeNodeDTO;
             isLast={isLast}
             ancestors={ancestors}
             hasChildren={hasChildren}
+            defaultCollapsed={defaultCollapsed}
         >
             {children.map(
                 (child, i) => {
@@ -129,8 +132,16 @@ function FolderNode({ node, depth, isLast, ancestors }: { node: SyncTreeNodeDTO;
     );
 }
 
-function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, children }: { name: string; fileCount: number; depth: number; isLast: boolean; ancestors: boolean[]; hasChildren: boolean; children?: ReactNode; }) {
-    const [collapsed, setCollapsed] = useState(false);
+/** True when this folder or any second-level child has A/M/D file entries. */
+function nodeHasFileChanges(node: SyncTreeNodeDTO): boolean {
+    if ((node.changes ?? []).length > 0) {
+        return true;
+    }
+    return (node.children ?? []).some((child) => (child.changes ?? []).length > 0);
+}
+
+function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, defaultCollapsed = false, children }: { name: string; fileCount: number; depth: number; isLast: boolean; ancestors: boolean[]; hasChildren: boolean; defaultCollapsed?: boolean; children?: ReactNode; }) {
+    const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
     return (
         <div>
