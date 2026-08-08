@@ -37,7 +37,7 @@ export function CheckDetailsTree({ response }: { response: SyncCheckResponse; })
                 )}
                 {rootChanges.map(
                     (change, i) => (
-                        <ChangeRow
+                        <LeafRow
                             key={`root-${change.marker}-${change.relPath}-${i}`}
                             change={change}
                             depth={1}
@@ -85,7 +85,7 @@ function FolderNode({ node, depth, isLast, ancestors }: { node: SyncTreeNodeDTO;
                         >
                             {nestedChanges.map(
                                 (change, ci) => (
-                                    <ChangeRow
+                                    <LeafRow
                                         key={`${change.marker}-${change.relPath}-${ci}`}
                                         change={change}
                                         depth={depth + 2}
@@ -98,9 +98,10 @@ function FolderNode({ node, depth, isLast, ancestors }: { node: SyncTreeNodeDTO;
                     );
                 }
             )}
+
             {changes.map(
                 (change, i) => (
-                    <ChangeRow
+                    <LeafRow
                         key={`${change.marker}-${change.relPath}-${i}`}
                         change={change}
                         depth={depth + 1}
@@ -132,8 +133,8 @@ function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, def
                 <button
                     className="shrink-0 relative w-4 h-4 text-muted-foreground disabled:opacity-40 flex items-center justify-center cursor-pointer"
                     onClick={() => setCollapsed((v) => !v)}
-                    title={hasChildren ? (collapsed ? "Expand" : "Collapse") : undefined}
                     disabled={!hasChildren}
+                    title={hasChildren ? (collapsed ? "Expand" : "Collapse") : undefined}
                     type="button"
                 >
                     {hasChildren
@@ -142,10 +143,7 @@ function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, def
                     }
                 </button>
 
-                {collapsed || !hasChildren
-                    ? <Folder className="shrink-0 relative size-3.5 text-yellow-900 fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
-                    : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
-                }
+                {collapsed || !hasChildren ? <Folder className={folderClasses} /> : <FolderOpen className={folderClasses} />}
 
                 <span className="relative min-w-0 truncate">
                     {name}
@@ -159,7 +157,9 @@ function FolderRow({ name, fileCount, depth, isLast, ancestors, hasChildren, def
     );
 }
 
-function ChangeRow({ change, depth, isLast, ancestors }: { change: SyncChangeDTO; depth: number; isLast: boolean; ancestors: boolean[]; }) {
+const folderClasses = "shrink-0 relative size-3.5 text-yellow-900 fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
+
+function LeafRow({ change, depth, isLast, ancestors }: { change: SyncChangeDTO; depth: number; isLast: boolean; ancestors: boolean[]; }) {
     const marker = (change.marker || "?").slice(0, 1).toUpperCase();
     const name = change.displayName || change.relPath || "";
     const color = markerColorClasses(marker);
@@ -168,7 +168,7 @@ function ChangeRow({ change, depth, isLast, ancestors }: { change: SyncChangeDTO
         <div className="relative px-1 h-5 rounded-none select-none flex items-center gap-1" style={{ paddingLeft: (depth + 1) * INDENT + 8 }}>
             <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={false} />
 
-            <span className="shrink-0 relative w-4 h-4" />
+            <span className="shrink-0 relative size-4" />
             <FileIcon className={classNames("shrink-0 relative size-3.5", "text-foreground/70")} />
             <span className={classNames("relative min-w-0 truncate", color)}>
                 <span className="text-[0.5rem] opacity-50">{marker}{": "}</span>
