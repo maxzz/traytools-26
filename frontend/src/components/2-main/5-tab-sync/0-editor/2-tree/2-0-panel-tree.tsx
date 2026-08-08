@@ -697,7 +697,7 @@ function TreeRowLabel({ renaming, title, onBeginRename, trailing, editor, childr
     children: ReactNode;
 }) {
     return (
-        <span className="flex-1 relative min-w-0 overflow-hidden flex items-center" title={renaming ? undefined : title}>
+        <span className="flex-1 relative min-w-0 flex items-center" title={renaming ? undefined : title}>
             {renaming ? (
                 editor
             ) : (
@@ -756,7 +756,7 @@ function TreeInlineName({ value, placeholder, onCommit, onCancel }: {
     return (
         <Input
             ref={inputRef}
-            className="h-5 flex-1 min-w-0 px-1 py-0"
+            className="h-4.5 flex-1 min-w-0 -mx-1 px-1 py-0 bg-background dark:bg-background border-none rounded-none"
             value={draft}
             placeholder={placeholder}
             autoFocus
