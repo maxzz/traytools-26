@@ -44,7 +44,7 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
             title={title}
             aria-label={`Current value — ${title.replace(/\n/g, ". ")}`}
         >
-            <span className={cn("min-w-0 flex-1 truncate", className, isNumericRegType(value.valueType) && read?.exists && "font-mono")}>
+            <span className={cn("min-w-0 flex-1 truncate", className, isNumericRegType(value.valueType) && read?.exists && "tabular-nums")}>
                 {cellText}
             </span>
 

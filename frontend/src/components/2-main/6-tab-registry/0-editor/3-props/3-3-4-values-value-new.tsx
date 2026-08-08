@@ -145,7 +145,7 @@ function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
 
     return (
         <Input
-            className={cn(COL_Classes.newValue, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "font-mono")}
+            className={cn(COL_Classes.newValue, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "tabular-nums")}
             value={shown}
             placeholder={numericPlaceholder(value.valueType, radix, hexPrefix, hexPad)}
             title={valueHint(value.valueType, radix, hexPrefix, hexPad)}
