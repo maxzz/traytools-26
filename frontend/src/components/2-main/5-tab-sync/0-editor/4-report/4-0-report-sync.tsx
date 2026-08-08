@@ -7,6 +7,7 @@ import { DelayedRunningIndicator } from "../../../a-shared/delayed-running-indic
 import { formatJobTime } from "../../../a-shared/format-job-time";
 import { type SyncJobReport, clearSyncReportMessages, syncReportStore } from "../../a-atoms/2-run-sync";
 import { CheckDetailsTree, JobSummary } from "./4-1-check-details-tree";
+import { FolderPairLines } from "./4-3-folder-pair-lines";
 
 export function SyncReportPanel() {
     const { jobs } = useSnapshot(syncReportStore);
@@ -95,6 +96,10 @@ function JobBlock({ job }: { job: SyncJobReport; }) {
                 </div>
             )}
 
+            {(job.summary || job.checkDetails) && (
+                <FolderPairLines sourceFolder={job.sourceFolder} destFolder={job.destFolder} />
+            )}
+
             {job.summary && (
                 <p className="text-xs">
                     {job.summary}
@@ -129,7 +134,6 @@ function JobDetails({ job }: { job: SyncJobReport; }) {
 
     return (
         <div className="pt-1">
-            <div className="mb-1.5 text-xs text-sky-600 dark:text-cyan-400">Check</div>
             <CheckDetailsTree response={job.checkDetails} />
             <JobSummary response={job.checkDetails} />
         </div>

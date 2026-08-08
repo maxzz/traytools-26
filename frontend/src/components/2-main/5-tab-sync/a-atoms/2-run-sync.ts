@@ -23,6 +23,8 @@ export type SyncJobReport = {
     startedAt: number;
     label: string;
     kind: SyncJobKind;
+    sourceFolder: string;
+    destFolder: string;
     running: boolean;
     setupError: string;
     messages: string[];
@@ -48,6 +50,8 @@ export const syncReportStore = proxy<SyncReportStore>({
 
 export type CheckDetailsDialogPayload = {
     label: string;
+    sourceFolder: string;
+    destFolder: string;
     response: SyncCheckResponse;
 };
 
@@ -93,6 +97,8 @@ export function runSyncItem(item: SyncOpItem, direction: "forward" | "reverse" =
             startedAt: Date.now(),
             label,
             kind: "sync",
+            sourceFolder,
+            destFolder,
             running: true,
             setupError: "",
             messages: [],
@@ -195,6 +201,8 @@ export function runCheckItem(item: SyncOpItem): void {
             startedAt: Date.now(),
             label,
             kind: "check",
+            sourceFolder,
+            destFolder,
             running: true,
             setupError: "",
             messages: [],
@@ -246,6 +254,8 @@ export function runCheckDetails(item: SyncOpItem): void {
                 startedAt: Date.now(),
                 label,
                 kind: "check-details",
+                sourceFolder,
+                destFolder,
                 running: true,
                 setupError: "",
                 messages: [],
@@ -267,7 +277,7 @@ export function runCheckDetails(item: SyncOpItem): void {
                     : `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} (${formatChangeBreakdown(res.changes)})`;
                 return;
             }
-            getDefaultStore().set(checkDetailsDialogAtom, { label, response: res });
+            getDefaultStore().set(checkDetailsDialogAtom, { label, sourceFolder, destFolder, response: res });
         } catch (e) {
             if (inPanel) {
                 const live = findJob(uid);

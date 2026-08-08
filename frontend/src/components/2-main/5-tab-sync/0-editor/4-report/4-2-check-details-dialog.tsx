@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { checkDetailsDialogAtom } from "../../a-atoms/2-run-sync";
 import { CheckDetailsTree, JobSummary } from "./4-1-check-details-tree";
+import { FolderPairLines } from "./4-3-folder-pair-lines";
 
 export function CheckDetailsDialog() {
     const [payload, setPayload] = useAtom(checkDetailsDialogAtom);
@@ -22,8 +23,8 @@ export function CheckDetailsDialog() {
                 </DialogHeader>
 
                 {payload && (<>
-                    <div className="px-4 pt-3 text-xs text-sky-600 dark:text-cyan-400">
-                        Check
+                    <div className="px-4 pt-3">
+                        <FolderPairLines sourceFolder={payload.sourceFolder} destFolder={payload.destFolder} />
                     </div>
                     <div className="px-4">
                         <JobSummary response={payload.response} />
