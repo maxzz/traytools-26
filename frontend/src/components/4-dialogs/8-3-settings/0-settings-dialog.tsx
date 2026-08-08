@@ -15,6 +15,7 @@ import {
     isOpenSettingsDialogAtom,
     settingsQuitOnCloseAtom,
     settingsRunElevatedAtom,
+    settingsShowDpAgentMonitorAtom,
     settingsShowFooterAtom,
     settingsShowMainTabsAtom,
     settingsShowThemeToggleAtom,
@@ -48,6 +49,11 @@ export function SettingsDialog() {
                     <ControlSwitch label="Quit the application when the window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
                     <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
                     <ControlSwitch label="Show main tabs in header" valueAtom={settingsShowMainTabsAtom} />
+                    <ControlSwitch
+                        label="Show DPAgent monitor in header"
+                        title="Show the DPAgent monitor control in the header. When hidden, status tracking does not run."
+                        valueAtom={settingsShowDpAgentMonitorAtom}
+                    />
                     <ControlSwitch label="Show Sync Check Details in bottom panel" valueAtom={settingsSyncCheckDetailsInPanelAtom} />
                     <ControlTheme />
                     <Separator />

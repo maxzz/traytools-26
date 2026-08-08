@@ -16,7 +16,7 @@ import { BadgeSelfIntegrity, ButtonExit } from "./5-btn-exit-self-integrity";
 import { useMiniWindowSize } from "./use-mini-window-size";
 
 export function Header() {
-    const { showMainTabs, showThemeToggle, showFooter } = useSnapshot(appSettings);
+    const { showMainTabs, showThemeToggle, showFooter, showDpAgentMonitor } = useSnapshot(appSettings);
     const sizeKey = useAtomValue(windowSizeKeyAtom);
     const zoomLevel = useAtomValue(zoomLevelAtom);
     const isMini = sizeKey === "mini";
@@ -42,7 +42,7 @@ export function Header() {
                 {!isMini && <ButtonSettings />}
                 {!isMini && <ButtonHome />}
                 {showThemeToggle && <ButtonThemeToggle />}
-                <DpAgentToolbar className="ml-1" />
+                {showDpAgentMonitor && <DpAgentToolbar className="ml-1" />}
                 <ButtonExit />
                 <BadgeSelfIntegrity />
             </div>

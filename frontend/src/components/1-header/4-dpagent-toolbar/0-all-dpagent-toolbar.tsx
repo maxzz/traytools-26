@@ -15,6 +15,7 @@ const POLL_MS = 1000;
 
 /**
  * DPAgent toolbar: status icon toggle, Start/Stop, integrity glyphs.
+ * Mounted only when `appSettings.showDpAgentMonitor` is on.
  * `appSettings.showDpAgentToolbar` expands controls and gates the 1s run monitor.
  * In mini window mode, controls stay expanded and the monitor stays active.
  */

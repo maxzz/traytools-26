@@ -25,6 +25,7 @@ export interface AppSettings {
     panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
     expandedSections: string[];  // Expanded accordion sections by name
     mainTab: string;             // Active main body tab
+    showDpAgentMonitor: boolean; // Show DPAgent monitor control in the header
     showDpAgentToolbar: boolean; // Expand DPAgent toolbar controls and run monitoring
     startDpAgentHigh: boolean;   // Start DPAgent elevated (runas)
     /** When true, Sync "Check Details" renders in the tab bottom panel; when false, in a dialog. Default: false (dialog). */
@@ -49,6 +50,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     panelSizes: getValidPanelSizes(),
     expandedSections: ['resizable-panels', 'pierre-trees'],
     mainTab: 'welcome',
+    showDpAgentMonitor: false,
     showDpAgentToolbar: true,
     startDpAgentHigh: false,
     syncCheckDetailsInPanel: false,
@@ -72,6 +74,7 @@ function loadSettings(): AppSettings {
                 mainTab: parsed.mainTab ?? DEFAULT_SETTINGS.mainTab,
                 showMainTabs: parsed.showMainTabs ?? DEFAULT_SETTINGS.showMainTabs,
                 showThemeToggle: parsed.showThemeToggle ?? DEFAULT_SETTINGS.showThemeToggle,
+                showDpAgentMonitor: parsed.showDpAgentMonitor ?? DEFAULT_SETTINGS.showDpAgentMonitor,
                 showDpAgentToolbar: parsed.showDpAgentToolbar ?? DEFAULT_SETTINGS.showDpAgentToolbar,
                 startDpAgentHigh: parsed.startDpAgentHigh ?? DEFAULT_SETTINGS.startDpAgentHigh,
                 syncCheckDetailsInPanel: parsed.syncCheckDetailsInPanel ?? DEFAULT_SETTINGS.syncCheckDetailsInPanel,

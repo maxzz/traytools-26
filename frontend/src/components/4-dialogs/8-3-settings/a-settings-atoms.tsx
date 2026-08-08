@@ -57,6 +57,16 @@ export const settingsStayOnTopAtom = atom(
     },
 );
 
+const settingsShowDpAgentMonitorBaseAtom = atom(appSettings.showDpAgentMonitor);
+
+export const settingsShowDpAgentMonitorAtom = atom(
+    (get) => get(settingsShowDpAgentMonitorBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsShowDpAgentMonitorBaseAtom, next);
+        appSettings.showDpAgentMonitor = next;
+    },
+);
+
 const settingsStartDpAgentHighBaseAtom = atom(appSettings.startDpAgentHigh);
 
 export const settingsStartDpAgentHighAtom = atom(
