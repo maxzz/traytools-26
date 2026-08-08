@@ -1,12 +1,12 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { classNames } from "@/utils/classnames";
+import { classNames, cn } from "@/utils/classnames";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { Label } from "@/ui/shadcn/label";
 import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
 
 /** Collapses when `value` is empty; click the label to expand/collapse. */
-export function CollapsibleOptionalField({ label, value, children }: { label: string; value: string; children: ReactNode; }) {
+export function CollapsibleOptionalField({ label, value, children, className }: { label: string; value: string; children: ReactNode; className?: string; }) {
     const hasValue = !!value.trim();
     const [open, setOpen] = useState(hasValue);
 
@@ -15,7 +15,7 @@ export function CollapsibleOptionalField({ label, value, children }: { label: st
     }, [hasValue]);
 
     return (
-        <div className="-mt-1 flex flex-col gap-0.5">
+        <div className={cn("-mt-1 flex flex-col gap-0.5", className)}>
             <Label className={classNames(labelClasses, "select-none inline-flex items-center gap-px cursor-pointer")} onClick={() => setOpen((v) => !v)}>
                 {label}
                 <motion.span

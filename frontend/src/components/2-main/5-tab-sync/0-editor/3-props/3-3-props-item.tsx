@@ -43,21 +43,27 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
             />
         </LabelAndField>
 
-        <OperationNameField item={item} />
-
-        <DirectionNameField
-            item={item}
-            field="forwardName"
-            label="Sync → name"
-            placeholder="Optional name for source → destination"
-        />
-        
-        <DirectionNameField
-            item={item}
-            field="reverseName"
-            label="Sync ← name"
-            placeholder="Optional name for destination → source"
-        />
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+            <div className="min-w-[200px] flex-1">
+                <OperationNameField item={item} />
+            </div>
+            <div className="min-w-[200px] flex-1">
+                <DirectionNameField
+                    item={item}
+                    field="forwardName"
+                    label="Sync → name"
+                    placeholder="Optional name for source → destination"
+                />
+            </div>
+            <div className="min-w-[200px] flex-1">
+                <DirectionNameField
+                    item={item}
+                    field="reverseName"
+                    label="Sync ← name"
+                    placeholder="Optional name for destination → source"
+                />
+            </div>
+        </div>
     </>);
 }
 
@@ -82,26 +88,26 @@ function ItemActionButtons({ item }: { item: SyncOpItem; }) {
             <SyncActionButton
                 label={forwardName || "Sync →"}
                 disabled={!canRun}
-                title="Sync source folder into destination"
                 onClick={() => withLiveItem((live) => runSyncItem(live, "forward"))}
+                title="Sync source folder into destination"
             />
             <SyncActionButton
                 label={reverseName || "Sync ←"}
                 disabled={!canRun}
-                title="Sync destination folder into source"
                 onClick={() => withLiveItem((live) => runSyncItem(live, "reverse"))}
+                title="Sync destination folder into source"
             />
             <SyncActionButton
                 label="Check"
                 disabled={!canRun}
-                title="Compare folders and show a short summary"
                 onClick={() => withLiveItem((live) => runCheck(live, "reportBrief"))}
+                title="Compare folders and show a short summary"
             />
             <SyncActionButton
                 label="Check Details"
                 disabled={!canRun}
-                title="Compare folders and show the CLI-style difference tree"
                 onClick={() => withLiveItem((live) => runCheck(live, "reportDetails"))}
+                title="Compare folders and show the CLI-style difference tree"
             />
         </div>
     );
@@ -157,7 +163,7 @@ function DirectionNameField({ item, field, label, placeholder }: { item: SyncOpI
     const value = item[field] ?? "";
 
     return (
-        <CollapsibleOptionalField label={label} value={value}>
+        <CollapsibleOptionalField label={label} value={value} className="mt-0">
             <Input
                 className="h-7"
                 value={value}
