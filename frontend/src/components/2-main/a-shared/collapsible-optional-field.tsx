@@ -19,7 +19,7 @@ export function CollapsibleOptionalField({ label, value, children, className }: 
             <Label className={classNames(labelClasses, "select-none inline-flex items-center gap-px cursor-pointer")} onClick={() => setOpen((v) => !v)}>
                 <span className="text-[0.65rem]!">{label}</span>
                 <motion.span
-                    className="shrink-0 relative w-3 h-4 text-muted-foreground flex items-center justify-center"
+                    className="shrink-0 relative size-2.5 text-muted-foreground inline-flex items-center justify-center"
                     animate={{ rotate: open ? 90 : 0 }}
                     transition={{ duration: 0.1, ease: "easeInOut" }}
                 >
