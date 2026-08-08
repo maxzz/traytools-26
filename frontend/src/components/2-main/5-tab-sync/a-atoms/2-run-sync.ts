@@ -194,13 +194,12 @@ export function runSyncItem(item: SyncOpItem, direction: "forward" | "reverse" =
     })();
 }
 
-export type SyncCheckMode = "summary" | "details";
+export type SyncCheckMode = "reportBrief" | "reportDetails";
 
 /**
  * Run a folder-pair check.
- * - `summary`: one-line summary in the report panel
- * - `details`: dialog by default, or bottom panel when
- *   appSettings.syncCheckDetailsInPanel is true
+ * - `reportBrief`: one-line summary in the report panel
+ * - `reportDetails`: dialog by default, or bottom panel when `appSettings.syncCheckDetailsInPanel` is true
  */
 export function runCheck(item: SyncOpItem, mode: SyncCheckMode): void {
     const { sourceFolder, destFolder } = item;
@@ -210,8 +209,8 @@ export function runCheck(item: SyncOpItem, mode: SyncCheckMode): void {
     }
 
     const label = `Check · ${itemLabel(item)}`;
-    const details = mode === "details";
-    const inPanel = !details || appSettings.syncCheckDetailsInPanel === true;
+    const details = mode === "reportDetails";
+    const inPanel = !details || !!appSettings.syncCheckDetailsInPanel;
 
     void (async () => {
         const uid = newJobUid();

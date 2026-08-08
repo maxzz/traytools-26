@@ -215,7 +215,7 @@ function runLiveCheck(uid: string | undefined) {
     }
     const loc = findByUid(syncEditorStore.config, uid);
     if (loc?.kind === "item") {
-        runCheck(loc.item, "summary");
+        runCheck(loc.item, "reportBrief");
     }
 }
 
@@ -225,6 +225,6 @@ function runLiveCheckDetails(uid: string | undefined) {
     }
     const loc = findByUid(syncEditorStore.config, uid);
     if (loc?.kind === "item") {
-        runCheck(loc.item, "details");
+        runCheck(loc.item, "reportDetails");
     }
 }

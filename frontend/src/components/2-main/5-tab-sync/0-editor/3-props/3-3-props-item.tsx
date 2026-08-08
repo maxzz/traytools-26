@@ -95,13 +95,13 @@ function ItemActionButtons({ item }: { item: SyncOpItem; }) {
                 label="Check"
                 disabled={!canRun}
                 title="Compare folders and show a short summary"
-                onClick={() => withLiveItem((live) => runCheck(live, "summary"))}
+                onClick={() => withLiveItem((live) => runCheck(live, "reportBrief"))}
             />
             <SyncActionButton
                 label="Check Details"
                 disabled={!canRun}
                 title="Compare folders and show the CLI-style difference tree"
-                onClick={() => withLiveItem((live) => runCheck(live, "details"))}
+                onClick={() => withLiveItem((live) => runCheck(live, "reportDetails"))}
             />
         </div>
     );
