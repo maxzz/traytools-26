@@ -40,25 +40,23 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
 
     return (<>
         <div
-            className={cn(
-                COL_Classes.current,
-                "w-full pl-1.5 pr-0.5 h-7 text-[0.72rem] bg-muted/40 border border-transparent rounded flex items-center gap-1",
-            )}
+            className={cn(COL_Classes.current, "w-full pl-1.5 pr-0.5 h-7 text-[0.72rem] bg-muted/30 border border-border rounded flex items-center gap-1")}
             title={title}
             aria-label={`Current value — ${title.replace(/\n/g, ". ")}`}
         >
             <span className={cn("min-w-0 flex-1 truncate", className, isNumericRegType(value.valueType) && read?.exists && "font-mono")}>
                 {cellText}
             </span>
+
             {canView && (
                 <Button
                     className="px-1.5 h-5.5 shrink-0 font-normal"
                     variant="outline"
                     size="xs"
-                    type="button"
                     title="View current value in a dialog"
-                    aria-label="View current value"
                     onClick={() => setOpen(true)}
+                    aria-label="View current value"
+                    type="button"
                 >
                     View
                 </Button>
@@ -89,17 +87,17 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
 
                     <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
                         <Button
-                            type="button"
-                            variant="outline"
                             className="min-w-16 font-condensed font-normal"
+                            variant="outline"
                             onClick={copyValue}
+                            type="button"
                         >
                             Copy
                         </Button>
                         <Button
-                            type="button"
                             className="min-w-16 font-condensed font-normal"
                             onClick={() => setOpen(false)}
+                            type="button"
                         >
                             Close
                         </Button>
