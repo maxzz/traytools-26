@@ -25,101 +25,6 @@ export function Column_NewValueCell({ uid, value }: { uid: string; value: RegVal
         : <Column_NewValue uid={uid} value={value} />;
 }
 
-/** Compact new-value cell with a right-aligned Edit button and a Save/Cancel dialog. */
-function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }) {
-    const [open, setOpen] = useState(false);
-    const [draft, setDraft] = useState(value.newValue);
-    const preview = value.newValue.trim() ? value.newValue.replace(/\s+/g, " ") : "";
-
-    function openDialog() {
-        setDraft(value.newValue);
-        setOpen(true);
-    }
-
-    function save() {
-        if (draft !== value.newValue) {
-            patchSelectedValue(uid, (v) => { v.newValue = draft; });
-        }
-        setOpen(false);
-    }
-
-    return (
-        <>
-            <div
-                className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")}
-                title={valueHint(value.valueType)}
-            >
-                <span
-                    className={cn(
-                        "min-w-0 flex-1 truncate text-[0.72rem] font-mono",
-                        preview ? "text-foreground" : "text-muted-foreground/60",
-                    )}
-                    aria-label="New value"
-                >
-                    {preview || VALUE_PLACEHOLDERS[value.valueType]}
-                </span>
-                <Button
-                    className="px-1.5 h-5.5 shrink-0 font-normal"
-                    variant="outline"
-                    size="xs"
-                    type="button"
-                    title="Edit value in a dialog"
-                    aria-label="Edit new value"
-                    onClick={openDialog}
-                >
-                    Edit
-                </Button>
-            </div>
-
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="p-0! max-w-xl! gap-0!" aria-describedby={NEW_VALUE_DIALOG_DESC_ID} modal>
-                    <DialogHeader className="px-4 py-3 text-left border-b gap-0">
-                        <DialogTitle className="text-sm font-condensed font-normal">
-                            Edit new value — {VALUE_TYPE_LONG_LABELS[value.valueType]}
-                        </DialogTitle>
-                        <DialogDescription id={NEW_VALUE_DIALOG_DESC_ID} className="sr-only">
-                            Edit the registry value, then save or cancel.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="px-4 py-3">
-                        <Textarea
-                            className="min-h-40 max-h-[min(60vh,28rem)] font-mono text-xs resize-y"
-                            value={draft}
-                            placeholder={VALUE_PLACEHOLDERS[value.valueType]}
-                            title={valueHint(value.valueType)}
-                            aria-label="New value editor"
-                            onChange={(e) => setDraft(e.target.value)}
-                            {...turnOffAutoComplete}
-                        />
-                        <p className="mt-1.5 text-[0.7rem] text-muted-foreground">
-                            {valueHint(value.valueType)}
-                        </p>
-                    </div>
-
-                    <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="min-w-16 font-condensed font-normal"
-                            onClick={() => setOpen(false)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="button"
-                            className="min-w-16 font-condensed font-normal"
-                            onClick={save}
-                        >
-                            Save
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
-    );
-}
-
 /** Formats DWORD/QWORD for the column radix only when unfocused, so typing stays stable. */
 function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
     const radix = useAtomValue(newValueRadixAtom);
@@ -129,9 +34,7 @@ function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
     const [draft, setDraft] = useState<string | null>(null);
     const numeric = isNumericRegType(value.valueType);
     const display = () => formatRegNumericText(value.newValue, radix, hexPrefix, hexPad, value.valueType);
-    const shown = numeric
-        ? (focused && draft !== null ? draft : display())
-        : value.newValue;
+    const shown = numeric ? (focused && draft !== null ? draft : display()) : value.newValue;
 
     function commitStored(text: string) {
         if (!numeric) {
@@ -229,3 +132,90 @@ const VALUE_PLACEHOLDERS: Record<RegValueType, string> = {
 };
 
 const NEW_VALUE_DIALOG_DESC_ID = "reg-new-value-dialog-description";
+
+/** Compact new-value cell with a right-aligned Edit button and a Save/Cancel dialog. */
+function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }) {
+    const [open, setOpen] = useState(false);
+    const [draft, setDraft] = useState(value.newValue);
+    const preview = value.newValue.trim() ? value.newValue.replace(/\s+/g, " ") : "";
+
+    function openDialog() {
+        setDraft(value.newValue);
+        setOpen(true);
+    }
+
+    function save() {
+        if (draft !== value.newValue) {
+            patchSelectedValue(uid, (v) => { v.newValue = draft; });
+        }
+        setOpen(false);
+    }
+
+    return (
+        <>
+            <div className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")} title={valueHint(value.valueType)}>
+                <span className={cn("min-w-0 flex-1 truncate text-[0.72rem] font-mono", preview ? "text-foreground" : "text-muted-foreground/60")} aria-label="New value">
+                    {preview || VALUE_PLACEHOLDERS[value.valueType]}
+                </span>
+
+                <Button
+                    className="px-1.5 h-5.5 shrink-0 font-normal"
+                    variant="outline"
+                    size="xs"
+                    title="Edit value in a dialog"
+                    onClick={openDialog}
+                    aria-label="Edit new value"
+                    type="button"
+                >
+                    Edit
+                </Button>
+            </div>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="p-0! max-w-xl! gap-0!" aria-describedby={NEW_VALUE_DIALOG_DESC_ID} modal>
+                    <DialogHeader className="px-4 py-3 text-left border-b gap-0">
+                        <DialogTitle className="text-sm font-condensed font-normal">
+                            Edit new value — {VALUE_TYPE_LONG_LABELS[value.valueType]}
+                        </DialogTitle>
+                        <DialogDescription id={NEW_VALUE_DIALOG_DESC_ID} className="sr-only">
+                            Edit the registry value, then save or cancel.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="px-4 py-3">
+                        <Textarea
+                            className="min-h-40 max-h-[min(60vh,28rem)] font-mono text-xs resize-y"
+                            value={draft}
+                            // placeholder={VALUE_PLACEHOLDERS[value.valueType]}
+                            title={valueHint(value.valueType)}
+                            aria-label="New value editor"
+                            onChange={(e) => setDraft(e.target.value)}
+                            {...turnOffAutoComplete}
+                        />
+                        <p className="mt-1.5 text-[0.7rem] text-muted-foreground">
+                            {valueHint(value.valueType)}
+                        </p>
+                    </div>
+
+                    <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
+                        <Button
+                            className="min-w-16 font-condensed font-normal"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                            type="button"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            className="min-w-16 font-condensed font-normal"
+                            onClick={save}
+                            type="button"
+                        >
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+}
