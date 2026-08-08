@@ -729,7 +729,13 @@ function TreeInlineName({ value, placeholder, onCommit, onCancel }: {
     const skipCommitRef = useRef(false);
 
     useEffect(() => {
-        inputRef.current?.select();
+        const el = inputRef.current;
+        if (!el) {
+            return;
+        }
+        el.focus();
+        const end = el.value.length;
+        el.setSelectionRange(end, end);
     }, []);
 
     function finishCommit() {
@@ -759,7 +765,6 @@ function TreeInlineName({ value, placeholder, onCommit, onCancel }: {
             className="h-4.5 flex-1 min-w-0 -mx-1 px-1 py-0 bg-background dark:bg-background border-none rounded-none"
             value={draft}
             placeholder={placeholder}
-            autoFocus
             onChange={(e) => setDraft(e.target.value)}
             onClick={(e) => e.stopPropagation()}
             onDoubleClick={(e) => e.stopPropagation()}
