@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/s
 import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
 import { type SyncNode, type SyncOpItem, findByUid, isSyncGroup, isSyncSeparator, itemLabel, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
-import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
+import { runCheck, runSyncItem } from "../../a-atoms/2-run-sync";
 
 export function QuickAccessList({ nodes }: { nodes: readonly SyncNode[]; }) {
     if (nodes.length === 0) {
@@ -215,7 +215,7 @@ function runLiveCheck(uid: string | undefined) {
     }
     const loc = findByUid(syncEditorStore.config, uid);
     if (loc?.kind === "item") {
-        runCheckItem(loc.item);
+        runCheck(loc.item, "summary");
     }
 }
 
@@ -225,6 +225,6 @@ function runLiveCheckDetails(uid: string | undefined) {
     }
     const loc = findByUid(syncEditorStore.config, uid);
     if (loc?.kind === "item") {
-        runCheckDetails(loc.item);
+        runCheck(loc.item, "details");
     }
 }

@@ -194,61 +194,15 @@ export function runSyncItem(item: SyncOpItem, direction: "forward" | "reverse" =
     })();
 }
 
-/** Quick check — append a one-line summary to the report panel. */
-export function runCheckItem(item: SyncOpItem): void {
-    const { sourceFolder, destFolder } = item;
-    if (!pathsReady(sourceFolder, destFolder)) {
-        notice.warning("Set source and destination folders first");
-        return;
-    }
-
-    const label = `Check · ${itemLabel(item)}`;
-
-    void (async () => {
-        const uid = newJobUid();
-        appendJob({
-            uid,
-            jobId: null,
-            startedAt: Date.now(),
-            label,
-            kind: "check",
-            sourceFolder,
-            destFolder,
-            running: true,
-            setupError: "",
-            messages: [],
-            summary: "",
-        });
-
-        try {
-            const res = await syncOpsBus.check({ sourceFolder, destFolder });
-            const live = findJob(uid);
-            if (!live) {
-                return;
-            }
-            live.running = false;
-            if (res.identical) {
-                live.summary = `Identical — ${res.sourceFileCount} files in ${res.folderCount} folders`;
-            } else {
-                live.summary = `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} — ${res.sourceFileCount} files in ${res.folderCount} folders`;
-                live.changeCounts = countChangeMarkers(res.changes);
-                live.changeCountsStyle = "suffix";
-            }
-        } catch (e) {
-            const live = findJob(uid);
-            if (live) {
-                live.running = false;
-                live.setupError = String(e);
-            }
-        }
-    })();
-}
+export type SyncCheckMode = "summary" | "details";
 
 /**
- * Check Details — dialog by default, or bottom panel when
- * appSettings.syncCheckDetailsInPanel is true.
+ * Run a folder-pair check.
+ * - `summary`: one-line summary in the report panel
+ * - `details`: dialog by default, or bottom panel when
+ *   appSettings.syncCheckDetailsInPanel is true
  */
-export function runCheckDetails(item: SyncOpItem): void {
+export function runCheck(item: SyncOpItem, mode: SyncCheckMode): void {
     const { sourceFolder, destFolder } = item;
     if (!pathsReady(sourceFolder, destFolder)) {
         notice.warning("Set source and destination folders first");
@@ -256,7 +210,8 @@ export function runCheckDetails(item: SyncOpItem): void {
     }
 
     const label = `Check · ${itemLabel(item)}`;
-    const inPanel = appSettings.syncCheckDetailsInPanel === true;
+    const details = mode === "details";
+    const inPanel = !details || appSettings.syncCheckDetailsInPanel === true;
 
     void (async () => {
         const uid = newJobUid();
@@ -266,7 +221,7 @@ export function runCheckDetails(item: SyncOpItem): void {
                 jobId: null,
                 startedAt: Date.now(),
                 label,
-                kind: "check-details",
+                kind: details ? "check-details" : "check",
                 sourceFolder,
                 destFolder,
                 running: true,
@@ -278,33 +233,40 @@ export function runCheckDetails(item: SyncOpItem): void {
 
         try {
             const res = await syncOpsBus.check({ sourceFolder, destFolder });
-            if (inPanel) {
-                const live = findJob(uid);
-                if (!live) {
-                    return;
-                }
-                live.running = false;
+            if (!inPanel) {
+                getDefaultStore().set(checkDetailsDialogAtom, { label, sourceFolder, destFolder, response: res });
+                return;
+            }
+
+            const live = findJob(uid);
+            if (!live) {
+                return;
+            }
+            live.running = false;
+            if (details) {
                 live.checkDetails = res;
-                if (res.identical) {
-                    live.summary = `Identical — ${res.sourceFileCount} files`;
-                } else {
-                    live.summary = `${res.changeCount} update${res.changeCount === 1 ? "" : "s"}`;
-                    live.changeCounts = countChangeMarkers(res.changes);
-                    live.changeCountsStyle = "suffix";
-                }
-                return;
             }
-            getDefaultStore().set(checkDetailsDialogAtom, { label, sourceFolder, destFolder, response: res });
+            if (res.identical) {
+                live.summary = details
+                    ? `Identical — ${res.sourceFileCount} files`
+                    : `Identical — ${res.sourceFileCount} files in ${res.folderCount} folders`;
+            } else {
+                live.summary = details
+                    ? `${res.changeCount} update${res.changeCount === 1 ? "" : "s"}`
+                    : `${res.changeCount} update${res.changeCount === 1 ? "" : "s"} — ${res.sourceFileCount} files in ${res.folderCount} folders`;
+                live.changeCounts = countChangeMarkers(res.changes);
+                live.changeCountsStyle = "suffix";
+            }
         } catch (e) {
-            if (inPanel) {
-                const live = findJob(uid);
-                if (live) {
-                    live.running = false;
-                    live.setupError = String(e);
-                }
+            if (!inPanel) {
+                notice.error(`Check Details failed:<br/>${String(e)}`);
                 return;
             }
-            notice.error(`Check Details failed:<br/>${String(e)}`);
+            const live = findJob(uid);
+            if (live) {
+                live.running = false;
+                live.setupError = String(e);
+            }
         }
     })();
 }

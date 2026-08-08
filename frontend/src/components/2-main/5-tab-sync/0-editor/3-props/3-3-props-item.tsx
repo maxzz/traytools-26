@@ -8,7 +8,7 @@ import { syncOpsBus } from "@/bridge";
 import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
-import { runCheckDetails, runCheckItem, runSyncItem } from "../../a-atoms/2-run-sync";
+import { runCheck, runSyncItem } from "../../a-atoms/2-run-sync";
 import { Field_TypeIcon, LabelAndField, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
 
 export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; }) {
@@ -95,13 +95,13 @@ function ItemActionButtons({ item }: { item: SyncOpItem; }) {
                 label="Check"
                 disabled={!canRun}
                 title="Compare folders and show a short summary"
-                onClick={() => withLiveItem(runCheckItem)}
+                onClick={() => withLiveItem((live) => runCheck(live, "summary"))}
             />
             <SyncActionButton
                 label="Check Details"
                 disabled={!canRun}
                 title="Compare folders and show the CLI-style difference tree"
-                onClick={() => withLiveItem(runCheckDetails)}
+                onClick={() => withLiveItem((live) => runCheck(live, "details"))}
             />
         </div>
     );
