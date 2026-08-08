@@ -87,7 +87,7 @@ function currentValueLook(read: RegReadState | undefined, value: RegValue, radix
     const matches = readMatchesDesired(read, value);
     const current = read.value ?? "";
     const shown = isNumericRegType(value.valueType) ? formatRegNumericText(current, radix, hexPrefix, hexPad, value.valueType) : current;
-    const typeNote = read.valueType && read.valueType !== value.valueType ? `\nOn machine: ${read.valueType}` : "";
+    const typeNote = read.valueType && read.valueType !== value.valueType ? `\nIn Registry: ${read.valueType}` : "";
 
     return {
         text: shown || "(empty)",

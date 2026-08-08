@@ -38,6 +38,7 @@ export function parseHiveAlias(head: string): RegHive | null {
 // ---------------------------------------------------------------------------
 // Value types
 
+/** Short labels for the type selector. */
 export const REG_VALUE_TYPES: readonly RegValueType[] = [
     "REG_SZ",
     "REG_EXPAND_SZ",
@@ -46,16 +47,6 @@ export const REG_VALUE_TYPES: readonly RegValueType[] = [
     "REG_BINARY",
     "REG_MULTI_SZ",
 ] as const;
-
-/** Short labels for the type selector. */
-export const VALUE_TYPE_LONG_LABELS: Record<RegValueType, string> = {
-    REG_SZ: "String",
-    REG_EXPAND_SZ: "Expandable string",
-    REG_DWORD: "DWORD (32-bit)",
-    REG_QWORD: "QWORD (64-bit)",
-    REG_BINARY: "Binary",
-    REG_MULTI_SZ: "Multi-string",
-};
 
 /** Abbreviated labels, for the narrow type column of the values table. */
 export const VALUE_TYPE_SHORT_LABELS: Record<RegValueType, string> = {
@@ -67,17 +58,23 @@ export const VALUE_TYPE_SHORT_LABELS: Record<RegValueType, string> = {
     REG_MULTI_SZ: "Multi",
 };
 
+export const VALUE_TYPE_LONG_LABELS: Record<RegValueType, string> = {
+    REG_SZ: "String",
+    REG_EXPAND_SZ: "Expandable string",
+    REG_DWORD: "DWORD (32-bit)",
+    REG_QWORD: "QWORD (64-bit)",
+    REG_BINARY: "Binary",
+    REG_MULTI_SZ: "Multi-string",
+};
+
 // ---------------------------------------------------------------------------
 
 /** One named value under a key. Many values can share a single RegItem key. */
 export type RegValue = {
-    /** Empty string means the key's (Default) value. */
-    valueName: string;
+    valueName: string;         // Empty string means the key's (Default) value.
     valueType: RegValueType;
-    /** Desired value in canonical text form; see the bridge RegValueSpec docs. */
-    newValue: string;
-    // Runtime-only identity for read results / row reorder; stripped on serialize.
-    uid?: string;
+    newValue: string;          // Desired value in canonical text form; see the bridge RegValueSpec docs.
+    uid?: string;              // Runtime-only identity for read results / row reorder; stripped on serialize.
 };
 
 /** A registry key plus the ordered list of values authored under it. */
@@ -304,7 +301,7 @@ export function createGroup(items?: RegNode[]): RegGroup {
 export function createItem(): RegItem {
     return {
         uid: newUid(),
-        keyPath: "HKCU",
+        keyPath: "HKCU/Software",
         values: [createValue()],
     };
 }
@@ -313,7 +310,7 @@ export function createValue(): RegValue {
     return {
         uid: newUid(),
         valueName: "",
-        valueType: "REG_SZ",
+        valueType: "REG_DWORD",
         newValue: "",
     };
 }
