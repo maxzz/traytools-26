@@ -4,7 +4,6 @@ import {
     syncOpsBus,
     onWailsEvent,
     SYNC_OPS_EVENTS,
-    type SyncChangeDTO,
     type SyncCheckResponse,
     type SyncJobDoneEvent,
     type SyncProgressEvent,
@@ -12,22 +11,9 @@ import {
 import { appSettings } from "@/store/1-ui-settings";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { type SyncOpItem, itemLabel } from "./9-types-sync";
+import { formatChangeBreakdown } from "./format-change-breakdown";
 
 export type SyncJobKind = "sync" | "check" | "check-details";
-
-function formatChangeBreakdown(changes: SyncChangeDTO[] | undefined): string {
-    let added = 0;
-    let deleted = 0;
-    let modified = 0;
-    for (const change of changes ?? []) {
-        switch ((change.marker || "").slice(0, 1).toUpperCase()) {
-            case "A": added++; break;
-            case "D": deleted++; break;
-            case "M": modified++; break;
-        }
-    }
-    return `${added} added, ${deleted} deleted, ${modified} modified`;
-}
 
 export type SyncJobReport = {
     /** Local identity for this UI job (stable for the session). */

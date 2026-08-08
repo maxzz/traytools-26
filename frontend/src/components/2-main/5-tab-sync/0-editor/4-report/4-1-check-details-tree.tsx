@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight, FileIcon, Folder, FolderOpen } from "lucide-react";
 import { classNames } from "@/utils/classnames";
 import { type SyncChangeDTO, type SyncCheckResponse, type SyncTreeNodeDTO } from "@/bridge";
+import { formatChangeBreakdown } from "../../a-atoms/format-change-breakdown";
 
 /** Check Details tree using the same guide-line / indent style as the Sync left panel. */
 export function CheckDetailsTree({ response }: { response: SyncCheckResponse; }) {
@@ -58,7 +59,8 @@ export function JobSummary({ response }: { response: SyncCheckResponse; }) {
     return (
         <div className="mt-1 text-[0.65rem] text-muted-foreground">
             <span className="mr-4">
-                Total: {response.sourceFileCount} files in {response.folderCount} folders
+                Total: {response.changeCount} update{response.changeCount === 1 ? "" : "s"}
+                {" "}({response.sourceFileCount} files in {response.folderCount} folders: {formatChangeBreakdown(response.changes)})
             </span>
             Legend:{" "}
             <span className={markerColorClasses("A")}>A</span> = add,{" "}
