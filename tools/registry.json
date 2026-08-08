@@ -151,17 +151,22 @@
                     "name": "tm_test",
                     "items": [
                         {
-                            "keyPath": "HKLM\\SOFTWARE\\_tm_test",
+                            "keyPath": "HKCU\\Software\\_tm_test",
                             "values": [
                                 {
                                     "valueName": "",
                                     "valueType": "REG_SZ",
-                                    "newValue": "1111"
+                                    "newValue": "111"
                                 },
                                 {
                                     "valueName": "tm_test",
                                     "valueType": "REG_DWORD",
-                                    "newValue": "12345"
+                                    "newValue": "0x3039"
+                                },
+                                {
+                                    "valueName": "-",
+                                    "valueType": "REG_DWORD",
+                                    "newValue": ""
                                 }
                             ]
                         },
