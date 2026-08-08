@@ -108,29 +108,32 @@ export function RootFileInfoButton({ working, error }: { working: WorkingFileCap
 export function ModifiedBadge({ onSave }: { onSave: () => void | Promise<void>; }) {
     return (
         <button
-            type="button"
-            className="shrink-0 px-1 py-px text-[0.55rem] leading-none font-normal 
-            text-orange-50 
-            bg-red-500 
-            dark:text-orange-50 
-            dark:border-red-400 
-            hover:bg-red-700
-            dark:hover:bg-red-400/45 
-            border-red-600 
-            border 
-            rounded 
-            cursor-pointer"
-            title="Save changes"
-            aria-label="Save changes"
+            className={MODIFIED_BADGE_Classes}
             onClick={(e) => {
                 e.stopPropagation();
                 void onSave();
             }}
+            title="Save changes"
+            aria-label="Save changes"
+            type="button"
         >
             modified
         </button>
     );
 }
+
+const MODIFIED_BADGE_Classes = " \
+shrink-0 px-1 py-px text-[0.55rem] leading-none font-normal \
+\
+text-orange-50 \
+bg-red-500 \
+dark:text-orange-50 \
+dark:border-red-400 \
+hover:bg-red-700 \
+dark:hover:bg-red-400/45 \
+border-red-600 \
+\
+border rounded cursor-pointer";
 
 /** Small red circle after a tree row name when that node differs from baseline. */
 export function DirtyDot({ className, ...rest }: ComponentProps<"span">) {
