@@ -6,7 +6,7 @@ import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "../a-atoms/9-types-menu";
-import { type DropPosition, copyNode, moveNode } from "../a-atoms/1-menu-editor-atoms";
+import { type DropPosition, copyNode, getNode, moveNode } from "../a-atoms/1-menu-editor-atoms";
 import { ToolsConfig_Apply, toolsEditorStore } from "../a-atoms/0-menu-local-storage";
 import {
     DirtyDot,
@@ -14,6 +14,7 @@ import {
     RootFileInfoButton,
     workingFileCaption,
 } from "@/components/2-main/a-shared/tree-file-status";
+import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-inline-rename";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {
@@ -143,6 +144,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     const snap = useSnapshot(toolsEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
+    const [renaming, setRenaming] = useState(false);
 
     const uid = node.uid ?? "";
     const kind = nodeKind(node as ToolMenuItem);
@@ -150,6 +152,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     const isSeparator = kind === "separator" && !isRoot;
     const isRegistry = kind === "item" && isRegistryPath(node as ToolMenuItem);
     const selected = snap.selectedUid === uid;
+    const canRename = !isRoot && !isSeparator;
 
     const isDragging = dnd.dragUid === uid;
     const isDropTarget = dnd.dropUid === uid;
@@ -163,11 +166,24 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     const isDirty = snap.dirtyUids.includes(uid);
     const working = isRoot ? workingFileCaption(snap) : null;
 
+    function beginRename() {
+        toolsEditorStore.selectedUid = uid;
+        setRenaming(true);
+    }
+
+    function commitRename(next: string) {
+        const live = getNode(toolsEditorStore.config.menu, uid);
+        if (live && nodeKind(live) !== "separator") {
+            live.menuName = next;
+        }
+        setRenaming(false);
+    }
+
     return (
         <div>
             <div
                 className="relative"
-                draggable={!isRoot}
+                draggable={!isRoot && !renaming}
                 onDragStart={(e) => dnd.onDragStart(e, uid)}
                 onDragOver={(e) => dnd.onDragOver(e, uid, isSubmenu, isRoot)}
                 onDrop={(e) => dnd.onDrop(e, uid)}
@@ -238,6 +254,22 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                                     <RootFileInfoButton working={working} error={snap.error} />
                                     {snap.dirty && <ModifiedBadge onSave={ToolsConfig_Apply} />}
                                 </span>
+                            ) : canRename ? (
+                                <TreeRowLabel
+                                    renaming={renaming}
+                                    onBeginRename={beginRename}
+                                    trailing={isDirty ? <DirtyDot /> : null}
+                                    editor={(
+                                        <TreeInlineName
+                                            value={node.menuName}
+                                            placeholder="Menu label"
+                                            onCommit={commitRename}
+                                            onCancel={() => setRenaming(false)}
+                                        />
+                                    )}
+                                >
+                                    {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
+                                </TreeRowLabel>
                             ) : (
                                 <span className="flex-1 min-w-0 flex items-center gap-1 overflow-hidden">
                                     <span className="min-w-0 truncate">

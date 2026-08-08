@@ -4,7 +4,7 @@ import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { type CopyOpItem, findByUid, itemLabel } from "../a-atoms/9-types-copy";
+import { type CopyOpItem, findByUid, itemLabel, sourceFileBaseName } from "../a-atoms/9-types-copy";
 import { type DropPosition, addDroppedFiles, copyNode, isRootUid, moveNode } from "../a-atoms/1-copy-editor-atoms";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
 import { CopyConfig_Apply, copyEditorStore } from "../a-atoms/0-copy-local-storage";
@@ -22,6 +22,7 @@ import {
     treeRowSelectedClasses,
     workingFileCaption,
 } from "@/components/2-main/a-shared/tree-file-status";
+import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-inline-rename";
 
 /** Custom MIME so OS file drags are never mistaken for in-tree reorder. */
 const TREE_UID_MIME = "application/x-traytools-tree-uid";
@@ -398,6 +399,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
     const snap = useSnapshot(copyEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
+    const [renaming, setRenaming] = useState(false);
     const uid = group.uid ?? "";
     const selected = snap.selectedUid === uid;
     const isDragging = dnd.dragUid === uid;
@@ -410,11 +412,25 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
     const childAncestors = [...ancestors, !isLast];
     const hasChildren = group.items.length > 0;
 
+    function beginRename() {
+        onActivate();
+        copyEditorStore.selectedUid = uid;
+        setRenaming(true);
+    }
+
+    function commitRename(next: string) {
+        const loc = findByUid(copyEditorStore.config, uid);
+        if (loc?.kind === "group") {
+            loc.group.name = next;
+        }
+        setRenaming(false);
+    }
+
     return (
         <div>
             <div
                 className="relative"
-                draggable
+                draggable={!renaming}
                 data-tree-drop-uid={uid}
                 onDragStart={(e) => dnd.onDragStart(e, uid)}
                 onDragOver={(e) => dnd.onDragOver(e, uid, true, false)}
@@ -459,12 +475,21 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
 
-                    <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1">
-                        <span className="min-w-0 truncate">
-                            {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
-                        </span>
-                        {snap.dirtyUids.includes(uid) && <DirtyDot />}
-                    </span>
+                    <TreeRowLabel
+                        renaming={renaming}
+                        onBeginRename={beginRename}
+                        trailing={snap.dirtyUids.includes(uid) ? <DirtyDot /> : null}
+                        editor={(
+                            <TreeInlineName
+                                value={group.name}
+                                placeholder="Group name"
+                                onCommit={commitRename}
+                                onCancel={() => setRenaming(false)}
+                            />
+                        )}
+                    >
+                        {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
+                    </TreeRowLabel>
 
                     <Button
                         className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
@@ -588,6 +613,7 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
 function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapItem; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
     const snap = useSnapshot(copyEditorStore);
     const dnd = useDnd();
+    const [renaming, setRenaming] = useState(false);
     const uid = item.uid ?? "";
     const selected = snap.selectedUid === uid;
     const isDragging = dnd.dragUid === uid;
@@ -595,14 +621,34 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
     const showBefore = isDropTarget && dnd.dropPos === "before";
     const showAfter = isDropTarget && dnd.dropPos === "after";
     const label = itemLabel(item as CopyOpItem);
+    const baseName = sourceFileBaseName(item.sourceFile);
     const isDirty = snap.dirtyUids.includes(uid);
     // OS file drops on an item land in the parent group.
     const fileDropParentUid = fileDropDestUid(uid);
 
+    function beginRename() {
+        onActivate();
+        copyEditorStore.selectedUid = uid;
+        setRenaming(true);
+    }
+
+    function commitRename(next: string) {
+        const loc = findByUid(copyEditorStore.config, uid);
+        if (loc?.kind === "item") {
+            const base = sourceFileBaseName(loc.item.sourceFile);
+            if (!next.trim() || next === base) {
+                delete loc.item.name;
+            } else {
+                loc.item.name = next;
+            }
+        }
+        setRenaming(false);
+    }
+
     return (
         <div
             className="relative"
-            draggable
+            draggable={!renaming}
             data-tree-drop-uid={fileDropParentUid}
             onDragStart={(e) => dnd.onDragStart(e, uid)}
             onDragOver={(e) => dnd.onDragOver(e, uid, false, false)}
@@ -633,10 +679,22 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <FileIcon className="shrink-0 relative size-3.5 text-foreground/70" />
 
-                <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1" title={label}>
-                    <span className="min-w-0 truncate">{label}</span>
-                    {isDirty && <DirtyDot />}
-                </span>
+                <TreeRowLabel
+                    renaming={renaming}
+                    title={label}
+                    onBeginRename={beginRename}
+                    trailing={isDirty ? <DirtyDot /> : null}
+                    editor={(
+                        <TreeInlineName
+                            value={item.name ?? baseName}
+                            placeholder={baseName || "Operation name"}
+                            onCommit={commitRename}
+                            onCancel={() => setRenaming(false)}
+                        />
+                    )}
+                >
+                    {label}
+                </TreeRowLabel>
 
                 <Button
                     className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
