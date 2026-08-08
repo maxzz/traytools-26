@@ -44,11 +44,9 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
 
             {canView && (
                 <Button
-                    className="px-1.5 h-5.5 shrink-0 font-normal"
-                    variant="outline"
-                    size="xs"
-                    title="View current value in a dialog"
+                    className="px-1.5 h-5.5 shrink-0 font-normal" variant="outline" size="xs"
                     onClick={() => setOpen(true)}
+                    title="View current value in a dialog"
                     aria-label="View current value"
                     type="button"
                 >
@@ -68,15 +66,38 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
     </>);
 }
 
-const CURRENT_VALUE_DIALOG_DESC_ID = "reg-current-value-dialog-description";
+function currentValueLook(read: RegReadState | undefined, value: RegValue, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode,): { text: string; title: string; className: string; } {
+    if (!read) {
+        return { text: "not read", title: "Use the read button to query the registry", className: "text-muted-foreground/60" };
+    }
+    if (read.loading) {
+        return { text: "reading…", title: "Reading from the registry", className: "text-muted-foreground italic" };
+    }
+    if (read.error) {
+        return { text: read.error, title: read.error, className: "text-destructive" };
+    }
+    if (!read.exists) {
+        return {
+            text: "absent",
+            title: "Not present in the registry. Writing will create it.",
+            className: "text-amber-700 dark:text-amber-500 italic",
+        };
+    }
+
+    const matches = readMatchesDesired(read, value);
+    const current = read.value ?? "";
+    const shown = isNumericRegType(value.valueType) ? formatRegNumericText(current, radix, hexPrefix, hexPad, value.valueType) : current;
+    const typeNote = read.valueType && read.valueType !== value.valueType ? `\nOn machine: ${read.valueType}` : "";
+
+    return {
+        text: shown || "(empty)",
+        title: `${matches ? "Matches the new value" : "Differs from the new value"}\n${shown}${typeNote}`,
+        className: matches ? "text-emerald-700 dark:text-emerald-400" : "text-orange-700 dark:text-orange-400",
+    };
+}
 
 /** Read-only dialog for expandable / binary / multi-string current values. */
-function CurrentValueDialog({
-    open,
-    onOpenChange,
-    valueType,
-    fullValue,
-}: {
+function CurrentValueDialog({ open, onOpenChange, valueType, fullValue }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     valueType: RegValueType;
@@ -111,19 +132,10 @@ function CurrentValueDialog({
                 </div>
 
                 <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
-                    <Button
-                        className="min-w-16 font-condensed font-normal"
-                        variant="outline"
-                        onClick={copyValue}
-                        type="button"
-                    >
+                    <Button className="min-w-16 font-condensed font-normal" variant="outline" onClick={copyValue} type="button">
                         Copy
                     </Button>
-                    <Button
-                        className="min-w-16 font-condensed font-normal"
-                        onClick={() => onOpenChange(false)}
-                        type="button"
-                    >
+                    <Button className="min-w-16 font-condensed font-normal" variant="outline" onClick={() => onOpenChange(false)} type="button">
                         Close
                     </Button>
                 </DialogFooter>
@@ -132,34 +144,4 @@ function CurrentValueDialog({
     );
 }
 
-function currentValueLook(read: RegReadState | undefined, value: RegValue, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode,): { text: string; title: string; className: string; } {
-    if (!read) {
-        return { text: "not read", title: "Use the read button to query the registry", className: "text-muted-foreground/60 italic" };
-    }
-    if (read.loading) {
-        return { text: "reading…", title: "Reading from the registry", className: "text-muted-foreground italic" };
-    }
-    if (read.error) {
-        return { text: read.error, title: read.error, className: "text-destructive" };
-    }
-    if (!read.exists) {
-        return {
-            text: "absent",
-            title: "Not present in the registry. Writing will create it.",
-            className: "text-amber-700 dark:text-amber-500 italic",
-        };
-    }
-
-    const matches = readMatchesDesired(read, value);
-    const current = read.value ?? "";
-    const shown = isNumericRegType(value.valueType) ? formatRegNumericText(current, radix, hexPrefix, hexPad, value.valueType) : current;
-    const typeNote = read.valueType && read.valueType !== value.valueType ? `\nOn machine: ${read.valueType}` : "";
-
-    return {
-        text: shown || "(empty)",
-        title: `${matches ? "Matches the new value" : "Differs from the new value"}\n${shown}${typeNote}`,
-        className: matches
-            ? "text-emerald-700 dark:text-emerald-400"
-            : "text-orange-700 dark:text-orange-400",
-    };
-}
+const CURRENT_VALUE_DIALOG_DESC_ID = "reg-current-value-dialog-description";

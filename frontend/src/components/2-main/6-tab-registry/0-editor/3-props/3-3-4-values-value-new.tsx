@@ -107,8 +107,6 @@ function valueHint(type: RegValueType, radix?: RegNumericRadix, hexPrefix?: RegH
     }
 }
 
-const NEW_VALUE_DIALOG_DESC_ID = "reg-new-value-dialog-description";
-
 /** Compact new-value cell with a right-aligned Edit button and a Save/Cancel dialog. */
 function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }) {
     const [open, setOpen] = useState(false);
@@ -127,47 +125,36 @@ function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }
         setOpen(false);
     }
 
-    return (
-        <>
-            <div className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-border rounded flex items-center gap-1")} title={valueHint(value.valueType)}>
-                <span className={cn("min-w-0 flex-1 truncate text-[0.72rem] tabular-nums", preview ? "text-foreground" : "text-muted-foreground/60")} aria-label="New value">
-                    {preview}
-                </span>
+    return (<>
+        <div className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-border rounded flex items-center gap-1")} title={valueHint(value.valueType)}>
+            <span className={cn("min-w-0 flex-1 truncate text-[0.72rem] tabular-nums", preview ? "text-foreground" : "text-muted-foreground/60")} aria-label="New value">
+                {preview}
+            </span>
 
-                <Button
-                    className="px-1.5 h-5.5 shrink-0 font-normal"
-                    variant="outline"
-                    size="xs"
-                    title="Edit value in a dialog"
-                    onClick={openDialog}
-                    aria-label="Edit new value"
-                    type="button"
-                >
-                    Edit
-                </Button>
-            </div>
+            <Button
+                className="px-1.5 h-5.5 shrink-0 font-normal" variant="outline" size="xs"
+                title="Edit value in a dialog"
+                onClick={openDialog}
+                aria-label="Edit new value"
+                type="button"
+            >
+                Edit
+            </Button>
+        </div>
 
-            <NewValueDialog
-                open={open}
-                onOpenChange={setOpen}
-                valueType={value.valueType}
-                draft={draft}
-                onDraftChange={setDraft}
-                onSave={save}
-            />
-        </>
-    );
+        <NewValueDialog
+            open={open}
+            onOpenChange={setOpen}
+            valueType={value.valueType}
+            draft={draft}
+            onDraftChange={setDraft}
+            onSave={save}
+        />
+    </>);
 }
 
 /** Edit dialog for expandable / binary / multi-string new values. */
-function NewValueDialog({
-    open,
-    onOpenChange,
-    valueType,
-    draft,
-    onDraftChange,
-    onSave,
-}: {
+function NewValueDialog({ open, onOpenChange, valueType, draft, onDraftChange, onSave }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     valueType: RegValueType;
@@ -193,9 +180,9 @@ function NewValueDialog({
                     <Textarea
                         className="min-h-40 max-h-[min(60vh,28rem)] font-mono text-xs resize-y"
                         value={draft}
+                        onChange={(e) => onDraftChange(e.target.value)}
                         title={hint}
                         aria-label="New value editor"
-                        onChange={(e) => onDraftChange(e.target.value)}
                         {...turnOffAutoComplete}
                     />
                     <p className="mt-1.5 text-[0.7rem] text-muted-foreground">
@@ -204,19 +191,10 @@ function NewValueDialog({
                 </div>
 
                 <DialogFooter className="m-0 px-4 pb-3 pt-2 flex-row justify-end! gap-2">
-                    <Button
-                        className="min-w-16 font-condensed font-normal"
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                        type="button"
-                    >
+                    <Button className="min-w-16 font-condensed font-normal" variant="outline" onClick={() => onOpenChange(false)} type="button">
                         Cancel
                     </Button>
-                    <Button
-                        className="min-w-16 font-condensed font-normal"
-                        onClick={onSave}
-                        type="button"
-                    >
+                    <Button className="min-w-16 font-condensed font-normal" onClick={onSave} type="button">
                         Save
                     </Button>
                 </DialogFooter>
@@ -224,3 +202,5 @@ function NewValueDialog({
         </Dialog>
     );
 }
+
+const NEW_VALUE_DIALOG_DESC_ID = "reg-new-value-dialog-description";
