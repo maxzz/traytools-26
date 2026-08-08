@@ -409,7 +409,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
 
                     {collapsed ? <Folder className={FOLDER_ICON} /> : <FolderOpen className={FOLDER_ICON} />}
 
-                    <span className="flex-1 relative min-w-0 pr-5 flex items-center gap-1 overflow-hidden">
+                    <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1">
                         <span className="min-w-0 truncate">
                             {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
                         </span>
@@ -576,7 +576,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <SymbolAppRegedit className="shrink-0 relative size-3.5 opacity-70" />
 
-                <span className="flex-1 relative min-w-0 pr-5 flex items-center gap-1 overflow-hidden" title={itemRowTitle(item)}>
+                <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1" title={itemRowTitle(item)}>
                     <span className="min-w-0 truncate">{label}</span>
                     {isDirty && <DirtyDot />}
                 </span>

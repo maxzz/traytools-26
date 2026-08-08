@@ -459,7 +459,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                         : <FolderOpen className="shrink-0 relative size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />
                     }
 
-                    <span className="flex-1 relative min-w-0 pr-5 flex items-center gap-1 overflow-hidden">
+                    <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1">
                         <span className="min-w-0 truncate">
                             {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
                         </span>
@@ -616,7 +616,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
 
                 <FileIcon className="shrink-0 relative size-3.5 text-foreground/70" />
 
-                <span className="flex-1 relative min-w-0 pr-5 flex items-center gap-1 overflow-hidden" title={label}>
+                <span className="flex-1 relative pr-5 min-w-0 overflow-hidden flex items-center gap-1" title={label}>
                     <span className="min-w-0 truncate">{label}</span>
                     {isDirty && <DirtyDot />}
                 </span>
