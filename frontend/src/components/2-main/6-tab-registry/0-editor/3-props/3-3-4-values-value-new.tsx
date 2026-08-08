@@ -129,8 +129,8 @@ function Column_NewValueDialog({ uid, value }: { uid: string; value: RegValue; }
 
     return (
         <>
-            <div className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-transparent rounded flex items-center gap-1")} title={valueHint(value.valueType)}>
-                <span className={cn("min-w-0 flex-1 truncate text-[0.72rem] font-mono", preview ? "text-foreground" : "text-muted-foreground/60")} aria-label="New value">
+            <div className={cn(COL_Classes.newValue, "w-full pl-1.5 pr-0.5 h-7 border border-border rounded flex items-center gap-1")} title={valueHint(value.valueType)}>
+                <span className={cn("min-w-0 flex-1 truncate text-[0.72rem] tabular-nums", preview ? "text-foreground" : "text-muted-foreground/60")} aria-label="New value">
                     {preview}
                 </span>
 
