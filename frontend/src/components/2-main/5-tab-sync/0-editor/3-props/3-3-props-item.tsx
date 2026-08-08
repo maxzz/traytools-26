@@ -43,7 +43,7 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
             />
         </LabelAndField>
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] items-top gap-x-3 gap-y-2">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] items-top gap-x-3 gap-y-2">
             <OperationNameField item={item} />
             <DirectionNameField
                 item={item}
