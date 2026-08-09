@@ -9,7 +9,7 @@ import { Page_Registry } from "../2-main/3-tab-registry/0-all/0-all-editor";
 import { Page_ToolsMenuEditor } from "../2-main/4-tab-tools-menu-editor/0-all/0-all-editor";
 import { Page_WindowsTree } from "../2-main/5-1-tab-windows-tree/0-all-windows-page";
 import { Page_ActiveMonitor } from "../2-main/5-2-tab-active-monitor/0-all-active-monitor";
-import { Page_TraceBits } from "../2-main/7-1-tab-trace-bits/0-all-trace-bits";
+import { Page_TraceBits } from "../2-main/7-1-tab-trace-bits/0-all/0-all-trace-bits";
 
 // Pages definitions.
 

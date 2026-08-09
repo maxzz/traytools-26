@@ -7,7 +7,7 @@ import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { IconChevronLeft } from "@/ui/icons/normal";
 import { traceManagerBus } from "@/bridge";
 import { traceStore, clearAllWindows, setStreaming, setWindowVisible } from "@/store/3-trace-manager";
-import { selectedProcessAtom, showCategoriesAtom } from "./a-trace-manager-atoms";
+import { selectedProcessAtom, showCategoriesAtom } from "../a-atoms/a-trace-manager-atoms";
 
 function TraceWindowsListHeader() {
     const snap = useSnapshot(traceStore);

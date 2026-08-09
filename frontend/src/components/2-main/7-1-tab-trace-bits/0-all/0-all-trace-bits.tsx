@@ -8,10 +8,10 @@ import { cn } from "@/utils";
 import { traceManagerBus, onWailsEvent, TRACE_EVENTS, type TraceCall } from "@/bridge";
 import { routeTraceCall, setStreaming, setSections } from "@/store/3-trace-manager";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
-import { expandedSectionsAtom, showCategoriesAtom } from "./a-trace-manager-atoms";
-import { TraceWindowsList } from "./1-trace-windows-list";
-import { TraceWindowView } from "./2-trace-window-view";
-import { TraceCheckboxesPanel } from "./3-trace-checkboxes-panel";
+import { expandedSectionsAtom, showCategoriesAtom } from "../a-atoms/a-trace-manager-atoms";
+import { TraceWindowsList } from "../1-traces/1-trace-windows-list";
+import { TraceWindowView } from "../1-traces/2-trace-window-view";
+import { TraceCheckboxesPanel } from "../2-bits/3-trace-checkboxes-panel";
 
 const PANEL_ANIMATION_MS = 300;
 
