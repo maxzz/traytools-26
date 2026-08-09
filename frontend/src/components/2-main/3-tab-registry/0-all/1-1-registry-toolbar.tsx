@@ -3,7 +3,7 @@ import { cn } from "@/utils/classnames";
 import { Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
-import { useCtrlSSave, useSaveNotice } from "../../../a-shared/use-editor-ctrl-s";
+import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
 import {
     RegistryConfig_Apply,
     RegistryConfig_CreateNew,
@@ -13,8 +13,8 @@ import {
     RegistryConfig_Load,
     RegistryConfig_RevealInExplorer,
     registryEditorStore,
-} from "../../a-atoms/0-registry-local-storage";
-import { RegistryImportFileAsGroup } from "../../a-atoms/1-registry-editor-atoms";
+} from "../a-atoms/0-registry-local-storage";
+import { RegistryImportFileAsGroup } from "../a-atoms/1-registry-editor-atoms";
 
 export function RegistryToolbar() {
     const saveNotice = useSaveNotice();

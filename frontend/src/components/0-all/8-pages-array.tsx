@@ -5,7 +5,7 @@ import { type ComponentType } from "react";
 import { PageWelcome } from "../2-main/8-tab-welcome/0-all-welcome";
 import { Page_CopyOperations } from "../2-main/1-tab-copy-operations/0-all/0-all-editor";
 import { Page_Sync } from "../2-main/2-tab-sync/0-all/0-all-editor";
-import { Page_Registry } from "../2-main/3-tab-registry/0-editor/0-all/0-all-editor";
+import { Page_Registry } from "../2-main/3-tab-registry/0-all/0-all-editor";
 import { Page_ToolsMenuEditor } from "../2-main/4-tab-tools-menu-editor/0-editor/0-all/0-all-editor";
 import { Page_WindowsTree } from "../2-main/5-1-tab-windows-tree/0-all-windows-page";
 import { Page_ActiveMonitor } from "../2-main/5-2-tab-active-monitor/0-all-active-monitor";

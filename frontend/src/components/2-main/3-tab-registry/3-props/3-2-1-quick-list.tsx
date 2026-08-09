@@ -19,7 +19,7 @@ import {
     itemHasSubKey,
     itemLabel,
     valueDisplayName,
-} from "../../a-atoms/9-types-registry";
+} from "../a-atoms/9-types-registry";
 import {
     type RegReadState,
     doAsyncRegReadGroupAtom,
@@ -30,7 +30,7 @@ import {
     doAsyncRegWriteValueAtom,
     readMatchesDesired,
     registryReadStore,
-} from "../../a-atoms/2-run-registry";
+} from "../a-atoms/2-run-registry";
 
 const CHILD_INDENT = 16;
 const actionButtonClass =

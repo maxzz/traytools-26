@@ -12,9 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/ui/shadcn/se
 import { COL_Classes, TableHeaderRow, SUBGRID_ROW_Classes, TABLE_CELL_CONTROL_Classes, tableGridClasses } from "./3-3-3-values-header";
 import { Column_NewValueCell } from "./3-3-4-values-value-new";
 import { Column_CurrentValue } from "./3-3-5-values-value-current";
-import { type RegItem, type RegValue, type RegValueType, REG_VALUE_TYPES, VALUE_TYPE_LONG_LABELS, VALUE_TYPE_SHORT_LABELS, itemHasSubKey, valueDisplayName } from "../../a-atoms/9-types-registry";
-import { doAsyncRegReadValueAtom, doAsyncRegWriteValueAtom, } from "../../a-atoms/2-run-registry";
-import { addSelectedItemValue, patchSelectedValue, removeSelectedItemValue, reorderSelectedItemValues } from "../../a-atoms/use-selected-node";
+import { type RegItem, type RegValue, type RegValueType, REG_VALUE_TYPES, VALUE_TYPE_LONG_LABELS, VALUE_TYPE_SHORT_LABELS, itemHasSubKey, valueDisplayName } from "../a-atoms/9-types-registry";
+import { doAsyncRegReadValueAtom, doAsyncRegWriteValueAtom, } from "../a-atoms/2-run-registry";
+import { addSelectedItemValue, patchSelectedValue, removeSelectedItemValue, reorderSelectedItemValues } from "../a-atoms/use-selected-node";
 
 export function Field_ItemValues({ item }: { item: RegItem; }) {
     const values = item.values ?? [];

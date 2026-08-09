@@ -5,9 +5,9 @@ import { Input } from "@/ui/shadcn/input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/props-3-field-comment";
 import { Field_TypeIcon, InfoTooltip, LabelAndField, PropsActionButton, typeBadgeIcons } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-4-more-section";
-import { type RegGroup, type RegItem, type RegView, countGroupValues, derivedItemLabel, itemHasSubKey } from "../../a-atoms/9-types-registry";
-import { patchSelectedItem } from "../../a-atoms/use-selected-node";
-import { doAsyncRegJumpItemAtom, doAsyncRegReadItemAtom, doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../../a-atoms/2-run-registry";
+import { type RegGroup, type RegItem, type RegView, countGroupValues, derivedItemLabel, itemHasSubKey } from "../a-atoms/9-types-registry";
+import { patchSelectedItem } from "../a-atoms/use-selected-node";
+import { doAsyncRegJumpItemAtom, doAsyncRegReadItemAtom, doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../a-atoms/2-run-registry";
 import { Field_KeyPath } from "./3-3-1-field-keypath";
 import { Field_ItemValues } from "./3-3-2-values";
 

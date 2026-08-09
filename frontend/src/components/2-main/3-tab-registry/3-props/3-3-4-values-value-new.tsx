@@ -6,10 +6,10 @@ import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Input } from "@/ui/shadcn/input";
 import { Textarea } from "@/ui/shadcn/textarea";
-import { type RegValue, type RegValueType, VALUE_TYPE_LONG_LABELS } from "../../a-atoms/9-types-registry";
-import { type RegHexPadMode, type RegHexPrefixMode, type RegNumericRadix, newValueHexPadAtom, newValueHexPrefixAtom, newValueRadixAtom } from "../../a-atoms/2-run-registry";
-import { formatRegNumericText, isNumericRegType, toStoredRegNumericText } from "../../a-atoms/7-reg-file-format";
-import { patchSelectedValue } from "../../a-atoms/use-selected-node";
+import { type RegValue, type RegValueType, VALUE_TYPE_LONG_LABELS } from "../a-atoms/9-types-registry";
+import { type RegHexPadMode, type RegHexPrefixMode, type RegNumericRadix, newValueHexPadAtom, newValueHexPrefixAtom, newValueRadixAtom } from "../a-atoms/2-run-registry";
+import { formatRegNumericText, isNumericRegType, toStoredRegNumericText } from "../a-atoms/7-reg-file-format";
+import { patchSelectedValue } from "../a-atoms/use-selected-node";
 import { COL_Classes, TABLE_CELL_CONTROL_Classes } from "./3-3-3-values-header";
 
 // New-value column: inline edit for simple types, Edit dialog for expandable / binary / multi-string.

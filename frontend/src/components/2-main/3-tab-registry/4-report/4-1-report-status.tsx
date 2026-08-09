@@ -3,7 +3,7 @@ import { classNames } from "@/utils/classnames";
 import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Check, Equal, HelpCircle, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { type RegProgressRow, type RegRowStatus } from "../../a-atoms/2-run-registry";
+import { type RegProgressRow, type RegRowStatus } from "../a-atoms/2-run-registry";
 
 export function OperationStatus({ row }: { row: RegProgressRow; }) {
     const { status } = row;

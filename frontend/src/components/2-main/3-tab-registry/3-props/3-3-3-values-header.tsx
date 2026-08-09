@@ -4,7 +4,7 @@ import { classNames } from "@/utils/classnames";
 import { ArrowDownToLine, PencilLine } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { labelClasses } from "@/components/2-main/a-shared/props-1-shared-controls";
-import { type RegItem, itemHasSubKey } from "../../a-atoms/9-types-registry";
+import { type RegItem, itemHasSubKey } from "../a-atoms/9-types-registry";
 import {
     type RegHexPadMode,
     type RegHexPrefixMode,
@@ -16,7 +16,7 @@ import {
     newValueHexPadAtom,
     newValueHexPrefixAtom,
     newValueRadixAtom,
-} from "../../a-atoms/2-run-registry";
+} from "../a-atoms/2-run-registry";
 
 /**
  * Parent grid for the values table: name | type | new value | current | actions.

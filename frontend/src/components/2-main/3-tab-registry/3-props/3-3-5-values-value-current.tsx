@@ -7,12 +7,12 @@ import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { notice } from "@/ui/local-ui/7-toaster";
-import { type RegValue, type RegValueType, VALUE_TYPE_LONG_LABELS } from "../../a-atoms/9-types-registry";
+import { type RegValue, type RegValueType, VALUE_TYPE_LONG_LABELS } from "../a-atoms/9-types-registry";
 import {
     type RegHexPadMode, type RegHexPrefixMode, type RegNumericRadix, type RegReadState,
     currentValueHexPadAtom, currentValueHexPrefixAtom, currentValueRadixAtom, readMatchesDesired, registryReadStore
-} from "../../a-atoms/2-run-registry";
-import { formatRegNumericText, isNumericRegType } from "../../a-atoms/7-reg-file-format";
+} from "../a-atoms/2-run-registry";
+import { formatRegNumericText, isNumericRegType } from "../a-atoms/7-reg-file-format";
 import { COL_Classes } from "./3-3-3-values-header";
 import { usesValueDialog } from "./3-3-4-values-value-new";
 

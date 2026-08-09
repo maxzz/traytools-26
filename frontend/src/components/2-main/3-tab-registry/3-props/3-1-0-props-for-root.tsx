@@ -3,10 +3,10 @@ import { useSnapshot } from "valtio";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/props-3-field-comment";
 import { Field_TypeIcon, CheckboxAndTooltip, PropsActionButton } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-4-more-section";
-import { type RegGroup, type RegSeparator, countGroupValues } from "../../a-atoms/9-types-registry";
-import { patchSelectedSeparator } from "../../a-atoms/use-selected-node";
-import { registryEditorStore } from "../../a-atoms/0-registry-local-storage";
-import { confirmRegistryWritesAtom, doAsyncRegReadAllAtom } from "../../a-atoms/2-run-registry";
+import { type RegGroup, type RegSeparator, countGroupValues } from "../a-atoms/9-types-registry";
+import { patchSelectedSeparator } from "../a-atoms/use-selected-node";
+import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
+import { confirmRegistryWritesAtom, doAsyncRegReadAllAtom } from "../a-atoms/2-run-registry";
 import { QuickAccessList } from "./3-2-1-quick-list";
 
 export function PropsFor_Root() {
