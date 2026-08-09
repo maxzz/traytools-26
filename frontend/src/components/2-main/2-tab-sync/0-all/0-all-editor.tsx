@@ -4,12 +4,12 @@ import { appSettings } from "@/store/1-ui-settings";
 import { type Layout } from "react-resizable-panels";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
-import { Panel_Tree } from "./2-tree/2-0-panel-tree";
-import { Panel_Props } from "./3-props/3-0-panel-props";
+import { Panel_Tree } from "../2-tree/2-0-panel-tree";
+import { Panel_Props } from "../3-props/3-0-panel-props";
 import { SyncOperationsToolbar } from "./1-1-sync-toolbar";
-import { TreeViewMenu } from "./2-tree/2-1-tree-menu";
-import { SyncReportPanel } from "./4-report/4-0-report-sync";
-import { CheckDetailsDialog } from "./4-report/4-2-check-details-dialog";
+import { TreeViewMenu } from "../2-tree/2-1-tree-menu";
+import { SyncReportPanel } from "../4-report/4-0-report-sync";
+import { CheckDetailsDialog } from "../4-report/4-2-check-details-dialog";
 import { initPathDropListener } from "@/components/2-main/a-shared/props-5-path-input";
 
 export function Page_Sync() {

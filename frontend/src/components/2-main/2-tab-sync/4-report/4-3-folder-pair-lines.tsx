@@ -1,5 +1,5 @@
 import { type SyncCheckResponse } from "@/bridge";
-import { folderBaseName } from "../../a-atoms/9-types-sync";
+import { folderBaseName } from "../a-atoms/9-types-sync";
 import { ChangeBreakdown } from "./4-4-change-breakdown";
 
 /** Two lines: source folder name, then destination folder name. */

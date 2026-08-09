@@ -3,7 +3,7 @@ import { classNames } from "@/utils/classnames";
 import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { type CopyProgressRow } from "../../a-atoms/2-run-copy";
+import { type CopyProgressRow } from "../a-atoms/2-run-copy";
 
 export function OperationStatus({ row }: { row: CopyProgressRow; }) {
     const { status } = row;

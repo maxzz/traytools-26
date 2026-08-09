@@ -1,4 +1,4 @@
-import { type ChangeCounts, countChangeMarkers } from "../../a-atoms/format-change-breakdown";
+import { type ChangeCounts, countChangeMarkers } from "../a-atoms/format-change-breakdown";
 import { type SyncChangeDTO } from "@/bridge";
 
 export const markerAddClasses = "text-emerald-600 dark:text-emerald-400";

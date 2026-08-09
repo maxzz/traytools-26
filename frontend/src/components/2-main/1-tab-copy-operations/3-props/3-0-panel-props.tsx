@@ -1,9 +1,7 @@
 import { MousePointerClick } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { useSelectedNode } from "../../a-atoms/use-selected-node";
-import { PropsFor_Root, PropsFor_Separator } from "./3-1-props-root";
-import { PropsFor_Group } from "./3-2-props-group";
-import { PropsFor_Item } from "./3-3-props-item";
+import { useSelectedNode } from "../a-atoms/use-selected-node";
+import { PropsFor_Group, PropsFor_Item, PropsFor_Root, PropsFor_Separator } from "../3-props/3-1-props";
 
 export function Panel_Props() {
     const selected = useSelectedNode();
@@ -34,7 +32,7 @@ function NoSelectionView() {
             <div className="flex flex-col items-center gap-2">
                 <MousePointerClick className="size-6 opacity-50" />
                 <span>
-                    Select a group or sync item on the left to edit its properties.
+                    Select a group or copy item on the left to edit its properties.
                 </span>
             </div>
         </div>

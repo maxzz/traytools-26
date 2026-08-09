@@ -9,10 +9,10 @@ import { PathInput } from "@/components/2-main/a-shared/props-5-path-input";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-4-more-section";
 import { Field_TypeIcon, LabelAndField, typeBadgeIcons } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { syncOpsBus } from "@/bridge";
-import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirectionName } from "../../a-atoms/9-types-sync";
-import { patchSelectedItem } from "../../a-atoms/use-selected-node";
-import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
-import { runCheck, runSyncItem } from "../../a-atoms/2-run-sync";
+import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirectionName } from "../a-atoms/9-types-sync";
+import { patchSelectedItem } from "../a-atoms/use-selected-node";
+import { syncEditorStore } from "../a-atoms/0-sync-local-storage";
+import { runCheck, runSyncItem } from "../a-atoms/2-run-sync";
 
 export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; }) {
     return (<>

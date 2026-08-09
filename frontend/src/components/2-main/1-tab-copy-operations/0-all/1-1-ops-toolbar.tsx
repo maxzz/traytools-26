@@ -3,8 +3,8 @@ import { cn } from "@/utils/classnames";
 import { Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
-import { useCtrlSSave, useSaveNotice } from "../../../a-shared/use-editor-ctrl-s";
-import { copyEditorStore, CopyConfig_Apply, CopyConfig_CreateNew, CopyConfig_Export, CopyConfig_Import, CopyConfig_Load, CopyConfig_RevealInExplorer } from "../../a-atoms/0-copy-local-storage";
+import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
+import { copyEditorStore, CopyConfig_Apply, CopyConfig_CreateNew, CopyConfig_Export, CopyConfig_Import, CopyConfig_Load, CopyConfig_RevealInExplorer } from "../a-atoms/0-copy-local-storage";
 
 export function CopyOperationsToolbar() {
     const saveNotice = useSaveNotice();

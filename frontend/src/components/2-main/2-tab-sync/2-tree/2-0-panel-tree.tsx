@@ -1,13 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useSnapshot } from "valtio";
 import { cn } from "@/utils/classnames";
-import { ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { Button } from "@/ui/shadcn/button";
-import { type CopyOpItem, findByUid, itemLabel, sourceFileBaseName } from "../../a-atoms/9-types-copy";
-import { type DropPosition, addDroppedFiles, copyNode, isRootUid, moveNode } from "../../a-atoms/1-copy-editor-atoms";
-import { runCopyGroup, runCopyItem } from "../../a-atoms/2-run-copy";
-import { CopyConfig_Apply, copyEditorStore } from "../../a-atoms/0-copy-local-storage";
+import { type SyncOpItem, findByUid, folderBaseName, itemLabel } from "../a-atoms/9-types-sync";
+import { type DropPosition, addDroppedFolders, copyNode, isRootUid, moveNode } from "../a-atoms/1-sync-editor-atoms";
+import { SyncConfig_Apply, syncEditorStore } from "../a-atoms/0-sync-local-storage";
 import {
     DROP_TARGET_STYLE,
     isFileDrag,
@@ -25,14 +23,16 @@ import {
 import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-2-inline-rename";
 
 /** Custom MIME so OS file drags are never mistaken for in-tree reorder. */
-const TREE_UID_MIME = "application/x-traytools-tree-uid";
-/** Row attribute: destination group/root uid for OS file drops (items point at parent). */
+const TREE_UID_MIME = "application/x-traytools-sync-tree-uid";
+/** Row attribute: destination group/root uid for OS folder drops (items point at parent). */
 const TREE_DROP_UID_ATTR = "data-tree-drop-uid";
 
 type SnapItem = {
-    readonly sourceFile: string;
+    readonly sourceFolder: string;
     readonly destFolder: string;
     readonly name?: string;
+    readonly forwardName?: string;
+    readonly reverseName?: string;
     readonly uid?: string;
 };
 
@@ -48,7 +48,7 @@ type SnapSeparator = {
     readonly uid?: string;
 };
 
-/** Child of a group: a copy item, nested group, or separator. */
+/** Child of a group: a sync item, nested group, or separator. */
 type SnapNode = SnapItem | SnapGroup | SnapSeparator;
 
 function isSnapSeparator(node: SnapNode): node is SnapSeparator {
@@ -56,7 +56,7 @@ function isSnapSeparator(node: SnapNode): node is SnapSeparator {
 }
 
 function isSnapGroup(node: SnapNode): node is SnapGroup {
-    return !isSnapSeparator(node) && Array.isArray((node as SnapGroup).items) && !("sourceFile" in node);
+    return !isSnapSeparator(node) && Array.isArray((node as SnapGroup).items) && !("sourceFolder" in node);
 }
 
 function isInternalTreeDrag(dt: DataTransfer): boolean {
@@ -67,12 +67,12 @@ function isExternalFileDrag(dt: DataTransfer): boolean {
     return isFileDrag(dt) && !isInternalTreeDrag(dt);
 }
 
-/** Map a hovered row uid to the group that should receive dropped files. */
+/** Map a hovered row uid to the group that should receive dropped folders. */
 function fileDropDestUid(rowUid: string): string {
     if (isRootUid(rowUid)) {
         return rowUid;
     }
-    const loc = findByUid(copyEditorStore.config, rowUid);
+    const loc = findByUid(syncEditorStore.config, rowUid);
     if ((loc?.kind === "item" || loc?.kind === "separator") && loc.group.uid) {
         return loc.group.uid;
     }
@@ -88,7 +88,7 @@ function fileDropUidAtPoint(x: number, y: number, fallbackRootUid: string): stri
 }
 
 export function Panel_Tree() {
-    const snap = useSnapshot(copyEditorStore);
+    const snap = useSnapshot(syncEditorStore);
     const groups = snap.config.groups as readonly SnapGroup[];
     const rootUid = snap.rootUid;
     const treeRef = useRef<HTMLDivElement>(null);
@@ -96,7 +96,7 @@ export function Panel_Tree() {
     const [dragUid, setDragUid] = useState<string | null>(null);
     const [dropUid, setDropUid] = useState<string | null>(null);
     const [dropPos, setDropPos] = useState<DropPosition | null>(null);
-    /** Highlight target for OS file drops (always a group or root uid). */
+    /** Highlight target for OS folder drops (always a group or root uid). */
     const [fileDropUid, setFileDropUid] = useState<string | null>(null);
     const fileDropUidRef = useRef<string | null>(null);
     /**
@@ -121,7 +121,7 @@ export function Panel_Tree() {
         setFileDropUid(dest);
     };
 
-    const applyExternalFiles = (targetUid: string, paths: string[]) => {
+    const applyExternalFolders = (targetUid: string, paths: string[]) => {
         const sig = `${targetUid}\0${paths.join("\0")}`;
         const now = Date.now();
         const prev = lastFileApplyRef.current;
@@ -129,7 +129,7 @@ export function Panel_Tree() {
             return;
         }
         lastFileApplyRef.current = { sig, at: now };
-        addDroppedFiles(targetUid, paths);
+        addDroppedFolders(targetUid, paths);
         pendingFileDropUidRef.current = null;
         clearFileDrop();
     };
@@ -142,7 +142,7 @@ export function Panel_Tree() {
             }
             return registerFileDropTarget({
                 el,
-                pathsKind: "file",
+                pathsKind: "folder",
                 onPaths: (paths, x, y) => {
                     // Prefer the row under the cursor, then the last hover/pending group.
                     const uid =
@@ -150,7 +150,7 @@ export function Panel_Tree() {
                         || fileDropUidRef.current
                         || pendingFileDropUidRef.current
                         || rootUid;
-                    applyExternalFiles(uid, paths);
+                    applyExternalFolders(uid, paths);
                 },
             });
         },
@@ -211,9 +211,9 @@ export function Panel_Tree() {
                     pendingFileDropUidRef.current = dest;
                     const paths = pathsFromDataTransfer(e.dataTransfer);
                     if (paths.length) {
-                        void normalizeDroppedPaths(paths, "file").then((normalized) => {
+                        void normalizeDroppedPaths(paths, "folder").then((normalized) => {
                             if (normalized.length) {
-                                applyExternalFiles(dest, normalized);
+                                applyExternalFolders(dest, normalized);
                             }
                         });
                     } else {
@@ -305,7 +305,7 @@ export function Panel_Tree() {
 }
 
 function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: readonly SnapGroup[]; onActivate: () => void; }) {
-    const snap = useSnapshot(copyEditorStore);
+    const snap = useSnapshot(syncEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
     const selected = snap.selectedUid === rootUid;
@@ -334,7 +334,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                     onClick={(e) => {
                         e.stopPropagation();
                         onActivate();
-                        copyEditorStore.selectedUid = rootUid;
+                        syncEditorStore.selectedUid = rootUid;
                     }}
                 >
                     <button
@@ -357,7 +357,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                             Groups: {working.label}
                         </span>
                         <RootFileInfoButton working={working} error={snap.error} />
-                        {snap.dirty && <ModifiedBadge onSave={CopyConfig_Apply} />}
+                        {snap.dirty && <ModifiedBadge onSave={SyncConfig_Apply} />}
                     </span>
                 </div>
             </div>
@@ -387,7 +387,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
                             onDrop={(e) => dnd.onDrop(e, rootUid)}
                             onDragLeave={() => dnd.onDragLeaveRow(rootUid)}
                         >
-                            Empty. Drop files here or use the menu above to add groups.
+                            Empty. Drop folders here or use the menu above to add groups.
                         </div>
                     )
             )}
@@ -396,7 +396,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
 }
 
 function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: SnapGroup; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
-    const snap = useSnapshot(copyEditorStore);
+    const snap = useSnapshot(syncEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
     const [renaming, setRenaming] = useState(false);
@@ -414,12 +414,12 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
 
     function beginRename() {
         onActivate();
-        copyEditorStore.selectedUid = uid;
+        syncEditorStore.selectedUid = uid;
         setRenaming(true);
     }
 
     function commitRename(next: string) {
-        const loc = findByUid(copyEditorStore.config, uid);
+        const loc = findByUid(syncEditorStore.config, uid);
         if (loc?.kind === "group") {
             loc.group.name = next;
         }
@@ -453,7 +453,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                     onClick={(e) => {
                         e.stopPropagation();
                         onActivate();
-                        copyEditorStore.selectedUid = uid;
+                        syncEditorStore.selectedUid = uid;
                     }}
                 >
                     <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={hasChildren} />
@@ -490,23 +490,6 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
                     >
                         {group.name || <span className="text-muted-foreground italic">(unnamed)</span>}
                     </TreeRowLabel>
-
-                    <Button
-                        className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const loc = findByUid(copyEditorStore.config, uid);
-                            if (loc?.kind === "group") {
-                                runCopyGroup(loc.group);
-                            }
-                        }}
-                        title="Copy this group"
-                        type="button"
-                    >
-                        <Copy className="size-3" />
-                    </Button>
                 </div>
             </div>
 
@@ -554,7 +537,7 @@ function GroupRow({ group, depth, isLast, ancestors, onActivate, }: { group: Sna
 }
 
 function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { separator: SnapSeparator; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
-    const snap = useSnapshot(copyEditorStore);
+    const snap = useSnapshot(syncEditorStore);
     const dnd = useDnd();
     const uid = separator.uid ?? "";
     const selected = snap.selectedUid === uid;
@@ -562,7 +545,7 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
     const isDropTarget = dnd.dropUid === uid;
     const showBefore = isDropTarget && dnd.dropPos === "before";
     const showAfter = isDropTarget && dnd.dropPos === "after";
-    // OS file drops on a separator land in the parent group.
+    // OS folder drops on a separator land in the parent group.
     const fileDropParentUid = fileDropDestUid(uid);
 
     return (
@@ -589,7 +572,7 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
                 style={{ paddingLeft: (depth + 1) * INDENT + 8 }}
                 onClick={() => {
                     onActivate();
-                    copyEditorStore.selectedUid = uid;
+                    syncEditorStore.selectedUid = uid;
                 }}
             >
                 <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={false} />
@@ -611,7 +594,7 @@ function SeparatorRow({ separator, depth, isLast, ancestors, onActivate, }: { se
 }
 
 function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapItem; depth: number; isLast: boolean; ancestors: boolean[]; onActivate: () => void; }) {
-    const snap = useSnapshot(copyEditorStore);
+    const snap = useSnapshot(syncEditorStore);
     const dnd = useDnd();
     const [renaming, setRenaming] = useState(false);
     const uid = item.uid ?? "";
@@ -620,22 +603,22 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
     const isDropTarget = dnd.dropUid === uid;
     const showBefore = isDropTarget && dnd.dropPos === "before";
     const showAfter = isDropTarget && dnd.dropPos === "after";
-    const label = itemLabel(item as CopyOpItem);
-    const baseName = sourceFileBaseName(item.sourceFile);
+    const label = itemLabel(item as SyncOpItem);
+    const baseName = folderBaseName(item.sourceFolder);
     const isDirty = snap.dirtyUids.includes(uid);
-    // OS file drops on an item land in the parent group.
+    // OS folder drops on an item land in the parent group.
     const fileDropParentUid = fileDropDestUid(uid);
 
     function beginRename() {
         onActivate();
-        copyEditorStore.selectedUid = uid;
+        syncEditorStore.selectedUid = uid;
         setRenaming(true);
     }
 
     function commitRename(next: string) {
-        const loc = findByUid(copyEditorStore.config, uid);
+        const loc = findByUid(syncEditorStore.config, uid);
         if (loc?.kind === "item") {
-            const base = sourceFileBaseName(loc.item.sourceFile);
+            const base = folderBaseName(loc.item.sourceFolder);
             if (!next.trim() || next === base) {
                 delete loc.item.name;
             } else {
@@ -669,7 +652,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                 style={{ paddingLeft: (depth + 1) * INDENT + 8 }}
                 onClick={() => {
                     onActivate();
-                    copyEditorStore.selectedUid = uid;
+                    syncEditorStore.selectedUid = uid;
                 }}
             >
                 <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} hasChildren={false} />
@@ -695,23 +678,6 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                 >
                     {label}
                 </TreeRowLabel>
-
-                <Button
-                    className="absolute right-1 top-1/2 size-4.5 opacity-0 bg-background group-hover:opacity-100 rounded z-10 -translate-y-1/2"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        const loc = findByUid(copyEditorStore.config, uid);
-                        if (loc?.kind === "item") {
-                            runCopyItem(loc.item);
-                        }
-                    }}
-                    title="Copy this file"
-                    type="button"
-                >
-                    <Copy className="size-3" />
-                </Button>
             </div>
         </div>
     );
