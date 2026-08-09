@@ -2,7 +2,7 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
 import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
 import { PathInput, isProbablyURL } from "@/components/2-main/a-shared/path-input";
-import { FlagSwitch, InfoTooltip, LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
+import { CheckboxAndTooltip, InfoTooltip, LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { patchSelectedNode } from "../a-atoms/use-selected-node";
 import { effectiveRunElevated } from "../a-atoms/9-types-menu";
@@ -70,7 +70,7 @@ function CommandPathFlags({ node }: NodeProps) {
 
     return (
         <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <FlagSwitch
+            <CheckboxAndTooltip
                 label="Relative path"
                 titleRich={(
                     <div className="text-xs font-light grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5">
@@ -84,7 +84,7 @@ function CommandPathFlags({ node }: NodeProps) {
                 onCheckedChange={(v) => patchSelectedNode((n) => { n.cmdWhat = v ? "rel" : "abs"; })}
             />
 
-            <FlagSwitch
+            <CheckboxAndTooltip
                 label="Run elevated"
                 titleRich={<p className="text-xs">Launch this command with administrator privileges.</p>}
                 checked={effectiveRunElevated(node)}

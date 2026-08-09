@@ -8,24 +8,12 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 
-export const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
-
-/** Preset icons for tree-editor type badges. */
-export const typeBadgeIcons = {
-    folder: <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />,
-    file: <FileIcon className="shrink-0 size-3.5 text-foreground/70" />,
-    registry: <SymbolAppRegedit className="shrink-0 size-3.5 opacity-70" />,
-    command: <IconTerminalHero className="shrink-0 size-3.5 text-foreground/70 fill-foreground/10!" />,
-} as const;
-
-export function LabelAndField({ label, labelHint, labelAside, error, children, className, ...props }: {
+export function LabelAndField({ label, labelHint, labelAside, error, children, className, ...props }: ComponentProps<"div"> & {
     label: string;
     labelHint?: ReactNode;
-    /** Optional content on the right side of the label row (e.g. a brief note). */
-    labelAside?: ReactNode;
-    /** When set, the label turns red and an error icon replaces the help tooltip. */
-    error?: string | null;
-} & ComponentProps<"div">) {
+    labelAside?: ReactNode; // Optional content on the right side of the label row (e.g. a brief note).
+    error?: string | null; // When set, the label turns red and an error icon replaces the help tooltip.
+}) {
     return (
         <div className={cn("flex flex-col gap-0.5", className)} {...props}>
             <div className="flex items-center gap-0.5 min-w-0">
@@ -44,11 +32,21 @@ export function LabelAndField({ label, labelHint, labelAside, error, children, c
 
                 {labelAside}
             </div>
-            
+
             {children}
         </div>
     );
 }
+
+export const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
+
+/** Preset icons for tree-editor type badges. */
+export const typeBadgeIcons = {
+    folder: <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />,
+    file: <FileIcon className="shrink-0 size-3.5 text-foreground/70" />,
+    registry: <SymbolAppRegedit className="shrink-0 size-3.5 opacity-70" />,
+    command: <IconTerminalHero className="shrink-0 size-3.5 text-foreground/70 fill-foreground/10!" />,
+} as const;
 
 /** Info-icon trigger with tooltip content; pass `label` for accessibility. */
 export function InfoTooltip({ label, children, side, contentClasses }: { label: string; children: ReactNode; side?: ComponentProps<typeof TooltipContent>["side"]; contentClasses?: string; }) {
@@ -76,12 +74,7 @@ export function InfoTooltipTrigger({ className, ...rest }: ComponentProps<"butto
 }
 
 /** Destructive alert-icon trigger with tooltip content for field validation errors. */
-export function ErrorTooltip({ label, children, side, contentClasses }: {
-    label: string;
-    children: ReactNode;
-    side?: ComponentProps<typeof TooltipContent>["side"];
-    contentClasses?: string;
-}) {
+export function ErrorTooltip({ label, children, side, contentClasses }: { label: string; children: ReactNode; side?: ComponentProps<typeof TooltipContent>["side"]; contentClasses?: string; }) {
     return (
         <TooltipProvider>
             <Tooltip>
@@ -108,7 +101,7 @@ export function ErrorTooltip({ label, children, side, contentClasses }: {
  * title: Native HTML title tooltip on the label.
  * titleRich: Info-icon trigger for a shadcn tooltip (string or rich content).
  */
-export function FlagSwitch({ label, title, titleRich, checked, disabled, onCheckedChange }: {
+export function CheckboxAndTooltip({ label, title, titleRich, checked, disabled, onCheckedChange }: {
     label: string;
     title?: string;
     titleRich?: ReactNode;
@@ -118,16 +111,11 @@ export function FlagSwitch({ label, title, titleRich, checked, disabled, onCheck
 }) {
     return (
         <div className="inline-flex items-center gap-0.5">
-            <Label
-                className={classNames(
-                    labelClasses,
-                    "flex items-center gap-1",
-                    disabled ? "opacity-70 cursor-default" : "cursor-pointer",
-                )}
-                title={title}
-            >
+            <Label className={classNames(labelClasses, "flex items-center gap-1", disabled ? "opacity-70 cursor-default" : "cursor-pointer",)} title={title}>
                 <Checkbox checked={checked} disabled={disabled} onCheckedChange={(v) => onCheckedChange(v === true)} />
-                <span className="mt-0.5">{label}</span>
+                <span className="mt-0.5">
+                    {label}
+                </span>
             </Label>
 
             {titleRich != null && titleRich !== "" && (

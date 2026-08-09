@@ -1,7 +1,7 @@
 import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
-import { Field_TypeIcon, FlagSwitch, PropsActionButton } from "@/components/2-main/a-shared/props-field-ui";
+import { Field_TypeIcon, CheckboxAndTooltip, PropsActionButton } from "@/components/2-main/a-shared/props-field-ui";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { type RegGroup, type RegSeparator, countGroupValues } from "../../a-atoms/9-types-registry";
 import { patchSelectedSeparator } from "../../a-atoms/use-selected-node";
@@ -59,7 +59,7 @@ function ConfirmWritesToggle() {
     const [confirm, setConfirm] = useAtom(confirmRegistryWritesAtom);
 
     return (
-        <FlagSwitch
+        <CheckboxAndTooltip
             label="Confirm before writing"
             title="Show a confirmation dialog before any registry write. Registry edits cannot be undone from here."
             checked={confirm}

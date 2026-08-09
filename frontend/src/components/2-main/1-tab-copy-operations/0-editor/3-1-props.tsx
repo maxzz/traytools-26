@@ -5,7 +5,7 @@ import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import {
     Field_TypeIcon,
-    FlagSwitch,
+    CheckboxAndTooltip,
     LabelAndField,
     PropsActionButton,
     typeBadgeIcons,
@@ -213,21 +213,21 @@ type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated" | "renameL
 function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: (target: CopyRunFlags) => void) => void; }) {
     return (
         <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <FlagSwitch
+            <CheckboxAndTooltip
                 label="Stop DpAgent before copy"
                 title="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
                 checked={!!flags.stopDpAgent}
                 onCheckedChange={(v) => onPatch((t) => { t.stopDpAgent = v; })}
             />
 
-            <FlagSwitch
+            <CheckboxAndTooltip
                 label="Require elevated privileges"
                 title="Use when destinations include protected folders such as Program Files."
                 checked={!!flags.requireElevated}
                 onCheckedChange={(v) => onPatch((t) => { t.requireElevated = v; })}
             />
 
-            <FlagSwitch
+            <CheckboxAndTooltip
                 label="Rename destination if locked"
                 title="If copy fails with 'Access Denied', rename the locked destination to name_locked_N.ext and retry the copy."
                 checked={!!flags.renameLocked}
