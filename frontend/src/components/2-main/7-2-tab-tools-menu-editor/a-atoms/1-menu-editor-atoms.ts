@@ -1,4 +1,4 @@
-import { nextNumberedName } from "../../a-shared/numbered-name";
+import { nextNumberedName } from "../../a-shared/utils-numbered-name";
 import { type AddNodeKind, type ToolMenuItem, cloneMenuNode, createNode, findByUid } from "./9-types-menu";
 import { toolsEditorStore } from "./0-menu-local-storage";
 

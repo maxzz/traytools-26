@@ -1,4 +1,4 @@
-import { nextNumberedName } from "../../a-shared/numbered-name";
+import { nextNumberedName } from "../../a-shared/utils-numbered-name";
 import { registryOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
 import {

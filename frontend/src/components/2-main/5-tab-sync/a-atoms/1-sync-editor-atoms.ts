@@ -1,4 +1,4 @@
-import { nextNumberedName } from "../../a-shared/numbered-name";
+import { nextNumberedName } from "../../a-shared/utils-numbered-name";
 import {
     type AddSyncKind,
     type SyncConfig,

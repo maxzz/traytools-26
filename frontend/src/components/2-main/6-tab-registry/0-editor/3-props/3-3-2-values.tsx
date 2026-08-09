@@ -7,7 +7,7 @@ import { ArrowDownToLine, GripVertical, PencilLine, Plus, Trash2 } from "lucide-
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
-import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-shared-controls";
+import { InfoTooltip, labelClasses } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/ui/shadcn/select";
 import { COL_Classes, TableHeaderRow, SUBGRID_ROW_Classes, TABLE_CELL_CONTROL_Classes, tableGridClasses } from "./3-3-3-values-header";
 import { Column_NewValueCell } from "./3-3-4-values-value-new";

@@ -2,13 +2,13 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
 import { Textarea } from "@/ui/shadcn/textarea";
 import { HotkeyInput, formatHotkey, parseHotkey, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
-import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
+import { CollapsibleOptionalField } from "@/components/2-main/a-shared/props-2-collapsible-optional-field";
 import {
     Field_TypeIcon as TypeIconBadge,
     LabelAndField,
     PropsActionButton,
     typeBadgeIcons,
-} from "@/components/2-main/a-shared/props-shared-controls";
+} from "@/components/2-main/a-shared/props-1-shared-controls";
 import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";

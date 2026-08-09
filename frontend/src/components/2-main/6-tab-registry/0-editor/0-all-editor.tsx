@@ -4,7 +4,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { type Layout } from "react-resizable-panels";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
-import { initPathDropListener } from "@/components/2-main/a-shared/path-input";
+import { initPathDropListener } from "@/components/2-main/a-shared/props-5-path-input";
 import { Panel_Tree } from "./2-0-panel-tree";
 import { Panel_Props } from "./3-props/3-0-panel-props";
 import { RegistryToolbar } from "./1-1-registry-toolbar";

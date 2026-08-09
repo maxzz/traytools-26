@@ -1,16 +1,16 @@
 import { useSnapshot } from "valtio";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
-import { PathInput } from "@/components/2-main/a-shared/path-input";
-import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
+import { PathInput } from "@/components/2-main/a-shared/props-5-path-input";
+import { Field_Comment, applyComment } from "@/components/2-main/a-shared/props-3-field-comment";
 import {
     Field_TypeIcon,
     CheckboxAndTooltip,
     LabelAndField,
     PropsActionButton,
     typeBadgeIcons,
-} from "@/components/2-main/a-shared/props-shared-controls";
-import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
+} from "@/components/2-main/a-shared/props-1-shared-controls";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-4-more-section";
 import {
     type CopyGroup,
     type CopyOpItem,

@@ -1,14 +1,14 @@
 import { useSetAtom } from "jotai";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
-import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
+import { Field_Comment, applyComment } from "@/components/2-main/a-shared/props-3-field-comment";
 import {
     Field_TypeIcon,
     LabelAndField,
     PropsActionButton,
     typeBadgeIcons,
-} from "@/components/2-main/a-shared/props-shared-controls";
-import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
+} from "@/components/2-main/a-shared/props-1-shared-controls";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-4-more-section";
 import { type RegGroup, countGroupValues } from "../../a-atoms/9-types-registry";
 import { patchSelectedGroup } from "../../a-atoms/use-selected-node";
 import { doAsyncRegReadGroupAtom, doAsyncRegWriteGroupAtom } from "../../a-atoms/2-run-registry";

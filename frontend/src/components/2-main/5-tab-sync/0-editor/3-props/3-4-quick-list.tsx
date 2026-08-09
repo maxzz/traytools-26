@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Check, FileIcon, Folder, ListTree } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { labelClasses } from "@/components/2-main/a-shared/props-shared-controls";
+import { labelClasses } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { type SyncNode, type SyncOpItem, findByUid, isSyncGroup, isSyncSeparator, itemLabel, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheck, runSyncItem } from "../../a-atoms/2-run-sync";

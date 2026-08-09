@@ -12,15 +12,15 @@ import {
     normalizeDroppedPaths,
     pathsFromDataTransfer,
     registerFileDropTarget,
-} from "@/components/2-main/a-shared/path-input";
+} from "@/components/2-main/a-shared/props-5-path-input";
 import {
     DirtyDot,
     ModifiedBadge,
     RootFileInfoButton,
     treeRowSelectedClasses,
     workingFileCaption,
-} from "@/components/2-main/a-shared/tree-file-status";
-import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-inline-rename";
+} from "@/components/2-main/a-shared/tree-1-file-status";
+import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-2-inline-rename";
 
 /** Custom MIME so OS file drags are never mistaken for in-tree reorder. */
 const TREE_UID_MIME = "application/x-traytools-sync-tree-uid";

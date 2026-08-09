@@ -9,7 +9,7 @@ import { Panel_Props } from "./3-0-panel-props";
 import { CopyOperationsToolbar } from "./1-1-ops-toolbar";
 import { TreeViewMenu } from "./2-1-tree-menu";
 import { CopyReportPanel } from "./4-0-report-copy";
-import { initPathDropListener } from "@/components/2-main/a-shared/path-input";
+import { initPathDropListener } from "@/components/2-main/a-shared/props-5-path-input";
 
 export function Page_CopyOperations() {
     const { panelSizes } = useSnapshot(appSettings);

@@ -5,7 +5,7 @@ import { useSelectedNode } from "../a-atoms/use-selected-node";
 import { PropsFor_Submenu } from "./3-1-props-group";
 import { PropsFor_Command } from "./3-2-props-command";
 import { PropsFor_Registry } from "./3-3-props-registry";
-import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-4-more-section";
 import { Field_Comment, Field_TypeIcon } from "./3-4-props-shared-ui";
 
 export function Panel_Props() {

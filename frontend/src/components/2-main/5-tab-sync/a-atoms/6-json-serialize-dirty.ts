@@ -1,4 +1,4 @@
-import { normalizeOptionalComment } from "@/components/2-main/a-shared/field-comment";
+import { normalizeOptionalComment } from "@/components/2-main/a-shared/props-3-field-comment";
 import {
     type SyncConfig,
     type SyncEditorStore,

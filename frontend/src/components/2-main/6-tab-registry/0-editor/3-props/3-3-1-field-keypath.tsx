@@ -9,7 +9,7 @@ import { ChevronDown, Copy, SquareArrowOutUpRight, X } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { appIsElevatedAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
-import { LabelAndField } from "@/components/2-main/a-shared/props-shared-controls";
+import { LabelAndField } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { type RegItem, fullKeyPath, hiveNeedsElevation, itemHasSubKey, itemHive, parseHiveAlias, validateItemKeyPath } from "../../a-atoms/9-types-registry";
 import { registryEditorStore, rememberKeyPathMru, removeKeyPathMru } from "../../a-atoms/0-registry-local-storage";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";

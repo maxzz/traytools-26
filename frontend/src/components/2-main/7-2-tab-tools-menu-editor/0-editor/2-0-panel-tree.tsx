@@ -14,8 +14,8 @@ import {
     RootFileInfoButton,
     treeRowSelectedClasses,
     workingFileCaption,
-} from "@/components/2-main/a-shared/tree-file-status";
-import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-inline-rename";
+} from "@/components/2-main/a-shared/tree-1-file-status";
+import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-2-inline-rename";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
 type SnapNode = {

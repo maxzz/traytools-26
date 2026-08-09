@@ -6,7 +6,7 @@ import { Folder, Info } from "lucide-react";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { labelClasses } from "@/components/2-main/a-shared/props-shared-controls";
+import { labelClasses } from "@/components/2-main/a-shared/props-1-shared-controls";
 import {
     type RegGroup,
     type RegItem,
