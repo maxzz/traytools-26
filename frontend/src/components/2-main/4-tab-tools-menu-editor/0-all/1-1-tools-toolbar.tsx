@@ -3,7 +3,7 @@ import { Menu } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
-import { useCtrlSSave, useSaveNotice } from "../../../a-shared/use-editor-ctrl-s";
+import { useCtrlSSave, useSaveNotice } from "../../a-shared/use-editor-ctrl-s";
 import {
     toolsEditorStore,
     ToolsConfig_Apply,
@@ -12,8 +12,8 @@ import {
     ToolsConfig_Reload,
     ToolsConfig_RevealInExplorer,
     ToolsConfig_SaveAs,
-} from "../../a-atoms/0-menu-local-storage";
-import { sourceFileBaseName } from "../../a-atoms/9-types-menu";
+} from "../a-atoms/0-menu-local-storage";
+import { sourceFileBaseName } from "../a-atoms/9-types-menu";
 
 export function TopBar() {
     const saveNotice = useSaveNotice();

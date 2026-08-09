@@ -8,7 +8,7 @@ import { TopBar } from "./1-1-tools-toolbar";
 import { Panel_Tree } from "../2-tree/2-0-panel-tree";
 import { Panel_Props } from "../3-props/3-0-panel-props";
 import { TreeViewMenu } from "../2-tree/2-1-panel-tree-menu";
-import { ToolsConfig_Load } from "../../a-atoms/0-menu-local-storage";
+import { ToolsConfig_Load } from "../a-atoms/0-menu-local-storage";
 
 // Tools Menu editor. Lets the user edit the "Tools" menu tree and write it to
 // tools.json with a single button. The tree (left) is loaded from the on-disk
