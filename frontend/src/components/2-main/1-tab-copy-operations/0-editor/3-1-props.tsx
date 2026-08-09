@@ -35,12 +35,12 @@ export function PropsFor_Root() {
             in one ordered list. Groups and items can be reordered by drag-and-drop. This node cannot be moved or deleted.
         </p>
 
+        <QuickAccessList nodes={groups} />
+
         <Field_Comment
             value={config.comment ?? ""}
             onChange={(next) => applyComment(copyEditorStore.config, next)}
         />
-
-        <QuickAccessList nodes={groups} />
     </>);
 }
 
@@ -58,6 +58,7 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
     return (<>
         <div className="flex items-center justify-between gap-2">
             <Field_TypeIcon label="Group" icon={typeBadgeIcons.folder} />
+
             {(showTopLevel || showParent) && (
                 <div className="flex items-center gap-2">
                     {showTopLevel && (
@@ -80,9 +81,9 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
             )}
         </div>
 
-        <CopyRunFlags flags={group} onPatch={patchSelectedGroup} />
-
         <QuickAccessList nodes={[group]} />
+
+        <CopyRunFlags flags={group} onPatch={patchSelectedGroup} />
 
         <PropsMoreSection>
             <LabelAndField label="Group name">
@@ -161,8 +162,6 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
             />
         </LabelAndField>
 
-        <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
-
         <LabelAndField label="Destination folder">
 
             <PathInput
@@ -172,6 +171,8 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
                 showReveal
             />
         </LabelAndField>
+
+        <CopyRunFlags flags={item} onPatch={patchSelectedItem} />
 
         <PropsMoreSection>
             <OperationNameField item={item} />
@@ -212,7 +213,7 @@ type CopyRunFlags = Pick<CopyGroup, "stopDpAgent" | "requireElevated" | "renameL
 
 function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: (target: CopyRunFlags) => void) => void; }) {
     return (
-        <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <CheckboxAndTooltip
                 label="Stop DpAgent before copy"
                 title="If DpAgent is running, stop it and wait until it is confirmed stopped before copying any items in this group."
@@ -221,7 +222,7 @@ function CopyRunFlags({ flags, onPatch, }: { flags: CopyRunFlags; onPatch: (fn: 
             />
 
             <CheckboxAndTooltip
-                label="Require elevated privileges"
+                label="Copy with elevated privileges"
                 title="Use when destinations include protected folders such as Program Files."
                 checked={!!flags.requireElevated}
                 onCheckedChange={(v) => onPatch((t) => { t.requireElevated = v; })}
