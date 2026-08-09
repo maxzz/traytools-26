@@ -4,13 +4,16 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 
 /**
  * Label cell: double-click text or trailing empty space to rename.
+ * `end` sits right-aligned before the icon gutter (e.g. a values count).
  * Right `w-5` gutter is reserved for row-end action icons and is not a rename target.
  */
-export function TreeRowLabel({ renaming, title, onBeginRename, trailing, editor, children }: {
+export function TreeRowLabel({ renaming, title, onBeginRename, trailing, end, editor, children }: {
     renaming: boolean;
     title?: string;
     onBeginRename: () => void;
     trailing?: ReactNode;
+    /** Right-aligned content before the icon gutter (not part of the rename hit target). */
+    end?: ReactNode;
     editor: ReactNode;
     children: ReactNode;
 }) {
@@ -30,6 +33,7 @@ export function TreeRowLabel({ renaming, title, onBeginRename, trailing, editor,
                     {trailing}
                 </span>
             )}
+            {end}
             <span className="shrink-0 w-5" aria-hidden />
         </span>
     );
@@ -80,7 +84,7 @@ export function TreeInlineName({ value, placeholder, onCommit, onCancel }: {
     return (
         <Input
             ref={inputRef}
-            className="h-4.5 flex-1 min-w-0 -mx-1 px-1 py-0 bg-background dark:bg-background border-none rounded-none"
+            className="h-4.5 flex-1 min-w-0 -ml-1 mr-2 px-1 py-0 bg-background dark:bg-background border-none rounded-none"
             value={draft}
             placeholder={placeholder}
             onChange={(e) => setDraft(e.target.value)}

@@ -626,16 +626,12 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                     renaming={renaming}
                     title={itemRowTitle(item)}
                     onBeginRename={beginRename}
-                    trailing={(
-                        <>
-                            {isDirty && <DirtyDot />}
-                            {values.length > 1 && (
-                                <span className="shrink-0 tabular-nums text-[0.65rem] text-muted-foreground">
-                                    {values.length}
-                                </span>
-                            )}
-                        </>
-                    )}
+                    trailing={isDirty ? <DirtyDot /> : null}
+                    end={values.length > 1 ? (
+                        <span className="shrink-0 tabular-nums text-[0.65rem] text-muted-foreground">
+                            {values.length}
+                        </span>
+                    ) : null}
                     editor={(
                         <TreeInlineName
                             value={item.name ?? derived}

@@ -12,6 +12,7 @@ import {
     DirtyDot,
     ModifiedBadge,
     RootFileInfoButton,
+    treeRowSelectedClasses,
     workingFileCaption,
 } from "@/components/2-main/a-shared/tree-file-status";
 import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-inline-rename";
@@ -123,12 +124,21 @@ export function Panel_Tree() {
         }),
         [dragUid, dropUid, dropPos]);
 
+    const treeRef = useRef<HTMLDivElement>(null);
+    const focusTree = () => {
+        treeRef.current?.focus();
+    };
+
     return (
         <div className="min-h-0 h-full flex flex-col">
             <ScrollArea className="flex-1 min-h-0">
                 <DndContext.Provider value={dnd}>
-                    <div className="p-1">
-                        <TreeRow node={root} depth={0} isLast isRoot ancestors={[]} />
+                    <div
+                        ref={treeRef}
+                        className="group/tree p-1 min-h-full outline-none"
+                        tabIndex={0}
+                    >
+                        <TreeRow node={root} depth={0} isLast isRoot ancestors={[]} onActivate={focusTree} />
                     </div>
                 </DndContext.Provider>
             </ScrollArea>
@@ -140,7 +150,7 @@ export function Panel_Tree() {
 // i.e. a vertical guide line should continue through this row at that column.
 // `isRoot` marks the fixed top-level "Tools" node: it draws no guide lines and
 // cannot be dragged (only dropped into).
-function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: SnapNode; depth: number; isLast: boolean; ancestors: boolean[]; isRoot?: boolean; }) {
+function TreeRow({ node, depth, isLast, ancestors, isRoot = false, onActivate }: { node: SnapNode; depth: number; isLast: boolean; ancestors: boolean[]; isRoot?: boolean; onActivate: () => void; }) {
     const snap = useSnapshot(toolsEditorStore);
     const dnd = useDnd();
     const [collapsed, setCollapsed] = useState(false);
@@ -167,6 +177,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
     const working = isRoot ? workingFileCaption(snap) : null;
 
     function beginRename() {
+        onActivate();
         toolsEditorStore.selectedUid = uid;
         setRenaming(true);
     }
@@ -196,14 +207,18 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
 
                 <div
                     className={cn(
-                        "group relative pr-1 h-5 hover:bg-accent/60 rounded-md select-none flex items-center gap-1 cursor-pointer",
-                        selected && "bg-accent text-accent-foreground",
+                        "group relative px-1 h-5 rounded-none select-none flex items-center gap-1 cursor-pointer",
+                        !selected && "hover:bg-accent/50",
+                        selected && treeRowSelectedClasses,
                         showInside && "ring-1 ring-sky-500 bg-sky-500/10",
                         isDragging && "opacity-40",
                         isRoot && "font-medium pr-7",
                     )}
                     style={{ paddingLeft: (depth + 1) * INDENT + 6 }}
-                    onClick={() => { toolsEditorStore.selectedUid = uid; }}
+                    onClick={() => {
+                        onActivate();
+                        toolsEditorStore.selectedUid = uid;
+                    }}
                 >
                     {!isRoot && <TreeGuides depth={depth} isLast={isLast} ancestors={ancestors} isSubmenu={isSubmenu} />}
 
@@ -293,6 +308,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false }: { node: Sna
                                     depth={depth + 1}
                                     isLast={index === children.length - 1}
                                     ancestors={childAncestors}
+                                    onActivate={onActivate}
                                 />
                             ))}
                         </div>
