@@ -8,6 +8,7 @@ import {
     PropsActionButton,
     typeBadgeIcons,
 } from "@/components/2-main/a-shared/props-field-ui";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { type RegGroup, countGroupValues } from "../../a-atoms/9-types-registry";
 import { patchSelectedGroup } from "../../a-atoms/use-selected-node";
 import { doAsyncRegReadGroupAtom, doAsyncRegWriteGroupAtom } from "../../a-atoms/2-run-registry";
@@ -40,18 +41,20 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
 
         <QuickAccessList nodes={[group]} />
 
-        <LabelAndField label="Group name">
-            <Input
-                className="h-7"
-                value={group.name}
-                onChange={(e) => patchSelectedGroup((g) => { g.name = e.target.value; })}
-                {...turnOffAutoComplete}
-            />
-        </LabelAndField>
+        <PropsMoreSection>
+            <LabelAndField label="Group name">
+                <Input
+                    className="h-7"
+                    value={group.name}
+                    onChange={(e) => patchSelectedGroup((g) => { g.name = e.target.value; })}
+                    {...turnOffAutoComplete}
+                />
+            </LabelAndField>
 
-        <Field_Comment
-            value={group.comment ?? ""}
-            onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
-        />
+            <Field_Comment
+                value={group.comment ?? ""}
+                onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
+            />
+        </PropsMoreSection>
     </>);
 }

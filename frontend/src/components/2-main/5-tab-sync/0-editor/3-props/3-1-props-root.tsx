@@ -1,6 +1,7 @@
 import { useSnapshot } from "valtio";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import { Field_TypeIcon } from "@/components/2-main/a-shared/props-field-ui";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { type SyncGroup, type SyncSeparator } from "../../a-atoms/9-types-sync";
 import { patchSelectedSeparator } from "../../a-atoms/use-selected-node";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
@@ -34,9 +35,11 @@ export function PropsFor_Separator({ separator }: { separator: SyncSeparator; })
             A separator draws a horizontal divider line in the tree and in the quick actions list.
         </p>
 
-        <Field_Comment
-            value={separator.comment ?? ""}
-            onChange={(next) => patchSelectedSeparator((s) => applyComment(s, next))}
-        />
+        <PropsMoreSection>
+            <Field_Comment
+                value={separator.comment ?? ""}
+                onChange={(next) => patchSelectedSeparator((s) => applyComment(s, next))}
+            />
+        </PropsMoreSection>
     </>);
 }

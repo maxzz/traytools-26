@@ -10,6 +10,7 @@ import {
     PropsActionButton,
     typeBadgeIcons,
 } from "@/components/2-main/a-shared/props-field-ui";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import {
     type CopyGroup,
     type CopyOpItem,
@@ -83,19 +84,21 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
 
         <QuickAccessList nodes={[group]} />
 
-        <LabelAndField label="Group name">
-            <Input
-                className="h-7"
-                value={group.name}
-                onChange={(e) => patchSelectedGroup((g) => { g.name = e.target.value; })}
-                {...turnOffAutoComplete}
-            />
-        </LabelAndField>
+        <PropsMoreSection>
+            <LabelAndField label="Group name">
+                <Input
+                    className="h-7"
+                    value={group.name}
+                    onChange={(e) => patchSelectedGroup((g) => { g.name = e.target.value; })}
+                    {...turnOffAutoComplete}
+                />
+            </LabelAndField>
 
-        <Field_Comment
-            value={group.comment ?? ""}
-            onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
-        />
+            <Field_Comment
+                value={group.comment ?? ""}
+                onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
+            />
+        </PropsMoreSection>
     </>);
 }
 
@@ -107,10 +110,12 @@ export function PropsFor_Separator({ separator }: { separator: CopySeparator; })
             A separator draws a horizontal divider line in the tree and in the quick actions list.
         </p>
 
-        <Field_Comment
-            value={separator.comment ?? ""}
-            onChange={(next) => patchSelectedSeparator((s) => applyComment(s, next))}
-        />
+        <PropsMoreSection>
+            <Field_Comment
+                value={separator.comment ?? ""}
+                onChange={(next) => patchSelectedSeparator((s) => applyComment(s, next))}
+            />
+        </PropsMoreSection>
     </>);
 }
 
@@ -168,12 +173,14 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
             />
         </LabelAndField>
 
-        <OperationNameField item={item} />
+        <PropsMoreSection>
+            <OperationNameField item={item} />
 
-        <Field_Comment
-            value={item.comment ?? ""}
-            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
-        />
+            <Field_Comment
+                value={item.comment ?? ""}
+                onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+            />
+        </PropsMoreSection>
     </>);
 }
 

@@ -3,6 +3,7 @@ import { Input } from "@/ui/shadcn/input";
 import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
 import { PathInput, isProbablyURL } from "@/components/2-main/a-shared/path-input";
 import { FlagSwitch, InfoTooltip, LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { patchSelectedNode } from "../a-atoms/use-selected-node";
 import { effectiveRunElevated } from "../a-atoms/9-types-menu";
 import { type NodeProps, ExecuteCommandButton, Field_Comment, Field_HotKey, Field_MenuName, Field_TypeIcon } from "./3-4-props-shared-ui";
@@ -18,11 +19,13 @@ export function PropsFor_Command({ node }: NodeProps) {
         <CommandPathFlags node={node} />
         <Field_Cmd_CliArgs node={node} />
 
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-            <Field_MenuName node={node} />
-            <Field_HotKey node={node} />
-        </div>
-        <Field_Comment node={node} />
+        <PropsMoreSection>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+                <Field_MenuName node={node} />
+                <Field_HotKey node={node} />
+            </div>
+            <Field_Comment node={node} />
+        </PropsMoreSection>
     </>);
 }
 

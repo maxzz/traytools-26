@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
 import { type CmdPlat } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 import { InfoTooltip, LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import {
     type NodeProps,
     ExecuteCommandButton,
@@ -25,11 +26,13 @@ export function PropsFor_Registry({ node }: NodeProps) {
             <Field_Reg_Platform node={node} />
         </div>
 
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-            <Field_MenuName node={node} />
-            <Field_HotKey node={node} />
-        </div>
-        <Field_Comment node={node} />
+        <PropsMoreSection>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+                <Field_MenuName node={node} />
+                <Field_HotKey node={node} />
+            </div>
+            <Field_Comment node={node} />
+        </PropsMoreSection>
     </>);
 }
 

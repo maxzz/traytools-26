@@ -30,6 +30,11 @@ export interface AppSettings {
     startDpAgentHigh: boolean;   // Start DPAgent elevated (runas)
     /** When true, Sync "Check Details" renders in the tab bottom panel; when false, in a dialog. Default: false (dialog). */
     syncCheckDetailsInPanel: boolean;
+    /**
+     * When true, the shared props-pane "More" section (name, comment, and related
+     * secondary fields) is expanded. One setting for all editor tabs. Default: false.
+     */
+    propsMoreExpanded: boolean;
     windowHighlight: WindowHighlightSettings;
 }
 
@@ -54,6 +59,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     showDpAgentToolbar: true,
     startDpAgentHigh: false,
     syncCheckDetailsInPanel: false,
+    propsMoreExpanded: false,
     windowHighlight: { ...DEFAULT_WINDOW_HIGHLIGHT },
 };
 
@@ -78,6 +84,7 @@ function loadSettings(): AppSettings {
                 showDpAgentToolbar: parsed.showDpAgentToolbar ?? DEFAULT_SETTINGS.showDpAgentToolbar,
                 startDpAgentHigh: parsed.startDpAgentHigh ?? DEFAULT_SETTINGS.startDpAgentHigh,
                 syncCheckDetailsInPanel: parsed.syncCheckDetailsInPanel ?? DEFAULT_SETTINGS.syncCheckDetailsInPanel,
+                propsMoreExpanded: parsed.propsMoreExpanded ?? DEFAULT_SETTINGS.propsMoreExpanded,
                 windowHighlight: {
                     ...DEFAULT_WINDOW_HIGHLIGHT,
                     ...parsed.windowHighlight,

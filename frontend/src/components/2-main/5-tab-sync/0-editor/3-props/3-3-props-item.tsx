@@ -6,12 +6,13 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
+import { Field_TypeIcon, LabelAndField, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
 import { syncOpsBus } from "@/bridge";
 import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import { syncEditorStore } from "../../a-atoms/0-sync-local-storage";
 import { runCheck, runSyncItem } from "../../a-atoms/2-run-sync";
-import { Field_TypeIcon, LabelAndField, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
 
 export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; }) {
     return (<>
@@ -40,26 +41,28 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
             />
         </LabelAndField>
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] items-top gap-x-3 gap-y-2">
-            <OperationNameField item={item} />
-            <DirectionNameField
-                item={item}
-                field="forwardName"
-                label={<span className="inline-flex items-center gap-x-0.5">'Src <ArrowRight className="size-2.5" /> Dst' name</span>}
-                placeholder="Optional name for source → destination"
-            />
-            <DirectionNameField
-                item={item}
-                field="reverseName"
-                label={<span className="inline-flex items-center gap-x-0.5">'Src <ArrowLeft className="size-2.5" /> Dst' name</span>}
-                placeholder="Optional name for destination → source"
-            />
-        </div>
+        <PropsMoreSection>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] items-top gap-x-3 gap-y-2">
+                <OperationNameField item={item} />
+                <DirectionNameField
+                    item={item}
+                    field="forwardName"
+                    label={<span className="inline-flex items-center gap-x-0.5">'Src <ArrowRight className="size-2.5" /> Dst' name</span>}
+                    placeholder="Optional name for source → destination"
+                />
+                <DirectionNameField
+                    item={item}
+                    field="reverseName"
+                    label={<span className="inline-flex items-center gap-x-0.5">'Src <ArrowLeft className="size-2.5" /> Dst' name</span>}
+                    placeholder="Optional name for destination → source"
+                />
+            </div>
 
-        <Field_Comment
-            value={item.comment ?? ""}
-            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
-        />
+            <Field_Comment
+                value={item.comment ?? ""}
+                onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+            />
+        </PropsMoreSection>
     </>);
 }
 

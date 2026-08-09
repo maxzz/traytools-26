@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/s
 import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
 import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
 import { InfoTooltipTrigger, labelClasses } from "@/components/2-main/a-shared/props-field-ui";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon } from "./3-4-props-shared-ui";
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
@@ -16,8 +17,10 @@ export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolea
 
         <QuickAccessList node={node} />
 
-        {!isRoot && <Field_MenuName node={node} isSubmenu />}
-        <Field_Comment node={node} />
+        <PropsMoreSection>
+            {!isRoot && <Field_MenuName node={node} isSubmenu />}
+            <Field_Comment node={node} />
+        </PropsMoreSection>
     </>);
 }
 

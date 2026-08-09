@@ -4,6 +4,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import { Field_TypeIcon, InfoTooltip, LabelAndField, PropsActionButton, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
+import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { type RegGroup, type RegItem, type RegView, countGroupValues, derivedItemLabel, itemHasSubKey } from "../../a-atoms/9-types-registry";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
 import { doAsyncRegJumpItemAtom, doAsyncRegReadItemAtom, doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../../a-atoms/2-run-registry";
@@ -53,12 +54,14 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
 
         <Field_ItemValues item={item} />
 
-        <Field_ItemName item={item} />
+        <PropsMoreSection>
+            <Field_ItemName item={item} />
 
-        <Field_Comment
-            value={item.comment ?? ""}
-            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
-        />
+            <Field_Comment
+                value={item.comment ?? ""}
+                onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+            />
+        </PropsMoreSection>
     </>);
 }
 
