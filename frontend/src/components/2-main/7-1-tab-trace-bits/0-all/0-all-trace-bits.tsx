@@ -2,15 +2,15 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
+import { classNames } from "@/utils";
 import { type Layout, type LayoutChangedMeta, usePanelRef } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
-import { cn } from "@/utils";
 import { traceManagerBus, onWailsEvent, TRACE_EVENTS, type TraceCall } from "@/bridge";
 import { routeTraceCall, setStreaming, setSections } from "@/store/3-trace-manager";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { expandedSectionsAtom, showCategoriesAtom } from "../a-atoms/a-trace-manager-atoms";
 import { TraceWindowsList } from "../1-traces/1-trace-windows-list";
-import { TraceWindowView } from "../1-traces/2-trace-window-view";
+import { TraceWindowView } from "../1-traces/2-trace-view";
 import { TraceCheckboxesPanel } from "../2-bits/3-trace-checkboxes-panel";
 
 const PANEL_ANIMATION_MS = 300;
@@ -29,7 +29,7 @@ export function Page_TraceBits() {
     const categoriesPanelRef = usePanelRef();
     const [isResizing, setIsResizing] = useState(false);
 
-    const panelTransition = !isResizing && "transition-[flex-grow] duration-300 ease-in-out";
+    const panelTransitionClasses = !isResizing && "transition-[flex-grow] duration-300 ease-in-out";
 
     const onMainLayoutChanged = (layout: Layout, meta: LayoutChangedMeta) => {
         savePanelLayout(PANEL_GROUPS.traceManagerMain, layout);
@@ -99,7 +99,7 @@ export function Page_TraceBits() {
                 onLayoutChange={onMainLayoutChanging}
                 onLayoutChanged={onMainLayoutChanged}
             >
-                <ResizablePanel id="panels" minSize={30} className={cn(panelTransition)}>
+                <ResizablePanel id="panels" minSize={30} className={classNames(panelTransitionClasses)}>
                     <ResizablePanelGroup orientation="vertical" defaultLayout={leftLayout as Layout} onLayoutChanged={onLeftLayoutChanged}>
                         <ResizablePanel id="list" minSize={15}>
                             <TraceWindowsList />
@@ -121,10 +121,10 @@ export function Page_TraceBits() {
                     collapsible
                     collapsedSize={0}
                     panelRef={categoriesPanelRef}
-                    className={cn(panelTransition, !showCategories && "min-w-0 overflow-hidden")}
+                    className={classNames(panelTransitionClasses, !showCategories && "min-w-0 overflow-hidden")}
                     style={{ transitionDuration: `${PANEL_ANIMATION_MS}ms` }}
                 >
-                    <div className={cn("h-full transition-opacity duration-300", !showCategories && "opacity-0 pointer-events-none")}>
+                    <div className={classNames("h-full transition-opacity duration-300", !showCategories && "opacity-0 pointer-events-none")}>
                         <TraceCheckboxesPanel />
                     </div>
                 </ResizablePanel>

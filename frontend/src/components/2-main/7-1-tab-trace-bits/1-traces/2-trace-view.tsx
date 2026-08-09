@@ -82,15 +82,18 @@ export function TraceWindowView() {
                     : (
                         <ScrollArea2 ref={viewportRef} className="flex-1 min-h-0" horizontal>
                             <div className="py-1 text-xs font-mono leading-relaxed">
-                                {calls.map((c) => (
-                                    <div key={c.seq} className={cn("px-2 hover:bg-muted/40 whitespace-pre")} style={traceLineStyle(c.colorIndex, showColors)}>
-                                        <span className="text-muted-foreground">{c.function}(): </span>
-                                        {c.text}
-                                    </div>
-                                ))}
+                                {calls.map(
+                                    (c) => (
+                                        <div key={c.seq} className={cn("px-2 hover:bg-muted/40 whitespace-pre")} style={traceLineStyle(c.colorIndex, showColors)}>
+                                            <span className="text-muted-foreground">{c.function}(): </span>
+                                            {c.text}
+                                        </div>
+                                    )
+                                )}
                             </div>
                         </ScrollArea2>
-                    )}
+                    )
+            }
         </div>
     );
 }
