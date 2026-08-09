@@ -5,7 +5,7 @@ import { copyEditorStore, CopyConfig_Apply } from "@/components/2-main/1-tab-cop
 import { syncEditorStore, SyncConfig_Apply } from "@/components/2-main/2-tab-sync/a-atoms/0-sync-local-storage";
 import { registryEditorStore, RegistryConfig_Apply } from "@/components/2-main/3-tab-registry/a-atoms/0-registry-local-storage";
 import { toolsEditorStore, ToolsConfig_Apply } from "@/components/2-main/4-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
-import { setSections, traceStore } from "@/store/3-trace-manager";
+import { setSections, traceStore } from "@/components/2-main/7-1-tab-trace-bits/a-atoms/3-trace-manager-store";
 import { notice } from "@/ui/local-ui/7-toaster";
 
 type DirtyTab = {

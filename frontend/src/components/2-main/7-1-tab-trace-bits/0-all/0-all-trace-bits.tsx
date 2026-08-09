@@ -6,7 +6,7 @@ import { classNames } from "@/utils";
 import { type Layout, type LayoutChangedMeta, usePanelRef } from "react-resizable-panels";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadcn/resizable";
 import { traceManagerBus, onWailsEvent, TRACE_EVENTS, type TraceCall } from "@/bridge";
-import { routeTraceCall, setStreaming, setSections } from "@/store/3-trace-manager";
+import { routeTraceCall, setStreaming, setSections } from "@/components/2-main/7-1-tab-trace-bits/a-atoms/3-trace-manager-store";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { expandedSectionsAtom, showCategoriesAtom } from "../a-atoms/a-trace-manager-atoms";
 import { TraceWindowsList } from "../1-traces/1-trace-windows-list";

@@ -7,7 +7,7 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/ui/shadcn/collapsible";
 import { traceManagerBus, type SectionDescription } from "@/bridge";
-import { traceStore, setSections, toggleCategory } from "@/store/3-trace-manager";
+import { traceStore, setSections, toggleCategory } from "@/components/2-main/7-1-tab-trace-bits/a-atoms/3-trace-manager-store";
 import { expandedSectionsAtom } from "../a-atoms/a-trace-manager-atoms";
 
 // Right pane: the debug categories editor. Port of the legacy

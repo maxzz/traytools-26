@@ -5,7 +5,7 @@ import { cn } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
-import { traceStore, clearWindow } from "@/store/3-trace-manager";
+import { traceStore, clearWindow } from "@/components/2-main/7-1-tab-trace-bits/a-atoms/3-trace-manager-store";
 import { selectedProcessAtom, traceFilterAtom, autoScrollAtom, showColorsAtom } from "../a-atoms/a-trace-manager-atoms";
 import { traceLineStyle } from "./8-trace-color";
 

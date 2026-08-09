@@ -6,7 +6,7 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { IconChevronLeft } from "@/ui/icons/normal";
 import { traceManagerBus } from "@/bridge";
-import { traceStore, clearAllWindows, setStreaming, setWindowVisible } from "@/store/3-trace-manager";
+import { traceStore, clearAllWindows, setStreaming, setWindowVisible } from "@/components/2-main/7-1-tab-trace-bits/a-atoms/3-trace-manager-store";
 import { selectedProcessAtom, showCategoriesAtom } from "../a-atoms/a-trace-manager-atoms";
 
 function TraceWindowsListHeader() {
