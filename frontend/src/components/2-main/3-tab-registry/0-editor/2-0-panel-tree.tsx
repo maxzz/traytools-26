@@ -620,7 +620,7 @@ function ItemRow({ item, depth, isLast, ancestors, onActivate, }: { item: SnapIt
                 {/* Match expander slot width so the horizontal tick reaches the icon. */}
                 <span className="shrink-0 relative w-4 h-4" />
 
-                <SymbolAppRegedit className="shrink-0 relative size-3.5 opacity-70" />
+                <SymbolAppRegedit className="-ml-0.75 shrink-0 relative size-3.5 opacity-70" />
 
                 <TreeRowLabel
                     renaming={renaming}
