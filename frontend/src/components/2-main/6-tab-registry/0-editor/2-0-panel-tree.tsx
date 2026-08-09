@@ -22,8 +22,8 @@ import {
     ModifiedBadge,
     RootFileInfoButton,
     treeRowSelectedClasses,
-    workingFileCaption,
-} from "@/components/2-main/a-shared/tree-1-file-status";
+    rootItemFileCaption,
+} from "@/components/2-main/a-shared/tree-1-tree-root-status";
 import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-2-inline-rename";
 
 /** Custom MIME so OS file drags are never mistaken for in-tree reorder. */
@@ -271,7 +271,7 @@ function RootRow({ rootUid, groups, onActivate }: { rootUid: string; groups: rea
     const collapsed = snap.collapsedUids.includes(rootUid);
     const selected = snap.selectedUid === rootUid;
     const showInside = dnd.dropUid === rootUid && dnd.dropPos === "inside";
-    const working = workingFileCaption(snap);
+    const working = rootItemFileCaption(snap);
 
     return (
         <div>

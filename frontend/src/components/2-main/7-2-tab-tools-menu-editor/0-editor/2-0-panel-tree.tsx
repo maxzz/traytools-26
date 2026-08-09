@@ -13,8 +13,8 @@ import {
     ModifiedBadge,
     RootFileInfoButton,
     treeRowSelectedClasses,
-    workingFileCaption,
-} from "@/components/2-main/a-shared/tree-1-file-status";
+    rootItemFileCaption,
+} from "@/components/2-main/a-shared/tree-1-tree-root-status";
 import { TreeInlineName, TreeRowLabel } from "@/components/2-main/a-shared/tree-2-inline-rename";
 
 // Deep-readonly view of a node as returned by valtio's useSnapshot.
@@ -174,7 +174,7 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false, onActivate }:
     const childAncestors = [...ancestors, !isLast];
     const children = node.menuItems ?? [];
     const isDirty = snap.dirtyUids.includes(uid);
-    const working = isRoot ? workingFileCaption(snap) : null;
+    const working = isRoot ? rootItemFileCaption(snap) : null;
 
     function beginRename() {
         onActivate();

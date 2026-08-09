@@ -24,10 +24,10 @@ export function pathBaseName(path: string): string {
 }
 
 /**
- * Caption for the tree root file label / info tooltip.
+ * Caption for the tree root working file label / info tooltip.
  * Supports the usual editor sources: default, file, storage, import, open.
  */
-export function workingFileCaption(snap: { path: string; source: string; fileExists: boolean; }): WorkingFileCaption {
+export function rootItemFileCaption(snap: { path: string; source: string; fileExists: boolean; }): WorkingFileCaption {
     const { path, source, fileExists } = snap;
 
     if (source === "import" && path) {
