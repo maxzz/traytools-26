@@ -3,7 +3,7 @@ import { useAtom, useSetAtom } from "jotai";
 import { classNames } from "@/utils/classnames";
 import { ArrowDownToLine, PencilLine } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
-import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
+import { labelClasses } from "@/components/2-main/a-shared/props-shared-controls";
 import { type RegItem, itemHasSubKey } from "../../a-atoms/9-types-registry";
 import {
     type RegHexPadMode,

@@ -3,7 +3,7 @@ import { classNames } from "@/utils/classnames";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { Label } from "@/ui/shadcn/label";
-import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
+import { labelClasses } from "@/components/2-main/a-shared/props-shared-controls";
 
 /** Collapses when `value` is empty; click the label to expand/collapse. */
 export function CollapsibleOptionalField({ label, value, children, className }: { label: ReactNode; value: string; children: ReactNode; className?: string; }) {

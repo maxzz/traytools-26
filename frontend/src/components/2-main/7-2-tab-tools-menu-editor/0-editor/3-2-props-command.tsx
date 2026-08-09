@@ -2,7 +2,7 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
 import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsible-optional-field";
 import { PathInput, isProbablyURL } from "@/components/2-main/a-shared/path-input";
-import { CheckboxAndTooltip, InfoTooltip, LabelAndField } from "@/components/2-main/a-shared/props-field-ui";
+import { CheckboxAndTooltip, InfoTooltip, LabelAndField } from "@/components/2-main/a-shared/props-shared-controls";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { patchSelectedNode } from "../a-atoms/use-selected-node";
 import { effectiveRunElevated } from "../a-atoms/9-types-menu";

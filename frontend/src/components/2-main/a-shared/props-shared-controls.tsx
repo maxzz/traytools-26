@@ -8,6 +8,7 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 
+/** Field is defined by children: a label, a field, and error or help tooltip. */
 export function LabelAndField({ label, labelHint, labelAside, error, children, className, ...props }: ComponentProps<"div"> & {
     label: string;
     labelHint?: ReactNode;
@@ -39,14 +40,6 @@ export function LabelAndField({ label, labelHint, labelAside, error, children, c
 }
 
 export const labelClasses = "text-[0.65rem] font-normal text-foreground/70 select-none";
-
-/** Preset icons for tree-editor type badges. */
-export const typeBadgeIcons = {
-    folder: <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />,
-    file: <FileIcon className="shrink-0 size-3.5 text-foreground/70" />,
-    registry: <SymbolAppRegedit className="shrink-0 size-3.5 opacity-70" />,
-    command: <IconTerminalHero className="shrink-0 size-3.5 text-foreground/70 fill-foreground/10!" />,
-} as const;
 
 /** Info-icon trigger with tooltip content; pass `label` for accessibility. */
 export function InfoTooltip({ label, children, side, contentClasses }: { label: string; children: ReactNode; side?: ComponentProps<typeof TooltipContent>["side"]; contentClasses?: string; }) {
@@ -153,3 +146,11 @@ export function PropsActionButton({ label, disabled, title, onClick }: { label: 
         </Button>
     );
 }
+
+/** Preset icons for tree-editor type badges. */
+export const typeBadgeIcons = {
+    folder: <Folder className="shrink-0 size-3.5 text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900" />,
+    file: <FileIcon className="shrink-0 size-3.5 text-foreground/70" />,
+    registry: <SymbolAppRegedit className="shrink-0 size-3.5 opacity-70" />,
+    command: <IconTerminalHero className="shrink-0 size-3.5 text-foreground/70 fill-foreground/10!" />,
+} as const;

@@ -9,7 +9,7 @@ import {
     LabelAndField,
     PropsActionButton,
     typeBadgeIcons,
-} from "@/components/2-main/a-shared/props-field-ui";
+} from "@/components/2-main/a-shared/props-shared-controls";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import {
     type CopyGroup,

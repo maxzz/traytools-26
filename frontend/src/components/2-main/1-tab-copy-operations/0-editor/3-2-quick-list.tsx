@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import { FileIcon, Folder, Info } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
+import { labelClasses } from "@/components/2-main/a-shared/props-shared-controls";
 import { type CopyGroup, type CopyNode, type CopyOpItem, collectGroupItems, findByUid, isCopyGroup, isCopySeparator, itemLabel } from "../a-atoms/9-types-copy";
 import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
 import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";

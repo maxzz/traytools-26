@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { Label } from "@/ui/shadcn/label";
 import { classNames } from "@/utils/classnames";
 import { appSettings } from "@/store/1-ui-settings";
-import { labelClasses } from "@/components/2-main/a-shared/props-field-ui";
+import { labelClasses } from "@/components/2-main/a-shared/props-shared-controls";
 
 /**
  * Collapsed-by-default section for secondary props (name, comment, …).

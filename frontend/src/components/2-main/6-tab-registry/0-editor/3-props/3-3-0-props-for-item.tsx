@@ -3,7 +3,7 @@ import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Button } from "@/ui/shadcn/button";
 import { Input } from "@/ui/shadcn/input";
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
-import { Field_TypeIcon, InfoTooltip, LabelAndField, PropsActionButton, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
+import { Field_TypeIcon, InfoTooltip, LabelAndField, PropsActionButton, typeBadgeIcons } from "@/components/2-main/a-shared/props-shared-controls";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
 import { type RegGroup, type RegItem, type RegView, countGroupValues, derivedItemLabel, itemHasSubKey } from "../../a-atoms/9-types-registry";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";

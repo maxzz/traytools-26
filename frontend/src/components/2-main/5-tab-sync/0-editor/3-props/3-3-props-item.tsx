@@ -7,7 +7,7 @@ import { CollapsibleOptionalField } from "@/components/2-main/a-shared/collapsib
 import { Field_Comment, applyComment } from "@/components/2-main/a-shared/field-comment";
 import { PathInput } from "@/components/2-main/a-shared/path-input";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-more-section";
-import { Field_TypeIcon, LabelAndField, typeBadgeIcons } from "@/components/2-main/a-shared/props-field-ui";
+import { Field_TypeIcon, LabelAndField, typeBadgeIcons } from "@/components/2-main/a-shared/props-shared-controls";
 import { syncOpsBus } from "@/bridge";
 import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirectionName } from "../../a-atoms/9-types-sync";
 import { patchSelectedItem } from "../../a-atoms/use-selected-node";
