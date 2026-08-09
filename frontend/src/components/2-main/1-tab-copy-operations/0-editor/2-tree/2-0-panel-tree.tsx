@@ -4,10 +4,10 @@ import { cn } from "@/utils/classnames";
 import { ChevronDown, ChevronRight, Copy, Folder, FolderOpen, FileIcon } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { type CopyOpItem, findByUid, itemLabel, sourceFileBaseName } from "../a-atoms/9-types-copy";
-import { type DropPosition, addDroppedFiles, copyNode, isRootUid, moveNode } from "../a-atoms/1-copy-editor-atoms";
-import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
-import { CopyConfig_Apply, copyEditorStore } from "../a-atoms/0-copy-local-storage";
+import { type CopyOpItem, findByUid, itemLabel, sourceFileBaseName } from "../../a-atoms/9-types-copy";
+import { type DropPosition, addDroppedFiles, copyNode, isRootUid, moveNode } from "../../a-atoms/1-copy-editor-atoms";
+import { runCopyGroup, runCopyItem } from "../../a-atoms/2-run-copy";
+import { CopyConfig_Apply, copyEditorStore } from "../../a-atoms/0-copy-local-storage";
 import {
     DROP_TARGET_STYLE,
     isFileDrag,

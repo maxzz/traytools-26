@@ -19,10 +19,10 @@ import {
     findByUid,
     findTopLevelGroup,
     sourceFileBaseName,
-} from "../a-atoms/9-types-copy";
-import { patchSelectedGroup, patchSelectedItem, patchSelectedSeparator } from "../a-atoms/use-selected-node";
-import { copyEditorStore } from "../a-atoms/0-copy-local-storage";
-import { runCopyGroup, runCopyItem } from "../a-atoms/2-run-copy";
+} from "../../a-atoms/9-types-copy";
+import { patchSelectedGroup, patchSelectedItem, patchSelectedSeparator } from "../../a-atoms/use-selected-node";
+import { copyEditorStore } from "../../a-atoms/0-copy-local-storage";
+import { runCopyGroup, runCopyItem } from "../../a-atoms/2-run-copy";
 import { QuickAccessList } from "./3-2-quick-list";
 
 export function PropsFor_Root() {

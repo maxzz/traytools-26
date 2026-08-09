@@ -4,11 +4,11 @@ import { appSettings } from "@/store/1-ui-settings";
 import { type Layout } from "react-resizable-panels";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/ui/shadcn/resizable";
-import { Panel_Tree } from "./2-0-panel-tree";
-import { Panel_Props } from "./3-0-panel-props";
+import { Panel_Tree } from "../2-tree/2-0-panel-tree";
+import { Panel_Props } from "../3-props/3-0-panel-props";
 import { CopyOperationsToolbar } from "./1-1-ops-toolbar";
-import { TreeViewMenu } from "./2-1-tree-menu";
-import { CopyReportPanel } from "./4-0-report-copy";
+import { TreeViewMenu } from "../2-tree/2-1-tree-menu";
+import { CopyReportPanel } from "../4-report/4-0-report-copy";
 import { initPathDropListener } from "@/components/2-main/a-shared/props-5-path-input";
 
 export function Page_CopyOperations() {

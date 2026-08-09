@@ -3,10 +3,10 @@ import { useSnapshot } from "valtio";
 import { IconTrash24 } from "@/ui/icons/normal";
 import { Button } from "@/ui/shadcn/button";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
-import { DelayedRunningIndicator } from "../../a-shared/utils-delayed-running-indicator";
-import { formatJobTime } from "../../a-shared/report-format-job-time";
-import { type CopyJobReport, type CopyProgressRow, clearCopyReportMessages, copyReportStore } from "../a-atoms/2-run-copy";
-import { itemLabel, sourceFileBaseName } from "../a-atoms/9-types-copy";
+import { DelayedRunningIndicator } from "../../../a-shared/utils-delayed-running-indicator";
+import { formatJobTime } from "../../../a-shared/report-format-job-time";
+import { type CopyJobReport, type CopyProgressRow, clearCopyReportMessages, copyReportStore } from "../../a-atoms/2-run-copy";
+import { itemLabel, sourceFileBaseName } from "../../a-atoms/9-types-copy";
 import { OperationStatus } from "./4-1-report-copy-status";
 
 export function CopyReportPanel() {

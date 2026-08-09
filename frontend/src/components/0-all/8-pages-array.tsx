@@ -3,7 +3,7 @@ import { type ComponentType } from "react";
 // import { PageTestTabA } from "../2-main/xyz-demos/01-page-a/0-page-a-all";
 // import { PageTestTabB } from "../2-main/xyz-demos/02-page-b/0-page-b-all";
 import { PageWelcome } from "../2-main/8-tab-welcome/0-all-welcome";
-import { Page_CopyOperations } from "../2-main/1-tab-copy-operations/0-editor/0-all-editor";
+import { Page_CopyOperations } from "../2-main/1-tab-copy-operations/0-editor/0-all/0-all-editor";
 import { Page_Sync } from "../2-main/2-tab-sync/0-editor/0-all-editor";
 import { Page_Registry } from "../2-main/3-tab-registry/0-editor/0-all/0-all-editor";
 import { Page_ToolsMenuEditor } from "../2-main/4-tab-tools-menu-editor/0-editor/0-all/0-all-editor";
