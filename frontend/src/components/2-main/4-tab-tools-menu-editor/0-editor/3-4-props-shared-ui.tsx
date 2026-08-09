@@ -9,9 +9,9 @@ import {
     PropsActionButton,
     typeBadgeIcons,
 } from "@/components/2-main/a-shared/props-1-shared-controls";
-import { ToolsConfig_ExecuteByUid } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
-import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
-import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { ToolsConfig_ExecuteByUid } from "@/components/2-main/4-tab-tools-menu-editor/a-atoms/0-menu-local-storage";
+import { patchSelectedNode } from "@/components/2-main/4-tab-tools-menu-editor/a-atoms/use-selected-node";
+import { type ToolMenuItem, isRegistryPath, nodeKind } from "@/components/2-main/4-tab-tools-menu-editor/a-atoms/9-types-menu";
 
 export type NodeProps = { node: ToolMenuItem; };
 

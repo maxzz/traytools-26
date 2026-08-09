@@ -1,8 +1,8 @@
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { Input } from "@/ui/shadcn/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
-import { patchSelectedNode } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/use-selected-node";
-import { type CmdPlat } from "@/components/2-main/7-2-tab-tools-menu-editor/a-atoms/9-types-menu";
+import { patchSelectedNode } from "@/components/2-main/4-tab-tools-menu-editor/a-atoms/use-selected-node";
+import { type CmdPlat } from "@/components/2-main/4-tab-tools-menu-editor/a-atoms/9-types-menu";
 import { InfoTooltip, LabelAndField } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-4-more-section";
 import {
