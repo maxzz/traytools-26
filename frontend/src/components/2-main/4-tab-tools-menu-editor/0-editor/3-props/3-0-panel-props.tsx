@@ -1,12 +1,12 @@
 import { MousePointerClick } from "lucide-react";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { type ToolMenuItem, isRegistryPath, nodeKind } from "../a-atoms/9-types-menu";
-import { useSelectedNode } from "../a-atoms/use-selected-node";
 import { PropsFor_Submenu } from "./3-1-props-group";
 import { PropsFor_Command } from "./3-2-props-command";
 import { PropsFor_Registry } from "./3-3-props-registry";
 import { PropsMoreSection } from "@/components/2-main/a-shared/props-4-more-section";
 import { Field_Comment, Field_TypeIcon } from "./3-4-props-shared-ui";
+import { type ToolMenuItem, isRegistryPath, nodeKind } from "../../a-atoms/9-types-menu";
+import { useSelectedNode } from "../../a-atoms/use-selected-node";
 
 export function Panel_Props() {
     const { node, isRoot } = useSelectedNode();

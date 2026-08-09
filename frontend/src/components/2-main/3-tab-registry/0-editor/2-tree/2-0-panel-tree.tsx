@@ -6,10 +6,10 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, PencilLine } from "lucid
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { Button } from "@/ui/shadcn/button";
-import { derivedItemLabel, findByUid, fullKeyPath, itemLabel, valueDisplayName } from "../a-atoms/9-types-registry";
-import { type DropPosition, addDroppedRegistryFiles, copyNode, moveNode } from "../a-atoms/1-registry-editor-atoms";
-import { doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../a-atoms/2-run-registry";
-import { RegistryConfig_Apply, registryEditorStore, toggleRegistryCollapsed } from "../a-atoms/0-registry-local-storage";
+import { derivedItemLabel, findByUid, fullKeyPath, itemLabel, valueDisplayName } from "../../a-atoms/9-types-registry";
+import { type DropPosition, addDroppedRegistryFiles, copyNode, moveNode } from "../../a-atoms/1-registry-editor-atoms";
+import { doAsyncRegWriteGroupAtom, doAsyncRegWriteItemAtom } from "../../a-atoms/2-run-registry";
+import { RegistryConfig_Apply, registryEditorStore, toggleRegistryCollapsed } from "../../a-atoms/0-registry-local-storage";
 import {
     DROP_TARGET_STYLE,
     isFileDrag,

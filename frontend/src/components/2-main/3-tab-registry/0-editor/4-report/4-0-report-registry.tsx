@@ -3,9 +3,9 @@ import { useSnapshot } from "valtio";
 import { IconTrash24 } from "@/ui/icons/normal";
 import { Button } from "@/ui/shadcn/button";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
-import { DelayedRunningIndicator } from "../../a-shared/utils-delayed-running-indicator";
-import { formatJobTime } from "../../a-shared/report-format-job-time";
-import { type RegJobReport, type RegProgressRow, clearRegistryReportMessages, registryReportStore } from "../a-atoms/2-run-registry";
+import { DelayedRunningIndicator } from "../../../a-shared/utils-delayed-running-indicator";
+import { formatJobTime } from "../../../a-shared/report-format-job-time";
+import { type RegJobReport, type RegProgressRow, clearRegistryReportMessages, registryReportStore } from "../../a-atoms/2-run-registry";
 import { OperationStatus } from "./4-1-report-status";
 
 export function RegistryReportPanel() {

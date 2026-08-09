@@ -5,9 +5,9 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen, Minus } from "lucide-rea
 import { IconTerminalHero } from "@/ui/icons/normal";
 import { SymbolAppRegedit } from "@/ui/icons/symbols";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
-import { type ToolMenuItem, isRegistryPath, nodeKind } from "../a-atoms/9-types-menu";
-import { type DropPosition, copyNode, getNode, moveNode } from "../a-atoms/1-menu-editor-atoms";
-import { ToolsConfig_Apply, toolsEditorStore } from "../a-atoms/0-menu-local-storage";
+import { type ToolMenuItem, isRegistryPath, nodeKind } from "../../a-atoms/9-types-menu";
+import { type DropPosition, copyNode, getNode, moveNode } from "../../a-atoms/1-menu-editor-atoms";
+import { ToolsConfig_Apply, toolsEditorStore } from "../../a-atoms/0-menu-local-storage";
 import {
     DirtyDot,
     ModifiedBadge,

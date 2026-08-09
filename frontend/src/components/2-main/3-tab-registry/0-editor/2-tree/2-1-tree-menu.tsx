@@ -4,10 +4,10 @@ import { classNames } from "@/utils/classnames";
 import { Menu } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
-import { useCtrlNAdd } from "../../a-shared/use-editor-ctrl-s";
-import { type AddRegKind } from "../a-atoms/9-types-registry";
-import { RegistryImportFileAsGroup, addNode, isRootUid, removeNode } from "../a-atoms/1-registry-editor-atoms";
-import { registryEditorStore } from "../a-atoms/0-registry-local-storage";
+import { useCtrlNAdd } from "../../../a-shared/use-editor-ctrl-s";
+import { type AddRegKind } from "../../a-atoms/9-types-registry";
+import { RegistryImportFileAsGroup, addNode, isRootUid, removeNode } from "../../a-atoms/1-registry-editor-atoms";
+import { registryEditorStore } from "../../a-atoms/0-registry-local-storage";
 
 export function TreeViewMenu({ className, ...rest }: ComponentProps<typeof Button>) {
     const { selectedUid } = useSnapshot(registryEditorStore);
