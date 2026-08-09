@@ -79,6 +79,10 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
             )}
         </div>
 
+        <CopyRunFlags flags={group} onPatch={patchSelectedGroup} />
+
+        <QuickAccessList nodes={[group]} />
+
         <LabelAndField label="Group name">
             <Input
                 className="h-7"
@@ -92,10 +96,6 @@ export function PropsFor_Group({ group }: { group: CopyGroup; }) {
             value={group.comment ?? ""}
             onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
         />
-
-        <CopyRunFlags flags={group} onPatch={patchSelectedGroup} />
-
-        <QuickAccessList nodes={[group]} />
     </>);
 }
 
@@ -147,11 +147,6 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
             </div>
         </div>
 
-        <Field_Comment
-            value={item.comment ?? ""}
-            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
-        />
-
         <LabelAndField label="Source file">
             <PathInput
                 kind="file"
@@ -174,6 +169,11 @@ export function PropsFor_Item({ item, group }: { item: CopyOpItem; group: CopyGr
         </LabelAndField>
 
         <OperationNameField item={item} />
+
+        <Field_Comment
+            value={item.comment ?? ""}
+            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+        />
     </>);
 }
 

@@ -20,11 +20,6 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
             <ItemActionButtons item={item} />
         </div>
 
-        <Field_Comment
-            value={item.comment ?? ""}
-            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
-        />
-
         <LabelAndField label="Source folder">
             <PathInput
                 kind="folder"
@@ -60,6 +55,11 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
                 placeholder="Optional name for destination → source"
             />
         </div>
+
+        <Field_Comment
+            value={item.comment ?? ""}
+            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+        />
     </>);
 }
 

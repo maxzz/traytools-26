@@ -46,11 +46,6 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
             </div>
         </div>
 
-        <Field_Comment
-            value={item.comment ?? ""}
-            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
-        />
-
         <div className="grid grid-cols-[1fr_auto] gap-1 items-end">
             <Field_KeyPath item={item} onJump={() => uid && void jump(uid)} />
             <Field_View item={item} />
@@ -59,6 +54,11 @@ export function PropsFor_Item({ item, group }: { item: RegItem; group: RegGroup;
         <Field_ItemValues item={item} />
 
         <Field_ItemName item={item} />
+
+        <Field_Comment
+            value={item.comment ?? ""}
+            onChange={(next) => patchSelectedItem((it) => applyComment(it, next))}
+        />
     </>);
 }
 

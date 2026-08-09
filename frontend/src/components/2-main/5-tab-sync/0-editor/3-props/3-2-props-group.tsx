@@ -10,6 +10,8 @@ export function PropsFor_Group({ group }: { group: SyncGroup; }) {
     return (<>
         <Field_TypeIcon label="Group" icon={typeBadgeIcons.folder} />
 
+        <QuickAccessList nodes={[group]} />
+
         <LabelAndField label="Group name">
             <Input
                 className="h-7"
@@ -23,7 +25,5 @@ export function PropsFor_Group({ group }: { group: SyncGroup; }) {
             value={group.comment ?? ""}
             onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
         />
-
-        <QuickAccessList nodes={[group]} />
     </>);
 }

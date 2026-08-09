@@ -38,6 +38,8 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
             </div>
         </div>
 
+        <QuickAccessList nodes={[group]} />
+
         <LabelAndField label="Group name">
             <Input
                 className="h-7"
@@ -51,7 +53,5 @@ export function PropsFor_Group({ group }: { group: RegGroup; }) {
             value={group.comment ?? ""}
             onChange={(next) => patchSelectedGroup((g) => applyComment(g, next))}
         />
-
-        <QuickAccessList nodes={[group]} />
     </>);
 }
