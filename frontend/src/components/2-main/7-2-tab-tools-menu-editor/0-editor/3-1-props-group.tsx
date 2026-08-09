@@ -12,20 +12,12 @@ import { type NodeProps, Field_Comment, Field_MenuName, Field_TypeIcon } from ".
 
 export function PropsFor_Submenu({ node, isRoot }: NodeProps & { isRoot?: boolean; }) {
     return (<>
-        {!isRoot && (<>
-            <Field_TypeIcon node={node} />
-            <Field_MenuName node={node} isSubmenu />
-        </>)}
-
-        <Field_Comment node={node} />
+        {!isRoot && <Field_TypeIcon node={node} />}
 
         <QuickAccessList node={node} />
 
-        {/* {isRoot && (
-            <p className="text-muted-foreground">
-                This is the root of the Tools menu. New items are added inside it. It cannot be moved or deleted.
-            </p>
-        )} */}
+        {!isRoot && <Field_MenuName node={node} isSubmenu />}
+        <Field_Comment node={node} />
     </>);
 }
 

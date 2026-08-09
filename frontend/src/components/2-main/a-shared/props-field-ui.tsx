@@ -18,7 +18,7 @@ export const typeBadgeIcons = {
     command: <IconTerminalHero className="shrink-0 size-3.5 text-foreground/70 fill-foreground/10!" />,
 } as const;
 
-export function LabelAndField({ label, labelHint, labelAside, error, children, ...props }: {
+export function LabelAndField({ label, labelHint, labelAside, error, children, className, ...props }: {
     label: string;
     labelHint?: ReactNode;
     /** Optional content on the right side of the label row (e.g. a brief note). */
@@ -27,7 +27,7 @@ export function LabelAndField({ label, labelHint, labelAside, error, children, .
     error?: string | null;
 } & ComponentProps<"div">) {
     return (
-        <div className="flex flex-col gap-0.5" {...props}>
+        <div className={cn("flex flex-col gap-0.5", className)} {...props}>
             <div className="flex items-center gap-0.5 min-w-0">
                 <Label className={cn(labelClasses, error && "text-destructive")}>
                     {label}

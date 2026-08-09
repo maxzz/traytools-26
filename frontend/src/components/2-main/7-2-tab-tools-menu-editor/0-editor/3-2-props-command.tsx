@@ -14,15 +14,15 @@ export function PropsFor_Command({ node }: NodeProps) {
             <ExecuteCommandButton node={node} />
         </div>
 
+        <Field_Cmd_Path node={node} />
+        <CommandPathFlags node={node} />
+        <Field_Cmd_CliArgs node={node} />
+
         <div className="grid grid-cols-[1fr_auto] gap-2">
             <Field_MenuName node={node} />
             <Field_HotKey node={node} />
         </div>
         <Field_Comment node={node} />
-
-        <Field_Cmd_Path node={node} />
-        <CommandPathFlags node={node} />
-        <Field_Cmd_CliArgs node={node} />
     </>);
 }
 

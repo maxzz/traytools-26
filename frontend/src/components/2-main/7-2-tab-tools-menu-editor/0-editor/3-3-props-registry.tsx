@@ -21,15 +21,15 @@ export function PropsFor_Registry({ node }: NodeProps) {
         </div>
 
         <div className="grid grid-cols-[1fr_auto] gap-2">
+            <Field_Reg_Path node={node} />
+            <Field_Reg_Platform node={node} />
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto] gap-2">
             <Field_MenuName node={node} />
             <Field_HotKey node={node} />
         </div>
         <Field_Comment node={node} />
-
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-            <Field_Reg_Path node={node} />
-            <Field_Reg_Platform node={node} />
-        </div>
     </>);
 }
 
