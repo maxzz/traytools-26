@@ -15,6 +15,7 @@
     --font-ui: "Yanone Kaffeesatz Variable", sans-serif;
     --font-condensed: "Roboto Condensed Variable", sans-serif;
     --font-code: "Geist Mono Variable", monospace;
+    --font-serif: "Geist Variable", sans-serif;
 }
 
 /* Standard shadcn https://zippystarter.com/tools/shadcn-ui-theme-generator */
