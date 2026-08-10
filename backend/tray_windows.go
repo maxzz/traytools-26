@@ -73,16 +73,17 @@ func (a *App) onTrayReady() {
 }
 
 // syncTrayShowHideLabel sets the tray item to "Hide" or "Show" from the
-// current windowVisible flag. Called on the systray thread before the menu
-// is shown so Win32 menu APIs stay on the owning thread.
+// current on-screen state (including taskbar-minimized). Called on the
+// systray thread before the menu is shown so Win32 menu APIs stay on the
+// owning thread.
 func (a *App) syncTrayShowHideLabel() {
 	if trayShowHideItem == nil {
 		return
 	}
 	a.windowMu.Lock()
-	visible := a.windowVisible
+	shown := a.windowIsShownLocked()
 	a.windowMu.Unlock()
-	if visible {
+	if shown {
 		trayShowHideItem.SetTitle("Hide")
 		trayShowHideItem.SetTooltip("Hide the window")
 	} else {

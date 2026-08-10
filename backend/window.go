@@ -2,10 +2,13 @@ package backend
 
 import "github.com/wailsapp/wails/v2/pkg/runtime"
 
-// Wails v2 has no "is the window visible" query, so we track visibility
+// Wails v2 has no "is the window visible" query, so we track tray hide/show
 // ourselves. All show/hide paths must go through these helpers to keep the
 // flag accurate. The mutex guards against concurrent access from the tray
 // goroutine and the command bus.
+//
+// Taskbar minimize does not go through hideWindow, so windowVisible can stay
+// true while the window is minimized. windowIsShownLocked accounts for that.
 
 func (a *App) showWindow() {
 	a.windowMu.Lock()
@@ -23,11 +26,23 @@ func (a *App) hideWindow() {
 func (a *App) toggleWindow() {
 	a.windowMu.Lock()
 	defer a.windowMu.Unlock()
-	if a.windowVisible {
+	if a.windowIsShownLocked() {
 		a.hideWindowLocked()
 	} else {
 		a.showWindowLocked()
 	}
+}
+
+// windowIsShownLocked reports whether the main window is on-screen (not
+// tray-hidden and not taskbar-minimized). Callers must hold windowMu.
+func (a *App) windowIsShownLocked() bool {
+	if !a.windowVisible {
+		return false
+	}
+	if a.ctx != nil && runtime.WindowIsMinimised(a.ctx) {
+		return false
+	}
+	return true
 }
 
 func (a *App) showWindowLocked() {
