@@ -15,6 +15,7 @@ import {
 import { formatRegNumericText, isNumericRegType } from "../a-atoms/7-reg-file-format";
 import { COL_Classes } from "./3-3-3-values-header";
 import { usesValueDialog } from "./3-3-4-values-value-new";
+import { numericValueClasses } from "./3-3-8-shared";
 
 // Current-value column: read-back display with a View dialog for expandable / binary / multi-string.
 
@@ -26,7 +27,7 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
     const hexPad = useAtomValue(currentValueHexPadAtom);
     const { byUid } = useSnapshot(registryReadStore);
     const read: RegReadState | undefined = value.uid ? byUid[value.uid] : undefined;
-    const { text, title, className } = currentValueLook(read, value, currentRadix, hexPrefix, hexPad);
+    const { text, title, textClasses } = currentValueLook(read, value, currentRadix, hexPrefix, hexPad);
     const dialogValue = usesValueDialog(value.valueType);
     const fullValue = read?.exists ? (read.value ?? "") : "";
     const canView = dialogValue && read?.exists === true && !read.loading && !read.error;
@@ -38,7 +39,7 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
             title={title}
             aria-label={`Current value — ${title.replace(/\n/g, ". ")}`}
         >
-            <span className={cn("min-w-0 flex-1 truncate", className, isNumericRegType(value.valueType) && read?.exists && "tabular-nums")}>
+            <span className={cn("min-w-0 flex-1 truncate", isNumericRegType(value.valueType) && read?.exists && numericValueClasses, textClasses)}>
                 {cellText}
             </span>
 
@@ -66,21 +67,21 @@ export function Column_CurrentValue({ value }: { value: RegValue; }) {
     </>);
 }
 
-function currentValueLook(read: RegReadState | undefined, value: RegValue, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode,): { text: string; title: string; className: string; } {
+function currentValueLook(read: RegReadState | undefined, value: RegValue, radix: RegNumericRadix, hexPrefix: RegHexPrefixMode, hexPad: RegHexPadMode,): { text: string; title: string; textClasses: string; } {
     if (!read) {
-        return { text: "not read", title: "Use the read button to query the registry", className: "text-muted-foreground/60" };
+        return { text: "not read", title: "Use the read button to query the registry", textClasses: "text-muted-foreground/60" };
     }
     if (read.loading) {
-        return { text: "reading…", title: "Reading from the registry", className: "text-muted-foreground italic" };
+        return { text: "reading…", title: "Reading from the registry", textClasses: "text-muted-foreground font-serif italic" };
     }
     if (read.error) {
-        return { text: read.error, title: read.error, className: "text-destructive" };
+        return { text: read.error, title: read.error, textClasses: "text-destructive" };
     }
     if (!read.exists) {
         return {
             text: "absent",
             title: "Not present in the registry. Writing will create it.",
-            className: "text-amber-700 dark:text-amber-500 italic",
+            textClasses: "text-amber-600 dark:text-amber-500/50 text-[0.65rem] font-serif italic",
         };
     }
 
@@ -89,10 +90,12 @@ function currentValueLook(read: RegReadState | undefined, value: RegValue, radix
     const shown = isNumericRegType(value.valueType) ? formatRegNumericText(current, radix, hexPrefix, hexPad, value.valueType) : current;
     const typeNote = read.valueType && read.valueType !== value.valueType ? `\nIn Registry: ${read.valueType}` : "";
 
+    const textClasses = matches ? "text-emerald-700 dark:text-emerald-400" : "text-orange-700 dark:text-orange-400";
+
     return {
         text: shown || "(empty)",
         title: `${matches ? "Matches the new value" : "Differs from the new value"}\n${shown}${typeNote}`,
-        className: matches ? "text-emerald-700 dark:text-emerald-400" : "text-orange-700 dark:text-orange-400",
+        textClasses,
     };
 }
 

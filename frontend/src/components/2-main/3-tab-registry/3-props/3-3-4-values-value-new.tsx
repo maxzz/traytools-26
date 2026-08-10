@@ -11,6 +11,7 @@ import { type RegHexPadMode, type RegHexPrefixMode, type RegNumericRadix, newVal
 import { formatRegNumericText, isNumericRegType, toStoredRegNumericText } from "../a-atoms/7-reg-file-format";
 import { patchSelectedValue } from "../a-atoms/use-selected-node";
 import { COL_Classes, TABLE_CELL_CONTROL_Classes } from "./3-3-3-values-header";
+import { numericValueClasses } from "./3-3-8-shared";
 
 // New-value column: inline edit for simple types, Edit dialog for expandable / binary / multi-string.
 
@@ -20,9 +21,11 @@ export function usesValueDialog(type: RegValueType): boolean {
 }
 
 export function Column_NewValueCell({ uid, value }: { uid: string; value: RegValue; }) {
-    return usesValueDialog(value.valueType)
-        ? <Column_NewValueDialog uid={uid} value={value} />
-        : <Column_NewValue uid={uid} value={value} />;
+    return (
+        usesValueDialog(value.valueType)
+            ? <Column_NewValueDialog uid={uid} value={value} />
+            : <Column_NewValue uid={uid} value={value} />
+    );
 }
 
 /** Formats DWORD/QWORD for the column radix only when unfocused, so typing stays stable. */
@@ -48,7 +51,7 @@ function Column_NewValue({ uid, value }: { uid: string; value: RegValue; }) {
 
     return (
         <Input
-            className={cn(COL_Classes.newValue, TABLE_CELL_CONTROL_Classes, "w-full px-1.5 h-7 text-[0.72rem]", numeric && "tabular-nums")}
+            className={cn(COL_Classes.newValue, TABLE_CELL_CONTROL_Classes, "w-full px-1.5 h-7 text-[0.72rem]", numeric && numericValueClasses)}
             value={shown}
             title={valueHint(value.valueType, radix, hexPrefix, hexPad)}
             aria-label="New value"

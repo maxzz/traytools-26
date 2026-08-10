@@ -72,7 +72,7 @@ function Column_Value({ className, label, newOrCurrent }: { className: string; l
     return (
         <span className={classNames(className, "flex items-center gap-0.5")}>
             <span className="truncate">{label}</span>
-            <span className="ml-auto inline-flex items-center gap-0.5 shrink-0">
+            <span className="ml-auto mr-1 inline-flex items-center gap-0.5 shrink-0">
                 <RadixToggle newOrCurrent={newOrCurrent} />
                 <HexPrefixToggle newOrCurrent={newOrCurrent} />
                 <HexPadToggle newOrCurrent={newOrCurrent} />
@@ -134,7 +134,7 @@ function HeaderToggleButton({ className, ...rest }: ComponentProps<"button">) {
     );
 }
 
-const headerToggleClasses = "px-0.5 h-3 min-w-3 text-[0.58rem] leading-none font-medium tabular-nums text-muted-foreground hover:text-foreground border border-border/70 rounded-sm disabled:opacity-40 disabled:pointer-events-none";
+const headerToggleClasses = "px-0.5 size-4 text-[0.58rem] leading-none font-medium tabular-nums text-muted-foreground hover:text-foreground border border-border/70 rounded disabled:opacity-40 disabled:pointer-events-none";
 
 /** Read / write every value in the table; aligned over the per-row action icons. */
 function Column_HeaderActions({ item, editOrder }: { item: RegItem; editOrder: boolean; }) {
