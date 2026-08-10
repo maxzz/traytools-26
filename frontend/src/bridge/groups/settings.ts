@@ -8,6 +8,7 @@ const GROUP = "settings";
  * - getRunElevated / setRunElevated — Run Elevated preference
  * - isElevated / requestElevationRestart / requestUnelevatedRestart — elevation state
  * - getQuitOnClose / setQuitOnClose — close-to-tray vs quit
+ * - getShowInTaskbar / setShowInTaskbar — main window taskbar button
  * - getUnloadHookHotkey / setUnloadHookHotkey — View → unload hook shortcut
  * - getWindowSizeKey / setWindowSizeKey / toggleWindowSize — named window geometries
  */
@@ -19,6 +20,8 @@ export const settingsBus = {
     requestUnelevatedRestart: () => dispatch(GROUP, "requestUnelevatedRestart"),
     getQuitOnClose: () => dispatch<boolean>(GROUP, "getQuitOnClose"),
     setQuitOnClose: (value: boolean) => dispatch(GROUP, "setQuitOnClose", { value }),
+    getShowInTaskbar: () => dispatch<boolean>(GROUP, "getShowInTaskbar"),
+    setShowInTaskbar: (value: boolean) => dispatch(GROUP, "setShowInTaskbar", { value }),
     getUnloadHookHotkey: () => dispatch<UnloadHookHotkeyOptions>(GROUP, "getUnloadHookHotkey"),
     setUnloadHookHotkey: (options: UnloadHookHotkeyOptions) => dispatch(GROUP, "setUnloadHookHotkey", options),
     getWindowSizeKey: () => dispatch<WindowSizeKey>(GROUP, "getWindowSizeKey"),

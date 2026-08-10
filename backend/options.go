@@ -37,6 +37,9 @@ type IniOptions struct {
 	ShowMenu               bool    `json:"showMenu"`
 	RunElevated            bool    `json:"runElevated"`
 	QuitOnClose            bool    `json:"quitOnClose"`
+	// ShowInTaskbar controls whether the main window has a taskbar button.
+	// Nil means default true (show) so older init.json files keep current behavior.
+	ShowInTaskbar          *bool   `json:"showInTaskbar,omitempty"`
 	UnloadHookHotkey       string  `json:"unloadHookHotkey,omitempty"`
 	UnloadHookHotkeyGlobal bool    `json:"unloadHookHotkeyGlobal,omitempty"`
 	// ZoomLevel is an Electron-style zoom level: factor = 1.2^level (0 == 100%).
@@ -237,6 +240,36 @@ func SetQuitOnCloseOption(value bool) error {
 	return saveIniFileOptions(opts)
 }
 
+// GetShowInTaskbarOption reports whether the main window should appear on the
+// taskbar. Default is true when unset or when init.json is missing.
+func GetShowInTaskbarOption() bool {
+	opts, err := LoadIniFileOptions()
+	if err != nil || opts == nil || opts.ShowInTaskbar == nil {
+		return true
+	}
+	return *opts.ShowInTaskbar
+}
+
+// SetShowInTaskbarOption persists the preference and applies it immediately.
+func SetShowInTaskbarOption(value bool) error {
+	opts, err := LoadIniFileOptions()
+	if err != nil {
+		opts = &IniOptions{}
+	}
+	opts.ShowInTaskbar = &value
+	if err := saveIniFileOptions(opts); err != nil {
+		return err
+	}
+	winapp.SetShowInTaskbar(value)
+	return nil
+}
+
+// ApplyShowInTaskbarOption reapplies the persisted taskbar preference (e.g.
+// after the window is shown from the tray).
+func ApplyShowInTaskbarOption() {
+	winapp.SetShowInTaskbar(GetShowInTaskbarOption())
+}
+
 // UnloadHookHotkeyOptions is the persisted binding for View → Send unload hook notification.
 type UnloadHookHotkeyOptions struct {
 	Hotkey string `json:"hotkey"`
@@ -378,6 +411,7 @@ func (a *App) restoreWindowOptions(ctx context.Context) {
 			applyWindowBounds(ctx, bounds)
 		}
 	}
+	ApplyShowInTaskbarOption()
 
 	a.windowMu.Lock()
 	a.windowVisible = true

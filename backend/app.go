@@ -204,6 +204,23 @@ func (a *App) registerHandlers() {
 		}
 		return nil, nil
 	})
+	a.bus.Register("settings", "getShowInTaskbar", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		return GetShowInTaskbarOption(), nil
+	})
+	a.bus.Register("settings", "setShowInTaskbar", func(ctx context.Context, payload json.RawMessage) (any, error) {
+		var req struct {
+			Value bool `json:"value"`
+		}
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, &req); err != nil {
+				return nil, err
+			}
+		}
+		if err := SetShowInTaskbarOption(req.Value); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
 	a.bus.Register("settings", "getUnloadHookHotkey", func(ctx context.Context, payload json.RawMessage) (any, error) {
 		return GetUnloadHookHotkeyOptions(), nil
 	})

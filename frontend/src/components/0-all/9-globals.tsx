@@ -12,6 +12,7 @@ import {
     isOpenSettingsDialogAtom,
     SettingsQuitOnCloseSync,
     SettingsRunElevatedSync,
+    SettingsShowInTaskbarSync,
     SettingsUnloadHookHotkeySync,
     settingsUnloadHookHotkeyAtom,
 } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
@@ -38,6 +39,7 @@ export function AllDialogs() {
         <AppIsElevatedSync />
         <SettingsRunElevatedSync />
         <SettingsQuitOnCloseSync />
+        <SettingsShowInTaskbarSync />
         <SettingsUnloadHookHotkeySync />
         <CopyConfigSync />
         <RegistryConfigSync />

@@ -17,6 +17,7 @@ import {
     settingsRunElevatedAtom,
     settingsShowDpAgentMonitorAtom,
     settingsShowFooterAtom,
+    settingsShowInTaskbarAtom,
     settingsShowMainTabsAtom,
     settingsShowThemeToggleAtom,
     settingsStartDpAgentHighAtom,
@@ -45,16 +46,21 @@ export function SettingsDialog() {
                     <ControlSwitch label="Run TrayTools elevated" valueAtom={settingsRunElevatedAtom} />
                     <ControlSwitch label="Start DPAgent elevated" title="Run DPAgent with High Rights (UAC elevation)" valueAtom={settingsStartDpAgentHighAtom} />
                     <ControlSwitch label="Make the window stay on top of all others" valueAtom={settingsStayOnTopAtom} />
-                    <Separator />
+                    <ControlSwitch
+                        label="Show application icon on the taskbar"
+                        title="When off, the window stays open but has no taskbar button; use the tray icon to show or hide it"
+                        valueAtom={settingsShowInTaskbarAtom}
+                    />
                     <ControlSwitch label="Quit the application when the window close button is clicked" valueAtom={settingsQuitOnCloseAtom} />
-                    <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
+                    <Separator />
                     <ControlSwitch label="Show main tabs in header" valueAtom={settingsShowMainTabsAtom} />
                     <ControlSwitch
                         label="Show DPAgent monitor in header"
                         title="Show the DPAgent monitor control in the header. When hidden, status tracking does not run."
                         valueAtom={settingsShowDpAgentMonitorAtom}
                     />
-                    <ControlSwitch label="Show Sync Check Details in bottom panel" valueAtom={settingsSyncCheckDetailsInPanelAtom} />
+                    <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
+                    <ControlSwitch label="Show 'Sync' tab Check Details in bottom panel" valueAtom={settingsSyncCheckDetailsInPanelAtom} />
                     <ControlTheme />
                     <Separator />
                     <ControlUnloadHookHotkey />

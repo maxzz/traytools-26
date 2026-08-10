@@ -12,8 +12,10 @@ import "github.com/wailsapp/wails/v2/pkg/runtime"
 
 func (a *App) showWindow() {
 	a.windowMu.Lock()
-	defer a.windowMu.Unlock()
 	a.showWindowLocked()
+	a.windowMu.Unlock()
+	// Apply outside the mutex: changing taskbar style briefly hides/shows the HWND.
+	ApplyShowInTaskbarOption()
 }
 
 func (a *App) hideWindow() {
@@ -25,12 +27,14 @@ func (a *App) hideWindow() {
 // toggleWindow hides the window if it is currently shown, otherwise shows it.
 func (a *App) toggleWindow() {
 	a.windowMu.Lock()
-	defer a.windowMu.Unlock()
 	if a.windowIsShownLocked() {
 		a.hideWindowLocked()
-	} else {
-		a.showWindowLocked()
+		a.windowMu.Unlock()
+		return
 	}
+	a.showWindowLocked()
+	a.windowMu.Unlock()
+	ApplyShowInTaskbarOption()
 }
 
 // windowIsShownLocked reports whether the main window is on-screen (not

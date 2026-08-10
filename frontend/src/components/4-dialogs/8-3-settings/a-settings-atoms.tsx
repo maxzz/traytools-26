@@ -205,6 +205,31 @@ export function SettingsQuitOnCloseSync() {
     return null;
 }
 
+const settingsShowInTaskbarBaseAtom = atom(true);
+
+export const settingsShowInTaskbarAtom = atom(
+    (get) => get(settingsShowInTaskbarBaseAtom),
+    (_get, set, next: boolean) => {
+        set(settingsShowInTaskbarBaseAtom, next);
+        settingsBus.setShowInTaskbar(next).catch(console.error);
+    },
+);
+
+export function SettingsShowInTaskbarSync() {
+    const setShowInTaskbar = useSetAtom(settingsShowInTaskbarBaseAtom);
+
+    useEffect(
+        () => {
+            settingsBus.getShowInTaskbar().then(setShowInTaskbar).catch((e) => {
+                notice.error(`Failed to load "Show in taskbar" setting:\n ${String(e)}`);
+            });
+        },
+        [setShowInTaskbar],
+    );
+
+    return null;
+}
+
 type UnloadHookHotkeyState = {
     chord: HotkeyChord | null;
     global: boolean;
