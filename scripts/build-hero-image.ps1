@@ -38,8 +38,10 @@ $tilePad = 6
 $tileHW  = $tileW + 2 * $tilePad   # frame width  = 292
 $tileHH  = $tileH + 2 * $tilePad   # frame height = 187
 
-$centerW   = 440
-$centerH   = 330
+# Center tile shows the full Welcome screenshot, so its aspect ratio is
+# preserved (no cropping): source is 571x622, displayed at 312x340.
+$centerW   = 312
+$centerH   = 340
 $centerPad = 8
 $centerHW  = $centerW + 2 * $centerPad   # 456
 $centerHH  = $centerH + 2 * $centerPad   # 346
@@ -54,7 +56,7 @@ $centerFX = $ccX - [int]($centerHW / 2)   # 572
 $centerFY = $ccY - [int]($centerHH / 2)   # 512
 
 $tileAspect   = $tileW / $tileH      # 1.6
-$centerAspect = $centerW / $centerH  # 1.333 (4:3)
+$centerAspect = $centerW / $centerH  # ~0.918, matches the source screenshot
 
 # Tiles in tab order, placed clockwise starting at the top of the ring.
 $diagX = [int]($rx * 0.7071)   # 396
