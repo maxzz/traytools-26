@@ -1,6 +1,6 @@
 # Tray Tools 26
 
-![Tray Tools 26](frontend/src/assets/previews/2026,08.10.26_0_hero_welcome_dark.png)
+![Tray Tools 26](frontend/src/assets/previews/2026,08.10.26_1_hero_welcome.svg)
 
 ## Table of Contents
 
@@ -380,4 +380,5 @@ The redistributable binary is produced at **`build/bin/traytools-26.exe`** — a
 - **Tech stack**: Go 1.22 + [Wails v2.12](https://wails.io) on the backend; React 19, TypeScript, Vite, Tailwind CSS 4, shadcn/ui, and Jotai on the frontend.
 - **Config location**: `%AppData%\traytools-26-go\` (`init.json`, `tools\*.json`).
 - **Sample configs**: the [tools](tools) folder contains working `copy.json`, `sync.json`, `registry.json`, `tools.json`, and a `.reg` example, plus the [Tools-menu format reference](tools/tools.md).
+- **Hero image**: the banner at the top is a single self-contained SVG ([2026,08.10.26_1_hero_welcome.svg](frontend/src/assets/previews/2026,08.10.26_1_hero_welcome.svg)) with a transparent background — its text and frames adapt to the viewer's light/dark theme via `prefers-color-scheme`, and the screenshots are embedded as scaled base64 copies (external image links would be blocked by GitHub's CSP). Regenerate it after updating the screenshots with `powershell -File scripts/build-hero-image.ps1`.
 - **Author**: Max Zakharzhevskiy (<maxzz@msn.com>).
