@@ -1,5 +1,3 @@
-# Tray Tools 26
-
 ![Tray Tools 26](frontend/src/assets/previews/2026,08.10.26_1_hero_welcome.svg)
 
 ## Table of Contents
