@@ -26,6 +26,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot    = Split-Path -Parent $PSScriptRoot
 $previewsDir = Join-Path $repoRoot 'frontend/src/assets/previews'
 $outSvg      = Join-Path $previewsDir '2026,08.10.26_1_hero_welcome.svg'
+$titleSvg    = Join-Path $repoRoot 'frontend/src/assets/icons/SVG/title-image.svg'
 $tempDir     = Join-Path $env:TEMP 'traytools-hero'
 New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
 
@@ -138,7 +139,6 @@ $head = @'
       <feDropShadow dx="0" dy="0" stdDeviation="14" flood-color="#0ea5e9" flood-opacity="0.55"/>
     </filter>
     <style>
-      .title   { font-size: 64px; font-weight: 700; fill: none; stroke: #0ea5e9; stroke-width: 2; }
       .tag     { font-size: 24px; fill: #57606a; }
       .cap     { font-size: 21px; font-weight: 600; fill: #374151; }
       .frame   { fill: #ffffff; stroke: #d0d7de; stroke-width: 1; }
@@ -152,7 +152,7 @@ $head = @'
     </style>
 <!--CLIPS-->
   </defs>
-  <text class="title" x="800" y="88" text-anchor="middle">Tray Tools 26</text>
+  <image x="590" y="26" width="420" height="79.5" href="<!--TITLE-->"/>
   <text class="tag" x="800" y="130" text-anchor="middle">A Swiss Army knife for Windows power users</text>
 '@
 
@@ -222,7 +222,9 @@ $ciy = $centerFY + $centerPad
 [void]$body.AppendLine(('    <image x="{0}" y="{1}" width="{2}" height="{3}" preserveAspectRatio="none" clip-path="url(#clipC)" href="{4}"/>' -f $cix, $ciy, $centerW, $centerH, $centerUri))
 [void]$body.AppendLine(('  </g>'))
 
-$svg = $head.Replace('<!--CLIPS-->', $clips.ToString().TrimEnd()) + "`n" + $body.ToString() + '</svg>' + "`n"
+$titleUri = 'data:image/svg+xml;base64,' + [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($titleSvg))
+
+$svg = $head.Replace('<!--CLIPS-->', $clips.ToString().TrimEnd()).Replace('<!--TITLE-->', $titleUri) + "`n" + $body.ToString() + '</svg>' + "`n"
 
 [System.IO.File]::WriteAllText($outSvg, $svg, [System.Text.UTF8Encoding]::new($false))
 
