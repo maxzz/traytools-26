@@ -131,23 +131,14 @@ $head = @'
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1240" viewBox="0 0 1600 1240" font-family="'Segoe UI', system-ui, -apple-system, sans-serif" role="img" aria-label="Tray Tools 26 - overview of the application screens">
   <title>Tray Tools 26 - a Swiss Army knife for Windows power users</title>
   <defs>
-    <linearGradient id="titleGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#4f46e5"/>
-      <stop offset="0.5" stop-color="#7c3aed"/>
-      <stop offset="1" stop-color="#2563eb"/>
-    </linearGradient>
-    <linearGradient id="glowGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8b5cf6"/>
-      <stop offset="1" stop-color="#3b82f6"/>
-    </linearGradient>
     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#1f2328" flood-opacity="0.16"/>
     </filter>
     <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="14" flood-color="#8b5cf6" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="14" flood-color="#0ea5e9" flood-opacity="0.55"/>
     </filter>
     <style>
-      .title   { font-size: 64px; font-weight: 700; fill: url(#titleGrad); }
+      .title   { font-size: 64px; font-weight: 700; fill: none; stroke: #0ea5e9; stroke-width: 2; }
       .tag     { font-size: 24px; fill: #57606a; }
       .cap     { font-size: 21px; font-weight: 600; fill: #374151; }
       .frame   { fill: #ffffff; stroke: #d0d7de; stroke-width: 1; }
@@ -227,7 +218,7 @@ $ciy = $centerFY + $centerPad
 
 [void]$clips.AppendLine(('    <clipPath id="clipC"><rect x="{0}" y="{1}" width="{2}" height="{3}" rx="9"/></clipPath>' -f $cix, $ciy, $centerW, $centerH))
 [void]$body.AppendLine(('  <g>'))
-[void]$body.AppendLine(('    <rect x="{0}" y="{1}" width="{2}" height="{3}" rx="14" fill="#0d1117" stroke="url(#glowGrad)" stroke-width="2.5" filter="url(#glow)"/>' -f $centerFX, $centerFY, $centerHW, $centerHH))
+[void]$body.AppendLine(('    <rect x="{0}" y="{1}" width="{2}" height="{3}" rx="14" fill="#0d1117" stroke="#0ea5e9" stroke-width="2.5" filter="url(#glow)"/>' -f $centerFX, $centerFY, $centerHW, $centerHH))
 [void]$body.AppendLine(('    <image x="{0}" y="{1}" width="{2}" height="{3}" preserveAspectRatio="none" clip-path="url(#clipC)" href="{4}"/>' -f $cix, $ciy, $centerW, $centerH, $centerUri))
 [void]$body.AppendLine(('  </g>'))
 
