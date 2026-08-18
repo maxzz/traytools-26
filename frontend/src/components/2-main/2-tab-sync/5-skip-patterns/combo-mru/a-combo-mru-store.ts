@@ -14,14 +14,6 @@ export const comboMruStore = proxy<ComboMruLists>(loadMruLists());
 
 subscribe(comboMruStore, saveMruLists);
 
-try {
-    if (localStorage.getItem(STORAGE_ID) == null) {
-        saveMruLists();
-    }
-} catch {
-    // localStorage unavailable
-}
-
 function loadMruLists(): ComboMruLists {
     try {
         const stored = localStorage.getItem(STORAGE_ID);
