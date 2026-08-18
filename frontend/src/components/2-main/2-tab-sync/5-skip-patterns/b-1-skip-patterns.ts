@@ -119,6 +119,14 @@ export function skipPatternError(pattern: string): string | null {
     }
 }
 
+/** For the skip-list control: drop a wrapping `^…$` so `^node_modules$` shows as `node_modules`. */
+export function skipPatternDisplayLabel(pattern: string): string {
+    if (pattern.length >= 2 && pattern.startsWith("^") && pattern.endsWith("$")) {
+        return pattern.slice(1, -1);
+    }
+    return pattern;
+}
+
 export function skipListSummary(patterns: readonly string[] | undefined): string {
     const list = patterns ?? DEFAULT_SKIP_PATTERNS;
     if (list.length === 0) {
@@ -127,5 +135,5 @@ export function skipListSummary(patterns: readonly string[] | undefined): string
     if (isDefaultSkipPatterns(list)) {
         return "Default: .git, node_modules";
     }
-    return list.join("  ·  ");
+    return list.map(skipPatternDisplayLabel).join("  ·  ");
 }

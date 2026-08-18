@@ -8,6 +8,7 @@ import {
     skipPatternsFromUnknown,
     skipPatternsToJson,
     skipListSummary,
+    skipPatternDisplayLabel,
 } from "./b-1-skip-patterns";
 
 describe("skipPatternsFromUnknown", () => {
@@ -78,6 +79,19 @@ describe("skipListSummary", () => {
 
     it("describes the built-in defaults", () => {
         expect(skipListSummary([...DEFAULT_SKIP_PATTERNS])).toBe("Default: .git, node_modules");
+    });
+});
+
+describe("skipPatternDisplayLabel", () => {
+    it("strips wrapping ^ and $", () => {
+        expect(skipPatternDisplayLabel("^node_modules$")).toBe("node_modules");
+        expect(skipPatternDisplayLabel("^\\.git$")).toBe("\\.git");
+    });
+
+    it("leaves patterns that are not fully anchored", () => {
+        expect(skipPatternDisplayLabel("^build")).toBe("^build");
+        expect(skipPatternDisplayLabel("\\.log$")).toBe("\\.log$");
+        expect(skipPatternDisplayLabel("build")).toBe("build");
     });
 });
 
