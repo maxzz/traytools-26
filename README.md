@@ -104,10 +104,19 @@ Designed for repetitive file deployment (for example, dropping freshly built bin
 
 ### Folder Sync
 
+One-way mirror of a source folder onto a destination: new and changed files are copied; files that exist only on the destination are moved to the Recycle Bin.
+
 - Define **folder pairs** (`sourceFolder` ↔ `destFolder`) organized in groups.
-- **Check** compares the two trees and shows what differs without touching anything.
-- **Sync** copies the changes with per-file progress events.
+- **Check** compares the two trees (by file size and modification time) and shows adds / modifies / deletes without touching anything.
+- **Sync** applies those differences with per-file progress events. File metadata is preserved.
 - A pair can be given two named directions (`forwardName` / `reverseName`), e.g. *"git to test"* and *"test to git"*.
+
+**Folders that are not copied** (also left untouched on the destination):
+
+- `node_modules` — skipped at any depth during Check and Sync.
+- `.git` at the pair root (`sourceFolder\.git` / `destFolder\.git`) — never mirrored or removed, so Git history stays local to each side.
+
+Source and destination must be different paths and neither may contain the other.
 
 ### Registry Editor
 
