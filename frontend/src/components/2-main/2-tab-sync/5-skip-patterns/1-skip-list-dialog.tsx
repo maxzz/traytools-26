@@ -4,7 +4,7 @@ import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
-import { ComboMruInput, COMBO_MRU, isComboMruPopupTarget } from "@/ui/combo-mru";
+import { ComboMruInput, COMBO_MRU, isComboMruPopupTarget } from "@/components/2-main/2-tab-sync/5-skip-patterns/combo-mru";
 import { skipPatternDisplayLabel, skipPatternError } from "./b-1-skip-patterns";
 import {
     addSkipListRow,
