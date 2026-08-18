@@ -8,21 +8,19 @@ import (
 	"strings"
 
 	"traytools-26-go/backend/tab-5-syncops/nm/progress"
+	"traytools-26-go/backend/tab-5-syncops/nm/skippat"
 )
-
-const skipDirName = "node_modules"
-const gitDirName = ".git"
 
 // CopyOptions controls copy behaviour.
 type CopyOptions struct {
-	// CopyGit copies the .git folder at the root of the source directory.
-	// Default: false (skipped).
-	CopyGit bool
+	// SkipPatterns are regular expressions matched against each file/folder
+	// name and its path relative to the source root.
+	SkipPatterns []string
 	// Reporter receives scan and copy progress. Default: none.
 	Reporter progress.Reporter
 }
 
-// Copy copies src into dst, skipping node_modules directories and preserving file metadata.
+// Copy copies src into dst, skipping entries that match SkipPatterns and preserving file metadata.
 func Copy(src, dst string, opts CopyOptions) error {
 	src = filepath.Clean(src)
 	dst = filepath.Clean(dst)
@@ -53,6 +51,11 @@ func Copy(src, dst string, opts CopyOptions) error {
 	}
 	reporter.BeginScan(filepath.Base(src))
 
+	matcher, err := skippat.Compile(skippat.Resolve(opts.SkipPatterns))
+	if err != nil {
+		return err
+	}
+
 	return filepath.WalkDir(src, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -66,12 +69,11 @@ func Copy(src, dst string, opts CopyOptions) error {
 			return nil
 		}
 
-		if entry.IsDir() && entry.Name() == skipDirName {
-			return filepath.SkipDir
-		}
-
-		if !opts.CopyGit && entry.IsDir() && entry.Name() == gitDirName && rel == gitDirName {
-			return filepath.SkipDir
+		if matcher.MatchEntry(rel, entry.Name(), entry.IsDir()) {
+			if entry.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 
 		target := filepath.Join(dst, rel)

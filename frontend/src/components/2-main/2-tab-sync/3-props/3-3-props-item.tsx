@@ -13,6 +13,7 @@ import { type SyncGroup, type SyncOpItem, findByUid, folderBaseName, syncDirecti
 import { patchSelectedItem } from "../a-atoms/use-selected-node";
 import { syncEditorStore } from "../a-atoms/0-sync-local-storage";
 import { runCheck, runSyncItem } from "../a-atoms/2-run-sync";
+import { SkipListField } from "../5-skip-patterns";
 
 export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; }) {
     return (<>
@@ -40,6 +41,8 @@ export function PropsFor_Item({ item }: { item: SyncOpItem; group: SyncGroup; })
                 showReveal
             />
         </LabelAndField>
+
+        <SkipListField item={item} />
 
         <PropsMoreSection>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] items-top gap-x-3 gap-y-2">

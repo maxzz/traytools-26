@@ -1,4 +1,5 @@
 import { normalizeOptionalComment } from "@/components/2-main/a-shared/props-3-field-comment";
+import { skipPatternsFromUnknown, skipPatternsToJson } from "../5-skip-patterns/b-1-skip-patterns";
 import {
     type SyncConfig,
     type SyncEditorStore,
@@ -64,6 +65,10 @@ function jsonReplacer(this: SyncGroup | SyncOpItem, key: string, value: unknown)
     }
     if (key === "comment") {
         return typeof value === "string" && value.trim() === "" ? undefined : value;
+    }
+    // Missing field / default .git+node_modules list → omit. [] → persist [] (copy all).
+    if (key === "skipPatterns") {
+        return skipPatternsToJson(value);
     }
     if (
         key === "sourceFolder"
@@ -133,7 +138,17 @@ export function parseSyncJson(text: string): SyncConfig {
     const config = parsed as SyncConfig;
     normalizeOptionalComment(config);
     config.groups = config.groups.map((group) => normalizeGroup(group));
+    ensureSkipPatternsOnConfig(config);
     return config;
+}
+
+/** Fill missing skipPatterns on cached / in-memory trees (parseSyncJson already does this). */
+export function ensureSkipPatternsOnConfig(config: SyncConfig): void {
+    walkNodes(config.groups, (node) => {
+        if (isSyncOpItem(node) && !Array.isArray(node.skipPatterns)) {
+            node.skipPatterns = skipPatternsFromUnknown(undefined, false);
+        }
+    });
 }
 
 function normalizeGroup(raw: unknown): SyncGroup {
@@ -201,6 +216,7 @@ function normalizeItem(raw: object): SyncOpItem {
     normalizeOptionalName(item, "forwardName");
     normalizeOptionalName(item, "reverseName");
     normalizeOptionalComment(item);
+    item.skipPatterns = skipPatternsFromUnknown(item.skipPatterns, "skipPatterns" in item);
     // Items must not carry a nested items array.
     if ("items" in item) {
         delete (item as { items?: unknown; }).items;

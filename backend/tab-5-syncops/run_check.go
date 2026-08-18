@@ -7,6 +7,7 @@ import (
 
 	checkdir "traytools-26-go/backend/tab-5-syncops/nm/checkdir"
 	"traytools-26-go/backend/tab-5-syncops/nm/progress"
+	"traytools-26-go/backend/tab-5-syncops/nm/skippat"
 )
 
 func (m *Manager) runCheck(req FolderPairRequest) (CheckResponse, error) {
@@ -19,7 +20,7 @@ func (m *Manager) runCheck(req FolderPairRequest) (CheckResponse, error) {
 	srcLabel := filepath.Base(src)
 	reporter := newCollectingReporter(srcLabel)
 
-	result, err := checkdir.Compare(src, dst, reporter)
+	result, err := checkdir.Compare(src, dst, reporter, skippat.FromOptional(req.SkipPatterns))
 	if err != nil {
 		return CheckResponse{}, err
 	}

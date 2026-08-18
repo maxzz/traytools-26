@@ -11,14 +11,10 @@ import (
 	"strings"
 	"time"
 
-	recycle "traytools-26-go/backend/tab-5-syncops/nm/recycle"
 	copydir "traytools-26-go/backend/tab-5-syncops/nm/copydir"
 	"traytools-26-go/backend/tab-5-syncops/nm/progress"
-)
-
-const (
-	skipDirName = "node_modules"
-	gitDirName  = ".git"
+	recycle "traytools-26-go/backend/tab-5-syncops/nm/recycle"
+	"traytools-26-go/backend/tab-5-syncops/nm/skippat"
 )
 
 type fileSignature struct {
@@ -30,9 +26,10 @@ type fileSignature struct {
 
 // SyncOptions controls synchronization behaviour.
 type SyncOptions struct {
-	// CopyGit includes the root .git folder in sync.
-	// Default: false (skipped).
-	CopyGit bool
+	// SkipPatterns are regular expressions matched against each file/folder
+	// name and its path relative to the pair root. Pass skippat.DefaultPatterns
+	// (or skippat.Resolve(nil)) for the built-in .git / node_modules list.
+	SkipPatterns []string
 	// Reporter receives scan and sync progress. Default: none.
 	Reporter progress.Reporter
 }
@@ -75,17 +72,22 @@ func Sync(src, dst string, opts SyncOptions) (SyncResult, error) {
 		reporter = progress.NopReporter{}
 	}
 
-	srcFiles, srcDirs, err := collectTree(src, opts, reporter)
+	matcher, err := skippat.Compile(skippat.Resolve(opts.SkipPatterns))
+	if err != nil {
+		return SyncResult{}, err
+	}
+
+	srcFiles, srcDirs, err := collectTree(src, matcher, reporter)
 	if err != nil {
 		return SyncResult{}, fmt.Errorf("scan source: %w", err)
 	}
 
-	dstFiles, _, err := collectTree(dst, opts, progress.NopReporter{})
+	dstFiles, _, err := collectTree(dst, matcher, progress.NopReporter{})
 	if err != nil {
 		return SyncResult{}, fmt.Errorf("scan destination: %w", err)
 	}
 
-	copyOpts := copydir.CopyOptions{CopyGit: opts.CopyGit}
+	copyOpts := copydir.CopyOptions{}
 	var changes []progress.ChangeEntry
 
 	for rel, srcSig := range srcFiles {
@@ -116,14 +118,14 @@ func Sync(src, dst string, opts SyncOptions) (SyncResult, error) {
 		}
 	}
 
-	if err := pruneExtraDirs(dst, srcDirs, opts); err != nil {
+	if err := pruneExtraDirs(dst, srcDirs, matcher); err != nil {
 		return SyncResult{}, fmt.Errorf("sync prune directories: %w", err)
 	}
 
 	return SyncResult{SourceFileCount: len(srcFiles), Changes: changes}, nil
 }
 
-func collectTree(root string, opts SyncOptions, reporter progress.Reporter) (map[string]fileSignature, map[string]struct{}, error) {
+func collectTree(root string, matcher *skippat.Matcher, reporter progress.Reporter) (map[string]fileSignature, map[string]struct{}, error) {
 	files := make(map[string]fileSignature)
 	dirs := make(map[string]struct{})
 	reporter.BeginScan(filepath.Base(root))
@@ -141,10 +143,14 @@ func collectTree(root string, opts SyncOptions, reporter progress.Reporter) (map
 			return nil
 		}
 
-		if entry.IsDir() {
-			if shouldSkipDir(entry.Name(), rel, opts.CopyGit) {
+		if matcher.MatchEntry(rel, entry.Name(), entry.IsDir()) {
+			if entry.IsDir() {
 				return filepath.SkipDir
 			}
+			return nil
+		}
+
+		if entry.IsDir() {
 			dirs[rel] = struct{}{}
 			return nil
 		}
@@ -179,16 +185,6 @@ func collectTree(root string, opts SyncOptions, reporter progress.Reporter) (map
 	return files, dirs, nil
 }
 
-func shouldSkipDir(name, rel string, copyGit bool) bool {
-	if name == skipDirName {
-		return true
-	}
-	if !copyGit && name == gitDirName && rel == gitDirName {
-		return true
-	}
-	return false
-}
-
 func signaturesEqual(a, b fileSignature) bool {
 	if a.symlink || b.symlink {
 		return a.symlink && b.symlink && a.target == b.target
@@ -199,7 +195,7 @@ func signaturesEqual(a, b fileSignature) bool {
 	return a.modTime.Equal(b.modTime)
 }
 
-func pruneExtraDirs(dst string, srcDirs map[string]struct{}, opts SyncOptions) error {
+func pruneExtraDirs(dst string, srcDirs map[string]struct{}, matcher *skippat.Matcher) error {
 	var relDirs []string
 
 	err := filepath.WalkDir(dst, func(path string, entry fs.DirEntry, walkErr error) error {
@@ -215,7 +211,7 @@ func pruneExtraDirs(dst string, srcDirs map[string]struct{}, opts SyncOptions) e
 			return nil
 		}
 
-		if shouldSkipDir(entry.Name(), rel, opts.CopyGit) {
+		if matcher.MatchEntry(rel, entry.Name(), true) {
 			return filepath.SkipDir
 		}
 

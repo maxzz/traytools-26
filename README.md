@@ -111,10 +111,13 @@ One-way mirror of a source folder onto a destination: new and changed files are 
 - **Sync** applies those differences with per-file progress events. File metadata is preserved.
 - A pair can be given two named directions (`forwardName` / `reverseName`), e.g. *"git to test"* and *"test to git"*.
 
-**Folders that are not copied** (also left untouched on the destination):
+**Folders and files that are not copied** (also left untouched on the destination):
 
-- `node_modules` — skipped at any depth during Check and Sync.
-- `.git` at the pair root (`sourceFolder\.git` / `destFolder\.git`) — never mirrored or removed, so Git history stays local to each side.
+- Each sync item has a **skip list** of regular expressions. Check and Sync skip any file or folder whose **name** or **relative path** matches a pattern (paths use `/`). Matching folders are not entered, so their contents are neither copied nor deleted.
+- **`skipPatterns` in `sync.json`:**
+  - *omitted* (legacy files) — skip `^\.git$` and `^node_modules$` at any depth.
+  - `[]` — skip nothing; every file is copied / compared.
+  - any other array — those patterns. If the list is only the two defaults, the field is not written back.
 
 Source and destination must be different paths and neither may contain the other.
 
@@ -226,6 +229,12 @@ Groups contain items (or nested groups and separators). Item/group flags are onl
 ```
 
 ### sync.json — Folder Sync
+
+Optional per-item `skipPatterns` is an array of regular expressions.
+
+- Omit the field to keep the legacy skip of `^\.git$` and `^node_modules$`.
+- Use `"skipPatterns": []` to copy and compare every file.
+- The two default patterns are never written back; only an empty or custom list is stored.
 
 ```json
 {

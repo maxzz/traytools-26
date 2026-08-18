@@ -3,7 +3,7 @@ import { proxy, subscribe } from "valtio";
 import { appBus, syncOpsBus } from "@/bridge";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { type SyncConfig, type SyncEditorStore, type SyncSelectionPath, type SyncSource, ensureUids, parseSyncSelectionPath, selectionPathFromUid, uidFromSelectionPath } from "./9-types-sync";
-import { buildSyncFileText, captureBaselineNodes, collectNodeTextsByUid, parseSyncJson, syncDirty } from "./6-json-serialize-dirty";
+import { buildSyncFileText, captureBaselineNodes, collectNodeTextsByUid, ensureSkipPatternsOnConfig, parseSyncJson, syncDirty } from "./6-json-serialize-dirty";
 import { DEFAULT_SYNC_CONFIG } from "./8-default-config";
 
 // Store
@@ -18,6 +18,7 @@ type SyncCache = {
 
 const cached = readCache();
 const initialConfig = cached?.config ?? cloneConfig(DEFAULT_SYNC_CONFIG);
+ensureSkipPatternsOnConfig(initialConfig);
 const rootHolder = { rootUid: cached?.rootUid ?? "" };
 ensureUids(initialConfig, rootHolder);
 const initialSelectedUid = uidFromSelectionPath(

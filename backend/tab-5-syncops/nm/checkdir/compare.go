@@ -8,11 +8,7 @@ import (
 	"time"
 
 	"traytools-26-go/backend/tab-5-syncops/nm/progress"
-)
-
-const (
-	skipNodeModules = "node_modules"
-	skipGit         = ".git"
+	"traytools-26-go/backend/tab-5-syncops/nm/skippat"
 )
 
 type fileSignature struct {
@@ -29,10 +25,10 @@ type CompareResult struct {
 }
 
 // Compare checks files under src and dst by size and modification time.
-// Directories named node_modules or .git are excluded at any depth.
-// Differences are returned in CompareResult rather than as errors.
+// skipPatterns are regular expressions; see skippat. Matching directories are
+// not descended into. Differences are returned in CompareResult rather than as errors.
 // Pass nil for reporter when no progress output is needed.
-func Compare(src, dst string, reporter progress.Reporter) (CompareResult, error) {
+func Compare(src, dst string, reporter progress.Reporter, skipPatterns []string) (CompareResult, error) {
 	src = filepath.Clean(src)
 	dst = filepath.Clean(dst)
 
@@ -40,13 +36,18 @@ func Compare(src, dst string, reporter progress.Reporter) (CompareResult, error)
 		reporter = progress.NopReporter{}
 	}
 
-	srcFiles, err := collectFiles(src, reporter)
+	matcher, err := skippat.Compile(skippat.Resolve(skipPatterns))
+	if err != nil {
+		return CompareResult{}, err
+	}
+
+	srcFiles, err := collectFiles(src, reporter, matcher)
 	if err != nil {
 		return CompareResult{}, fmt.Errorf("scan source: %w", err)
 	}
 
 	// Destination is scanned silently so folder lines and totals are not duplicated.
-	dstFiles, err := collectFiles(dst, progress.NopReporter{})
+	dstFiles, err := collectFiles(dst, progress.NopReporter{}, matcher)
 	if err != nil {
 		return CompareResult{}, fmt.Errorf("scan destination: %w", err)
 	}
@@ -82,7 +83,7 @@ func diffFiles(srcFiles, dstFiles map[string]fileSignature) []progress.ChangeEnt
 	return changes
 }
 
-func collectFiles(root string, reporter progress.Reporter) (map[string]fileSignature, error) {
+func collectFiles(root string, reporter progress.Reporter, matcher *skippat.Matcher) (map[string]fileSignature, error) {
 	files := make(map[string]fileSignature)
 	rootLabel := filepath.Base(root)
 	reporter.BeginScan(rootLabel)
@@ -92,16 +93,20 @@ func collectFiles(root string, reporter progress.Reporter) (map[string]fileSigna
 			return walkErr
 		}
 
-		if entry.IsDir() {
-			if entry.Name() == skipNodeModules || entry.Name() == skipGit {
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+
+		if matcher.MatchEntry(rel, entry.Name(), entry.IsDir()) {
+			if entry.IsDir() {
 				return filepath.SkipDir
 			}
 			return nil
 		}
 
-		rel, err := filepath.Rel(root, path)
-		if err != nil {
-			return err
+		if entry.IsDir() {
+			return nil
 		}
 
 		reporter.RecordFile(rel)
