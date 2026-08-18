@@ -69,13 +69,12 @@ function loadSettings(): AppSettings {
     try {
         const stored = localStorage.getItem(STORAGE_ID);
         if (stored) {
-            const parsed = JSON.parse(stored) as Partial<AppSettings> & { skipPatternMru?: unknown };
-            const { skipPatternMru: _legacySkipPatternMru, ...rest } = parsed;
-
+            const parsed = JSON.parse(stored) as Partial<AppSettings>;
+            
             // merge stored settings with defaults to ensure new fields are present
             return {
                 ...DEFAULT_SETTINGS,
-                ...rest,
+                ...parsed,
                 panelSizes: getValidPanelSizes(parsed.panelSizes),
                 expandedSections: parsed.expandedSections ?? DEFAULT_SETTINGS.expandedSections,
                 mainTab: parsed.mainTab ?? DEFAULT_SETTINGS.mainTab,
