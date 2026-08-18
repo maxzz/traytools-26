@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
@@ -20,10 +21,11 @@ import {
 export function SkipListDialog() {
     const [payload, setPayload] = useAtom(skipListDialogAtom);
     const hasInvalid = useAtomValue(skipListHasInvalidAtom);
+    const [focusRowId, setFocusRowId] = useState<string | null>(null);
     const open = payload != null;
 
     return (
-        <Dialog open={open} onOpenChange={(next) => { if (!next) setPayload(null); }}>
+        <Dialog open={open} onOpenChange={(next) => { if (!next) { setPayload(null); setFocusRowId(null); } }}>
             <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID}>
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm font-condensed font-normal select-none">
@@ -53,7 +55,7 @@ export function SkipListDialog() {
                             <div className="flex flex-col gap-1">
                                 {payload.rows.map(
                                     (row, index) => (
-                                        <SkipPatternRow key={row.id} id={row.id} index={index} pattern={row.pattern} />
+                                        <SkipPatternRow key={row.id} id={row.id} index={index} pattern={row.pattern} autoFocus={row.id === focusRowId} />
                                     )
                                 )}
                             </div>
@@ -62,7 +64,7 @@ export function SkipListDialog() {
                 </ScrollArea2>
 
                 <div className="px-4 pb-2 flex items-center gap-1.5">
-                    <Button type="button" variant="outline" size="xs" onClick={() => addSkipListRow()}>
+                    <Button type="button" variant="outline" size="xs" onClick={() => { const id = addSkipListRow(); if (id) setFocusRowId(id); }}>
                         <Plus className="size-3" />
                         Add pattern
                     </Button>
@@ -87,7 +89,7 @@ export function SkipListDialog() {
     );
 }
 
-function SkipPatternRow({ id, index, pattern }: { id: string; index: number; pattern: string; }) {
+function SkipPatternRow({ id, index, pattern, autoFocus }: { id: string; index: number; pattern: string; autoFocus?: boolean; }) {
     const error = skipPatternError(pattern);
 
     return (
@@ -96,6 +98,7 @@ function SkipPatternRow({ id, index, pattern }: { id: string; index: number; pat
                 <Input
                     className="h-7"
                     value={pattern}
+                    autoFocus={autoFocus}
                     aria-label={`Skip pattern ${index + 1}`}
                     aria-invalid={error ? true : undefined}
                     // placeholder="e.g. ^build$ or \.log$"

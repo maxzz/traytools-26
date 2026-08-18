@@ -57,16 +57,18 @@ export function setSkipListRowPattern(id: string, pattern: string): void {
     });
 }
 
-export function addSkipListRow(): void {
+export function addSkipListRow(): string | undefined {
     const store = getDefaultStore();
     const dlg = store.get(skipListDialogAtom);
     if (!dlg) {
         return;
     }
+    const id = newRowId();
     store.set(skipListDialogAtom, {
         ...dlg,
-        rows: [...dlg.rows, { id: newRowId(), pattern: "" }],
+        rows: [...dlg.rows, { id, pattern: "" }],
     });
+    return id;
 }
 
 export function removeSkipListRow(id: string): void {
