@@ -6,14 +6,8 @@ import { type ComboMruKey } from "./3-combo-mru";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
-import {
-    closeComboMru,
-    comboMruOpenKey,
-    comboMruStore,
-    comboMruUi,
-    rememberComboMru,
-    removeComboMru,
-} from "./a-combo-mru-store";
+import { comboMruStore } from "./a-combo-mru-store";
+import { closeComboMru, comboMruOpenKey, comboMruUi, rememberComboMru, removeComboMru } from "./a-combo-mru-ui";
 
 type ComboMruInputProps = Omit<ComponentProps<"input">, "value" | "onChange"> & {
     listId: ComboMruKey;
