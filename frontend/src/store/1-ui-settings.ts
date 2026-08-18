@@ -2,6 +2,7 @@ import { proxy, subscribe } from 'valtio';
 import { WindowSetAlwaysOnTop } from '../../wailsjs/runtime/runtime';
 import { type ThemeMode, themeApplyMode } from '../utils/theme-apply';
 import { type PanelSizes, getValidPanelSizes } from './2-panel-sizes';
+import { parseMruList } from './3-combo-mru';
 
 const STORE_KEY = "traytools-26";
 const STORE_VER = "v1.0";
@@ -36,6 +37,8 @@ export interface AppSettings {
      */
     propsMoreExpanded: boolean;
     windowHighlight: WindowHighlightSettings;
+    /** Most-recently-used skip-list regex patterns (newest first). Capped at 10. */
+    skipPatternMru: string[];
 }
 
 const DEFAULT_WINDOW_HIGHLIGHT: WindowHighlightSettings = {
@@ -61,6 +64,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     syncCheckDetailsInPanel: false,
     propsMoreExpanded: false,
     windowHighlight: { ...DEFAULT_WINDOW_HIGHLIGHT },
+    skipPatternMru: ["^\\.git$", "^node_modules$"],
 };
 
 // Load settings from localStorage
@@ -89,12 +93,21 @@ function loadSettings(): AppSettings {
                     ...DEFAULT_WINDOW_HIGHLIGHT,
                     ...parsed.windowHighlight,
                 },
+                skipPatternMru: parsed.skipPatternMru !== undefined
+                    ? parseMruList(parsed.skipPatternMru)
+                    : [...DEFAULT_SETTINGS.skipPatternMru],
             };
         }
     } catch (e) {
         console.error("Failed to load settings", e);
     }
-    return { ...DEFAULT_SETTINGS };
+    return {
+        ...DEFAULT_SETTINGS,
+        panelSizes: getValidPanelSizes(),
+        expandedSections: [...DEFAULT_SETTINGS.expandedSections],
+        windowHighlight: { ...DEFAULT_WINDOW_HIGHLIGHT },
+        skipPatternMru: [...DEFAULT_SETTINGS.skipPatternMru],
+    };
 }
 
 function applyStayOnTop(stayOnTop: boolean) {

@@ -2,11 +2,10 @@ import { useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
-import { Input } from "@/ui/shadcn/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
-import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
-import { skipPatternError } from "./b-1-skip-patterns";
+import { ComboMruInput, COMBO_MRU, isComboMruPopupTarget } from "@/ui/combo-mru";
+import { skipPatternDisplayLabel, skipPatternError } from "./b-1-skip-patterns";
 import {
     addSkipListRow,
     applySkipListDialog,
@@ -26,7 +25,20 @@ export function SkipListDialog() {
 
     return (
         <Dialog open={open} onOpenChange={(next) => { if (!next) { setPayload(null); setFocusRowId(null); } }}>
-            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID}>
+            <DialogContent
+                className="p-0! max-w-sm! gap-0!"
+                aria-describedby={DESCRIPTION_ID}
+                onPointerDownOutside={(e) => {
+                    if (isComboMruPopupTarget(e.target)) {
+                        e.preventDefault();
+                    }
+                }}
+                onFocusOutside={(e) => {
+                    if (isComboMruPopupTarget(e.target)) {
+                        e.preventDefault();
+                    }
+                }}
+            >
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm font-condensed font-normal select-none">
                         Skip list
@@ -95,15 +107,18 @@ function SkipPatternRow({ id, index, pattern, autoFocus }: { id: string; index: 
     return (
         <div className="flex flex-col gap-0.5">
             <div className="flex items-start gap-1">
-                <Input
-                    className="h-7"
+                <ComboMruInput
+                    listId={COMBO_MRU.skipPatterns}
+                    instanceId={id}
                     value={pattern}
                     autoFocus={autoFocus}
                     aria-label={`Skip pattern ${index + 1}`}
                     aria-invalid={error ? true : undefined}
-                    // placeholder="e.g. ^build$ or \.log$"
-                    onChange={(e) => setSkipListRowPattern(id, e.target.value)}
-                    {...turnOffAutoComplete}
+                    recentLabel="Recent patterns"
+                    emptyLabel="No recent patterns"
+                    itemLabel={skipPatternDisplayLabel}
+                    canRemember={(next) => skipPatternError(next) == null}
+                    onValueChange={(next) => setSkipListRowPattern(id, next)}
                 />
 
                 <Button

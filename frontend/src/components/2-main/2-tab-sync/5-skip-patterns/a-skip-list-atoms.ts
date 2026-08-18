@@ -1,4 +1,6 @@
 import { atom, getDefaultStore } from "jotai";
+import { COMBO_MRU } from "@/store/3-combo-mru";
+import { rememberComboMruMany } from "@/ui/combo-mru/a-combo-mru-store";
 import { findByUid } from "../a-atoms/9-types-sync";
 import { syncEditorStore } from "../a-atoms/0-sync-local-storage";
 import {
@@ -120,6 +122,7 @@ export function applySkipListDialog(): boolean {
         // [] is stored as-is (copy everything). The default pair is stored in
         // memory for the UI but omitted from sync.json on save.
         loc.item.skipPatterns = cleaned;
+        rememberComboMruMany(COMBO_MRU.skipPatterns, cleaned);
     }
 
     store.set(skipListDialogAtom, null);
