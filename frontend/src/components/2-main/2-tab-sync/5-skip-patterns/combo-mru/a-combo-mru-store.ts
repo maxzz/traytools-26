@@ -1,6 +1,6 @@
 import { proxy } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
-import { dropMru, pushMru, type ComboMruKey } from "@/store/3-combo-mru";
+import { dropMru, pushMru, type ComboMruKey } from "@/components/2-main/2-tab-sync/5-skip-patterns/combo-mru/3-combo-mru";
 
 /** Transient combo popup state. Not persisted. */
 export const comboMruUi = proxy({

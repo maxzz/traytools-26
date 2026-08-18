@@ -2,7 +2,7 @@ import { proxy, subscribe } from 'valtio';
 import { WindowSetAlwaysOnTop } from '../../wailsjs/runtime/runtime';
 import { type ThemeMode, themeApplyMode } from '../utils/theme-apply';
 import { type PanelSizes, getValidPanelSizes } from './2-panel-sizes';
-import { parseMruList } from './3-combo-mru';
+import { parseMruList } from '../components/2-main/2-tab-sync/5-skip-patterns/combo-mru/3-combo-mru';
 
 const STORE_KEY = "traytools-26";
 const STORE_VER = "v1.0";

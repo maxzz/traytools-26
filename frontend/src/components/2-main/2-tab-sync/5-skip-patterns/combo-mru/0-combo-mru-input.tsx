@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio";
 import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { appSettings } from "@/store/1-ui-settings";
-import { type ComboMruKey } from "@/store/3-combo-mru";
+import { type ComboMruKey } from "@/components/2-main/2-tab-sync/5-skip-patterns/combo-mru/3-combo-mru";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
