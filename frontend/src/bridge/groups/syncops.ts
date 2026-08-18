@@ -21,6 +21,8 @@ export type SyncOpsPickResponse = {
 export type SyncFolderPairRequest = {
     sourceFolder: string;
     destFolder: string;
+    /** Regular expressions to skip. Omitted → backend defaults (.git, node_modules). [] → skip nothing. */
+    skipPatterns?: string[];
 };
 
 export type SyncChangeDTO = {

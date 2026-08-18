@@ -35,6 +35,10 @@ type NormalizeDropPathResponse struct {
 type FolderPairRequest struct {
 	SourceFolder string `json:"sourceFolder"`
 	DestFolder   string `json:"destFolder"`
+	// SkipPatterns are regular expressions matched against each file/folder
+	// name and its path relative to the pair root. Omitted (nil) uses the
+	// default .git / node_modules skip list. An empty slice skips nothing.
+	SkipPatterns []string `json:"skipPatterns"`
 }
 
 /** TreeReportDTO and ChangeDTO are used to report the changes in the tree. DTO stands for Data Transfer Object. */

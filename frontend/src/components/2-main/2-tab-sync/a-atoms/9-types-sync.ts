@@ -1,3 +1,5 @@
+import { defaultSkipPatterns } from "../5-skip-patterns/b-skip-patterns";
+
 // Editable model for sync.json. Top-level groups sit under a fixed "Groups"
 // root. Each group's `items` is an ordered list of sync-operation items, nested
 // groups, and/or separators (source folder ↔ destination folder).
@@ -9,6 +11,12 @@ export type SyncOpItem = {
     forwardName?: string;  // Optional tooltip label for Sync → (source → destination). Omitted from sync.json when empty.
     reverseName?: string;  // Optional tooltip label for Sync ← (destination → source). Omitted from sync.json when empty.
     comment?: string;      // Optional note stored in sync.json; omitted when empty.
+    /**
+     * Regular expressions skipped during Check and Sync. Omitted from sync.json
+     * when equal to the built-in `^\.git$` / `^node_modules$` list. An empty
+     * array means skip nothing.
+     */
+    skipPatterns?: string[];
     uid?: string;          // Runtime-only identity for selection / DnD; stripped on serialize.
 };
 
@@ -150,6 +158,7 @@ export function createItem(): SyncOpItem {
         uid: newUid(),
         sourceFolder: "",
         destFolder: "",
+        skipPatterns: defaultSkipPatterns(),
     };
 }
 

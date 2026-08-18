@@ -12,6 +12,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { type SyncOpItem, itemLabel } from "./9-types-sync";
 import { type ChangeCounts, countChangeMarkers } from "./format-change-breakdown";
+import { resolvedSkipPatterns } from "../5-skip-patterns/b-skip-patterns";
 
 export type SyncJobKind = "sync" | "check" | "check-details";
 
@@ -165,7 +166,11 @@ export function runSyncItem(item: SyncOpItem, direction: "forward" | "reverse" =
         });
 
         try {
-            const res = await syncOpsBus.sync({ sourceFolder, destFolder });
+            const res = await syncOpsBus.sync({
+                sourceFolder,
+                destFolder,
+                skipPatterns: resolvedSkipPatterns(item.skipPatterns),
+            });
             if (res.error && !res.jobId) {
                 unsubProgress();
                 unsubDone();
@@ -231,7 +236,11 @@ export function runCheck(item: SyncOpItem, mode: SyncCheckMode): void {
         }
 
         try {
-            const res = await syncOpsBus.check({ sourceFolder, destFolder });
+            const res = await syncOpsBus.check({
+                sourceFolder,
+                destFolder,
+                skipPatterns: resolvedSkipPatterns(item.skipPatterns),
+            });
             if (!inPanel) {
                 getDefaultStore().set(checkDetailsDialogAtom, { label, sourceFolder, destFolder, response: res });
                 return;

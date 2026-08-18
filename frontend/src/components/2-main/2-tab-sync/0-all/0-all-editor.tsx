@@ -10,6 +10,7 @@ import { SyncOperationsToolbar } from "./1-1-sync-toolbar";
 import { TreeViewMenu } from "../2-tree/2-1-tree-menu";
 import { SyncReportPanel } from "../4-report/4-0-report-sync";
 import { CheckDetailsDialog } from "../4-report/4-2-check-details-dialog";
+import { SkipListDialog } from "../5-skip-patterns";
 import { initPathDropListener } from "@/components/2-main/a-shared/props-5-path-input";
 
 export function Page_Sync() {
@@ -65,6 +66,7 @@ export function Page_Sync() {
             </ResizablePanelGroup>
 
             <CheckDetailsDialog />
+            <SkipListDialog />
         </div>
     );
 }

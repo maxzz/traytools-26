@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"traytools-26-go/backend/tab-5-syncops/nm/skippat"
 	syncdir "traytools-26-go/backend/tab-5-syncops/nm/syncdir"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -29,8 +30,8 @@ func (m *Manager) runSyncJob(jobID string, req FolderPairRequest) {
 	m.emitProgress(ProgressEvent{JobID: jobID, Message: fmt.Sprintf("Syncing %s → %s…", srcLabel, filepath.Base(dst))})
 
 	result, err := syncdir.Sync(src, dst, syncdir.SyncOptions{
-		CopyGit:  false,
-		Reporter: reporter,
+		SkipPatterns: skippat.Resolve(req.SkipPatterns),
+		Reporter:     reporter,
 	})
 	if err != nil {
 		m.emitJobDone(JobDoneEvent{JobID: jobID, Error: err.Error()})
