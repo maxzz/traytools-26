@@ -12,9 +12,9 @@ export type SyncOpItem = {
     reverseName?: string;  // Optional tooltip label for Sync ← (destination → source). Omitted from sync.json when empty.
     comment?: string;      // Optional note stored in sync.json; omitted when empty.
     /**
-     * Regular expressions skipped during Check and Sync. Omitted from sync.json
-     * when equal to the built-in `^\.git$` / `^node_modules$` list. An empty
-     * array means skip nothing.
+     * Regular expressions skipped during Check and Sync.
+     * Omitted from sync.json (and treated as omitted when missing) → skip `.git` and `node_modules`.
+     * `[]` → skip nothing. The two default patterns are never written to the file.
      */
     skipPatterns?: string[];
     uid?: string;          // Runtime-only identity for selection / DnD; stripped on serialize.

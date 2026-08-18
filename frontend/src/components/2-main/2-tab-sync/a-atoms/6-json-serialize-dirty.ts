@@ -1,5 +1,5 @@
 import { normalizeOptionalComment } from "@/components/2-main/a-shared/props-3-field-comment";
-import { isDefaultSkipPatterns, sanitizeSkipPatterns, skipPatternsFromUnknown } from "../5-skip-patterns/b-skip-patterns";
+import { skipPatternsFromUnknown, skipPatternsToJson } from "../5-skip-patterns/b-skip-patterns";
 import {
     type SyncConfig,
     type SyncEditorStore,
@@ -66,12 +66,9 @@ function jsonReplacer(this: SyncGroup | SyncOpItem, key: string, value: unknown)
     if (key === "comment") {
         return typeof value === "string" && value.trim() === "" ? undefined : value;
     }
-    if (key === "skipPatterns" && isSyncOpItem(this as SyncNode)) {
-        const cleaned = sanitizeSkipPatterns(value);
-        if (isDefaultSkipPatterns(cleaned)) {
-            return undefined;
-        }
-        return cleaned;
+    // Missing field / default .git+node_modules list → omit. [] → persist [] (copy all).
+    if (key === "skipPatterns") {
+        return skipPatternsToJson(value);
     }
     if (
         key === "sourceFolder"

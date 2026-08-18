@@ -7,4 +7,5 @@ export {
     resolvedSkipPatterns,
     sanitizeSkipPatterns,
     skipPatternsFromUnknown,
+    skipPatternsToJson,
 } from "./b-skip-patterns";

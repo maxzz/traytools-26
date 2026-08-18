@@ -30,7 +30,7 @@ func (m *Manager) runSyncJob(jobID string, req FolderPairRequest) {
 	m.emitProgress(ProgressEvent{JobID: jobID, Message: fmt.Sprintf("Syncing %s → %s…", srcLabel, filepath.Base(dst))})
 
 	result, err := syncdir.Sync(src, dst, syncdir.SyncOptions{
-		SkipPatterns: skippat.Resolve(req.SkipPatterns),
+		SkipPatterns: skippat.FromOptional(req.SkipPatterns),
 		Reporter:     reporter,
 	})
 	if err != nil {

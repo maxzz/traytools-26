@@ -6,6 +6,7 @@ import {
     sanitizeSkipPatterns,
     skipPatternError,
     skipPatternsFromUnknown,
+    skipPatternsToJson,
     skipListSummary,
 } from "./b-skip-patterns";
 
@@ -46,10 +47,27 @@ describe("resolvedSkipPatterns", () => {
 });
 
 describe("isDefaultSkipPatterns", () => {
-    it("matches the built-in list", () => {
+    it("matches the built-in list in either order", () => {
         expect(isDefaultSkipPatterns([...DEFAULT_SKIP_PATTERNS])).toBe(true);
+        expect(isDefaultSkipPatterns(["^node_modules$", "^\\.git$"])).toBe(true);
         expect(isDefaultSkipPatterns([])).toBe(false);
         expect(isDefaultSkipPatterns(["^build$"])).toBe(false);
+    });
+});
+
+describe("skipPatternsToJson", () => {
+    it("omits the field for the built-in default list", () => {
+        expect(skipPatternsToJson([...DEFAULT_SKIP_PATTERNS])).toBeUndefined();
+        expect(skipPatternsToJson(["^node_modules$", "^\\.git$"])).toBeUndefined();
+        expect(skipPatternsToJson(undefined)).toBeUndefined();
+    });
+
+    it("writes an empty array when skip nothing is requested", () => {
+        expect(skipPatternsToJson([])).toEqual([]);
+    });
+
+    it("writes a custom list as-is", () => {
+        expect(skipPatternsToJson(["^build$", "\\.log$"])).toEqual(["^build$", "\\.log$"]);
     });
 });
 

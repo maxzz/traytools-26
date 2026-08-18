@@ -5,13 +5,31 @@ export function defaultSkipPatterns(): string[] {
     return [...DEFAULT_SKIP_PATTERNS];
 }
 
+function toUnknownArray(raw: unknown): unknown[] | undefined {
+    if (raw == null) {
+        return undefined;
+    }
+    if (Array.isArray(raw)) {
+        return raw;
+    }
+    if (typeof raw === "object" && typeof (raw as { length?: unknown; }).length === "number") {
+        try {
+            return Array.from(raw as ArrayLike<unknown>);
+        } catch {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
 /** Trim strings and drop blanks. A non-array becomes an empty list (skip nothing). */
 export function sanitizeSkipPatterns(raw: unknown): string[] {
-    if (!Array.isArray(raw)) {
+    const list = toUnknownArray(raw);
+    if (!list) {
         return [];
     }
     const out: string[] = [];
-    for (const entry of raw) {
+    for (const entry of list) {
         if (typeof entry !== "string") {
             continue;
         }
@@ -24,13 +42,34 @@ export function sanitizeSkipPatterns(raw: unknown): string[] {
 }
 
 /**
- * JSON field rules: missing / null → built-in defaults; present array (including []) → sanitized.
+ * JSON load:
+ * - field missing / null / non-array → built-in `.git` / `node_modules` skip list
+ * - `[]` → skip nothing (copy everything)
+ * - any other array → that list
  */
 export function skipPatternsFromUnknown(raw: unknown, present: boolean): string[] {
-    if (!present || raw == null || !Array.isArray(raw)) {
+    if (!present || raw == null || toUnknownArray(raw) === undefined) {
         return defaultSkipPatterns();
     }
     return sanitizeSkipPatterns(raw);
+}
+
+/**
+ * JSON save:
+ * - built-in default list (same two patterns, any order) → omit the field (`undefined`)
+ * - `[]` → write `[]` (copy everything)
+ * - any other list → write as-is
+ */
+export function skipPatternsToJson(raw: unknown): string[] | undefined {
+    const list = toUnknownArray(raw);
+    if (list === undefined) {
+        return undefined;
+    }
+    const cleaned = sanitizeSkipPatterns(list);
+    if (isDefaultSkipPatterns(cleaned)) {
+        return undefined;
+    }
+    return cleaned;
 }
 
 export function skipPatternsEqual(a: readonly string[] | undefined, b: readonly string[]): boolean {
@@ -46,11 +85,19 @@ export function skipPatternsEqual(a: readonly string[] | undefined, b: readonly 
     return true;
 }
 
+/** True when `patterns` is exactly the built-in .git / node_modules pair (order does not matter). */
 export function isDefaultSkipPatterns(patterns: readonly string[] | undefined): boolean {
-    return skipPatternsEqual(patterns, DEFAULT_SKIP_PATTERNS);
+    if (!patterns || patterns.length !== DEFAULT_SKIP_PATTERNS.length) {
+        return false;
+    }
+    const want = new Set<string>(DEFAULT_SKIP_PATTERNS);
+    if (new Set(patterns).size !== want.size) {
+        return false;
+    }
+    return patterns.every((p) => want.has(p));
 }
 
-/** Patterns sent to the backend. Missing on the item means the built-in defaults. */
+/** Patterns sent to Check/Sync. Missing on the item means the built-in defaults. `[]` means skip nothing. */
 export function resolvedSkipPatterns(patterns: readonly string[] | undefined): string[] {
     if (patterns == null) {
         return defaultSkipPatterns();

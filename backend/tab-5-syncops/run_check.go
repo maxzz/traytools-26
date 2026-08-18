@@ -20,7 +20,7 @@ func (m *Manager) runCheck(req FolderPairRequest) (CheckResponse, error) {
 	srcLabel := filepath.Base(src)
 	reporter := newCollectingReporter(srcLabel)
 
-	result, err := checkdir.Compare(src, dst, reporter, skippat.Resolve(req.SkipPatterns))
+	result, err := checkdir.Compare(src, dst, reporter, skippat.FromOptional(req.SkipPatterns))
 	if err != nil {
 		return CheckResponse{}, err
 	}

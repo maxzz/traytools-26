@@ -27,6 +27,15 @@ func Resolve(patterns []string) []string {
 	return patterns
 }
 
+// FromOptional maps a JSON field onto Resolve:
+// nil pointer (omitted) → defaults; pointer to a slice (including empty) → that slice.
+func FromOptional(patterns *[]string) []string {
+	if patterns == nil {
+		return Resolve(nil)
+	}
+	return Resolve(*patterns)
+}
+
 // Compile builds a matcher. Empty patterns are ignored. Matching is
 // case-insensitive so Windows file names behave as expected.
 func Compile(patterns []string) (*Matcher, error) {

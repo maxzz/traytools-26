@@ -71,6 +71,17 @@ func TestMatchPathPrefix(t *testing.T) {
 	}
 }
 
+func TestFromOptional(t *testing.T) {
+	if got := FromOptional(nil); len(got) != 2 {
+		t.Fatalf("nil pointer → defaults, got %#v", got)
+	}
+	empty := []string{}
+	got := FromOptional(&empty)
+	if got == nil || len(got) != 0 {
+		t.Fatalf("empty slice pointer → skip nothing, got %#v", got)
+	}
+}
+
 func TestCompileInvalid(t *testing.T) {
 	if _, err := Compile([]string{`(`}); err == nil {
 		t.Fatal("expected invalid pattern error")

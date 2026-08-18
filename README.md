@@ -114,8 +114,10 @@ One-way mirror of a source folder onto a destination: new and changed files are 
 **Folders and files that are not copied** (also left untouched on the destination):
 
 - Each sync item has a **skip list** of regular expressions. Check and Sync skip any file or folder whose **name** or **relative path** matches a pattern (paths use `/`). Matching folders are not entered, so their contents are neither copied nor deleted.
-- The default list is `^\.git$` and `^node_modules$` (any depth). Edit it from the item’s **Skip list** field. An empty list skips nothing.
-- When the list is still the default, `sync.json` omits `skipPatterns` so existing files stay unchanged.
+- **`skipPatterns` in `sync.json`:**
+  - *omitted* (legacy files) — skip `^\.git$` and `^node_modules$` at any depth.
+  - `[]` — skip nothing; every file is copied / compared.
+  - any other array — those patterns. If the list is only the two defaults, the field is not written back.
 
 Source and destination must be different paths and neither may contain the other.
 
@@ -228,7 +230,11 @@ Groups contain items (or nested groups and separators). Item/group flags are onl
 
 ### sync.json — Folder Sync
 
-Optional per-item `skipPatterns` is an array of regular expressions. Omit it to use `^\.git$` and `^node_modules$`; use `[]` to skip nothing.
+Optional per-item `skipPatterns` is an array of regular expressions.
+
+- Omit the field to keep the legacy skip of `^\.git$` and `^node_modules$`.
+- Use `"skipPatterns": []` to copy and compare every file.
+- The two default patterns are never written back; only an empty or custom list is stored.
 
 ```json
 {

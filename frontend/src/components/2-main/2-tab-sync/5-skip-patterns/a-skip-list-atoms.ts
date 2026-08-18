@@ -114,7 +114,10 @@ export function applySkipListDialog(): boolean {
 
     const loc = findByUid(syncEditorStore.config, dlg.itemUid);
     if (loc?.kind === "item") {
-        loc.item.skipPatterns = sanitizeSkipPatterns(dlg.rows.map((row) => row.pattern));
+        const cleaned = sanitizeSkipPatterns(dlg.rows.map((row) => row.pattern));
+        // [] is stored as-is (copy everything). The default pair is stored in
+        // memory for the UI but omitted from sync.json on save.
+        loc.item.skipPatterns = cleaned;
     }
 
     store.set(skipListDialogAtom, null);
