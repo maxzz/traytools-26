@@ -1,6 +1,6 @@
 import { atom, getDefaultStore } from "jotai";
 import { COMBO_MRU } from "@/store/3-combo-mru";
-import { rememberComboMruMany } from "@/components/2-main/2-tab-sync/5-skip-patterns/combo-mru/a-combo-mru-store";
+import { rememberComboMruMany } from "./combo-mru/a-combo-mru-store";
 import { findByUid } from "../a-atoms/9-types-sync";
 import { syncEditorStore } from "../a-atoms/0-sync-local-storage";
 import {
