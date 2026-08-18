@@ -20,13 +20,13 @@ export function SkipListField({ item }: { item: SyncOpItem; }) {
             )}
         >
             <Button
-                type="button"
+                className="w-full h-auto min-h-7 px-2 py-1 justify-start font-normal whitespace-normal flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-left active:not-aria-[haspopup]:scale-100"
                 variant="outline"
                 size="xs"
-                className="w-full h-auto min-h-7 px-2 py-1 justify-start font-normal font-mono whitespace-normal flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-left"
+                onClick={() => uid && openSkipListDialog(uid, item.skipPatterns)}
                 disabled={!uid}
                 title={summary}
-                onClick={() => uid && openSkipListDialog(uid, item.skipPatterns)}
+                type="button"
             >
                 <SkipListButtonItems patterns={patterns} />
             </Button>
@@ -42,14 +42,14 @@ function SkipListButtonItems({ patterns }: { patterns: readonly string[]; }) {
         return <span>Default: .git, node_modules</span>;
     }
 
-    return patterns.map((pattern, index) => (
-        <span key={`${index}:${pattern}`} className="flex max-w-full items-center gap-x-1.5">
-            {index > 0 && (
-                <span className="text-muted-foreground select-none" aria-hidden>
-                    ·
+    return patterns.map(
+        (pattern, index) => (
+            <span key={`${index}:${pattern}`} className="flex max-w-full items-center">
+                <span className="select-none" aria-hidden>
+                    💠
                 </span>
-            )}
-            <span className="min-w-0 break-all">{pattern}</span>
-        </span>
-    ));
+                <span className="min-w-0 break-all">{pattern}</span>
+            </span>
+        )
+    );
 }
