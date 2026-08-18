@@ -36,7 +36,7 @@ export function SkipListDialog() {
 
                 <p id={DESCRIPTION_ID} className="px-4 pt-3 text-[0.7rem] text-muted-foreground leading-4">
                     Each pattern is a regular expression, matched without case against the file or folder
-                    name and its path relative to the pair root (use <span className="font-mono">/</span> in paths).
+                    name and its path relative to the pair root (use <span className="font-mono text-foreground">/</span> in paths).
                     A matching folder is not entered; matching destination files are left untouched.
                     An empty list skips nothing.
                 </p>

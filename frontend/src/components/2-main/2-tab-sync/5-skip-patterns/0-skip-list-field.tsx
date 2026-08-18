@@ -13,9 +13,12 @@ export function SkipListField({ item }: { item: SyncOpItem; }) {
         <LabelAndField
             label="Skip list"
             labelHint={(
-                <InfoTooltip label="Skip list help" contentClasses="max-w-64">
-                    Regular expressions for files and folders ignored during Check and Sync.
-                    Defaults are .git and node_modules. An empty list skips nothing.
+                <InfoTooltip label="Skip list help" contentClasses="max-w-64 font-light rounded-md">
+                    Regular expressions for files and folders ignored during scanning and synchronization.
+                    <br />
+                    Defaults are 💠.git and 💠node_modules.
+                    <br />
+                    An empty list skips nothing.
                 </InfoTooltip>
             )}
         >
@@ -40,7 +43,7 @@ function SkipListButtonItems({ patterns }: { patterns: readonly string[]; }) {
     }
 
     if (isDefaultSkipPatterns(patterns)) {
-        return <span>Default: skip only 💠 .git, 💠node_modules</span>;
+        return <span>Default: skip only 💠.git, 💠node_modules</span>;
     }
 
     return patterns.map(
