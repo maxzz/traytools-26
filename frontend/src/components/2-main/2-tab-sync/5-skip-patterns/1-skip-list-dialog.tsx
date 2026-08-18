@@ -34,7 +34,7 @@ export function SkipListDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <p id={DESCRIPTION_ID} className="px-4 pt-3 text-[0.7rem] text-muted-foreground leading-4">
+                <p id={DESCRIPTION_ID} className="px-4 pt-3 text-[0.65rem] text-muted-foreground leading-4">
                     Each pattern is a regular expression, matched without case against the file or folder
                     name and its path relative to the pair root (use <span className="font-mono text-foreground">/</span> in paths).
                     A matching folder is not entered; matching destination files are left untouched.
@@ -44,8 +44,8 @@ export function SkipListDialog() {
                 <ScrollArea2 className="max-h-[min(60vh,24rem)]">
                     <div className="px-4 py-3">
                         {payload && payload.rows.length === 0 && (
-                            <div className="py-4 text-xs text-muted-foreground">
-                                No skip patterns. Check and Sync will consider every file and folder.
+                            <div className="py-4 text-xs">
+                                If no exclusion patterns are specified, Check and Synch operations will include all files and folders.
                             </div>
                         )}
 
