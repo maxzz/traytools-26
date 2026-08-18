@@ -1,9 +1,9 @@
 /** Cap for each combo MRU list (newest first). */
 export const COMBO_MRU_MAX = 10;
 
-/** AppSettings keys that hold combo MRU string lists. */
+/** Named combo MRU lists. */
 export const COMBO_MRU = {
-    skipPatterns: "skipPatternMru",
+    skipPatterns: "skipPatterns",
 } as const;
 
 export type ComboMruKey = (typeof COMBO_MRU)[keyof typeof COMBO_MRU];

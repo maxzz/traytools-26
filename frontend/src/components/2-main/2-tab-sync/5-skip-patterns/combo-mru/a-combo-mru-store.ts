@@ -1,6 +1,83 @@
-import { proxy } from "valtio";
-import { appSettings } from "@/store/1-ui-settings";
-import { dropMru, pushMru, type ComboMruKey } from "@/components/2-main/2-tab-sync/5-skip-patterns/combo-mru/3-combo-mru";
+import { proxy, subscribe } from "valtio";
+import { dropMru, parseMruList, pushMru, type ComboMruKey } from "./3-combo-mru";
+
+const STORAGE_ID = "traytools-26__combo-mru__v1.0";
+const LEGACY_APP_SETTINGS_ID = "traytools-26__v1.0";
+
+const DEFAULT_SKIP_PATTERN_MRU = ["^\\.git$", "^node_modules$"];
+
+export type ComboMruLists = {
+    [K in ComboMruKey]: string[];
+};
+
+function defaultLists(): ComboMruLists {
+    return {
+        skipPatterns: [...DEFAULT_SKIP_PATTERN_MRU],
+    };
+}
+
+function listsFromUnknown(raw: unknown): ComboMruLists {
+    const parsed = raw && typeof raw === "object" && !Array.isArray(raw)
+        ? raw as Partial<Record<ComboMruKey, unknown>>
+        : {};
+    return {
+        skipPatterns: parsed.skipPatterns !== undefined
+            ? parseMruList(parsed.skipPatterns)
+            : [...DEFAULT_SKIP_PATTERN_MRU],
+    };
+}
+
+function readLegacySkipPatternMru(): string[] | undefined {
+    try {
+        const stored = localStorage.getItem(LEGACY_APP_SETTINGS_ID);
+        if (!stored) {
+            return undefined;
+        }
+        const parsed = JSON.parse(stored) as { skipPatternMru?: unknown; };
+        if (parsed.skipPatternMru === undefined) {
+            return undefined;
+        }
+        return parseMruList(parsed.skipPatternMru);
+    } catch {
+        return undefined;
+    }
+}
+
+function loadLists(): ComboMruLists {
+    try {
+        const stored = localStorage.getItem(STORAGE_ID);
+        if (stored) {
+            return listsFromUnknown(JSON.parse(stored));
+        }
+    } catch (e) {
+        console.error("Failed to load combo MRU", e);
+    }
+    const legacy = readLegacySkipPatternMru();
+    if (legacy) {
+        return { skipPatterns: legacy };
+    }
+    return defaultLists();
+}
+
+function persistLists(): void {
+    try {
+        localStorage.setItem(STORAGE_ID, JSON.stringify(comboMruStore));
+    } catch (e) {
+        console.error("Failed to save combo MRU", e);
+    }
+}
+
+export const comboMruStore = proxy<ComboMruLists>(loadLists());
+
+subscribe(comboMruStore, persistLists);
+
+try {
+    if (localStorage.getItem(STORAGE_ID) == null) {
+        persistLists();
+    }
+} catch {
+    // localStorage unavailable
+}
 
 /** Transient combo popup state. Not persisted. */
 export const comboMruUi = proxy({
@@ -12,19 +89,19 @@ export function comboMruOpenKey(listId: ComboMruKey, instanceId: string): string
 }
 
 export function rememberComboMru(listId: ComboMruKey, value: string): void {
-    appSettings[listId] = pushMru(appSettings[listId], value);
+    comboMruStore[listId] = pushMru(comboMruStore[listId], value);
 }
 
 export function rememberComboMruMany(listId: ComboMruKey, values: readonly string[]): void {
-    let list = appSettings[listId];
+    let list = comboMruStore[listId];
     for (const value of values) {
         list = pushMru(list, value);
     }
-    appSettings[listId] = list;
+    comboMruStore[listId] = list;
 }
 
 export function removeComboMru(listId: ComboMruKey, value: string): void {
-    appSettings[listId] = dropMru(appSettings[listId], value);
+    comboMruStore[listId] = dropMru(comboMruStore[listId], value);
 }
 
 export function closeComboMru(): void {

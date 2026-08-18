@@ -2,14 +2,14 @@ import { type ComponentProps, useEffect } from "react";
 import { useSnapshot } from "valtio";
 import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { appSettings } from "@/store/1-ui-settings";
-import { type ComboMruKey } from "@/components/2-main/2-tab-sync/5-skip-patterns/combo-mru/3-combo-mru";
+import { type ComboMruKey } from "./3-combo-mru";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import {
     closeComboMru,
     comboMruOpenKey,
+    comboMruStore,
     comboMruUi,
     rememberComboMru,
     removeComboMru,
@@ -40,7 +40,7 @@ export function ComboMruInput({
     onBlur,
     ...inputProps
 }: ComboMruInputProps) {
-    const items = useSnapshot(appSettings)[listId];
+    const items = useSnapshot(comboMruStore)[listId];
     const { openKey } = useSnapshot(comboMruUi);
     const key = comboMruOpenKey(listId, instanceId);
     const open = openKey === key;
