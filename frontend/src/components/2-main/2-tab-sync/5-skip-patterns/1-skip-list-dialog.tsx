@@ -67,12 +67,7 @@ export function SkipListDialog() {
                         Add pattern
                     </Button>
                     <Button
-                        type="button"
-                        variant="ghost"
-                        size="xs"
-                        title="Restore .git and node_modules"
-                        onClick={() => resetSkipListRowsToDefault()}
-                    >
+                        type="button" variant="ghost" size="xs" onClick={() => resetSkipListRowsToDefault()} title="Restore .git and node_modules">
                         <RotateCcw className="size-3" />
                         Defaults
                     </Button>
@@ -80,19 +75,10 @@ export function SkipListDialog() {
 
                 <DialogFooter className="m-0 px-4 pb-3 pt-2 flex justify-end! gap-2">
                     <Button
-                        type="button"
-                        variant="outline"
-                        className="min-w-16 font-condensed font-normal"
-                        onClick={() => closeSkipListDialog()}
-                    >
+                        className="min-w-16 font-condensed font-normal" variant="outline" onClick={() => closeSkipListDialog()} type="button">
                         Cancel
                     </Button>
-                    <Button
-                        type="button"
-                        className="min-w-16 font-condensed font-normal"
-                        disabled={hasInvalid}
-                        onClick={() => applySkipListDialog()}
-                    >
+                    <Button className="min-w-16 font-condensed font-normal" disabled={hasInvalid} onClick={() => applySkipListDialog()} type="button">
                         Apply
                     </Button>
                 </DialogFooter>
@@ -112,19 +98,19 @@ function SkipPatternRow({ id, index, pattern }: { id: string; index: number; pat
                     value={pattern}
                     aria-label={`Skip pattern ${index + 1}`}
                     aria-invalid={error ? true : undefined}
-                    placeholder="e.g. ^build$ or \.log$"
+                    // placeholder="e.g. ^build$ or \.log$"
                     onChange={(e) => setSkipListRowPattern(id, e.target.value)}
                     {...turnOffAutoComplete}
                 />
 
                 <Button
-                    type="button"
+                    className="mt-0.5 size-6 text-muted-foreground hover:text-destructive"
                     variant="ghost"
                     size="icon-xs"
-                    className="mt-0.5 size-6 text-muted-foreground hover:text-destructive"
+                    onClick={() => removeSkipListRow(id)}
                     title="Remove pattern"
                     aria-label={`Remove skip pattern ${index + 1}`}
-                    onClick={() => removeSkipListRow(id)}
+                    type="button"
                 >
                     <Trash2 className="size-3 stroke-1.5" />
                 </Button>
