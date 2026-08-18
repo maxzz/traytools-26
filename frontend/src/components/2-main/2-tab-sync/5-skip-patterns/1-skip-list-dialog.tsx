@@ -5,7 +5,7 @@ import { Input } from "@/ui/shadcn/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { ScrollArea2 } from "@/ui/shadcn/scroll-area";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
-import { skipPatternError } from "./b-skip-patterns";
+import { skipPatternError } from "./b-1-skip-patterns";
 import {
     addSkipListRow,
     applySkipListDialog,
@@ -24,7 +24,7 @@ export function SkipListDialog() {
 
     return (
         <Dialog open={open} onOpenChange={(next) => { if (!next) setPayload(null); }}>
-            <DialogContent className="p-0! max-w-lg! gap-0!" aria-describedby={DESCRIPTION_ID}>
+            <DialogContent className="p-0! max-w-sm! gap-0!" aria-describedby={DESCRIPTION_ID}>
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm font-condensed font-normal select-none">
                         Skip list
@@ -47,16 +47,14 @@ export function SkipListDialog() {
                             No skip patterns. Check and Sync will consider every file and folder.
                         </div>
                     )}
+
                     {payload && (
-                        <div className="flex flex-col gap-1.5">
-                            {payload.rows.map((row, index) => (
-                                <SkipPatternRow
-                                    key={row.id}
-                                    id={row.id}
-                                    index={index}
-                                    pattern={row.pattern}
-                                />
-                            ))}
+                        <div className="flex flex-col gap-1">
+                            {payload.rows.map(
+                                (row, index) => (
+                                    <SkipPatternRow key={row.id} id={row.id} index={index} pattern={row.pattern} />
+                                )
+                            )}
                         </div>
                     )}
                 </ScrollArea2>
@@ -108,7 +106,7 @@ function SkipPatternRow({ id, index, pattern }: { id: string; index: number; pat
         <div className="flex flex-col gap-0.5">
             <div className="flex items-start gap-1">
                 <Input
-                    className="h-7 font-mono"
+                    className="h-7"
                     value={pattern}
                     aria-label={`Skip pattern ${index + 1}`}
                     aria-invalid={error ? true : undefined}
@@ -116,6 +114,7 @@ function SkipPatternRow({ id, index, pattern }: { id: string; index: number; pat
                     onChange={(e) => setSkipListRowPattern(id, e.target.value)}
                     {...turnOffAutoComplete}
                 />
+
                 <Button
                     type="button"
                     variant="ghost"
@@ -125,9 +124,10 @@ function SkipPatternRow({ id, index, pattern }: { id: string; index: number; pat
                     aria-label={`Remove skip pattern ${index + 1}`}
                     onClick={() => removeSkipListRow(id)}
                 >
-                    <Trash2 className="size-3" />
+                    <Trash2 className="size-3 stroke-1.5" />
                 </Button>
             </div>
+
             {error && (
                 <div className="pr-7 text-[0.65rem] text-destructive leading-4">
                     {error}

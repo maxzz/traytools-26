@@ -8,7 +8,7 @@ import {
     skipPatternsFromUnknown,
     skipPatternsToJson,
     skipListSummary,
-} from "./b-skip-patterns";
+} from "./b-1-skip-patterns";
 
 describe("skipPatternsFromUnknown", () => {
     it("uses defaults when the field is missing", () => {

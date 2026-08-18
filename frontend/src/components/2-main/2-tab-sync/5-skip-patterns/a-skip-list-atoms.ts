@@ -6,7 +6,7 @@ import {
     resolvedSkipPatterns,
     sanitizeSkipPatterns,
     skipPatternError,
-} from "./b-skip-patterns";
+} from "./b-1-skip-patterns";
 
 export type SkipDraftRow = {
     id: string;

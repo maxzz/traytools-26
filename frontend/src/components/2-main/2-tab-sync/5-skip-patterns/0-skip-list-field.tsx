@@ -2,7 +2,7 @@ import { Button } from "@/ui/shadcn/button";
 import { LabelAndField, InfoTooltip } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { type SyncOpItem } from "../a-atoms/9-types-sync";
 import { openSkipListDialog } from "./a-skip-list-atoms";
-import { DEFAULT_SKIP_PATTERNS, isDefaultSkipPatterns, skipListSummary } from "./b-skip-patterns";
+import { DEFAULT_SKIP_PATTERNS, isDefaultSkipPatterns, skipListSummary } from "./b-1-skip-patterns";
 
 export function SkipListField({ item }: { item: SyncOpItem; }) {
     const uid = item.uid;
@@ -38,8 +38,9 @@ function SkipListButtonItems({ patterns }: { patterns: readonly string[]; }) {
     if (patterns.length === 0) {
         return <span>Nothing skipped</span>;
     }
+
     if (isDefaultSkipPatterns(patterns)) {
-        return <span>Default: .git, node_modules</span>;
+        return <span>Default: skip only 💠 .git, 💠node_modules</span>;
     }
 
     return patterns.map(
@@ -48,7 +49,9 @@ function SkipListButtonItems({ patterns }: { patterns: readonly string[]; }) {
                 <span className="select-none" aria-hidden>
                     💠
                 </span>
-                <span className="min-w-0 break-all">{pattern}</span>
+                <span className="min-w-0 break-all">
+                    {pattern}
+                </span>
             </span>
         )
     );

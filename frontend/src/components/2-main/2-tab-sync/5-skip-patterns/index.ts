@@ -1,5 +1,5 @@
-export { SkipListDialog } from "./0-skip-list-dialog";
-export { SkipListField } from "./1-skip-list-field";
+export { SkipListField } from "./0-skip-list-field";
+export { SkipListDialog } from "./1-skip-list-dialog";
 export {
     DEFAULT_SKIP_PATTERNS,
     defaultSkipPatterns,
@@ -8,4 +8,4 @@ export {
     sanitizeSkipPatterns,
     skipPatternsFromUnknown,
     skipPatternsToJson,
-} from "./b-skip-patterns";
+} from "./b-1-skip-patterns";

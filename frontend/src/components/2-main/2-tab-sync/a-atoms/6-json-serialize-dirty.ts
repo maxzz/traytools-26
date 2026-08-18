@@ -1,5 +1,5 @@
 import { normalizeOptionalComment } from "@/components/2-main/a-shared/props-3-field-comment";
-import { skipPatternsFromUnknown, skipPatternsToJson } from "../5-skip-patterns/b-skip-patterns";
+import { skipPatternsFromUnknown, skipPatternsToJson } from "../5-skip-patterns/b-1-skip-patterns";
 import {
     type SyncConfig,
     type SyncEditorStore,
