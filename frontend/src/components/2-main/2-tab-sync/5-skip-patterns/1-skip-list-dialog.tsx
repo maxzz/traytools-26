@@ -41,22 +41,24 @@ export function SkipListDialog() {
                     An empty list skips nothing.
                 </p>
 
-                <ScrollArea2 className="px-4 py-3 max-h-[min(60vh,24rem)]">
-                    {payload && payload.rows.length === 0 && (
-                        <div className="py-4 text-xs text-muted-foreground">
-                            No skip patterns. Check and Sync will consider every file and folder.
-                        </div>
-                    )}
+                <ScrollArea2 className="max-h-[min(60vh,24rem)]">
+                    <div className="px-4 py-3">
+                        {payload && payload.rows.length === 0 && (
+                            <div className="py-4 text-xs text-muted-foreground">
+                                No skip patterns. Check and Sync will consider every file and folder.
+                            </div>
+                        )}
 
-                    {payload && (
-                        <div className="flex flex-col gap-1">
-                            {payload.rows.map(
-                                (row, index) => (
-                                    <SkipPatternRow key={row.id} id={row.id} index={index} pattern={row.pattern} />
-                                )
-                            )}
-                        </div>
-                    )}
+                        {payload && (
+                            <div className="flex flex-col gap-1">
+                                {payload.rows.map(
+                                    (row, index) => (
+                                        <SkipPatternRow key={row.id} id={row.id} index={index} pattern={row.pattern} />
+                                    )
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </ScrollArea2>
 
                 <div className="px-4 pb-2 flex items-center gap-1.5">
