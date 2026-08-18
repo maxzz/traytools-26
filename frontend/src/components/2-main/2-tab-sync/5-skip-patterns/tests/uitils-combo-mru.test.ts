@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dropMru, parseMruList, pushMru } from "./3-combo-mru";
+import { dropMru, parseMruList, pushMru } from "../combo-mru/uitils-combo-mru";
 
 describe("parseMruList", () => {
     it("returns empty for non-arrays", () => {

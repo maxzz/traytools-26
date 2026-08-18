@@ -8,4 +8,4 @@ export {
     sanitizeSkipPatterns,
     skipPatternsFromUnknown,
     skipPatternsToJson,
-} from "./b-1-skip-patterns";
+} from "./b-skip-patterns";

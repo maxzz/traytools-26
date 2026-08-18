@@ -1,5 +1,5 @@
 import { proxy, subscribe } from "valtio";
-import { parseMruList, type ComboMruKey } from "./3-combo-mru";
+import { parseMruList, type ComboMruKey } from "./uitils-combo-mru";
 
 const STORAGE_ID = "traytools-26__combo-mru__v1.0";
 const DEFAULT_SKIP_PATTERN_MRU = ["^\\.git$", "^node_modules$"];

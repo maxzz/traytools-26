@@ -1,4 +1,4 @@
-import { defaultSkipPatterns } from "../5-skip-patterns/b-1-skip-patterns";
+import { defaultSkipPatterns } from "../5-skip-patterns/b-skip-patterns";
 
 // Editable model for sync.json. Top-level groups sit under a fixed "Groups"
 // root. Each group's `items` is an ordered list of sync-operation items, nested

@@ -2,20 +2,19 @@ import { type ComponentProps, useEffect } from "react";
 import { useSnapshot } from "valtio";
 import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { type ComboMruKey } from "./3-combo-mru";
+import { type ComboMruKey } from "./uitils-combo-mru";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { turnOffAutoComplete } from "@/utils/disable-hidden-children";
 import { comboMruStore } from "./a-combo-mru-store";
-import { closeComboMru, comboMruOpenKey, comboMruUi, rememberComboMru, removeComboMru } from "./a-combo-mru-ui";
+import { closeComboMru, comboMruOpenKey, comboMruUi, rememberComboMru, removeComboMru } from "./uitils-combo-mru-ui";
 
 type ComboMruInputProps = Omit<ComponentProps<"input">, "value" | "onChange"> & {
     listId: ComboMruKey;
     instanceId: string;
     value: string;
     onValueChange: (value: string) => void;
-    /** When omitted, any non-empty trimmed value is stored. */
-    canRemember?: (value: string) => boolean;
+    canRemember?: (value: string) => boolean; // When omitted, any non-empty trimmed value is stored.
     itemLabel?: (value: string) => string;
     recentLabel?: string;
     emptyLabel?: string;
@@ -47,8 +46,7 @@ export function ComboMruInput({
                 }
             };
         },
-        [key],
-    );
+        [key]);
 
     function commitRemember(next: string) {
         if (canRemember ? canRemember(next) : true) {
@@ -63,93 +61,80 @@ export function ComboMruInput({
     }
 
     return (
-        <Popover
-            modal={false}
-            open={open}
-            onOpenChange={(next) => {
-                comboMruUi.openKey = next ? key : null;
-            }}
-        >
+        <Popover modal={false} open={open} onOpenChange={(next) => { comboMruUi.openKey = next ? key : null; }}>
             <PopoverAnchor asChild>
                 <InputGroup className={cn("w-auto flex-1", className)}>
                     <InputGroupInput
                         value={value}
                         onChange={(e) => onValueChange(e.target.value)}
-                        onBlur={(e) => {
-                            commitRemember(e.target.value);
-                            onBlur?.(e);
-                        }}
+                        onBlur={(e) => { commitRemember(e.target.value); onBlur?.(e); }}
                         {...turnOffAutoComplete}
                         {...inputProps}
                     />
-                    <InputGroupAddon className="p-0 pr-0.5" align="inline-end">
+
+                    <InputGroupAddon className="p-0 pr-2.5" align="inline-end">
                         <PopoverTrigger asChild>
                             <InputGroupButton
                                 size="icon-xs"
+                                tabIndex={-1}
                                 title={recentLabel}
                                 aria-label={recentLabel}
                                 aria-haspopup="listbox"
-                                tabIndex={-1}
                                 type="button"
                             >
                                 <ChevronDown className="size-3.5 stroke-[1.5px]" />
                             </InputGroupButton>
                         </PopoverTrigger>
                     </InputGroupAddon>
+
                 </InputGroup>
             </PopoverAnchor>
 
             <PopoverContent
+                className="p-1 w-(--radix-popper-anchor-width) max-h-48 rounded overflow-y-auto gap-0 z-100"
                 data-combo-mru-popup=""
                 align="start"
                 sideOffset={4}
-                className="p-1 w-(--radix-popper-anchor-width) max-h-48 overflow-y-auto gap-0 z-100"
-                onOpenAutoFocus={(e) => {
-                    if (items.length === 0) {
-                        e.preventDefault();
-                    }
-                }}
+                onOpenAutoFocus={(e) => { if (items.length === 0) { e.preventDefault(); } }}
             >
-                {items.length === 0 ? (
-                    <div className="px-1.5 py-1 text-xs text-muted-foreground">
-                        {emptyLabel}
-                    </div>
-                ) : (
-                    <div role="listbox" aria-label={recentLabel}>
-                        {items.map((item) => (
-                            <div key={item} className="relative group/mru">
-                                <button
-                                    type="button"
-                                    role="option"
-                                    title={item}
-                                    className={itemButtonClasses}
-                                    onClick={() => selectItem(item)}
-                                >
-                                    <span className="min-w-0 font-mono truncate">
-                                        {itemLabel ? itemLabel(item) : item}
-                                    </span>
-                                </button>
-                                <button
-                                    type="button"
-                                    className={removeButtonClasses}
-                                    title="Remove from recent list"
-                                    aria-label={`Remove ${item} from recent list`}
-                                    onPointerDown={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                    }}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        removeComboMru(listId, item);
-                                    }}
-                                >
-                                    <X className="size-3.5 stroke-[1.5px]" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {!items.length
+                    ? (
+                        <div className="px-1.5 py-1 text-xs text-muted-foreground">
+                            {emptyLabel}
+                        </div>
+                    ) : (
+                        <div role="listbox" aria-label={recentLabel}>
+                            {items.map(
+                                (item) => (
+                                    <div key={item} className="relative group/mru">
+                                        <button
+                                            className={itemButtonClasses}
+                                            onClick={() => selectItem(item)}
+                                            title={item}
+                                            role="option"
+                                            type="button"
+                                        >
+                                            <span className="min-w-0 font-mono truncate">
+                                                {itemLabel ? itemLabel(item) : item}
+                                            </span>
+                                        </button>
+
+                                        <button
+                                            className={removeButtonClasses}
+                                            onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeComboMru(listId, item); }}
+                                            title="Remove from recent list"
+                                            aria-label={`Remove ${item} from recent list`}
+                                            type="button"
+                                        >
+                                            <X className="size-3.5 stroke-[1.5px]" />
+                                        </button>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )
+                }
             </PopoverContent>
         </Popover>
     );
@@ -157,7 +142,8 @@ export function ComboMruInput({
 
 const itemButtonClasses = "\
 relative px-1.5 py-1 pr-7 w-full text-xs text-left \
-hover:text-accent-foreground hover:bg-accent \
+hover:text-accent-foreground \
+hover:bg-accent \
 rounded-sm \
 flex items-center \
 cursor-pointer";
@@ -165,7 +151,8 @@ cursor-pointer";
 const removeButtonClasses = "\
 absolute top-1/2 right-1 p-0.5 \
 text-muted-foreground \
-opacity-0 group-hover/mru:opacity-100 \
+opacity-0 \
+group-hover/mru:opacity-100 \
 hover:text-foreground hover:bg-foreground/10 \
 rounded \
 z-10 -translate-y-1/2";

@@ -110,6 +110,7 @@ const inputGroupButtonVariantsClasses = cva("text-sm shadow-none flex items-cent
 });
 
 export function InputGroupButton({ className, type = "button", variant = "ghost", size = "xs", ...props }: Omit<ComponentProps<typeof Button>, "size"> & VariantProps<typeof inputGroupButtonVariantsClasses>) {
+    //console.log("InputGroupButton", inputGroupButtonVariantsClasses({ size })); -> "InputGroupButton text-sm shadow-none flex items-center gap-2 p-0 size-6 rounded-[calc(var(--radius)-3px)] has-[>svg]:p-0"
     return (
         <Button
             type={type}

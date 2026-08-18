@@ -1,5 +1,5 @@
 import { proxy } from "valtio";
-import { dropMru, pushMru, type ComboMruKey } from "./3-combo-mru";
+import { dropMru, pushMru, type ComboMruKey } from "./uitils-combo-mru";
 import { comboMruStore } from "./a-combo-mru-store";
 
 /** Transient combo popup state. Not persisted. */

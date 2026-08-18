@@ -1,6 +1,6 @@
 import { atom, getDefaultStore } from "jotai";
-import { COMBO_MRU } from "./combo-mru/3-combo-mru";
-import { rememberComboMruMany } from "./combo-mru/a-combo-mru-ui";
+import { COMBO_MRU } from "./combo-mru/uitils-combo-mru";
+import { rememberComboMruMany } from "./combo-mru/uitils-combo-mru-ui";
 import { findByUid } from "../a-atoms/9-types-sync";
 import { syncEditorStore } from "../a-atoms/0-sync-local-storage";
 import {
@@ -8,7 +8,7 @@ import {
     resolvedSkipPatterns,
     sanitizeSkipPatterns,
     skipPatternError,
-} from "./b-1-skip-patterns";
+} from "./b-skip-patterns";
 
 export type SkipDraftRow = {
     id: string;

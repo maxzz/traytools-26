@@ -2,7 +2,7 @@ import { Button } from "@/ui/shadcn/button";
 import { LabelAndField, InfoTooltip } from "@/components/2-main/a-shared/props-1-shared-controls";
 import { type SyncOpItem } from "../a-atoms/9-types-sync";
 import { openSkipListDialog } from "./a-skip-list-atoms";
-import { DEFAULT_SKIP_PATTERNS, isDefaultSkipPatterns, skipListSummary, skipPatternDisplayLabel } from "./b-1-skip-patterns";
+import { DEFAULT_SKIP_PATTERNS, isDefaultSkipPatterns, skipListSummary, skipPatternDisplayLabel } from "./b-skip-patterns";
 
 export function SkipListField({ item }: { item: SyncOpItem; }) {
     const uid = item.uid;
