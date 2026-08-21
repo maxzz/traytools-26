@@ -36,6 +36,8 @@ export interface AppSettings {
      */
     propsMoreExpanded: boolean;
     windowHighlight: WindowHighlightSettings;
+    winpicker_DragIcon: "cursor" | "overlay";   // Finder drag icon: HCURSOR vs layered overlay
+    winpicker_OverlayCursor: "hide" | "show";   // When overlay: hide the pointer or keep it visible
 }
 
 const DEFAULT_WINDOW_HIGHLIGHT: WindowHighlightSettings = {
@@ -61,6 +63,8 @@ const DEFAULT_SETTINGS: AppSettings = {
     syncCheckDetailsInPanel: false,
     propsMoreExpanded: false,
     windowHighlight: { ...DEFAULT_WINDOW_HIGHLIGHT },
+    winpicker_DragIcon: "overlay",
+    winpicker_OverlayCursor: "hide",
 };
 
 // Load settings from localStorage
@@ -89,6 +93,8 @@ function loadSettings(): AppSettings {
                     ...DEFAULT_WINDOW_HIGHLIGHT,
                     ...parsed.windowHighlight,
                 },
+                winpicker_DragIcon: parsed.winpicker_DragIcon === "cursor" ? "cursor" : DEFAULT_SETTINGS.winpicker_DragIcon,
+                winpicker_OverlayCursor: parsed.winpicker_OverlayCursor === "show" ? "show" : DEFAULT_SETTINGS.winpicker_OverlayCursor,
             };
         }
     } catch (e) {

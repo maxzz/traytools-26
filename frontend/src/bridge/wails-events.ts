@@ -42,3 +42,8 @@ export const APP_EVENTS = {
     /** User requested quit; frontend confirms after checking unsaved tabs. */
     quitRequested: "app:quitRequested",
 } as const;
+
+/** Event names emitted by backend/winpicker during a finder drag. */
+export const WINPICKER_EVENTS = {
+    event: "winpicker:event",
+} as const;

@@ -8,8 +8,9 @@ import { settingsBus } from "@/bridge/groups/settings";
 import { cacheWindowSizeKey, windowSizeKeyAtom } from "@/components/4-dialogs/8-3-settings/a-settings-atoms";
 import { Header } from "../1-header/0-all-header/0-all-header";
 import { Section3_Footer } from "../3-footer";
+import { WindowPickerStatusBar } from "@/components/window-picker";
 import { AllDialogs } from "./9-globals";
-import { getValidTabComponent } from "./8-pages-array";
+import { getValidMainTab, getValidTabComponent } from "./8-pages-array";
 
 export function App() {
     const [windowSizeKey, setWindowSizeKey] = useAtom(windowSizeKeyAtom);
@@ -55,9 +56,18 @@ export function App() {
                 <MainBody />
             </div>
 
-            <Section3_Footer />
+            <AppFooter isMini={isMini} />
         </main>
     </>);
+}
+
+function AppFooter({ isMini }: { isMini: boolean; }) {
+    const { mainTab } = useSnapshot(appSettings);
+    const windowsTab = getValidMainTab(mainTab) === "windows-tree";
+    if (!isMini && windowsTab) {
+        return <WindowPickerStatusBar />;
+    }
+    return <Section3_Footer />;
 }
 
 function MainBody() {

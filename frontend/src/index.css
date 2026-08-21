@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 @import "./styles/tree-selection.css";
 @import "./styles/app-globals.css";
+@import "./components/window-picker/window-picker.css";
 
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono"; /* https://fontsource.org/fonts/geist-mono/install */

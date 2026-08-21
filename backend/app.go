@@ -18,6 +18,7 @@ import (
 	"traytools-26-go/backend/winapp"
 	"traytools-26-go/backend/winhighlight"
 	"traytools-26-go/backend/winlaunch"
+	"traytools-26-go/backend/winpicker"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -35,6 +36,7 @@ type App struct {
 	windows       *windowtree.Manager
 	dpagent       *dpagent.Manager
 	highlight     *winhighlight.Manager
+	winpicker     *winpicker.Manager
 	copyops       *copyops.Manager
 	syncops       *syncops.Manager
 	registryops   *registryops.Manager
@@ -51,15 +53,15 @@ type App struct {
 // NewApp creates a new App application struct
 func NewApp() *App {
 	a := &App{
-		bus:       bus.New(),
-		trace:     tracemanager.New(),
-		tools:     toolsmenu.New(),
-		windows:   windowtree.New(),
-		dpagent:   dpagent.New(),
-		highlight: winhighlight.New(),
-		copyops:   copyops.New(),
-		syncops:   syncops.New(),
-
+		bus:         bus.New(),
+		trace:       tracemanager.New(),
+		tools:       toolsmenu.New(),
+		windows:     windowtree.New(),
+		dpagent:     dpagent.New(),
+		highlight:   winhighlight.New(),
+		winpicker:   winpicker.New(),
+		copyops:     copyops.New(),
+		syncops:     syncops.New(),
 		registryops: registryops.New(),
 	}
 	a.registerHandlers()
@@ -68,6 +70,7 @@ func NewApp() *App {
 	a.windows.Register(a.bus)
 	a.dpagent.Register(a.bus)
 	a.highlight.Register(a.bus)
+	a.winpicker.Register(a.bus)
 	a.copyops.Register(a.bus)
 	a.syncops.Register(a.bus)
 	a.registryops.Register(a.bus)
@@ -90,6 +93,7 @@ func (a *App) Startup(ctx context.Context) {
 	a.syncops.Start(ctx)
 	a.registryops.Start(ctx)
 	a.tools.Start(ctx)
+	a.winpicker.Start(ctx)
 	a.startTray()
 }
 
@@ -401,6 +405,7 @@ func (a *App) saveDevToolsState(open bool) {
 // Shutdown is called at application termination.
 func (a *App) Shutdown(ctx context.Context) {
 	stopTray()
+	a.winpicker.Shutdown()
 	a.trace.Shutdown()
 }
 
