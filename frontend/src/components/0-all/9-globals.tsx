@@ -22,6 +22,7 @@ import { sendUnloadHookNotification } from "@/components/1-header/3-send-broadca
 import { RegistryConfigSync } from "@/components/2-main/3-tab-registry/a-atoms/0-registry-local-storage";
 import { CopyConfigSync } from "@/components/2-main/1-tab-copy-operations/a-atoms/0-copy-local-storage";
 import { SyncConfigSync } from "@/components/2-main/2-tab-sync/a-atoms/0-sync-local-storage";
+import { WindowPickerSync } from "@/components/window-picker";
 import { zoomLevelAtom } from "@/store/4-atoms-zoom";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { toggleDevTools } from "@/wails/tray-backend";
@@ -44,6 +45,7 @@ export function AllDialogs() {
         <CopyConfigSync />
         <RegistryConfigSync />
         <SyncConfigSync />
+        <WindowPickerSync />
 
         <QuitRequestedListener />
         <ConfirmationDialog />

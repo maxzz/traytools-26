@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/ui/shadcn/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { HotkeyInput, type HotkeyChord } from "@/ui/local-ui/9-hotkey";
+import { ControlWindowPicker } from "@/components/window-picker";
 import {
     isOpenSettingsDialogAtom,
     settingsQuitOnCloseAtom,
@@ -59,9 +60,18 @@ export function SettingsDialog() {
                         title="Show the DPAgent monitor control in the header. When hidden, status tracking does not run."
                         valueAtom={settingsShowDpAgentMonitorAtom}
                     />
-                    <ControlSwitch label="Show window footer" valueAtom={settingsShowFooterAtom} />
+                    <ControlSwitch
+                        label="Show window footer"
+                        title="Does not apply to the Windows tab, which always shows a status bar"
+                        valueAtom={settingsShowFooterAtom}
+                    />
                     <ControlSwitch label="Show 'Sync' tab Check Details in bottom panel" valueAtom={settingsSyncCheckDetailsInPanelAtom} />
                     <ControlTheme />
+                    <Separator />
+                    <div className="text-xs font-semibold border-b border-border pb-1">
+                        Window picker
+                    </div>
+                    <ControlWindowPicker />
                     <Separator />
                     <ControlUnloadHookHotkey />
                 </div>

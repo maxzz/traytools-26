@@ -17,8 +17,11 @@ import { notice } from "@/ui/local-ui/7-toaster";
 import {
     boundsNoticeFlashAtom,
     filteredTreeAtom,
+    groupByProcessAtom,
+    hideInvisibleAtom,
     selectedHandleAtom,
     treeExpandRevisionAtom,
+    treeFilterAtom,
     type BoundsNoticeKind,
 } from "./s-windows-tree-state";
 
@@ -377,6 +380,152 @@ export async function maybeHighlightSelectedWindow(handle: string | null): Promi
 
 export async function hideWindowHighlight(): Promise<void> {
     await highlightBus.hide();
+}
+
+/** Select a window found by the finder and expand ancestors so the row is visible. */
+export async function selectPickedWindowInTree(picked: { handle?: string; rootHandle?: string; }): Promise<boolean> {
+    const candidates = [picked.handle, picked.rootHandle].filter((h): h is string => Boolean(h));
+    if (candidates.length === 0) {
+        return false;
+    }
+
+    await refreshWindowTree();
+    const root = windowTreeStore.root ? snapshot(windowTreeStore.root) as WindowNode : null;
+    if (!root) {
+        notice.warning("Window tree is empty.");
+        return false;
+    }
+
+    let found: { node: WindowNode; path: string[]; } | null = null;
+    for (const handle of candidates) {
+        found = findNodeWithPath(root, handle, []);
+        if (found) {
+            break;
+        }
+    }
+    if (!found) {
+        notice.warning("Picked window is not in the tree.");
+        return false;
+    }
+
+    const store = getDefaultStore();
+    const needle = store.get(treeFilterAtom).trim().toLowerCase();
+    const hideInvisible = store.get(hideInvisibleAtom);
+    const groupByProcess = store.get(groupByProcessAtom);
+
+    let expandIds = found.path;
+    if (groupByProcess && expandIds.length >= 2 && expandIds[0] === "root") {
+        const topHandle = expandIds[1];
+        const top = (root.children ?? []).find((child) => areWindowHandlesEqual(child.handle, topHandle));
+        if (top) {
+            expandIds = ["root", processGroupHandle(top.processId), ...expandIds.slice(1)];
+        }
+    }
+
+    const nodeVisible = found.node.visible || (found.node.style & WS_VISIBLE) !== 0;
+    const selfMatches = needle === ""
+        || `${found.node.className} ${found.node.title} ${found.node.handle} ${found.node.processName ?? ""}`.toLowerCase().includes(needle);
+
+    if (hideInvisible && !nodeVisible) {
+        store.set(hideInvisibleAtom, false);
+    }
+    if (needle && !selfMatches) {
+        store.set(treeFilterAtom, "");
+    }
+
+    const handle = found.node.handle;
+    const autoHighlight = appSettings.windowHighlight.autoHighlight;
+
+    const applySelectionAndScroll = () => {
+        store.set(selectedHandleAtom, handle);
+        scrollTreeNodeIntoView(handle);
+        if (autoHighlight) {
+            void maybeHighlightSelectedWindow(handle);
+        } else {
+            void loadSelectionInfo(handle);
+        }
+    };
+
+    const remountAndSelect = () => {
+        store.set(filteredTreeAtom, (prev) => ({
+            ...prev,
+            expandIds: uniqueExpandIds(["root", ...expandIds]),
+        }));
+        store.set(treeExpandRevisionAtom, (n) => n + 1);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(applySelectionAndScroll);
+        });
+    };
+
+    const filterWillResync = (hideInvisible && !nodeVisible) || (needle !== "" && !selfMatches);
+    if (filterWillResync) {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(remountAndSelect);
+        });
+        return true;
+    }
+
+    remountAndSelect();
+    return true;
+}
+
+const WS_VISIBLE = 0x10000000;
+
+function uniqueExpandIds(ids: string[]): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const id of ids) {
+        if (!id || seen.has(id)) {
+            continue;
+        }
+        seen.add(id);
+        out.push(id);
+    }
+    return out;
+}
+
+function findNodeWithPath(node: WindowNode, handle: string, ancestors: string[]): { node: WindowNode; path: string[]; } | null {
+    const path = [...ancestors, node.handle];
+    if (areWindowHandlesEqual(node.handle, handle)) {
+        return { node, path };
+    }
+    for (const child of node.children ?? []) {
+        const found = findNodeWithPath(child, handle, path);
+        if (found) {
+            return found;
+        }
+    }
+    return null;
+}
+
+function areWindowHandlesEqual(a: string, b: string): boolean {
+    if (a === b) {
+        return true;
+    }
+    const parsedA = parseHwnd(a);
+    const parsedB = parseHwnd(b);
+    return parsedA !== null && parsedB !== null && parsedA === parsedB;
+}
+
+function parseHwnd(value: string): bigint | null {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+        return null;
+    }
+    try {
+        if (/^0x[0-9a-f]+$/i.test(trimmed)) {
+            return BigInt(trimmed);
+        }
+        if (/^[0-9]+$/.test(trimmed)) {
+            return BigInt(trimmed);
+        }
+        if (/^[0-9a-f]+$/i.test(trimmed)) {
+            return BigInt(`0x${trimmed}`);
+        }
+    } catch {
+        // ignore parse errors
+    }
+    return null;
 }
 
 /** Select a process-group row in the tree, load its props, and scroll it into view. */
