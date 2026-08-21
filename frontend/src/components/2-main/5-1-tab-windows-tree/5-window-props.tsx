@@ -187,6 +187,18 @@ function PathWithReveal({ path }: { path: string; }) {
                     size="icon-xs"
                     variant="outline"
                     className="size-5 rounded"
+                    title="Copy folder path (without filename)"
+                    aria-label="Copy folder path"
+                    disabled={!folder}
+                    onClick={() => void copyFolderPath(folder)}
+                >
+                    <Copy className="size-3 text-muted-foreground stroke-[1.5px]" />
+                </Button>
+                <Button
+                    type="button"
+                    size="icon-xs"
+                    variant="outline"
+                    className="size-5 rounded"
                     title="Open folder in File Explorer and highlight this file"
                     aria-label="Open folder"
                     onClick={() => {
@@ -196,18 +208,6 @@ function PathWithReveal({ path }: { path: string; }) {
                     }}
                 >
                     <FolderOpen className="size-3 text-muted-foreground stroke-[1.5px]" />
-                </Button>
-                <Button
-                    type="button"
-                    size="icon-xs"
-                    variant="outline"
-                    className="size-5 rounded"
-                    title="Copy folder path (without filename)"
-                    aria-label="Copy folder path"
-                    disabled={!folder}
-                    onClick={() => void copyFolderPath(folder)}
-                >
-                    <Copy className="size-3 text-muted-foreground stroke-[1.5px]" />
                 </Button>
             </span>
         </span>

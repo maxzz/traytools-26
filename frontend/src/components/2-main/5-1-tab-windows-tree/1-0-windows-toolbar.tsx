@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { classNames } from "@/utils";
@@ -10,10 +11,10 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
+import { WindowPickerControl, type WindowPickerEvent } from "@/components/window-picker";
 import { useFilter } from "./2-2-use-filter";
 import { ProcessHistoryNav } from "./1-1-process-history-nav";
-import { WindowPickerInToolbar } from "./1-2-window-picker";
-import { windowTreeStore, refreshWindowTree, maybeHighlightSelectedWindow, hideWindowHighlight } from "./a-windows-tree-calls";
+import { windowTreeStore, refreshWindowTree, maybeHighlightSelectedWindow, hideWindowHighlight, selectPickedWindowInTree } from "./a-windows-tree-calls";
 import { treeFilterAtom, showHandlesAtom, hideInvisibleAtom, groupByProcessAtom, showProcessIdsAtom, displayedCountAtom, selectedHandleAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 
 export function WindowTreeToolbar() {
@@ -33,18 +34,17 @@ export function WindowTreeToolbar() {
 
                     <div className="flex-1 relative min-w-40">
                         <Input
-                            className="pr-7 h-6 text-xs rounded"
+                            className="pr-7 h-6 text-xs rounded max-w-56"
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             placeholder="Filter by class or title..."
                         />
 
                         <Button
-                            className="absolute inset-y-0 right-1 my-auto pb-0.5"
+                            className={classNames("absolute inset-y-0 right-1 my-auto pb-0.5", !filter && "hidden")}
                             size="icon-xs"
                             variant="ghost"
-                            disabled={!filter}
-                            onClick={() => setFilter("")}
+                            onClick={() => !!filter && setFilter("")}
                             title="Clear filter"
                             aria-label="Clear filter"
                             type="button"
@@ -54,8 +54,8 @@ export function WindowTreeToolbar() {
                     </div>
 
                     <ProcessHistoryNav />
-                    <WindowPickerInToolbar />
                     <AutoHighlightToggle />
+                    <WindowPickerInToolbar />
                     <CollapseToTopLevelButton />
                     <TreeOptionsPopover />
                 </div>
@@ -64,14 +64,28 @@ export function WindowTreeToolbar() {
     );
 }
 
+/** Finder control for the Windows toolbar; selects the released window in the tree. */
+function WindowPickerInToolbar() {
+
+    const onReleased = useCallback(
+        (result: WindowPickerEvent) => {
+            void selectPickedWindowInTree(result);
+        },
+        []);
+
+    return (
+        <WindowPickerControl onReleased={onReleased} />
+    );
+}
+
 function AutoHighlightToggle() {
     const { windowHighlight } = useSnapshot(appSettings);
     const selectedHandle = useAtomValue(selectedHandleAtom);
 
     return (
-        <Label className="shrink-0 ml-4 text-xs font-normal text-muted-foreground gap-0 cursor-pointer" title="Highlight the selected window on screen">
+        <Label className="shrink-0 ml-1 text-xs font-normal text-muted-foreground gap-0 cursor-pointer" title="Automatically highlight the selected window on screen">
             <span className="-mr-0.5 pb-0.5 whitespace-nowrap">
-                Auto-highlight:
+                Highlight
             </span>
             <Switch
                 className="scale-65"
