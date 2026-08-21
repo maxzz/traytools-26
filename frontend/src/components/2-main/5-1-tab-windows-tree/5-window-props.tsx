@@ -8,6 +8,7 @@ import { Button } from "@/ui/shadcn/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/shadcn/tabs";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { appBus, isProcessGroupHandle, processGroupHandle, type ProcessInfo, type RectInfo, type WindowInfo, type WindowNode } from "@/bridge";
+import { FileIcon } from "../5-file-icons";
 import { windowTreeStore } from "./a-windows-tree-calls";
 import { selectProcessInTree } from "./a-process-history";
 import { filteredTreeAtom, propsTabAtom, selectedHandleAtom, type PropsTab } from "./s-windows-tree-state";
@@ -180,6 +181,7 @@ function PathWithReveal({ path }: { path: string; }) {
     const folder = parentDir(path);
     return (
         <span className="min-w-0 w-full inline-flex items-center gap-1.5">
+            <FileIcon path={path} className="shrink-0" />
             <span className="flex-1 min-w-0 truncate" title={path}>{path}</span>
             <span className="shrink-0 inline-flex items-center gap-0.5">
                 <Button

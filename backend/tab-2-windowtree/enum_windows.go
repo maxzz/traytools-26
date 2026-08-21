@@ -111,26 +111,32 @@ func isWindowBool(proc *windows.LazyProc, hwnd uintptr) bool {
 }
 
 // buildNode reads the lightweight tree info for a single window.
-// nameCache maps PID → process image basename so OpenProcess is done once per process.
-func buildNode(hwnd uintptr, nameCache map[uint32]string) WindowNode {
+// imageCache maps PID → image name/path so OpenProcess is done once per process.
+// includePath is true for top-level windows (needed for exe icons).
+func buildNode(hwnd uintptr, imageCache map[uint32]processLite, includePath bool) WindowNode {
 	tid, pid := getThreadProcess(hwnd)
-	return WindowNode{
+	image := processCached(pid, imageCache)
+	node := WindowNode{
 		Handle:      handleToString(hwnd),
 		ClassName:   getClassNameStr(hwnd),
 		Title:       getWindowTextStr(hwnd),
 		ProcessID:   pid,
 		ThreadID:    tid,
-		ProcessName: processNameCached(pid, nameCache),
+		ProcessName: image.name,
 		Style:       uint32(getWindowLong(hwnd, gwlStyle)),
 		ExStyle:     uint32(getWindowLong(hwnd, gwlExStyle)),
 		Visible:     isWindowBool(procIsWindowVisible, hwnd),
 	}
+	if includePath {
+		node.ProcessPath = image.path
+	}
+	return node
 }
 
 // buildChildren walks the child windows of hwnd in z-order using
 // GW_CHILD + GW_HWNDNEXT (which also covers windows that EnumChildWindows would
 // return, while preserving the on-screen order).
-func buildChildren(hwnd uintptr, depth int, count *int, nameCache map[uint32]string) []WindowNode {
+func buildChildren(hwnd uintptr, depth int, count *int, imageCache map[uint32]processLite) []WindowNode {
 	if depth >= maxTreeDepth {
 		return nil
 	}
@@ -138,8 +144,8 @@ func buildChildren(hwnd uintptr, depth int, count *int, nameCache map[uint32]str
 	child, _, _ := procGetWindow.Call(hwnd, gwChild)
 	for child != 0 {
 		*count++
-		node := buildNode(child, nameCache)
-		node.Children = buildChildren(child, depth+1, count, nameCache)
+		node := buildNode(child, imageCache, false)
+		node.Children = buildChildren(child, depth+1, count, imageCache)
 		children = append(children, node)
 		child, _, _ = procGetWindow.Call(child, gwHwndNext)
 	}
@@ -149,12 +155,12 @@ func buildChildren(hwnd uintptr, depth int, count *int, nameCache map[uint32]str
 func platformGetTree() (WindowTree, error) {
 	count := 0
 	var top []WindowNode
-	nameCache := map[uint32]string{}
+	imageCache := map[uint32]processLite{}
 
 	cb := windows.NewCallback(func(hwnd uintptr, _ uintptr) uintptr {
 		count++
-		node := buildNode(hwnd, nameCache)
-		node.Children = buildChildren(hwnd, 1, &count, nameCache)
+		node := buildNode(hwnd, imageCache, true)
+		node.Children = buildChildren(hwnd, 1, &count, imageCache)
 		top = append(top, node)
 		return 1 // continue enumeration
 	})
@@ -168,35 +174,41 @@ func platformGetTree() (WindowTree, error) {
 	return WindowTree{Root: root, Count: count}, nil
 }
 
-// processNameCached returns the image basename for pid, caching results for the
-// current tree enumeration so many windows in one process share a single query.
-func processNameCached(pid uint32, cache map[uint32]string) string {
-	if name, ok := cache[pid]; ok {
-		return name
-	}
-	name := processNameOnly(pid)
-	cache[pid] = name
-	return name
+type processLite struct {
+	name string
+	path string
 }
 
-// processNameOnly is a lighter QueryFullProcessImageName lookup used while
+// processCached returns the image name/path for pid, caching results for the
+// current tree enumeration so many windows in one process share a single query.
+func processCached(pid uint32, cache map[uint32]processLite) processLite {
+	if image, ok := cache[pid]; ok {
+		return image
+	}
+	image := processNameAndPath(pid)
+	cache[pid] = image
+	return image
+}
+
+// processNameAndPath is a lighter QueryFullProcessImageName lookup used while
 // building the tree (no bits/token work).
-func processNameOnly(pid uint32) string {
+func processNameAndPath(pid uint32) processLite {
 	if pid == 0 {
-		return ""
+		return processLite{}
 	}
 	h, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, pid)
 	if err != nil {
-		return ""
+		return processLite{}
 	}
 	defer windows.CloseHandle(h)
 
 	buf := make([]uint16, windows.MAX_PATH)
 	size := uint32(len(buf))
 	if err := windows.QueryFullProcessImageName(h, 0, &buf[0], &size); err != nil {
-		return ""
+		return processLite{}
 	}
-	return filepath.Base(windows.UTF16ToString(buf[:size]))
+	path := windows.UTF16ToString(buf[:size])
+	return processLite{name: filepath.Base(path), path: path}
 }
 
 func rectInfo(r winRect) RectInfo {

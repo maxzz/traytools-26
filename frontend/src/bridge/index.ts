@@ -59,6 +59,8 @@ export type {
 } from "./groups/registryops";
 export { windowTreeBus, isProcessGroupHandle, processGroupId, processGroupHandle } from "./groups/windowtree";
 export type { WindowNode, WindowTree, WindowInfo, ProcessInfo, RectInfo, RelatedWindow, MonitorWindow, ActiveWindowsInfo } from "./groups/windowtree";
+export { fileIconBus } from "./groups/fileicon";
+export type { FileIconResult } from "./groups/fileicon";
 export { highlightBus } from "./groups/highlight";
 export type { HighlightBounds, HighlightRectOptions, BoundsClassification, BoundsNoticeKind } from "./groups/highlight";
 export { windowPickerBus } from "./groups/winpicker";

@@ -15,6 +15,7 @@ type WindowNode struct {
 	ProcessID   uint32       `json:"processId"`
 	ThreadID    uint32       `json:"threadId"`
 	ProcessName string       `json:"processName"`
+	ProcessPath string       `json:"processPath,omitempty"` // top-level only; used for exe icons
 	Style       uint32       `json:"style"`
 	ExStyle     uint32       `json:"exStyle"`
 	Visible     bool         `json:"visible"`
@@ -31,8 +32,8 @@ type WindowTree struct {
 // ProcessInfo is the detailed per-process payload returned by getProcessInfo
 // when a process-group folder is selected in the windows tree.
 type ProcessInfo struct {
-	Valid       bool   `json:"valid"`
-	ProcessID   uint32 `json:"processId"`
+	Valid     bool   `json:"valid"`
+	ProcessID uint32 `json:"processId"`
 	// ParentProcessID is the creating process PID when known; 0 if unavailable
 	// (or the parent has exited / was never recorded).
 	ParentProcessID uint32 `json:"parentProcessId"`
@@ -108,19 +109,19 @@ type WindowInfo struct {
 	Valid bool `json:"valid"`
 
 	// General
-	Handle    string        `json:"handle"`
-	Caption   string        `json:"caption"`
-	ClassName string        `json:"className"`
-	Unicode   bool          `json:"unicode"`
-	Style     uint32        `json:"style"`
-	ExStyle   uint32        `json:"exStyle"`
-	Visible   bool          `json:"visible"`
-	Enabled   bool          `json:"enabled"`
-	Rect      RectInfo      `json:"rect"`
-	ClientRect RectInfo     `json:"clientRect"`
-	ControlID  int64        `json:"controlId"`
-	Instance   string       `json:"instance"`
-	UserData   string       `json:"userData"`
+	Handle     string        `json:"handle"`
+	Caption    string        `json:"caption"`
+	ClassName  string        `json:"className"`
+	Unicode    bool          `json:"unicode"`
+	Style      uint32        `json:"style"`
+	ExStyle    uint32        `json:"exStyle"`
+	Visible    bool          `json:"visible"`
+	Enabled    bool          `json:"enabled"`
+	Rect       RectInfo      `json:"rect"`
+	ClientRect RectInfo      `json:"clientRect"`
+	ControlID  int64         `json:"controlId"`
+	Instance   string        `json:"instance"`
+	UserData   string        `json:"userData"`
 	Parent     RelatedWindow `json:"parent"`
 	Owner      RelatedWindow `json:"owner"`
 
@@ -129,10 +130,10 @@ type WindowInfo struct {
 	ExStyleNames []string `json:"exStyleNames"`
 
 	// Class
-	ClassAtom       string `json:"classAtom"`
-	ClassStyle      uint32 `json:"classStyle"`
-	ClassExtraBytes int32  `json:"classExtraBytes"`
-	WindowExtraBytes int32 `json:"windowExtraBytes"`
+	ClassAtom        string `json:"classAtom"`
+	ClassStyle       uint32 `json:"classStyle"`
+	ClassExtraBytes  int32  `json:"classExtraBytes"`
+	WindowExtraBytes int32  `json:"windowExtraBytes"`
 
 	// Process
 	ProcessID   uint32 `json:"processId"`
