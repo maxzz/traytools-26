@@ -244,14 +244,15 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false, onActivate }:
                     }
 
                     {!isSeparator && (
-                        <Icon className={cn(
-                            "shrink-0 relative size-3.5",
-                            isSubmenu
-                                ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
-                                : isRegistry
-                                    ? "opacity-70"
-                                    : "text-foreground/70 fill-foreground/10!",
-                        )} />
+                        <Icon
+                            className={cn("shrink-0 relative size-3.5",
+                                isSubmenu
+                                    ? "text-yellow-900 dark fill-yellow-200 stroke-1 dark:text-yellow-400 dark:fill-yellow-900"
+                                    : isRegistry
+                                        ? "opacity-70"
+                                        : "text-foreground/70 fill-foreground/10!",
+                            )}
+                        />
                     )}
 
                     {isSeparator
@@ -260,7 +261,8 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false, onActivate }:
                                 <span className="flex-1 relative -ml-1.5 mr-2 max-w-40 border-t border-foreground/40" />
                                 {isDirty && <DirtyDot />}
                             </>
-                        ) : isRoot && working
+                        )
+                        : isRoot && working
                             ? (
                                 <span className="flex-1 min-w-0 flex items-center gap-1">
                                     <span className="min-w-0 truncate" title={working.detail}>
@@ -269,30 +271,33 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false, onActivate }:
                                     <RootFileInfoButton working={working} error={snap.error} />
                                     {snap.dirty && <ModifiedBadge onSave={ToolsConfig_Apply} />}
                                 </span>
-                            ) : canRename ? (
-                                <TreeRowLabel
-                                    renaming={renaming}
-                                    onBeginRename={beginRename}
-                                    trailing={isDirty ? <DirtyDot /> : null}
-                                    editor={(
-                                        <TreeInlineName
-                                            value={node.menuName}
-                                            placeholder="Menu label"
-                                            onCommit={commitRename}
-                                            onCancel={() => setRenaming(false)}
-                                        />
-                                    )}
-                                >
-                                    {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
-                                </TreeRowLabel>
-                            ) : (
-                                <span className="flex-1 min-w-0 flex items-center gap-1 overflow-hidden">
-                                    <span className="min-w-0 truncate">
-                                        {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
-                                    </span>
-                                    {isDirty && <DirtyDot />}
-                                </span>
                             )
+                            : canRename
+                                ? (
+                                    <TreeRowLabel
+                                        renaming={renaming}
+                                        onBeginRename={beginRename}
+                                        trailing={isDirty ? <DirtyDot /> : null}
+                                        editor={(
+                                            <TreeInlineName
+                                                value={node.menuName}
+                                                placeholder="Menu label"
+                                                onCommit={commitRename}
+                                                onCancel={() => setRenaming(false)}
+                                            />
+                                        )}
+                                    >
+                                        {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
+                                    </TreeRowLabel>
+                                )
+                                : (
+                                    <span className="flex-1 min-w-0 flex items-center gap-1 overflow-hidden">
+                                        <span className="min-w-0 truncate">
+                                            {node.menuName || <span className="text-muted-foreground italic">(unnamed)</span>}
+                                        </span>
+                                        {isDirty && <DirtyDot />}
+                                    </span>
+                                )
                     }
                 </div>
             </div>
@@ -301,16 +306,18 @@ function TreeRow({ node, depth, isLast, ancestors, isRoot = false, onActivate }:
                 children.length > 0
                     ? (
                         <div>
-                            {children.map((child, index) => (
-                                <TreeRow
-                                    key={child.uid}
-                                    node={child}
-                                    depth={depth + 1}
-                                    isLast={index === children.length - 1}
-                                    ancestors={childAncestors}
-                                    onActivate={onActivate}
-                                />
-                            ))}
+                            {children.map(
+                                (child, index) => (
+                                    <TreeRow
+                                        key={child.uid}
+                                        node={child}
+                                        depth={depth + 1}
+                                        isLast={index === children.length - 1}
+                                        ancestors={childAncestors}
+                                        onActivate={onActivate}
+                                    />
+                                )
+                            )}
                         </div>
                     )
                     : isRoot

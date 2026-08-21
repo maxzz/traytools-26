@@ -1,8 +1,11 @@
-"use client";
+"use client"; // 08.20.26
 import { type ComponentProps, type HTMLAttributes, type ReactNode, type RefObject, createContext, useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, } from "react";
 import { cn } from "@/utils/classnames";
-import { ChevronRight, File, Folder, FolderOpen } from "lucide-react"; //source https://www.kibo-ui.com/components/tree //demo https://www.shadcnblocks.com/component/tree/tree-expanded-1
 import { AnimatePresence, motion } from "motion/react";
+import { ChevronRight, File, Folder, FolderOpen } from "lucide-react"; //source https://www.kibo-ui.com/components/tree //demo https://www.shadcnblocks.com/component/tree/tree-expanded-1
+
+//---------------------------------------------------------------------------
+// TreeContext
 
 type TreeContextType = {
     toggleExpanded: (nodeId: string) => void;
@@ -16,6 +19,39 @@ type TreeContextType = {
 };
 
 const TreeContext = createContext<TreeContextType | undefined>(undefined);
+
+const useTree = () => {
+    const context = useContext(TreeContext);
+    if (!context) {
+        throw new Error("Tree components must be used within a TreeProvider");
+    }
+    return context;
+};
+
+//---------------------------------------------------------------------------
+// TreeNodeContext
+
+type TreeNodeContextType = {
+    nodeId: string;
+    level: number;
+    isLast: boolean;
+    parentPath: boolean[];
+};
+
+const TreeNodeContext = createContext<TreeNodeContextType | undefined>(
+    undefined
+);
+
+const useTreeNode = () => {
+    const context = useContext(TreeNodeContext);
+    if (!context) {
+        throw new Error("TreeNode components must be used within a TreeNode");
+    }
+    return context;
+};
+
+//---------------------------------------------------------------------------
+//
 
 type TreeNodeSubscriptionStore = {
     listeners: Map<string, Set<() => void>>;
@@ -63,24 +99,24 @@ function notifyNodeListeners(store: TreeNodeSubscriptionStore, nodeIds: Iterable
 
 function createNodeSubscriptionContext(storeRef: RefObject<TreeNodeSubscriptionStore | null>, getSnapshot: (nodeId: string) => boolean): TreeNodeSubscriptionContextType {
     return {
-        subscribe: (nodeId, listener) => {
-            const store = storeRef.current;
-            if (!store) {
-                return () => undefined;
-            }
-
-            const nodeListeners =
-                store.listeners.get(nodeId) ?? new Set<() => void>();
-            nodeListeners.add(listener);
-            store.listeners.set(nodeId, nodeListeners);
-
-            return () => {
-                nodeListeners.delete(listener);
-                if (nodeListeners.size === 0) {
-                    store.listeners.delete(nodeId);
+        subscribe:
+            (nodeId, listener) => {
+                const store = storeRef.current;
+                if (!store) {
+                    return () => undefined;
                 }
-            };
-        },
+
+                const nodeListeners = store.listeners.get(nodeId) ?? new Set<() => void>();
+                nodeListeners.add(listener);
+                store.listeners.set(nodeId, nodeListeners);
+
+                return () => {
+                    nodeListeners.delete(listener);
+                    if (nodeListeners.size === 0) {
+                        store.listeners.delete(nodeId);
+                    }
+                };
+            },
         getSnapshot,
     };
 }
@@ -109,32 +145,7 @@ function useTreeNodeExpanded(nodeId: string) {
     );
 }
 
-const useTree = () => {
-    const context = useContext(TreeContext);
-    if (!context) {
-        throw new Error("Tree components must be used within a TreeProvider");
-    }
-    return context;
-};
-
-type TreeNodeContextType = {
-    nodeId: string;
-    level: number;
-    isLast: boolean;
-    parentPath: boolean[];
-};
-
-const TreeNodeContext = createContext<TreeNodeContextType | undefined>(
-    undefined
-);
-
-const useTreeNode = () => {
-    const context = useContext(TreeNodeContext);
-    if (!context) {
-        throw new Error("TreeNode components must be used within a TreeNode");
-    }
-    return context;
-};
+//
 
 export type TreeProviderProps = {
     children: ReactNode;
@@ -361,7 +372,7 @@ function TreeNodeTriggerContent({ children, className, hasChildren = false, isSe
     return (
         <motion.div
             className={cn(
-                "relative group mx-1 px-3 py-1 transition-all duration-200 rounded-none flex items-center cursor-pointer",
+                "relative group mx-1 px-3 py-0.5 transition-all duration-200 rounded-none flex items-center cursor-pointer",
                 !isSelected && "hover:bg-accent/50",
                 isSelected && "bg-tree-select text-tree-select-foreground",
                 isSelected && "group-focus-within/tree:bg-tree-select-focused group-focus-within/tree:text-tree-select-focused-foreground",
@@ -529,22 +540,19 @@ export function TreeIcon({ icon, hasChildren = false, className, ...props }: Tre
         return null;
     }
 
-    const getDefaultIcon = () => hasChildren ? (
-        isExpanded ? (
-            <FolderOpen className="h-4 w-4" />
-        ) : (
-            <Folder className="h-4 w-4" />
-        )
-    ) : (
-        <File className="h-4 w-4" />
-    );
+    function getDefaultIcon() {
+        const rv =
+            hasChildren
+                ? isExpanded
+                    ? <FolderOpen className="size-4" />
+                    : <Folder className="size-4" />
+                : <File className="size-4" />;
+        return rv;
+    }
 
     return (
         <motion.div
-            className={cn(
-                "mr-2 h-4 w-4 text-muted-foreground flex items-center justify-center",
-                className
-            )}
+            className={cn("mr-2 size-4 text-muted-foreground flex items-center justify-center", className)}
             transition={{ duration: 0.15 }}
             whileHover={{ scale: 1.1 }}
             {...props}

@@ -10,10 +10,6 @@ import { recordProcessSelection } from "./a-process-history";
 import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom, groupByProcessAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
 
-const treeScrollViewportProps = {
-    "data-windows-tree-scroll": "",
-} as HTMLAttributes<HTMLDivElement>;
-
 export function WindowTreeView() {
     const { count, loading, error } = useSnapshot(windowTreeStore);
     const { windowHighlight } = useSnapshot(appSettings);
@@ -90,3 +86,5 @@ export function WindowTreeView() {
         </div>
     );
 }
+
+const treeScrollViewportProps = { "data-windows-tree-scroll": "", } as HTMLAttributes<HTMLDivElement>;

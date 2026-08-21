@@ -5,7 +5,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/ui/shadc
 import { appSettings } from "@/store/1-ui-settings";
 import { PANEL_GROUPS, savePanelLayout } from "@/store/2-panel-sizes";
 import { ensureWindowTreeLoaded } from "@/components/2-main/5-1-tab-windows-tree/a-windows-tree-calls";
-import { WindowTreeView } from "./2-0-windows-tree";
+import { WindowTreeView } from "./2-0-tree";
 import { WindowProps } from "./5-window-props";
 import { WindowTreeToolbar } from "./1-0-windows-toolbar";
 
