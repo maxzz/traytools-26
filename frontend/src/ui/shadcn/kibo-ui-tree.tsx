@@ -142,22 +142,21 @@ export type TreeProviderProps = {
     showLines?: boolean;
     showIcons?: boolean;
     selectable?: boolean;
-    multiSelect?: boolean;
-    /** When false (default), clicking an already-selected row does nothing. */
-    deselectOnReselect?: boolean;
-    selectedIds?: string[];
+    multiSelect?: boolean;                 // Allow multiple selection.
+    deselectOnReselect?: boolean;          // When false (default), clicking an already-selected row does nothing.
+    selectedIds?: string[];                // Controlled selection.
     onSelectionChange?: (selectedIds: string[]) => void;
-    /** Fired when a selected row is clicked again and deselectOnReselect is false. */
-    onReselect?: (nodeId: string) => void;
-    indent?: number;
-    /** Expand/collapse height animation. Off unless the prop is passed as true. */
-    animateExpand?: boolean;
-    /** Mount slide (opacity + y). Off unless the prop is passed as true. */
-    animateAppear?: boolean;
+    onReselect?: (nodeId: string) => void; // Fired when a selected row is clicked again and deselectOnReselect is false.
+    indent?: number;                       // Indentation width.
+    animateExpand?: boolean;               // Expand/collapse height animation. Off unless the prop is passed as true.
+    animateAppear?: boolean;               // Mount slide (opacity + y). Off unless the prop is passed as true.
     className?: string;
 };
 
-export function TreeProvider({ children, defaultExpandedIds = [], showLines = true, showIcons = true, selectable = true, multiSelect = false, deselectOnReselect = false, selectedIds, onSelectionChange, onReselect, indent = 20, animateExpand = false, animateAppear = false, className, }: TreeProviderProps) {
+export function TreeProvider({
+    children, defaultExpandedIds = [], showLines = true, showIcons = true, selectable = true, multiSelect = false, deselectOnReselect = false,
+    selectedIds, onSelectionChange, onReselect, indent = 20, animateExpand, animateAppear, className,
+}: TreeProviderProps) {
     const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>(selectedIds ?? []);
     const selectionStoreRef = useRef<TreeSelectionStore>({
         selectedIds: selectedIds ?? [],
@@ -255,17 +254,7 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
             indent,
             animateExpand,
         }),
-        [
-            toggleExpanded,
-            handleSelection,
-            showLines,
-            showIcons,
-            selectable,
-            multiSelect,
-            indent,
-            animateExpand,
-        ]
-    );
+        [toggleExpanded, handleSelection, showLines, showIcons, selectable, multiSelect, indent, animateExpand]);
 
     return (
         <TreeExpandedContext.Provider value={expandedContextValue}>
