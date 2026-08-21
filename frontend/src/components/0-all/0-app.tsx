@@ -9,6 +9,7 @@ import { cacheWindowSizeKey, windowSizeKeyAtom } from "@/components/4-dialogs/8-
 import { Header } from "../1-header/0-all-header/0-all-header";
 import { Section3_Footer } from "../3-footer";
 import { WindowPickerStatusBar } from "@/components/window-picker";
+import { WindowTreeLoadNotice } from "@/components/2-main/5-1-tab-windows-tree/2-3-tree-load-notice";
 import { AllDialogs } from "./9-globals";
 import { getValidMainTab, getValidTabComponent } from "./8-pages-array";
 
@@ -65,7 +66,7 @@ function AppFooter({ isMini }: { isMini: boolean; }) {
     const { mainTab } = useSnapshot(appSettings);
     const windowsTab = getValidMainTab(mainTab) === "windows-tree";
     if (!isMini && windowsTab) {
-        return <WindowPickerStatusBar />;
+        return <WindowPickerStatusBar idle={<WindowTreeLoadNotice key="ready" />} />;
     }
     return <Section3_Footer />;
 }

@@ -9,7 +9,6 @@ import { windowTreeStore, loadSelectionInfo, maybeHighlightSelectedWindow } from
 import { recordProcessSelection } from "./a-process-history";
 import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom, groupByProcessAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
-import { WindowTreeLoadNotice } from "./2-3-tree-load-notice";
 
 const treeScrollViewportProps = {
     "data-windows-tree-scroll": "",
@@ -65,8 +64,7 @@ export function WindowTreeView() {
                 <ScrollArea className="size-full" fixedWidth parentContentWidth viewportProps={treeScrollViewportProps}>
                     {!tree
                         ? (
-                            <div className="p-3 text-xs text-muted-foreground flex items-center min-h-6">
-                                <WindowTreeLoadNotice className="ml-0" />
+                            <div className="p-3 text-xs text-muted-foreground">
                                 {!loading && !error && "No windows. Press Refresh."}
                             </div>
                         )

@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useSnapshot } from "valtio";
 import { windowPickerStore } from "./a-store";
@@ -5,9 +6,10 @@ import { WindowPickerStatusReadout } from "./2-status-readout";
 
 /**
  * Status bar used on the Windows tab. Always visible (the footer hide setting
- * does not apply). During a finder drag it shows screen/client coordinates.
+ * does not apply). During a finder drag it shows screen/client coordinates;
+ * otherwise `idle` (Ready / tree load status) in the same slot.
  */
-export function WindowPickerStatusBar() {
+export function WindowPickerStatusBar({ idle }: { idle?: ReactNode; }) {
     const { active } = useSnapshot(windowPickerStore);
 
     return (
@@ -16,7 +18,7 @@ export function WindowPickerStatusBar() {
                 <AnimatePresence initial={false} mode="popLayout">
                     {active
                         ? <WindowPickerStatusReadout key="window-picker" />
-                        : <ReadyRow key="ready" />
+                        : idle ?? <ReadyRow key="ready" />
                     }
                 </AnimatePresence>
             </div>
