@@ -12,6 +12,7 @@ import {
     type RectInfo,
 } from "@/bridge";
 import { isBackendAvailable } from "@/wails/is-wails";
+import { collectWindowProcessPaths, ensureFileIcons } from "../5-file-icons";
 import { appSettings } from "@/store/1-ui-settings";
 import { notice } from "@/ui/local-ui/7-toaster";
 import {
@@ -101,6 +102,7 @@ export async function refreshWindowTree(): Promise<void> {
         }
         windowTreeStore.root = tree?.root ?? null;
         windowTreeStore.count = tree?.count ?? 0;
+        ensureFileIcons(collectWindowProcessPaths(tree?.root ?? null));
     } catch (e) {
         if (requestId !== treeRequestId) {
             return;

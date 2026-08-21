@@ -104,7 +104,7 @@ function filterNode(node: WindowNode, needle: string, hideInvisible: boolean, co
  */
 function groupTopLevelByProcessName(root: WindowNode): WindowNode {
     const top = root.children ?? [];
-    type Group = { processId: number; processName: string; label: string; windows: WindowNode[]; };
+    type Group = { processId: number; processName: string; processPath: string; label: string; windows: WindowNode[]; };
     const groups = new Map<number, Group>();
     const order: number[] = [];
 
@@ -116,11 +116,14 @@ function groupTopLevelByProcessName(root: WindowNode): WindowNode {
             group = {
                 processId,
                 processName,
+                processPath: (win.processPath ?? "").trim(),
                 label: processName !== "" ? processName : `PID ${processId}`,
                 windows: [],
             };
             groups.set(processId, group);
             order.push(processId);
+        } else if (!group.processPath && win.processPath) {
+            group.processPath = win.processPath.trim();
         }
         group.windows.push(win);
     }
@@ -136,6 +139,7 @@ function groupTopLevelByProcessName(root: WindowNode): WindowNode {
                 processId: group.processId,
                 threadId: 0,
                 processName: group.processName,
+                processPath: group.processPath,
                 style: 0,
                 exStyle: 0,
                 visible: true,

@@ -13,6 +13,8 @@ export interface WindowNode {
     threadId: number;
     /** Image basename (e.g. chrome.exe); empty when the process could not be queried. */
     processName: string;
+    /** Full image path on top-level windows (and process-group folders); used for exe icons. */
+    processPath?: string;
     style: number;
     exStyle: number;
     visible: boolean;

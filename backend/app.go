@@ -9,6 +9,7 @@ import (
 
 	"traytools-26-go/backend/bus"
 	"traytools-26-go/backend/dpagent"
+	"traytools-26-go/backend/fileicon"
 	copyops "traytools-26-go/backend/tab-1-copyops"
 	windowtree "traytools-26-go/backend/tab-2-windowtree"
 	tracemanager "traytools-26-go/backend/tab-3-tracemanager"
@@ -40,6 +41,7 @@ type App struct {
 	copyops       *copyops.Manager
 	syncops       *syncops.Manager
 	registryops   *registryops.Manager
+	fileIcons     *fileicon.Manager
 	quitRequested bool
 	trayIcon      []byte
 
@@ -63,6 +65,7 @@ func NewApp() *App {
 		copyops:     copyops.New(),
 		syncops:     syncops.New(),
 		registryops: registryops.New(),
+		fileIcons:   fileicon.New(),
 	}
 	a.registerHandlers()
 	a.trace.Register(a.bus)
@@ -74,6 +77,7 @@ func NewApp() *App {
 	a.copyops.Register(a.bus)
 	a.syncops.Register(a.bus)
 	a.registryops.Register(a.bus)
+	a.fileIcons.Register(a.bus)
 	return a
 }
 

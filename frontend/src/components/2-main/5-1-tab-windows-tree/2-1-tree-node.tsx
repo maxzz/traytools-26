@@ -4,7 +4,7 @@ import { classNames } from "@/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { type WindowNode, isProcessGroupHandle } from "@/bridge";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
-import { AppWindow, Square, Layers } from "lucide-react";
+import { WindowNodeIcon } from "../5-file-icons";
 import { showHandlesAtom, showProcessIdsAtom, selectedHandleAtom, boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
 
 interface WindowTreeNodeProps {
@@ -29,7 +29,10 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
         <TreeNode nodeId={node.handle} level={level} isLast={isLast} parentPath={parentPath}>
             <TreeNodeTrigger hasChildren={hasChildren} data-tree-node-id={node.handle}>
                 <TreeExpander hasChildren={hasChildren} />
-                <TreeIcon hasChildren={hasChildren || isRoot || isProcessGroup} icon={isRoot || isProcessGroup ? undefined : nodeIcon(node)} />
+                <TreeIcon
+                    hasChildren={hasChildren || isRoot || isProcessGroup}
+                    icon={isRoot ? undefined : <WindowNodeIcon node={node} isProcessGroup={isProcessGroup} />}
+                />
                 <TreeLabel className={classNames("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
                     {nodeLabel(node, isRoot, isProcessGroup, showHandles, showProcessIds)}
                 </TreeLabel>
@@ -119,16 +122,3 @@ function nodeLabel(node: WindowNode, isRoot: boolean, isProcessGroup: boolean, s
         <span className="font-condensed">{cls}{text}</span>
     </>);
 }
-
-function nodeIcon(node: WindowNode) {
-    if (node.style & WS_CHILD) {
-        return <Square className="size-3.5" />;
-    }
-    if (node.style & WS_POPUP) {
-        return <Layers className="size-3.5" />;
-    }
-    return <AppWindow className="size-3.5" />;
-}
-
-const WS_CHILD = 0x40000000;
-const WS_POPUP = 0x80000000;

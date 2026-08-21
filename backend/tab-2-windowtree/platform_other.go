@@ -18,6 +18,7 @@ func platformGetTree() (WindowTree, error) {
 				ProcessID:   1234,
 				ThreadID:    10,
 				ProcessName: "demo.exe",
+				ProcessPath: "/usr/bin/demo",
 				Style:       wsVisible | wsCaption(),
 				Visible:     true,
 				Children: []WindowNode{
@@ -32,6 +33,7 @@ func platformGetTree() (WindowTree, error) {
 				ProcessID:   5678,
 				ThreadID:    20,
 				ProcessName: "other.exe",
+				ProcessPath: "/usr/bin/other",
 				Style:       wsVisible | wsCaption(),
 				Visible:     true,
 			},
