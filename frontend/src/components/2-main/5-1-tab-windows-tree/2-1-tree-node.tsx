@@ -4,7 +4,7 @@ import { classNames } from "@/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { type WindowNode, isProcessGroupHandle } from "@/bridge";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
-import { AppWindow, Square, Layers, Folder } from "lucide-react";
+import { AppWindow, Square, Layers } from "lucide-react";
 import { showHandlesAtom, showProcessIdsAtom, selectedHandleAtom, boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
 
 interface WindowTreeNodeProps {
@@ -28,7 +28,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
         <TreeNode nodeId={node.handle} level={level} isLast={isLast} parentPath={parentPath}>
             <TreeNodeTrigger hasChildren={hasChildren} data-tree-node-id={node.handle}>
                 <TreeExpander hasChildren={hasChildren} />
-                <TreeIcon hasChildren={hasChildren} icon={nodeIcon(node, isRoot, isProcessGroup)} />
+                <TreeIcon hasChildren={hasChildren || isRoot || isProcessGroup} icon={isRoot || isProcessGroup ? undefined : nodeIcon(node)} />
                 <TreeLabel className={classNames("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
                     {nodeLabel(node, isRoot, isProcessGroup, showHandles, showProcessIds)}
                 </TreeLabel>
@@ -118,10 +118,7 @@ function nodeLabel(node: WindowNode, isRoot: boolean, isProcessGroup: boolean, s
     </>);
 }
 
-function nodeIcon(node: WindowNode, isRoot: boolean, isProcessGroup: boolean) {
-    if (isRoot || isProcessGroup) {
-        return <Folder className="size-4" />;
-    }
+function nodeIcon(node: WindowNode) {
     if (node.style & WS_CHILD) {
         return <Square className="size-4" />;
     }
