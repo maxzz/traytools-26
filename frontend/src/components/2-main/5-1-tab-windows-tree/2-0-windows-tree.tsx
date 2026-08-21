@@ -73,7 +73,6 @@ export function WindowTreeView() {
                                 className="w-full"
                                 indent={16}
                                 showLines
-                                animateExpand={false}
                                 defaultExpandedIds={expandIds}
                                 selectedIds={selected ? [selected] : []}
                                 onSelectionChange={onSelectionChange}

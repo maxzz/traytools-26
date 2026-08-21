@@ -1,5 +1,5 @@
 "use client";
-import { type ComponentProps, type HTMLAttributes, type ReactNode, type RefObject, createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, } from "react";
+import { type ComponentProps, type HTMLAttributes, type ReactNode, type RefObject, createContext, useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, } from "react";
 import { cn } from "@/utils/classnames";
 import { ChevronRight, File, Folder, FolderOpen } from "lucide-react"; //source https://www.kibo-ui.com/components/tree //demo https://www.shadcnblocks.com/component/tree/tree-expanded-1
 import { AnimatePresence, motion } from "motion/react";
@@ -150,11 +150,14 @@ export type TreeProviderProps = {
     /** Fired when a selected row is clicked again and deselectOnReselect is false. */
     onReselect?: (nodeId: string) => void;
     indent?: number;
+    /** Expand/collapse height animation. Off unless the prop is passed as true. */
     animateExpand?: boolean;
+    /** Mount slide (opacity + y). Off unless the prop is passed as true. */
+    animateAppear?: boolean;
     className?: string;
 };
 
-export function TreeProvider({ children, defaultExpandedIds = [], showLines = true, showIcons = true, selectable = true, multiSelect = false, deselectOnReselect = false, selectedIds, onSelectionChange, onReselect, indent = 20, animateExpand = true, className, }: TreeProviderProps) {
+export function TreeProvider({ children, defaultExpandedIds = [], showLines = true, showIcons = true, selectable = true, multiSelect = false, deselectOnReselect = false, selectedIds, onSelectionChange, onReselect, indent = 20, animateExpand = false, animateAppear = false, className, }: TreeProviderProps) {
     const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>(selectedIds ?? []);
     const selectionStoreRef = useRef<TreeSelectionStore>({
         selectedIds: selectedIds ?? [],
@@ -268,9 +271,23 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
         <TreeExpandedContext.Provider value={expandedContextValue}>
             <TreeSelectionContext.Provider value={selectionContextValue}>
                 <TreeContext.Provider value={treeContextValue}>
-                    <div className={cn("w-full", className)}>
-                        {children}
-                    </div>
+                    {animateAppear
+                        ? (
+                            <motion.div
+                                className={cn("w-full", className)}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                            >
+                                {children}
+                            </motion.div>
+                        )
+                        : (
+                            <div className={cn("w-full", className)}>
+                                {children}
+                            </div>
+                        )
+                    }
                 </TreeContext.Provider>
             </TreeSelectionContext.Provider>
         </TreeExpandedContext.Provider>
@@ -446,8 +463,8 @@ export function TreeNodeContent({ children, hasChildren = false, className, ...p
             return null;
         }
         return (
-            <div className={className} {...props}>
-                {children}
+            <div className={className}>
+                {children as ReactNode}
             </div>
         );
     }
