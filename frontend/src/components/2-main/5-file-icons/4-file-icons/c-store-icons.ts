@@ -3,9 +3,7 @@ import { fileIconBus } from "@/bridge";
 import { type FileIconEntry } from "./9-types-icons";
 
 /** Path-keyed icon cache. Keys are normalized (lowercased, trimmed). */
-export const fileIconStore = proxy<{
-    byPath: Record<string, FileIconEntry>;
-}>({
+export const fileIconStore = proxy<{ byPath: Record<string, FileIconEntry>; }>({
     byPath: {},
 });
 

@@ -10,15 +10,18 @@ export function collectWindowProcessPaths(root: WindowNode | null | undefined): 
     }
     const seen = new Set<string>();
     const out: string[] = [];
+
     for (const child of root.children ?? []) {
         const path = (child.processPath ?? "").trim();
         if (!path) {
             continue;
         }
+
         const key = path.toLowerCase();
         if (seen.has(key)) {
             continue;
         }
+        
         seen.add(key);
         out.push(path);
     }
