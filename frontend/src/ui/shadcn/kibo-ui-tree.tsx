@@ -268,14 +268,9 @@ export function TreeProvider({ children, defaultExpandedIds = [], showLines = tr
         <TreeExpandedContext.Provider value={expandedContextValue}>
             <TreeSelectionContext.Provider value={selectionContextValue}>
                 <TreeContext.Provider value={treeContextValue}>
-                    <motion.div
-                        animate={{ opacity: 1, y: 0 }}
-                        className={cn("w-full", className)}
-                        initial={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                    >
+                    <div className={cn("w-full", className)}>
                         {children}
-                    </motion.div>
+                    </div>
                 </TreeContext.Provider>
             </TreeSelectionContext.Provider>
         </TreeExpandedContext.Provider>
@@ -444,28 +439,35 @@ export function TreeNodeContent({ children, hasChildren = false, className, ...p
     const { nodeId } = useTreeNode();
     const isExpanded = useTreeNodeExpanded(nodeId);
 
+    // Instant expand/collapse: skip Motion so remounts (refresh, filter) do not
+    // play height/y enter animations that make the tree slide or grow.
+    if (!animateExpand) {
+        if (!hasChildren || !isExpanded) {
+            return null;
+        }
+        return (
+            <div className={className} {...props}>
+                {children}
+            </div>
+        );
+    }
+
     return (
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
             {hasChildren && isExpanded && (
                 <motion.div
                     animate={{ height: "auto", opacity: 1 }}
                     className="overflow-hidden"
                     exit={{ height: 0, opacity: 0 }}
                     initial={{ height: 0, opacity: 0 }}
-                    transition={{
-                        duration: animateExpand ? 0.3 : 0,
-                        ease: "easeInOut",
-                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                 >
                     <motion.div
                         animate={{ y: 0 }}
                         className={className}
                         exit={{ y: -10 }}
                         initial={{ y: -10 }}
-                        transition={{
-                            duration: animateExpand ? 0.2 : 0,
-                            delay: animateExpand ? 0.1 : 0,
-                        }}
+                        transition={{ duration: 0.2, delay: 0.1 }}
                         {...props}
                     >
                         {children}
@@ -481,7 +483,7 @@ export type TreeExpanderProps = ComponentProps<typeof motion.div> & {
 };
 
 export function TreeExpander({ hasChildren = false, className, onClick, ...props }: TreeExpanderProps) {
-    const { toggleExpanded } = useTree();
+    const { toggleExpanded, animateExpand } = useTree();
     const { nodeId } = useTreeNode();
     const isExpanded = useTreeNodeExpanded(nodeId);
 
@@ -493,7 +495,8 @@ export function TreeExpander({ hasChildren = false, className, onClick, ...props
         <motion.div
             className={cn("mr-1 h-4 w-4 flex items-center justify-center cursor-pointer", className)}
             animate={{ rotate: isExpanded ? 90 : 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            initial={false}
+            transition={{ duration: animateExpand ? 0.2 : 0, ease: "easeInOut" }}
             onClick={(e) => {
                 e.stopPropagation();
                 toggleExpanded(nodeId);
