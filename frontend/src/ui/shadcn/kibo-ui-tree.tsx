@@ -544,15 +544,15 @@ export function TreeIcon({ icon, hasChildren = false, className, ...props }: Tre
         const rv =
             hasChildren
                 ? isExpanded
-                    ? <FolderOpen className="size-4" />
-                    : <Folder className="size-4" />
-                : <File className="size-4" />;
+                    ? <FolderOpen className="size-3.5" />
+                    : <Folder className="size-3.5" />
+                : <File className="size-3.5" />;
         return rv;
     }
 
     return (
         <motion.div
-            className={cn("mr-2 size-4 text-muted-foreground flex items-center justify-center", className)}
+            className={cn("mr-1 size-4 text-muted-foreground flex items-center justify-center", className)}
             transition={{ duration: 0.15 }}
             whileHover={{ scale: 1.1 }}
             {...props}

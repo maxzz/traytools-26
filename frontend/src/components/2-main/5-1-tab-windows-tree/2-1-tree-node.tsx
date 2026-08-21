@@ -20,6 +20,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
     const selectedHandle = useAtomValue(selectedHandleAtom);
     const isRoot = node.handle === "root";
     const isProcessGroup = isProcessGroupHandle(node.handle);
+    
     const children = node.children ?? [];
     const hasChildren = children.length > 0;
     const isSelected = !isRoot && selectedHandle === node.handle;
@@ -32,6 +33,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
                 <TreeLabel className={classNames("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
                     {nodeLabel(node, isRoot, isProcessGroup, showHandles, showProcessIds)}
                 </TreeLabel>
+
                 {isSelected && <BoundsNoticeFlashBadge handle={node.handle} />}
             </TreeNodeTrigger>
 
@@ -120,12 +122,12 @@ function nodeLabel(node: WindowNode, isRoot: boolean, isProcessGroup: boolean, s
 
 function nodeIcon(node: WindowNode) {
     if (node.style & WS_CHILD) {
-        return <Square className="size-4" />;
+        return <Square className="size-3.5" />;
     }
     if (node.style & WS_POPUP) {
-        return <Layers className="size-4" />;
+        return <Layers className="size-3.5" />;
     }
-    return <AppWindow className="size-4" />;
+    return <AppWindow className="size-3.5" />;
 }
 
 const WS_CHILD = 0x40000000;
