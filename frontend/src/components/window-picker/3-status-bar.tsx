@@ -11,10 +11,7 @@ export function WindowPickerStatusBar() {
     const { active } = useSnapshot(windowPickerStore);
 
     return (
-        <div
-            data-app-windows-status
-            className="shrink-0 h-7 text-[.65rem] bg-muted/20 border-t border-border flex items-center"
-        >
+        <div className="shrink-0 h-7 text-[.65rem] bg-muted/20 border-t border-border flex items-center" data-app-windows-status>
             <div className="relative flex-1 min-w-0 h-full overflow-hidden">
                 <AnimatePresence initial={false} mode="popLayout">
                     {active

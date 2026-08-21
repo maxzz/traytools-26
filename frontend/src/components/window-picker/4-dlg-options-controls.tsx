@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { normalizeDragIcon, normalizeOverlayCursor, type WindowPickerDragIcon } from "./9-types";
 
 /** Window-picker preferences for the settings dialog. */
-export function ControlWindowPicker() {
+export function WindowPickerDialogControl() {
     const { winpicker_DragIcon, winpicker_OverlayCursor } = useSnapshot(appSettings);
     const value = normalizeDragIcon(winpicker_DragIcon);
     const pointer = normalizeOverlayCursor(winpicker_OverlayCursor);

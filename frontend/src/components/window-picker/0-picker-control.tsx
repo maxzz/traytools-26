@@ -4,16 +4,11 @@ import { classNames } from "@/utils";
 import { Button } from "@/ui/shadcn/button";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { WindowPickerTargetIcon } from "./1-target-icon";
-import { startWindowPicker, subscribeWindowPickerReleased, windowPickerStore } from "./a-store";
-import { type WindowPickerReleasedHandler } from "./9-types";
 
-export function WindowPickerControl({
-    className,
-    onReleased,
-}: {
-    className?: string;
-    onReleased?: WindowPickerReleasedHandler;
-}) {
+import { type WindowPickerReleasedHandler } from "./9-types";
+import { startWindowPicker, subscribeWindowPickerReleased, windowPickerStore } from "./a-store";
+
+export function WindowPickerControl({ className, onReleased }: { className?: string; onReleased?: WindowPickerReleasedHandler; }) {
     const { active } = useSnapshot(windowPickerStore);
 
     useEffect(
@@ -23,24 +18,19 @@ export function WindowPickerControl({
             }
             return subscribeWindowPickerReleased(onReleased);
         },
-        [onReleased]
-    );
+        [onReleased]);
 
     return (
         <Button
-            type="button"
+            className={classNames("size-6 shrink-0 rounded active:scale-100", active && "border-dashed border-muted-foreground/40", className)}
             variant="outline"
             size="icon-xs"
-            className={classNames(
-                "size-6 shrink-0 rounded active:scale-100",
-                active && "border-dashed border-muted-foreground/40",
-                className
-            )}
-            title={active ? "Release to pick the window under the cursor" : "Drag onto a window to inspect it"}
-            aria-pressed={active}
             onPointerDown={onFinderPointerDown}
             onContextMenu={(event) => event.preventDefault()}
             onDragStart={(event) => event.preventDefault()}
+            title={active ? "Release to pick the window under the cursor" : "Drag onto a window to inspect it"}
+            aria-pressed={active}
+            type="button"
         >
             <span className="size-4 grid place-items-center">
                 {!active && <WindowPickerTargetIcon />}
@@ -53,6 +43,7 @@ function onFinderPointerDown(event: PointerEvent<HTMLButtonElement>): void {
     if (event.button !== 0) {
         return;
     }
+    
     event.preventDefault();
     void startWindowPicker().then((ok) => {
         if (!ok) {

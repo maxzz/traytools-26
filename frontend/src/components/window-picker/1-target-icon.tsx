@@ -4,13 +4,7 @@ import { classNames } from "@/utils";
 /** Target reticle matching the Spy++ finder: grey rings, red plus, NESW ticks. */
 export function WindowPickerTargetIcon({ className, ...rest }: SVGAttributes<SVGSVGElement>) {
     return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            className={classNames("size-4", className)}
-            aria-hidden
-            {...rest}
-        >
+        <svg className={classNames("size-4", className)} fill="none" aria-hidden viewBox="0 0 24 24" {...rest}>
             <circle cx="12" cy="12" r="8.15" className="stroke-neutral-400 dark:stroke-neutral-300" strokeWidth="1.15" />
             <circle cx="12" cy="12" r="5.15" className="stroke-neutral-400 dark:stroke-neutral-300" strokeWidth="1.15" />
             <path d="M12 9.55v4.9M9.55 12h4.9" className="stroke-red-500" strokeWidth="1.25" strokeLinecap="round" />
