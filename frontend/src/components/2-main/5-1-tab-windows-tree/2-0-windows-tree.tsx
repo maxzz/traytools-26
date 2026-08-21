@@ -9,6 +9,7 @@ import { windowTreeStore, loadSelectionInfo, maybeHighlightSelectedWindow } from
 import { recordProcessSelection } from "./a-process-history";
 import { selectedHandleAtom, treeFilterAtom, hideInvisibleAtom, groupByProcessAtom, filteredTreeAtom, treeExpandRevisionAtom } from "./s-windows-tree-state";
 import { WindowTreeNode } from "./2-1-tree-node";
+import { WindowTreeLoadNotice } from "./2-3-tree-load-notice";
 
 const treeScrollViewportProps = {
     "data-windows-tree-scroll": "",
@@ -62,35 +63,30 @@ export function WindowTreeView() {
         <div className="relative size-full min-h-0">
             <div className="absolute inset-0 px-0.5">
                 <ScrollArea className="size-full" fixedWidth parentContentWidth viewportProps={treeScrollViewportProps}>
-                    {error
+                    {!tree
                         ? (
-                            <div className="p-3 text-xs text-destructive">
-                                Failed to load window tree: {error}
+                            <div className="p-3 text-xs text-muted-foreground flex items-center min-h-6">
+                                <WindowTreeLoadNotice className="ml-0" />
+                                {!loading && !error && "No windows. Press Refresh."}
                             </div>
                         )
-                        : !tree
-                            ? (
-                                <div className="p-3 text-xs text-muted-foreground">
-                                    {loading ? "Loading..." : "No windows. Press Refresh."}
-                                </div>
-                            )
-                            : (
-                                <TreeProvider
-                                    className="w-full"
-                                    indent={16}
-                                    showLines
-                                    animateExpand={false}
-                                    defaultExpandedIds={expandIds}
-                                    selectedIds={selected ? [selected] : []}
-                                    onSelectionChange={onSelectionChange}
-                                    onReselect={onReselect}
-                                    key={providerKey}
-                                >
-                                    <TreeView className="p-0">
-                                        <WindowTreeNode node={tree} level={0} isLast parentPath={[]} />
-                                    </TreeView>
-                                </TreeProvider>
-                            )
+                        : (
+                            <TreeProvider
+                                className="w-full"
+                                indent={16}
+                                showLines
+                                animateExpand={false}
+                                defaultExpandedIds={expandIds}
+                                selectedIds={selected ? [selected] : []}
+                                onSelectionChange={onSelectionChange}
+                                onReselect={onReselect}
+                                key={providerKey}
+                            >
+                                <TreeView className="p-0">
+                                    <WindowTreeNode node={tree} level={0} isLast parentPath={[]} />
+                                </TreeView>
+                            </TreeProvider>
+                        )
                     }
                 </ScrollArea>
             </div>

@@ -6,6 +6,7 @@ import { type WindowNode, isProcessGroupHandle } from "@/bridge";
 import { TreeNode, TreeNodeTrigger, TreeExpander, TreeIcon, TreeLabel, TreeNodeContent } from "@/ui/shadcn/kibo-ui-tree";
 import { AppWindow, Square, Layers, Folder } from "lucide-react";
 import { showHandlesAtom, showProcessIdsAtom, selectedHandleAtom, boundsNoticeFlashAtom, type BoundsNoticeKind } from "./s-windows-tree-state";
+import { WindowTreeLoadNotice } from "./2-3-tree-load-notice";
 
 interface WindowTreeNodeProps {
     node: WindowNode;
@@ -32,6 +33,7 @@ export function WindowTreeNode({ node, level, isLast, parentPath }: WindowTreeNo
                 <TreeLabel className={classNames("text-xs", !isRoot && !isProcessGroup && !node.visible && "")}>
                     {nodeLabel(node, isRoot, isProcessGroup, showHandles, showProcessIds)}
                 </TreeLabel>
+                {isRoot && <WindowTreeLoadNotice />}
                 {isSelected && <BoundsNoticeFlashBadge handle={node.handle} />}
             </TreeNodeTrigger>
 
