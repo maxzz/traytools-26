@@ -61,12 +61,7 @@ export function WindowTreeView() {
     return (
         <div className="relative size-full min-h-0">
             <div className="absolute inset-0 px-0.5">
-                <ScrollArea
-                    className="size-full"
-                    fixedWidth
-                    parentContentWidth
-                    viewportProps={treeScrollViewportProps}
-                >
+                <ScrollArea className="size-full" fixedWidth parentContentWidth viewportProps={treeScrollViewportProps}>
                     {error
                         ? (
                             <div className="p-3 text-xs text-destructive">
@@ -95,7 +90,8 @@ export function WindowTreeView() {
                                         <WindowTreeNode node={tree} level={0} isLast parentPath={[]} />
                                     </TreeView>
                                 </TreeProvider>
-                            )}
+                            )
+                    }
                 </ScrollArea>
             </div>
         </div>
