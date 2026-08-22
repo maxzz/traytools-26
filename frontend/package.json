@@ -20,7 +20,7 @@
         "@types/react": "^19.2.18",
         "@types/react-dom": "^19.2.4",
         "@vitejs/plugin-react": "^6.1.0",
-        "globals": "^17.10.0",
+        "globals": "^17.11.0",
         "jotai-family": "^1.1.0",
         "rollup-plugin-visualizer": "^7.0.1",
         "tailwindcss-plugin-debug-screens-tw4": "^1.0.4",
