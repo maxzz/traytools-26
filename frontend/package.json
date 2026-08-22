@@ -22,7 +22,7 @@
         "@vitejs/plugin-react": "^6.1.0",
         "globals": "^17.11.0",
         "jotai-family": "^1.1.0",
-        "rollup-plugin-visualizer": "^7.0.1",
+        "rollup-plugin-visualizer": "^7.1.1",
         "tailwindcss-plugin-debug-screens-tw4": "^1.0.4",
         "tailwindcss-plugin-overflow-tw4": "^1.0.1",
         "tsx": "^4.23.1",
